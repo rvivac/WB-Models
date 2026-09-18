@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ModelGender, EyeColor, HairColor } from '@/types/database.types';
-import { compressImageClientSide } from '@/lib/utils/image-compression';
+import { compressImageClientSide, validateImageVerticalOrientation } from '@/lib/utils/image-compression';
 import { supabase } from '@/lib/supabase/client';
 import { EYE_COLOR_LABELS, HAIR_COLOR_LABELS } from '@/lib/utils/formatters';
 
@@ -12,12 +12,14 @@ interface UploadedPhotoPreview {
   originalSizeKb: number;
   compressedSizeKb: number;
   label: string;
+  width: number;
+  height: number;
 }
 
 export const ScoutingFunnel: React.FC = () => {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCompressing, setIsCompressing] = useState(false);
+  const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -29,7 +31,7 @@ export const ScoutingFunnel: React.FC = () => {
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
 
-  // Etapa 2: Medidas Corporais
+  // Etapa 2: Medidas Técnicas
   const [gender, setGender] = useState<ModelGender>('female');
   const [heightCm, setHeightCm] = useState<number>(175);
   const [bustChestCm, setBustChestCm] = useState<number>(85);
@@ -40,24 +42,24 @@ export const ScoutingFunnel: React.FC = () => {
   const [eyeColor, setEyeColor] = useState<EyeColor>('castanho_escuro');
   const [hairColor, setHairColor] = useState<HairColor>('castanho_escuro');
 
-  // Etapa 3: Redes Sociais & Contato Adicional
+  // Etapa 3: Contatos & Redes
   const [instagram, setInstagram] = useState('');
 
-  // Etapa 4: Fotos & LGPD
+  // Etapa 4: Fotografias & LGPD
   const [photos, setPhotos] = useState<UploadedPhotoPreview[]>([]);
   const [lgpdConsent, setLgpdConsent] = useState(false);
 
-  // Manipulação e Compressão no Browser
+  // Triagem no Cliente: Validação de Proporção Vertical + Compressão WebP
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
     if (photos.length + files.length > 8) {
-      alert('Limite máximo de 8 fotos por candidatura.');
+      alert('Limite máximo de 8 fotos por inscrição de scouting.');
       return;
     }
 
-    setIsCompressing(true);
+    setIsProcessingPhotos(true);
     setErrorMessage(null);
 
     try {
@@ -65,13 +67,21 @@ export const ScoutingFunnel: React.FC = () => {
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
+
+        // 1. Deteção de Proporções Mínimas e Corte Vertical Obrigatório
+        const validation = await validateImageVerticalOrientation(file);
+        if (!validation.isValid) {
+          throw new Error(`[${file.name}]: ${validation.error}`);
+        }
+
         const originalSizeKb = Math.round(file.size / 1024);
 
-        // Compressão client-side (Max 1920px, WebP, 0.82 quality)
+        // 2. Compressão Automática no Navegador (WebP, teto ~400KB, strip de EXIF)
         const compressedFile = await compressImageClientSide(file, {
           maxDimension: 1920,
-          quality: 0.82,
+          quality: 0.80,
           outputFormat: 'image/webp',
+          maxFileSizeKb: 400,
         });
 
         const compressedSizeKb = Math.round(compressedFile.size / 1024);
@@ -82,15 +92,19 @@ export const ScoutingFunnel: React.FC = () => {
           previewUrl,
           originalSizeKb,
           compressedSizeKb,
-          label: `Foto ${photos.length + i + 1}`,
+          label: `Foto 0${photos.length + i + 1}`,
+          width: validation.width || 0,
+          height: validation.height || 0,
         });
       }
 
       setPhotos((prev) => [...prev, ...newPhotos]);
     } catch (err: any) {
-      setErrorMessage(err.message || 'Erro ao processar as fotos.');
+      setErrorMessage(err.message || 'Erro durante a validação ou compressão da fotografia.');
     } finally {
-      setIsCompressing(false);
+      setIsProcessingPhotos(false);
+      // Limpa input para permitir re-seleção
+      e.target.value = '';
     }
   };
 
@@ -98,15 +112,15 @@ export const ScoutingFunnel: React.FC = () => {
     setPhotos((prev) => prev.filter((_, idx) => idx !== index));
   };
 
-  // Submissão Segura ao Supabase
+  // Submissão Segura em Quarentena com Consentimento LGPD
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!lgpdConsent) {
-      setErrorMessage('Você deve aceitar os termos de consentimento e LGPD para prosseguir.');
+      setErrorMessage('O consentimento explícito em conformidade com a LGPD é mandatório para envio.');
       return;
     }
     if (photos.length === 0) {
-      setErrorMessage('Por favor, adicione pelo menos uma foto de rosto e uma de corpo inteiro.');
+      setErrorMessage('Envie pelo menos 1 foto de rosto frontal e 1 foto de corpo inteiro.');
       return;
     }
 
@@ -114,15 +128,15 @@ export const ScoutingFunnel: React.FC = () => {
     setErrorMessage(null);
 
     try {
-      const uploadedUrls: { url: string; label: string; name: string }[] = [];
+      const uploadedMeta: { url: string; label: string; size_kb: number }[] = [];
 
-      // 1. Upload das fotos comprimidas para o bucket 'scouting-quarantine'
+      // Upload para o bucket seguro 'scouting-quarantine'
       for (const item of photos) {
         const fileExt = 'webp';
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-        const filePath = `candidatures/${fileName}`;
+        const fileHash = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+        const filePath = `applications/${fileHash}.${fileExt}`;
 
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from('scouting-quarantine')
           .upload(filePath, item.file, {
             cacheControl: '3600',
@@ -131,15 +145,15 @@ export const ScoutingFunnel: React.FC = () => {
 
         if (uploadError) throw uploadError;
 
-        uploadedUrls.push({
+        uploadedMeta.push({
           url: filePath,
           label: item.label,
-          name: fileName,
+          size_kb: item.compressedSizeKb,
         });
       }
 
-      // 2. Gravação do Registro com Consentimento LGPD
-      const { error: insertError } = await supabase.from('candidatures').insert({
+      // Gravação na tabela scouting_applications com RLS estrito
+      const { error: insertError } = await supabase.from('scouting_applications').insert({
         full_name: fullName,
         email,
         phone_whatsapp: phoneWhatsapp,
@@ -156,7 +170,7 @@ export const ScoutingFunnel: React.FC = () => {
         dress_size: dressSize,
         eye_color: eyeColor,
         hair_color: hairColor,
-        uploaded_photos: uploadedUrls,
+        uploaded_photos: uploadedMeta,
         lgpd_consent_given: true,
         lgpd_consent_timestamp: new Date().toISOString(),
         lgpd_consent_user_agent: typeof window !== 'undefined' ? window.navigator.userAgent : null,
@@ -166,7 +180,7 @@ export const ScoutingFunnel: React.FC = () => {
 
       setSubmitSuccess(true);
     } catch (err: any) {
-      setErrorMessage(err.message || 'Ocorreu um erro ao enviar sua ficha. Tente novamente.');
+      setErrorMessage(err.message || 'Falha ao registrar a candidatura no servidor seguro.');
     } finally {
       setIsSubmitting(false);
     }
@@ -174,22 +188,22 @@ export const ScoutingFunnel: React.FC = () => {
 
   if (submitSuccess) {
     return (
-      <div className="max-w-2xl mx-auto p-12 text-center border border-black bg-white my-12">
-        <div className="text-xs font-mono tracking-widest text-neutral-500 uppercase mb-2">
-          WB SCOUTING | REGISTRO CONFIRMADO
+      <div className="max-w-2xl mx-auto p-12 text-center border-2 border-black bg-white my-12 shadow-sm">
+        <div className="text-[10px] font-mono tracking-widest text-neutral-500 uppercase mb-2">
+          WB SCOUTING | ENGINE DE TRIAGEM
         </div>
         <h2 className="text-3xl font-black uppercase tracking-tight text-black mb-4">
-          Ficha Recebida com Sucesso
+          Candidatura Registada com Sucesso
         </h2>
         <p className="text-sm font-sans text-neutral-600 mb-6 leading-relaxed">
-          Sua candidatura foi registrada de forma segura em nosso sistema de Scouting. Nossa equipe
-          de bookers avaliará seu perfil e medidas. Caso seu biótipo atenda às demandas de nossos
-          clientes e campanhas atuais, entraremos em contato diretamente pelo WhatsApp informado.
+          Suas fotos e medições biométricas foram validadas no cliente, comprimidas e armazenadas
+          em nosso bucket criptografado em quarentena. O time de scouting da WB avaliará o seu
+          perfil.
         </p>
-        <div className="p-4 bg-neutral-50 border border-neutral-200 text-xs font-mono text-neutral-500 text-left">
-          <strong>Protocolo LGPD:</strong> Seus dados biométricos e fotos estão armazenados em
-          quarentena criptografada e serão automaticamente descartados em 90 dias caso não haja
-          aproveitamento no casting.
+        <div className="p-4 bg-neutral-50 border border-neutral-200 text-xs font-mono text-neutral-600 text-left space-y-1">
+          <div>&bull; <strong>Protocolo LGPD:</strong> Lei Geral de Proteção de Dados nº 13.709/2018</div>
+          <div>&bull; <strong>Isolamento:</strong> Fotografias protegidas por RLS e acessíveis somente via URLs assinadas da agência.</div>
+          <div>&bull; <strong>Descarte Programado:</strong> Eliminação automática em 90 dias caso não haja contratação.</div>
         </div>
       </div>
     );
@@ -197,11 +211,11 @@ export const ScoutingFunnel: React.FC = () => {
 
   return (
     <div className="max-w-3xl mx-auto p-6 sm:p-10 bg-white border border-neutral-300 my-8">
-      {/* Indicador de Etapas Editorial */}
+      {/* Header do Funil */}
       <div className="border-b border-black pb-4 mb-8">
         <div className="flex justify-between items-center mb-2">
           <span className="text-[10px] font-mono tracking-widest text-neutral-500 uppercase">
-            WB TALENT ACQUISITION
+            WB TALENT SCOUTING SYSTEM
           </span>
           <span className="text-xs font-mono font-bold">ETAPA 0{step} / 04</span>
         </div>
@@ -215,11 +229,10 @@ export const ScoutingFunnel: React.FC = () => {
 
       {errorMessage && (
         <div className="mb-6 p-4 bg-red-50 border-l-2 border-red-600 text-xs font-mono text-red-700">
-          {errorMessage}
+          <strong>Aviso de Triagem:</strong> {errorMessage}
         </div>
       )}
 
-      {/* FORMULÁRIO MULTI-ETAPAS */}
       <form onSubmit={handleSubmit}>
         {/* ETAPA 1: Identificação */}
         {step === 1 && (
@@ -236,7 +249,7 @@ export const ScoutingFunnel: React.FC = () => {
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full border border-neutral-300 p-2 text-sm font-sans focus:border-black focus:outline-none"
+                className="w-full border border-neutral-300 p-2.5 text-sm font-sans focus:border-black focus:outline-none"
               />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -249,7 +262,7 @@ export const ScoutingFunnel: React.FC = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full border border-neutral-300 p-2 text-sm font-sans focus:border-black focus:outline-none"
+                  className="w-full border border-neutral-300 p-2.5 text-sm font-sans focus:border-black focus:outline-none"
                 />
               </div>
               <div>
@@ -262,7 +275,7 @@ export const ScoutingFunnel: React.FC = () => {
                   placeholder="(11) 99999-9999"
                   value={phoneWhatsapp}
                   onChange={(e) => setPhoneWhatsapp(e.target.value)}
-                  className="w-full border border-neutral-300 p-2 text-sm font-sans focus:border-black focus:outline-none"
+                  className="w-full border border-neutral-300 p-2.5 text-sm font-sans focus:border-black focus:outline-none"
                 />
               </div>
             </div>
@@ -276,7 +289,7 @@ export const ScoutingFunnel: React.FC = () => {
                   required
                   value={birthDate}
                   onChange={(e) => setBirthDate(e.target.value)}
-                  className="w-full border border-neutral-300 p-2 text-sm font-sans focus:border-black focus:outline-none"
+                  className="w-full border border-neutral-300 p-2.5 text-sm font-sans focus:border-black focus:outline-none"
                 />
               </div>
               <div>
@@ -288,7 +301,7 @@ export const ScoutingFunnel: React.FC = () => {
                   required
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  className="w-full border border-neutral-300 p-2 text-sm font-sans focus:border-black focus:outline-none"
+                  className="w-full border border-neutral-300 p-2.5 text-sm font-sans focus:border-black focus:outline-none"
                 />
               </div>
               <div>
@@ -302,7 +315,7 @@ export const ScoutingFunnel: React.FC = () => {
                   placeholder="SP"
                   value={state}
                   onChange={(e) => setState(e.target.value.toUpperCase())}
-                  className="w-full border border-neutral-300 p-2 text-sm font-sans focus:border-black focus:outline-none"
+                  className="w-full border border-neutral-300 p-2.5 text-sm font-sans focus:border-black focus:outline-none"
                 />
               </div>
             </div>
@@ -311,7 +324,7 @@ export const ScoutingFunnel: React.FC = () => {
                 type="button"
                 onClick={() => {
                   if (!fullName || !email || !phoneWhatsapp || !birthDate || !city || !state) {
-                    setErrorMessage('Por favor, preencha todos os campos obrigatórios.');
+                    setErrorMessage('Preencha todos os campos obrigatórios da identificação.');
                     return;
                   }
                   setErrorMessage(null);
@@ -319,17 +332,17 @@ export const ScoutingFunnel: React.FC = () => {
                 }}
                 className="bg-black text-white px-6 py-2.5 text-xs font-mono uppercase tracking-widest hover:bg-neutral-800"
               >
-                Avançar: Medidas &rarr;
+                Avançar: Medidas Técnicas &rarr;
               </button>
             </div>
           </div>
         )}
 
-        {/* ETAPA 2: Medidas Corporais */}
+        {/* ETAPA 2: Medidas Técnicas */}
         {step === 2 && (
           <div className="space-y-4">
             <h2 className="text-xl font-bold uppercase tracking-tight text-black mb-6">
-              02. Biometria & Medidas
+              02. Biometria & Medidas Corporais
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -339,7 +352,7 @@ export const ScoutingFunnel: React.FC = () => {
                 <select
                   value={gender}
                   onChange={(e) => setGender(e.target.value as ModelGender)}
-                  className="w-full border border-neutral-300 p-2 text-sm font-sans focus:border-black focus:outline-none"
+                  className="w-full border border-neutral-300 p-2.5 text-sm font-sans focus:border-black focus:outline-none"
                 >
                   <option value="female">Feminino</option>
                   <option value="male">Masculino</option>
@@ -353,11 +366,11 @@ export const ScoutingFunnel: React.FC = () => {
                 <input
                   type="number"
                   required
-                  min={140}
-                  max={220}
+                  min={130}
+                  max={225}
                   value={heightCm}
                   onChange={(e) => setHeightCm(Number(e.target.value))}
-                  className="w-full border border-neutral-300 p-2 text-sm font-sans focus:border-black focus:outline-none"
+                  className="w-full border border-neutral-300 p-2.5 text-sm font-sans focus:border-black focus:outline-none"
                 />
               </div>
             </div>
@@ -370,7 +383,7 @@ export const ScoutingFunnel: React.FC = () => {
                   type="number"
                   value={bustChestCm}
                   onChange={(e) => setBustChestCm(Number(e.target.value))}
-                  className="w-full border border-neutral-300 p-2 text-sm font-sans focus:border-black focus:outline-none"
+                  className="w-full border border-neutral-300 p-2.5 text-sm font-sans focus:border-black focus:outline-none"
                 />
               </div>
               <div>
@@ -381,7 +394,7 @@ export const ScoutingFunnel: React.FC = () => {
                   type="number"
                   value={waistCm}
                   onChange={(e) => setWaistCm(Number(e.target.value))}
-                  className="w-full border border-neutral-300 p-2 text-sm font-sans focus:border-black focus:outline-none"
+                  className="w-full border border-neutral-300 p-2.5 text-sm font-sans focus:border-black focus:outline-none"
                 />
               </div>
               <div>
@@ -392,7 +405,7 @@ export const ScoutingFunnel: React.FC = () => {
                   type="number"
                   value={hipsCm}
                   onChange={(e) => setHipsCm(Number(e.target.value))}
-                  className="w-full border border-neutral-300 p-2 text-sm font-sans focus:border-black focus:outline-none"
+                  className="w-full border border-neutral-300 p-2.5 text-sm font-sans focus:border-black focus:outline-none"
                 />
               </div>
             </div>
@@ -405,7 +418,7 @@ export const ScoutingFunnel: React.FC = () => {
                   type="number"
                   value={shoeSize}
                   onChange={(e) => setShoeSize(Number(e.target.value))}
-                  className="w-full border border-neutral-300 p-2 text-sm font-sans focus:border-black focus:outline-none"
+                  className="w-full border border-neutral-300 p-2.5 text-sm font-sans focus:border-black focus:outline-none"
                 />
               </div>
               <div>
@@ -416,7 +429,7 @@ export const ScoutingFunnel: React.FC = () => {
                   type="text"
                   value={dressSize}
                   onChange={(e) => setDressSize(e.target.value)}
-                  className="w-full border border-neutral-300 p-2 text-sm font-sans focus:border-black focus:outline-none"
+                  className="w-full border border-neutral-300 p-2.5 text-sm font-sans focus:border-black focus:outline-none"
                 />
               </div>
               <div>
@@ -426,7 +439,7 @@ export const ScoutingFunnel: React.FC = () => {
                 <select
                   value={eyeColor}
                   onChange={(e) => setEyeColor(e.target.value as EyeColor)}
-                  className="w-full border border-neutral-300 p-2 text-sm font-sans focus:border-black focus:outline-none"
+                  className="w-full border border-neutral-300 p-2.5 text-sm font-sans focus:border-black focus:outline-none"
                 >
                   {Object.entries(EYE_COLOR_LABELS).map(([k, v]) => (
                     <option key={k} value={k}>{v}</option>
@@ -440,7 +453,7 @@ export const ScoutingFunnel: React.FC = () => {
                 <select
                   value={hairColor}
                   onChange={(e) => setHairColor(e.target.value as HairColor)}
-                  className="w-full border border-neutral-300 p-2 text-sm font-sans focus:border-black focus:outline-none"
+                  className="w-full border border-neutral-300 p-2.5 text-sm font-sans focus:border-black focus:outline-none"
                 >
                   {Object.entries(HAIR_COLOR_LABELS).map(([k, v]) => (
                     <option key={k} value={k}>{v}</option>
@@ -471,18 +484,18 @@ export const ScoutingFunnel: React.FC = () => {
         {step === 3 && (
           <div className="space-y-4">
             <h2 className="text-xl font-bold uppercase tracking-tight text-black mb-6">
-              03. Presença Digital
+              03. Contactos & Redes
             </h2>
             <div>
               <label className="block text-xs font-mono uppercase tracking-wider text-neutral-600 mb-1">
-                Instagram Oficial (@usuario)
+                Instagram (@usuario)
               </label>
               <input
                 type="text"
-                placeholder="@seu.perfil"
+                placeholder="@seu.usuario"
                 value={instagram}
                 onChange={(e) => setInstagram(e.target.value)}
-                className="w-full border border-neutral-300 p-2 text-sm font-sans focus:border-black focus:outline-none"
+                className="w-full border border-neutral-300 p-2.5 text-sm font-sans focus:border-black focus:outline-none"
               />
               <span className="text-[10px] font-mono text-neutral-400 mt-1 block">
                 * Mantenha seu perfil aberto durante o período de avaliação do scouting.
@@ -501,69 +514,69 @@ export const ScoutingFunnel: React.FC = () => {
                 onClick={() => setStep(4)}
                 className="bg-black text-white px-6 py-2.5 text-xs font-mono uppercase tracking-widest hover:bg-neutral-800"
               >
-                Avançar: Polaroids & Fotos &rarr;
+                Avançar: Triagem de Fotos &rarr;
               </button>
             </div>
           </div>
         )}
 
-        {/* ETAPA 4: Upload de Fotos & LGPD */}
+        {/* ETAPA 4: Upload com Validação Vertical & LGPD */}
         {step === 4 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-bold uppercase tracking-tight text-black mb-2">
-                04. Fotos Naturais & Polaroids
+              <h2 className="text-xl font-bold uppercase tracking-tight text-black mb-1">
+                04. Fotografias Naturais & Polaroides
               </h2>
               <p className="text-xs font-sans text-neutral-600">
-                Envie fotos naturais, sem maquiagem pesada ou filtros de aplicativo. Recomendamos:
-                1 rosto de frente, 1 perfil, 1 corpo inteiro e fotos livres (máximo 8 fotos).
+                <strong>Regra Obrigatória:</strong> Apenas fotografias em <em>orientação vertical (portrait)</em> e com
+                resolução mínima de 600x800px são aceitas. O sistema fará a triagem e compressão no seu dispositivo.
               </p>
             </div>
 
             {/* Input de Arquivo */}
-            <div className="border-2 border-dashed border-neutral-300 p-6 text-center hover:border-black transition-colors">
+            <div className="border-2 border-dashed border-neutral-300 p-8 text-center hover:border-black transition-colors">
               <input
                 type="file"
                 multiple
-                accept="image/jpeg,image/png,image/webp"
+                accept="image/jpeg,image/png,image/webp,image/avif"
                 onChange={handlePhotoUpload}
-                disabled={isCompressing || photos.length >= 8}
+                disabled={isProcessingPhotos || photos.length >= 8}
                 className="hidden"
                 id="scouting-photo-input"
               />
               <label
                 htmlFor="scouting-photo-input"
-                className="cursor-pointer block text-xs font-mono uppercase tracking-widest text-neutral-700"
+                className="cursor-pointer block text-xs font-mono uppercase tracking-widest text-neutral-800"
               >
-                {isCompressing
-                  ? 'COMPRIMINDO IMAGENS NO NAVEGADOR...'
+                {isProcessingPhotos
+                  ? 'VALIDANDO ENQUADRAMENTO E COMPRIMINDO...'
                   : photos.length >= 8
                   ? 'LIMITE DE 8 FOTOS ATINGIDO'
-                  : '[ CLIQUE PARA SELECIONAR FOTOS ]'}
+                  : '[ SELECIONAR FOTOS VERTICAIS ]'}
               </label>
               <span className="text-[10px] font-mono text-neutral-400 block mt-1">
-                Processamento client-side com conversão para WebP de alto desempenho.
+                Rejeição automática de fotos horizontais &bull; Conversão nativa para WebP leve
               </span>
             </div>
 
-            {/* Grid de Pré-visualização com métricas de compressão */}
+            {/* Grid de Fotos Aprovadas */}
             {photos.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {photos.map((item, idx) => (
-                  <div key={idx} className="relative group border border-neutral-200 p-1 bg-neutral-50">
+                  <div key={idx} className="relative group border border-neutral-200 p-1.5 bg-neutral-50">
                     <img
                       src={item.previewUrl}
                       alt={item.label}
                       className="w-full aspect-[3/4] object-cover"
                     />
                     <div className="text-[9px] font-mono text-neutral-500 mt-1 flex justify-between items-center">
-                      <span>{item.compressedSizeKb} KB</span>
+                      <span>{item.compressedSizeKb} KB ({item.width}x{item.height})</span>
                       <button
                         type="button"
                         onClick={() => removePhoto(idx)}
-                        className="text-red-500 hover:text-red-700"
+                        className="text-red-600 hover:underline"
                       >
-                        [REMOVER]
+                        [Excluir]
                       </button>
                     </div>
                   </div>
@@ -571,7 +584,7 @@ export const ScoutingFunnel: React.FC = () => {
               </div>
             )}
 
-            {/* Termos de Consentimento e LGPD Estrito */}
+            {/* Termo de Consentimento LGPD */}
             <div className="border border-neutral-200 p-4 bg-neutral-50 text-xs font-sans text-neutral-600">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
@@ -582,11 +595,10 @@ export const ScoutingFunnel: React.FC = () => {
                   className="mt-1 accent-black"
                 />
                 <span>
-                  <strong>Consentimento Expresso LGPD (Lei nº 13.709/2018):</strong> Autorizo a{' '}
-                  <strong>WB Scouting</strong> a tratar meus dados pessoais e biométricos fornecidos
-                  neste formulário exclusivamente para finalidades de triagem de casting e agenciamento.
-                  Estou ciente de que as fotos permanecerão em quarentena segura e serão eliminadas em
-                  até 90 dias caso meu perfil não seja selecionado.
+                  <strong>Consentimento Expresso e LGPD (Lei nº 13.709/2018):</strong> Autorizo a{' '}
+                  <strong>WB Scouting</strong> a armazenar e tratar meus dados pessoais, biométricos e fotos em
+                  ambiente seguro para finalidades exclusivas de avaliação de casting. Estou ciente de que as mídias
+                  permanecem em quarentena criptografada e serão descartadas após 90 dias caso meu perfil não seja selecionado.
                 </span>
               </label>
             </div>
@@ -601,10 +613,10 @@ export const ScoutingFunnel: React.FC = () => {
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting || isCompressing || !lgpdConsent}
-                className="bg-black text-white px-8 py-2.5 text-xs font-mono uppercase tracking-widest hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isSubmitting || isProcessingPhotos || !lgpdConsent}
+                className="bg-black text-white px-8 py-2.5 text-xs font-mono uppercase tracking-widest hover:bg-neutral-800 disabled:opacity-50"
               >
-                {isSubmitting ? 'ENVIANDO FICHA...' : 'CONCLUIR E ENVIAR'}
+                {isSubmitting ? 'ENVIANDO CANDIDATURA...' : 'CONCLUIR INSCRIÇÃO'}
               </button>
             </div>
           </div>

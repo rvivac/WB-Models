@@ -10,7 +10,7 @@ export type ModelGender = 'female' | 'male' | 'non_binary';
 export type EyeColor = 'castanho_claro' | 'castanho_escuro' | 'verde' | 'azul' | 'mel' | 'preto' | 'heterocromia';
 export type HairColor = 'preto' | 'castanho_escuro' | 'castanho_claro' | 'loiro' | 'ruivo' | 'grisalho' | 'colorido';
 export type MediaCategory = 'polaroid' | 'editorial' | 'runway' | 'commercial' | 'composite_cover';
-export type CandidatureStatus = 'received' | 'under_review' | 'approved' | 'declined' | 'archived';
+export type ApplicationStatus = 'received' | 'under_review' | 'approved' | 'declined' | 'archived';
 export type UserRoleEnum = 'superadmin' | 'booker' | 'scout' | 'readonly';
 
 export interface Database {
@@ -142,6 +142,7 @@ export interface Database {
           aspect_ratio: string | null;
           display_order: number;
           is_published: boolean;
+          is_sensitive_polaroid: boolean;
           caption: string | null;
           created_at: string;
           updated_at: string;
@@ -156,6 +157,7 @@ export interface Database {
           aspect_ratio?: string | null;
           display_order?: number;
           is_published?: boolean;
+          is_sensitive_polaroid?: boolean;
           caption?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -170,15 +172,87 @@ export interface Database {
           aspect_ratio?: string | null;
           display_order?: number;
           is_published?: boolean;
+          is_sensitive_polaroid?: boolean;
           caption?: string | null;
           created_at?: string;
           updated_at?: string;
         };
       };
-      candidatures: {
+      casting_boards: {
         Row: {
           id: string;
-          status: CandidatureStatus;
+          share_token: string;
+          title: string;
+          client_name: string | null;
+          client_email: string | null;
+          notes: string | null;
+          password_hash: string | null;
+          is_password_protected: boolean;
+          expires_at: string;
+          created_by: string | null;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          share_token: string;
+          title: string;
+          client_name?: string | null;
+          client_email?: string | null;
+          notes?: string | null;
+          password_hash?: string | null;
+          expires_at?: string;
+          created_by?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          share_token?: string;
+          title?: string;
+          client_name?: string | null;
+          client_email?: string | null;
+          notes?: string | null;
+          password_hash?: string | null;
+          expires_at?: string;
+          created_by?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      board_items: {
+        Row: {
+          id: string;
+          board_id: string;
+          model_id: string;
+          display_order: number;
+          producer_notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          board_id: string;
+          model_id: string;
+          display_order?: number;
+          producer_notes?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          board_id?: string;
+          model_id?: string;
+          display_order?: number;
+          producer_notes?: string | null;
+          created_at?: string;
+        };
+      };
+      scouting_applications: {
+        Row: {
+          id: string;
+          status: ApplicationStatus;
           full_name: string;
           email: string;
           phone_whatsapp: string;
@@ -208,7 +282,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          status?: CandidatureStatus;
+          status?: ApplicationStatus;
           full_name: string;
           email: string;
           phone_whatsapp: string;
@@ -238,7 +312,7 @@ export interface Database {
         };
         Update: {
           id?: string;
-          status?: CandidatureStatus;
+          status?: ApplicationStatus;
           full_name?: string;
           email?: string;
           phone_whatsapp?: string;

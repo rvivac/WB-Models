@@ -2,10 +2,20 @@ import { Database, ModelGender, EyeColor, HairColor, MediaCategory } from './dat
 
 export type Model = Database['public']['Tables']['models']['Row'];
 export type ModelMedia = Database['public']['Tables']['model_media']['Row'];
-export type Candidature = Database['public']['Tables']['candidatures']['Row'];
+export type CastingBoard = Database['public']['Tables']['casting_boards']['Row'];
+export type BoardItem = Database['public']['Tables']['board_items']['Row'];
+export type ScoutingApplication = Database['public']['Tables']['scouting_applications']['Row'];
 
 export interface ModelWithMedia extends Model {
   media: ModelMedia[];
+}
+
+export interface BoardItemWithModel extends BoardItem {
+  model: ModelWithMedia;
+}
+
+export interface CastingBoardDetailed extends CastingBoard {
+  items: BoardItemWithModel[];
 }
 
 export interface CastingFiltersState {
@@ -18,38 +28,20 @@ export interface CastingFiltersState {
   searchQuery: string;
 }
 
-export interface ModelMeasurementGroup {
-  height: string;
-  bust: string;
-  waist: string;
-  hips: string;
-  shoes: string;
-  dress: string;
-  eyes: string;
-  hair: string;
+export interface CreateBoardPayload {
+  title: string;
+  clientName?: string;
+  clientEmail?: string;
+  notes?: string;
+  password?: string;
+  expirationDays: 7 | 15 | 30;
+  modelIds: string[];
 }
 
-export interface ScoutingFormPayload {
-  fullName: string;
-  email: string;
-  phoneWhatsapp: string;
-  birthDate: string;
-  instagram?: string;
-  city: string;
-  state: string;
-  gender: ModelGender;
-  heightCm: number;
-  bustChestCm?: number;
-  waistCm?: number;
-  hipsCm?: number;
-  shoeSize?: number;
-  dressSize?: string;
-  eyeColor?: EyeColor;
-  hairColor?: HairColor;
-  photos: {
-    file: File;
-    previewUrl: string;
-    type: 'rosto_frontal' | 'perfil' | 'corpo_inteiro' | 'sorrindo' | 'polaroid_extra';
-  }[];
-  lgpdConsent: boolean;
+export interface ImageValidationResult {
+  isValid: boolean;
+  error?: string;
+  width?: number;
+  height?: number;
+  aspectRatio?: number;
 }

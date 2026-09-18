@@ -9,16 +9,27 @@ import { formatHeight } from '@/lib/utils/formatters';
 interface ModelCardProps {
   model: Model;
   priority?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: (modelId: string) => void;
 }
 
 /**
- * Card de Modelo Editorial Minimalista
- * Padrão RVIVAC Guild: Aspect-ratio 3:4 estrito, tipografia técnica (mono/grotesque),
- * alto contraste e ausência de ornamentos desnecessários.
+ * Card de Modelo Editorial Minimalista com Seletor de Casting Board
+ * Padrão RVIVAC Guild: Aspect-ratio 3:4 estrito, tipografia técnica,
+ * alto contraste e ação de seleção com 1 clique para colaboração B2B.
  */
-export const ModelCard: React.FC<ModelCardProps> = ({ model, priority = false }) => {
+export const ModelCard: React.FC<ModelCardProps> = ({
+  model,
+  priority = false,
+  isSelected = false,
+  onToggleSelect,
+}) => {
   return (
-    <article className="group relative flex flex-col bg-white border border-neutral-200 transition-all duration-300 hover:border-black">
+    <article
+      className={`group relative flex flex-col bg-white border transition-all duration-300 ${
+        isSelected ? 'border-black ring-2 ring-black' : 'border-neutral-200 hover:border-black'
+      }`}
+    >
       {/* Container de Imagem com Aspect Ratio Editorial 3:4 */}
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-neutral-100">
         <Image
@@ -37,8 +48,28 @@ export const ModelCard: React.FC<ModelCardProps> = ({ model, priority = false })
           </div>
         )}
 
+        {/* Botão de Adição ao Casting Board B2B (Overlay Superior Direito) */}
+        {onToggleSelect && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleSelect(model.id);
+            }}
+            className={`absolute top-3 right-3 z-10 px-2 py-1 text-[10px] font-mono uppercase tracking-wider transition-all ${
+              isSelected
+                ? 'bg-black text-white border border-black'
+                : 'bg-white/90 text-black border border-neutral-300 hover:bg-black hover:text-white backdrop-blur-xs'
+            }`}
+            title={isSelected ? 'Remover da seleção' : 'Adicionar ao Casting Board'}
+          >
+            {isSelected ? '✓ SELECIONADO' : '+ SELEÇÃO B2B'}
+          </button>
+        )}
+
         {/* Overlay sutil para hover */}
-        <div className="absolute inset-0 bg-black/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+        <div className="absolute inset-0 bg-black/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none" />
       </div>
 
       {/* Informações Técnicas e Biometria */}
@@ -70,13 +101,13 @@ export const ModelCard: React.FC<ModelCardProps> = ({ model, priority = false })
           </div>
         </div>
 
-        {/* Link de Ação Invisível e Limpo */}
+        {/* Link de Ação para o Perfil e Composite */}
         <Link
           href={`/models/${model.slug}`}
           className="mt-3 block text-center border border-neutral-900 py-1.5 text-[11px] font-mono uppercase tracking-widest text-black transition-colors duration-200 hover:bg-black hover:text-white"
           aria-label={`Ver perfil completo e composite de ${model.artistic_name}`}
         >
-          Ver Perfil
+          Ver Perfil & Composite
         </Link>
       </div>
     </article>

@@ -4,6 +4,8 @@ import React, { useState, useMemo } from 'react';
 import { Model, CastingFiltersState } from '@/types/casting';
 import { EyeColor, ModelGender } from '@/types/database.types';
 import { ModelCard } from './ModelCard';
+import { CastingBoardBar } from './CastingBoardBar';
+import { useCastingBoard } from '@/lib/hooks/useCastingBoard';
 import { EYE_COLOR_LABELS } from '@/lib/utils/formatters';
 
 interface CastingCatalogProps {
@@ -21,12 +23,12 @@ const INITIAL_FILTERS: CastingFiltersState = {
 };
 
 /**
- * Catálogo de Casting WB Scouting com Filtragem em Tempo Real
- * Arquitetura Frontend: Client-side filtering reativo com zero layout shift (CLS).
+ * Catálogo de Casting WB Scouting com Filtragem em Tempo Real e Seletor de Casting Board B2B
  */
 export const CastingCatalog: React.FC<CastingCatalogProps> = ({ initialModels }) => {
   const [filters, setFilters] = useState<CastingFiltersState>(INITIAL_FILTERS);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
+  const boardHook = useCastingBoard();
 
   // Lista única de manequins existentes para popular o select dinamicamente
   const availableDressSizes = useMemo(() => {
@@ -34,7 +36,7 @@ export const CastingCatalog: React.FC<CastingCatalogProps> = ({ initialModels })
     return Array.from(sizes).sort();
   }, [initialModels]);
 
-  // Filtragem ultra-otimizada em memória
+  // Filtragem em tempo real no cliente
   const filteredModels = useMemo(() => {
     return initialModels.filter((model) => {
       // 1. Filtro de Busca por Nome
@@ -79,7 +81,7 @@ export const CastingCatalog: React.FC<CastingCatalogProps> = ({ initialModels })
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28">
       {/* Barra de Controle Editorial & Busca */}
       <div className="border-b border-black pb-6 mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
@@ -250,7 +252,13 @@ export const CastingCatalog: React.FC<CastingCatalogProps> = ({ initialModels })
       {filteredModels.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
           {filteredModels.map((model, idx) => (
-            <ModelCard key={model.id} model={model} priority={idx < 4} />
+            <ModelCard
+              key={model.id}
+              model={model}
+              priority={idx < 4}
+              isSelected={boardHook.isSelected(model.id)}
+              onToggleSelect={boardHook.toggleModel}
+            />
           ))}
         </div>
       ) : (
@@ -267,6 +275,9 @@ export const CastingCatalog: React.FC<CastingCatalogProps> = ({ initialModels })
           </button>
         </div>
       )}
+
+      {/* Barra de Colaboração B2B (Casting Board) */}
+      <CastingBoardBar allModels={initialModels} boardHook={boardHook} />
     </div>
   );
 };

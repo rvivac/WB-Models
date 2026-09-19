@@ -1,0 +1,227 @@
+.hero-section {
+  position: relative;
+  min-height: 90vh;
+  display: flex;
+  align-items: center;
+  padding-top: var(--header-height);
+  overflow: hidden;
+  background-color: var(--bg-primary);
+}
+
+.hero-backdrop {
+  position: absolute;
+  inset: 0;
+  background-image: url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1600&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center 25%;
+  filter: grayscale(80%) brightness(40%);
+  transform: scale(1.04);
+  transition: transform 10s ease;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(7, 8, 11, 0.4) 0%, rgba(7, 8, 11, 0.95) 100%);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 10;
+  max-width: 820px;
+  padding-top: 3rem;
+  padding-bottom: 5rem;
+}
+
+.hero-title {
+  color: var(--text-primary);
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  font-weight: 300;
+}
+
+.hero-subtitle {
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 2.5rem;
+  max-width: 680px;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.manifesto-section {
+  padding: 6rem 0;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.manifesto-inner {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+
+  @media (min-width: 768px) {
+    grid-template-columns: 1.2fr 1fr;
+    align-items: center;
+  }
+}
+
+.section-tag {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--gold-light);
+  margin-bottom: 0.75rem;
+}
+
+.section-heading {
+  font-size: clamp(1.85rem, 3vw, 2.75rem);
+  color: var(--text-primary);
+}
+
+.manifesto-body {
+  font-size: 1.0625rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+
+  p + p {
+    margin-top: 1.25rem;
+  }
+}
+
+.featured-section {
+  padding: 6rem 0;
+}
+
+.section-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 3.5rem;
+}
+
+.view-all-link {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  transition: transform var(--transition-fast);
+
+  &:hover {
+    transform: translateX(4px);
+  }
+}
+
+.models-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.model-card {
+  cursor: pointer;
+  background: var(--bg-card);
+  transition: transform var(--transition-normal), border-color var(--transition-normal);
+
+  &:hover {
+    transform: translateY(-6px);
+    border-color: var(--border-gold);
+
+    .model-image {
+      transform: scale(1.05);
+    }
+  }
+}
+
+.model-image-wrap {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--bg-elevated);
+}
+
+.model-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.model-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.5rem 1rem 0.75rem 1rem;
+  background: linear-gradient(180deg, transparent 0%, rgba(7, 8, 11, 0.8) 100%);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.model-height {
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: var(--gold-light);
+  font-weight: 600;
+}
+
+.model-info {
+  padding: 1.25rem;
+}
+
+.model-name {
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.model-category {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+.cta-banner {
+  padding: 5rem 0;
+  background: linear-gradient(135deg, #161824 0%, #0e1017 100%);
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.cta-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.cta-text {
+  max-width: 600px;
+
+  h2 {
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+  }
+
+  p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+}
+
+.btn-cta {
+  padding: 1rem 2.25rem;
+}

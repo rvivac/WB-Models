@@ -1,0 +1,100 @@
+<div class="candidates-page container">
+  <div class="candidates-top">
+    <div>
+      <h1 class="font-serif page-title">Triagem de Candidaturas</h1>
+      <p class="text-secondary">Avaliação e seleção de aspirantes a modelo que submeteram o formulário "Quero ser modelo".</p>
+    </div>
+  </div>
+
+  <div class="card-editorial candidates-card">
+    <div class="table-responsive">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Candidato</th>
+            <th>Idade</th>
+            <th>Gênero</th>
+            <th>Altura</th>
+            <th>Contato</th>
+            <th>Data de Envio</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of candidates(); track c.id) {
+            <tr>
+              <td>
+                <strong>{{ c.fullName }}</strong>
+                @if (c.instagram) {
+                  <span class="block text-muted text-xs">{{ c.instagram }}</span>
+                }
+              </td>
+              <td>{{ c.age }} anos</td>
+              <td>{{ c.gender }}</td>
+              <td>{{ c.heightCm }} cm</td>
+              <td>
+                <span>{{ c.phone }}</span>
+                <span class="block text-muted text-xs">{{ c.email }}</span>
+              </td>
+              <td>{{ c.createdAt }}</td>
+              <td>
+                <span class="status-badge" [class.badge-pending]="c.status === 'PENDENTE'" [class.badge-approved]="c.status === 'APROVADO'">
+                  {{ c.status }}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-outline btn-xs" (click)="openDetails(c)">
+                  Ver Ficha &amp; Fotos
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Detalhes da Ficha do Candidato -->
+<app-modal [isOpen]="!!selectedCandidate()" title="Ficha Completa de Candidatura" (close)="closeDetails()">
+  @if (selectedCandidate(); as cand) {
+    <div class="candidate-detail-body">
+      <div class="detail-header-row">
+        <div>
+          <h2 class="font-serif cand-name">{{ cand.fullName }}</h2>
+          <span class="text-secondary">{{ cand.age }} anos &bull; {{ cand.city }}</span>
+        </div>
+        <div class="status-actions">
+          <button class="btn btn-gold btn-sm" (click)="updateStatus(cand.id, 'APROVADO')">
+            Aprovar para Casting Presencial &check;
+          </button>
+          <button class="btn btn-ghost btn-sm" (click)="updateStatus(cand.id, 'ARQUIVADO')">
+            Arquivar
+          </button>
+        </div>
+      </div>
+
+      <div class="measures-box">
+        <h4 class="box-title tracking-editorial">Medidas Físicas</h4>
+        <div class="measures-grid">
+          <div><span class="lbl">Altura:</span> <strong>{{ cand.heightCm }} cm</strong></div>
+          <div><span class="lbl">Busto:</span> <strong>{{ cand.bustCm }} cm</strong></div>
+          <div><span class="lbl">Cintura:</span> <strong>{{ cand.waistCm }} cm</strong></div>
+          <div><span class="lbl">Quadril:</span> <strong>{{ cand.hipsCm }} cm</strong></div>
+        </div>
+      </div>
+
+      <div class="photos-box">
+        <h4 class="box-title tracking-editorial">Fotos para Avaliação (Polaroids)</h4>
+        <div class="photos-gallery">
+          @for (photo of cand.photos; track photo) {
+            <a [href]="photo" target="_blank" class="cand-photo-thumb">
+              <img [src]="photo" alt="Foto do candidato" />
+            </a>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</app-modal>

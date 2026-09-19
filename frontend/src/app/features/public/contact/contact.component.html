@@ -1,0 +1,118 @@
+<div class="contact-page">
+  <div class="container">
+    <div class="contact-header text-center">
+      <span class="badge-editorial">Casting &amp; Negócios</span>
+      <h1 class="font-serif contact-title">Fale Conosco</h1>
+      <p class="contact-subtitle">
+        Entre em contato com a nossa equipe de bookers para orçamentos, campanhas ou dúvidas institucionais.
+      </p>
+    </div>
+
+    <div class="contact-grid">
+      <!-- Informações de Contato -->
+      <div class="contact-info-card card-editorial">
+        <h3 class="font-serif info-heading">WB Scouting Management</h3>
+        <p class="info-text text-secondary">
+          Atendimento a agências de publicidade, fotógrafos, diretores de cinema e marcas de moda em todo o território nacional e internacional.
+        </p>
+
+        <div class="info-items">
+          <div class="info-item">
+            <span class="info-label tracking-editorial">E-mail Comercial</span>
+            <a href="mailto:contato@wbscouting.com" class="info-val text-gold">contato&#64;wbscouting.com</a>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label tracking-editorial">Telefone &amp; WhatsApp</span>
+            <span class="info-val">+55 (11) 99999-9999</span>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label tracking-editorial">Localização</span>
+            <span class="info-val">Peruíbe - SP &amp; São Paulo - Capital</span>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label tracking-editorial">Redes Sociais</span>
+            <a href="https://instagram.com/wbscouting" target="_blank" rel="noopener" class="info-val text-gold">&#64;wbscouting</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulário de Contato -->
+      <div class="contact-form-card card-editorial">
+        @if (isSubmitted()) {
+          <div class="form-success text-center">
+            <div class="check-icon">&check;</div>
+            <h3 class="font-serif">Mensagem Enviada!</h3>
+            <p class="text-secondary">Obrigado pelo contato. Um de nossos bookers retornará o seu e-mail em breve.</p>
+            <button class="btn btn-outline mt-4" (click)="isSubmitted.set(false)">Enviar Outra Mensagem</button>
+          </div>
+        } @else {
+          <form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
+            <h3 class="font-serif form-title">Solicitar Orçamento de Casting</h3>
+
+            <div class="form-group">
+              <label for="c-name">Seu Nome *</label>
+              <input id="c-name" type="text" formControlName="name" class="form-control" placeholder="Nome do solicitante" />
+              @if (contactForm.get('name')?.touched && contactForm.get('name')?.invalid) {
+                <span class="form-error">O nome é obrigatório.</span>
+              }
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="c-company">Empresa / Agência</label>
+                <input id="c-company" type="text" formControlName="company" class="form-control" placeholder="Marca ou produtora" />
+              </div>
+
+              <div class="form-group">
+                <label for="c-interest">Tipo de Projeto *</label>
+                <select id="c-interest" formControlName="interestType" class="form-control">
+                  <option value="BOOKING">Contratação de Modelo</option>
+                  <option value="CAMPAIGN">Campanha Publicitária</option>
+                  <option value="EDITORIAL">Editorial de Moda</option>
+                  <option value="OTHER">Outros Assuntos</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="c-email">E-mail Corporativo *</label>
+                <input id="c-email" type="email" formControlName="email" class="form-control" placeholder="seu@email.com" />
+                @if (contactForm.get('email')?.touched && contactForm.get('email')?.invalid) {
+                  <span class="form-error">Informe um e-mail válido.</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="c-phone">Telefone / WhatsApp *</label>
+                <input id="c-phone" type="tel" formControlName="phone" class="form-control" placeholder="(11) 99999-9999" />
+                @if (contactForm.get('phone')?.touched && contactForm.get('phone')?.invalid) {
+                  <span class="form-error">O telefone é obrigatório.</span>
+                }
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="c-message">Detalhes do Projeto ou Modelo Desejado *</label>
+              <textarea id="c-message" rows="4" formControlName="message" class="form-control" placeholder="Descreva brevemente o projeto, datas, mídia e perfil desejado..."></textarea>
+              @if (contactForm.get('message')?.touched && contactForm.get('message')?.invalid) {
+                <span class="form-error">A mensagem deve ter pelo menos 10 caracteres.</span>
+              }
+            </div>
+
+            <app-button
+              type="submit"
+              variant="gold"
+              size="lg"
+              [loading]="isSending()">
+              Enviar Mensagem
+            </app-button>
+          </form>
+        }
+      </div>
+    </div>
+  </div>
+</div>

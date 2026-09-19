@@ -1,0 +1,230 @@
+<div class="apply-page">
+  <div class="container apply-container">
+    <div class="apply-header text-center">
+      <span class="badge-editorial">Scouting Oficial</span>
+      <h1 class="font-serif apply-title">Quero Ser Modelo</h1>
+      <p class="apply-subtitle">
+        Envie sua candidatura diretamente para os diretores de casting da WB Scouting. Avaliamos novos talentos de todo o país.
+      </p>
+
+      <!-- Indicador de Passos -->
+      @if (!submissionSuccess()) {
+        <div class="stepper">
+          <div class="step-item" [class.active]="currentStep() >= 1">
+            <span class="step-number">1</span>
+            <span class="step-label">Identificação</span>
+          </div>
+          <div class="step-line" [class.active]="currentStep() >= 2"></div>
+          <div class="step-item" [class.active]="currentStep() >= 2">
+            <span class="step-number">2</span>
+            <span class="step-label">Medidas</span>
+          </div>
+          <div class="step-line" [class.active]="currentStep() >= 3"></div>
+          <div class="step-item" [class.active]="currentStep() >= 3">
+            <span class="step-number">3</span>
+            <span class="step-label">Fotos &amp; LGPD</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Tela de Sucesso -->
+    @if (submissionSuccess()) {
+      <div class="success-card card-editorial text-center">
+        <div class="success-icon">&check;</div>
+        <h2 class="font-serif success-title">Candidatura Enviada com Sucesso!</h2>
+        <p class="success-text">
+          Sua ficha foi registrada e enviada para a nossa equipe de olheiros. Enviamos também uma confirmação estruturada para o seu e-mail.
+        </p>
+        <p class="success-hint text-muted">
+          Caso o seu perfil se enquadre nos projetos em andamento, entraremos em contato diretamente através do telefone ou e-mail cadastrado.
+        </p>
+        <a routerLink="/" class="btn btn-gold mt-6">Voltar para a Home</a>
+      </div>
+    } @else {
+      <!-- Formulário -->
+      <form [formGroup]="applyForm" (ngSubmit)="onSubmit()" class="apply-form card-editorial">
+        @if (submissionError()) {
+          <div class="error-banner">
+            {{ submissionError() }}
+          </div>
+        }
+
+        <!-- PASSO 1: DADOS PESSOAIS -->
+        @if (currentStep() === 1) {
+          <div class="step-pane">
+            <h3 class="pane-title font-serif">1. Dados Pessoais &amp; Contato</h3>
+
+            <div class="form-group">
+              <label for="fullName">Nome Completo *</label>
+              <input id="fullName" type="text" formControlName="fullName" class="form-control" placeholder="Seu nome completo" />
+              @if (applyForm.get('fullName')?.touched && applyForm.get('fullName')?.invalid) {
+                <span class="form-error">O nome completo é obrigatório.</span>
+              }
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="email">E-mail *</label>
+                <input id="email" type="email" formControlName="email" class="form-control" placeholder="exemplo@email.com" />
+                @if (applyForm.get('email')?.touched && applyForm.get('email')?.invalid) {
+                  <span class="form-error">Informe um e-mail válido.</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="phone">Telefone / WhatsApp *</label>
+                <input id="phone" type="tel" formControlName="phone" class="form-control" placeholder="(11) 99999-9999" />
+                @if (applyForm.get('phone')?.touched && applyForm.get('phone')?.invalid) {
+                  <span class="form-error">O telefone de contato é obrigatório.</span>
+                }
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="age">Idade *</label>
+                <input id="age" type="number" formControlName="age" class="form-control" placeholder="Ex: 19" />
+                @if (applyForm.get('age')?.touched && applyForm.get('age')?.invalid) {
+                  <span class="form-error">Informe uma idade válida.</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="gender">Identificação de Gênero *</label>
+                <select id="gender" formControlName="gender" class="form-control">
+                  <option value="FEMALE">Feminino</option>
+                  <option value="MALE">Masculino</option>
+                  <option value="NON_BINARY">Não-binário / Outro</option>
+                </select>
+              </div>
+            </div>
+
+            @if (applyForm.get('age')?.value && applyForm.get('age')?.value < 18) {
+              <div class="form-group alert-guardian">
+                <label for="guardianName">Nome do Responsável Legal (Menor de Idade) *</label>
+                <input id="guardianName" type="text" formControlName="guardianName" class="form-control" placeholder="Nome do pai, mãe ou responsável legal" />
+              </div>
+            }
+
+            <div class="pane-actions">
+              <div></div>
+              <button type="button" class="btn btn-gold" (click)="nextStep()">
+                Avançar: Medidas &rarr;
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- PASSO 2: MEDIDAS CORPORAIS E REDES SOCIAIS -->
+        @if (currentStep() === 2) {
+          <div class="step-pane">
+            <h3 class="pane-title font-serif">2. Medidas Corporais &amp; Mídias</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="heightCm">Altura (cm) *</label>
+                <input id="heightCm" type="number" formControlName="heightCm" class="form-control" placeholder="Ex: 178" />
+                @if (applyForm.get('heightCm')?.touched && applyForm.get('heightCm')?.invalid) {
+                  <span class="form-error">Altura é obrigatória (em centímetros).</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="weightKg">Peso (kg)</label>
+                <input id="weightKg" type="number" formControlName="weightKg" class="form-control" placeholder="Ex: 58" />
+              </div>
+            </div>
+
+            <div class="form-row form-row-3">
+              <div class="form-group">
+                <label for="bustChestCm">Busto / Tórax (cm)</label>
+                <input id="bustChestCm" type="number" formControlName="bustChestCm" class="form-control" placeholder="Ex: 85" />
+              </div>
+
+              <div class="form-group">
+                <label for="waistCm">Cintura (cm)</label>
+                <input id="waistCm" type="number" formControlName="waistCm" class="form-control" placeholder="Ex: 61" />
+              </div>
+
+              <div class="form-group">
+                <label for="hipsCm">Quadril (cm)</label>
+                <input id="hipsCm" type="number" formControlName="hipsCm" class="form-control" placeholder="Ex: 90" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="instagramHandle">Instagram</label>
+                <input id="instagramHandle" type="text" formControlName="instagramHandle" class="form-control" placeholder="@seuusuario" />
+              </div>
+
+              <div class="form-group">
+                <label for="tiktokHandle">TikTok</label>
+                <input id="tiktokHandle" type="text" formControlName="tiktokHandle" class="form-control" placeholder="@seuusuario" />
+              </div>
+            </div>
+
+            <div class="pane-actions">
+              <button type="button" class="btn btn-ghost" (click)="prevStep()">&larr; Voltar</button>
+              <button type="button" class="btn btn-gold" (click)="nextStep()">
+                Avançar: Fotos &rarr;
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- PASSO 3: UPLOAD DE FOTOS E CONSENTIMENTO LGPD -->
+        @if (currentStep() === 3) {
+          <div class="step-pane">
+            <h3 class="pane-title font-serif">3. Fotos para Avaliação &amp; Termos</h3>
+            <p class="photos-instruction text-secondary">
+              Envie fotos nítidas com boa iluminação natural, sem filtros ou maquiagem pesada (Rosto de frente, Perfil e Corpo Inteiro).
+            </p>
+
+            <div class="photos-upload-grid">
+              @for (slot of [1, 2, 3, 4]; track slot) {
+                <div class="photo-upload-box" [class.has-photo]="!!getPhotoByPosition(slot)">
+                  @if (getPhotoByPosition(slot); as photo) {
+                    <img [src]="photo.fileUrl" alt="Foto enviada" class="uploaded-thumb" />
+                    <button type="button" class="remove-photo-btn" (click)="removePhoto(slot)">&times;</button>
+                  } @else {
+                    <label class="upload-trigger">
+                      <span class="upload-plus">+</span>
+                      <span class="upload-text">Foto #{{ slot }}</span>
+                      <input type="file" accept="image/*" (change)="onPhotoSelected($event, slot)" class="hidden-input" />
+                    </label>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Termos LGPD -->
+            <div class="lgpd-box">
+              <label class="checkbox-label">
+                <input type="checkbox" formControlName="lgpdAccepted" class="checkbox-input" />
+                <span class="checkbox-text">
+                  Concordo com a coleta e tratamento dos meus dados pessoais e fotografias pela WB Scouting para fins exclusivos de avaliação artística e recrutamento de modelos, em conformidade com a Lei Geral de Proteção de Dados (LGPD).
+                </span>
+              </label>
+              @if (applyForm.get('lgpdAccepted')?.touched && applyForm.get('lgpdAccepted')?.invalid) {
+                <span class="form-error block mt-2">O aceite dos termos da LGPD é obrigatório para envio da candidatura.</span>
+              }
+            </div>
+
+            <div class="pane-actions">
+              <button type="button" class="btn btn-ghost" (click)="prevStep()">&larr; Voltar</button>
+              <app-button
+                type="submit"
+                variant="gold"
+                size="lg"
+                [loading]="isSubmitting()">
+                Finalizar e Enviar Candidatura
+              </app-button>
+            </div>
+          </div>
+        }
+      </form>
+    }
+  </div>
+</div>

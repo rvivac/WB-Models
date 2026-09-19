@@ -1,0 +1,171 @@
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  z-index: 1000;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+
+  .logo-main {
+    color: var(--gold-light);
+  }
+
+  .logo-divider {
+    color: var(--border-medium);
+    font-size: 1rem;
+  }
+
+  .logo-sub {
+    font-family: var(--font-sans);
+    font-size: 0.825rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+}
+
+.desktop-nav {
+  display: none;
+  align-items: center;
+  gap: 2rem;
+
+  @media (min-width: 768px) {
+    display: flex;
+  }
+}
+
+.nav-link {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  transition: color var(--transition-fast);
+  position: relative;
+  padding: 0.5rem 0;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: var(--gold-primary);
+    transition: width var(--transition-normal);
+  }
+
+  &:hover, &.active {
+    color: var(--gold-light);
+
+    &::after {
+      width: 100%;
+    }
+  }
+}
+
+.btn-apply {
+  padding: 0.65rem 1.4rem;
+  font-size: 0.75rem;
+}
+
+.mobile-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  @media (min-width: 768px) {
+    display: none;
+  }
+}
+
+.mobile-toggle {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+
+  .bar {
+    width: 100%;
+    height: 2px;
+    background-color: var(--text-primary);
+    transition: transform var(--transition-fast), opacity var(--transition-fast);
+
+    &.open:nth-child(1) {
+      transform: translateY(4px) rotate(45deg);
+    }
+    &.open:nth-child(2) {
+      transform: translateY(-4px) rotate(-45deg);
+    }
+  }
+}
+
+.mobile-menu {
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(7, 8, 11, 0.95);
+  backdrop-filter: blur(20px);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  padding: 2.5rem 1.5rem;
+
+  @media (min-width: 768px) {
+    display: none;
+  }
+}
+
+.mobile-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mobile-link {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 0.75rem;
+
+  &.active, &:hover {
+    color: var(--gold-light);
+  }
+}
+
+.mobile-action {
+  margin-top: 1.5rem;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.text-center {
+  text-align: center;
+}

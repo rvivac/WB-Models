@@ -1,0 +1,144 @@
+@import './styles/variables';
+@import './styles/reset';
+@import './styles/typography';
+
+// Container Responsivo
+.container {
+  width: 100%;
+  max-width: var(--container-max-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+
+  @include sm {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+// Botões Editoriais de Alta Moda
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.875rem 1.75rem;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  white-space: nowrap;
+
+  &.btn-gold {
+    background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-primary) 100%);
+    color: var(--text-inverse);
+    box-shadow: var(--shadow-gold);
+
+    &:hover {
+      background: linear-gradient(135deg, #f0ca7d 0%, var(--gold-light) 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(197, 160, 89, 0.35);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  &.btn-outline {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-medium);
+
+    &:hover {
+      border-color: var(--gold-primary);
+      color: var(--gold-light);
+      background: rgba(197, 160, 89, 0.05);
+      transform: translateY(-2px);
+    }
+  }
+
+  &.btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+
+    &:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.05);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+}
+
+// Cards Editoriais
+.card-editorial {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color var(--transition-normal), transform var(--transition-normal), box-shadow var(--transition-normal);
+
+  &:hover {
+    border-color: var(--border-gold);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+// Glassmorphism Header / Panels
+.glass-panel {
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+}
+
+// Formulários Editoriais
+.form-group {
+  margin-bottom: 1.25rem;
+
+  label {
+    display: block;
+    font-size: 0.775rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+  }
+
+  .form-control {
+    width: 100%;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+
+    &:focus {
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 0 2px rgba(197, 160, 89, 0.2);
+    }
+
+    &::placeholder {
+      color: var(--text-muted);
+    }
+  }
+
+  .form-error {
+    color: var(--status-danger);
+    font-size: 0.75rem;
+    margin-top: 0.35rem;
+  }
+}

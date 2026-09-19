@@ -1,0 +1,43 @@
+{
+  "nav": {
+    "home": "Início",
+    "models": "Casting",
+    "stars": "Stars",
+    "apply": "Quero ser modelo",
+    "contact": "Contato"
+  },
+  "casting": {
+    "title": "Nosso Casting",
+    "subtitle": "Conheça nossos talentos representados no mercado nacional e internacional.",
+    "all": "Todos",
+    "female": "Feminino",
+    "male": "Masculino",
+    "new_faces": "New Faces",
+    "commercial": "Comercial",
+    "special": "Stars & Special",
+    "height": "Altura",
+    "shoes": "Calçado",
+    "bust": "Busto",
+    "waist": "Cintura",
+    "hips": "Quadril",
+    "eyes": "Olhos",
+    "hair": "Cabelo",
+    "view_full_profile": "Ver Perfil Completo"
+  },
+  "actions": {
+    "view_profile": "Ver perfil",
+    "contact_agency": "Falar com a agência",
+    "send_application": "Enviar candidatura",
+    "download_composite": "Baixar Composite Oficial",
+    "explore_casting": "Explorar Casting",
+    "become_model": "Quero ser Modelo"
+  },
+  "home": {
+    "hero_title": "A elegância da moda com a precisão do scouting inteligente.",
+    "hero_subtitle": "Conectamos os rostos mais autênticos e promissores às principais passarelas, campanhas globais e produções editoriais de alto padrão.",
+    "featured_title": "Casting em Destaque",
+    "view_all": "Ver todo o casting",
+    "cta_title": "Seu talento merece a visibilidade certa.",
+    "cta_subtitle": "Envie sua ficha de avaliação e fotos polaroids diretamente para os nossos olheiros e bookers."
+  }
+}

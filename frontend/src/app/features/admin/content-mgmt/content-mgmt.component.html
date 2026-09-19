@@ -1,0 +1,66 @@
+<div class="content-mgmt-page container">
+  <div class="mgmt-top">
+    <div>
+      <h1 class="font-serif page-title">Gestão de Conteúdos &amp; Mídia</h1>
+      <p class="text-secondary">Edição dos textos institucionais, vídeo em destaque da Home e canais de contato.</p>
+    </div>
+  </div>
+
+  @if (saveSuccess()) {
+    <div class="success-banner">
+      &check; Alterações salvas com sucesso no sistema!
+    </div>
+  }
+
+  <form [formGroup]="contentForm" (ngSubmit)="onSave()" class="content-form card-editorial">
+    <div class="section-block">
+      <h3 class="font-serif block-title">Página Inicial: Hero &amp; Vídeo Institucional</h3>
+
+      <div class="form-group">
+        <label for="heroTitle">Título Principal do Hero (H1)</label>
+        <input id="heroTitle" type="text" formControlName="heroTitle" class="form-control" />
+      </div>
+
+      <div class="form-group">
+        <label for="heroSubtitle">Subtítulo / Tagline</label>
+        <textarea id="heroSubtitle" rows="3" formControlName="heroSubtitle" class="form-control"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="heroVideoUrl">URL do Vídeo Institucional (Stream / MP4 em Nuvem)</label>
+        <input id="heroVideoUrl" type="url" formControlName="heroVideoUrl" class="form-control" />
+      </div>
+    </div>
+
+    <div class="section-block mt-8">
+      <h3 class="font-serif block-title">Canais de Contato &amp; Atendimento</h3>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="agencyEmail">E-mail Principal</label>
+          <input id="agencyEmail" type="email" formControlName="agencyEmail" class="form-control" />
+        </div>
+
+        <div class="form-group">
+          <label for="agencyPhone">Telefone / WhatsApp Comercial</label>
+          <input id="agencyPhone" type="text" formControlName="agencyPhone" class="form-control" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="agencyInstagram">Perfil no Instagram</label>
+        <input id="agencyInstagram" type="text" formControlName="agencyInstagram" class="form-control" />
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <app-button
+        type="submit"
+        variant="gold"
+        size="lg"
+        [loading]="isSaving()">
+        Salvar Alterações
+      </app-button>
+    </div>
+  </form>
+</div>

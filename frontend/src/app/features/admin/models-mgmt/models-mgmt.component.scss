@@ -1,0 +1,88 @@
+.mgmt-page {
+  padding-top: 2.5rem;
+  padding-bottom: 5rem;
+}
+
+.mgmt-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.mgmt-title {
+  font-size: 2.25rem;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.mgmt-card {
+  padding: 1.5rem;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  font-size: 0.8125rem;
+
+  th {
+    text-align: left;
+    padding: 0.875rem 0.75rem;
+    border-bottom: 1px solid var(--border-medium);
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.6875rem;
+    letter-spacing: 0.05em;
+  }
+
+  td {
+    padding: 1.125rem 0.75rem;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+  }
+}
+
+.badge-cat {
+  font-size: 0.6875rem;
+  padding: 0.2rem 0.5rem;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+}
+
+.status-pill {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+
+  &.status-active {
+    background: rgba(16, 185, 129, 0.15);
+    color: #6ee7b7;
+  }
+}
+
+.action-cell {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.action-btn {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}

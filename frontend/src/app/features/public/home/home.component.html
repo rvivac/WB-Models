@@ -1,0 +1,87 @@
+<section class="hero-section">
+  <div class="hero-backdrop">
+    <div class="hero-overlay"></div>
+  </div>
+
+  <div class="container hero-content">
+    <span class="badge-editorial">Model Management &amp; Scouting</span>
+    <h1 class="hero-title font-serif">
+      A elegância da moda com a precisão do scouting inteligente.
+    </h1>
+    <p class="hero-subtitle">
+      Conectamos os rostos mais autênticos e promissores às principais passarelas, campanhas globais e produções editoriais de alto padrão.
+    </p>
+
+    <div class="hero-actions">
+      <a routerLink="/models" class="btn btn-gold">
+        Explorar Casting
+      </a>
+      <a routerLink="/apply" class="btn btn-outline">
+        Quero ser Modelo
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Manifesto / Sobre -->
+<section class="manifesto-section">
+  <div class="container manifesto-inner">
+    <div class="manifesto-header">
+      <span class="section-tag tracking-editorial">Nossa Visão</span>
+      <h2 class="font-serif section-heading">Redefinindo o futuro do agenciamento no Brasil</h2>
+    </div>
+    <div class="manifesto-body">
+      <p>
+        A <strong>WB Scouting</strong> atua na vanguarda da representação de modelos, unindo a curadoria artística refinada com métodos modernos de seleção, desenvolvimento de carreira e gestão de imagem internacional.
+      </p>
+      <p>
+        Nossa missão é lapidar talentos com autenticidade, ética e preparo profissional para suprir as demandas criativas das maiores marcas do mundo.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Casting em Destaque -->
+<section class="featured-section">
+  <div class="container">
+    <div class="section-top">
+      <div>
+        <span class="section-tag tracking-editorial">Talentos</span>
+        <h2 class="font-serif">Casting em Destaque</h2>
+      </div>
+      <a routerLink="/models" class="view-all-link">
+        Ver todo o casting &rarr;
+      </a>
+    </div>
+
+    <div class="models-grid">
+      @for (model of featuredModels(); track model.slug) {
+        <div class="model-card card-editorial" [routerLink]="['/models', model.slug]">
+          <div class="model-image-wrap">
+            <img [src]="model.imageUrl" [alt]="model.name" class="model-image" loading="lazy" />
+            <div class="model-overlay">
+              <span class="model-height">{{ model.height }}</span>
+            </div>
+          </div>
+          <div class="model-info">
+            <h3 class="model-name font-serif">{{ model.name }}</h3>
+            <span class="model-category tracking-editorial">{{ model.category }}</span>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Banner CTA Inscrição -->
+<section class="cta-banner">
+  <div class="container cta-inner">
+    <div class="cta-text">
+      <h2 class="font-serif">Seu talento merece a visibilidade certa.</h2>
+      <p>Envie sua ficha de avaliação e fotos polaroids diretamente para os nossos olheiros e bookers.</p>
+    </div>
+    <a routerLink="/apply" class="btn btn-gold btn-cta">
+      Iniciar Inscrição &rarr;
+    </a>
+  </div>
+</section>

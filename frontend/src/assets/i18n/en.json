@@ -1,0 +1,43 @@
+{
+  "nav": {
+    "home": "Home",
+    "models": "Casting",
+    "stars": "Stars",
+    "apply": "Become a Model",
+    "contact": "Contact"
+  },
+  "casting": {
+    "title": "Our Casting",
+    "subtitle": "Discover our represented talents in domestic and international markets.",
+    "all": "All",
+    "female": "Female",
+    "male": "Male",
+    "new_faces": "New Faces",
+    "commercial": "Commercial",
+    "special": "Stars & Special",
+    "height": "Height",
+    "shoes": "Shoes",
+    "bust": "Bust",
+    "waist": "Waist",
+    "hips": "Hips",
+    "eyes": "Eyes",
+    "hair": "Hair",
+    "view_full_profile": "View Full Profile"
+  },
+  "actions": {
+    "view_profile": "View Profile",
+    "contact_agency": "Contact Agency",
+    "send_application": "Submit Application",
+    "download_composite": "Download Official Composite",
+    "explore_casting": "Explore Casting",
+    "become_model": "Become a Model"
+  },
+  "home": {
+    "hero_title": "Fashion elegance with intelligent scouting precision.",
+    "hero_subtitle": "Connecting authentic and promising faces to premier runways, global campaigns, and high-end editorial productions.",
+    "featured_title": "Featured Casting",
+    "view_all": "View All Models",
+    "cta_title": "Your talent deserves the right spotlight.",
+    "cta_subtitle": "Submit your assessment form and polaroids directly to our professional scouts and bookers."
+  }
+}

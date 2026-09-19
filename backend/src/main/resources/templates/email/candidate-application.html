@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Candidatura de Modelo - WB Scouting</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0b0c10;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #e2e8f0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .wrapper {
+            width: 100%;
+            background-color: #0b0c10;
+            padding: 40px 10px;
+        }
+        .container {
+            max-width: 620px;
+            margin: 0 auto;
+            background-color: #141721;
+            border-radius: 12px;
+            border: 1px solid #232838;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+        }
+        .header {
+            padding: 30px;
+            text-align: center;
+            background: linear-gradient(180deg, #1c2130 0%, #141721 100%);
+            border-bottom: 1px solid #232838;
+        }
+        .tag {
+            display: inline-block;
+            background: rgba(212, 163, 75, 0.15);
+            color: #e5b35c;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            border: 1px solid rgba(212, 163, 75, 0.3);
+        }
+        .title {
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 700;
+            margin: 0 0 6px 0;
+        }
+        .sub-title {
+            color: #94a3b8;
+            font-size: 13px;
+            margin: 0;
+        }
+        .content {
+            padding: 30px;
+        }
+        .section-header {
+            font-size: 13px;
+            font-weight: 700;
+            color: #e5b35c;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin: 25px 0 12px 0;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #232838;
+        }
+        .section-header:first-child {
+            margin-top: 0;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        .info-table td {
+            padding: 9px 0;
+            font-size: 13px;
+            border-bottom: 1px solid #1a1e2b;
+        }
+        .info-label {
+            color: #94a3b8;
+            width: 40%;
+            font-weight: 500;
+        }
+        .info-value {
+            color: #f1f5f9;
+            font-weight: 600;
+            text-align: right;
+        }
+        .photos-grid {
+            margin-top: 15px;
+        }
+        .photo-card {
+            background-color: #1a1e2b;
+            border: 1px solid #282f42;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .photo-pos {
+            font-size: 12px;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+        .photo-link {
+            font-size: 12px;
+            color: #e5b35c;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .footer {
+            padding: 22px 30px;
+            text-align: center;
+            border-top: 1px solid #232838;
+            background-color: #0f121a;
+            font-size: 12px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="container">
+        <div class="header">
+            <div class="tag">Novo Talento</div>
+            <h1 class="title">Ficha de Candidatura Recebida</h1>
+            <p class="sub-title">Uma nova inscrição foi submetida pelo formulário "Quero ser modelo".</p>
+        </div>
+
+        <div class="content">
+            <!-- DADOS PESSOAIS -->
+            <div class="section-header">Dados Pessoais</div>
+            <table class="info-table">
+                <tr>
+                    <td class="info-label">Nome Completo:</td>
+                    <td class="info-value" th:text="${candidate.fullName}">Nome do Candidato</td>
+                </tr>
+                <tr>
+                    <td class="info-label">E-mail:</td>
+                    <td class="info-value" th:text="${candidate.email}">email@exemplo.com</td>
+                </tr>
+                <tr>
+                    <td class="info-label">Telefone / WhatsApp:</td>
+                    <td class="info-value" th:text="${candidate.phone}">(11) 99999-9999</td>
+                </tr>
+                <tr>
+                    <td class="info-label">Idade:</td>
+                    <td class="info-value" th:text="${candidate.age} + ' anos'">20 anos</td>
+                </tr>
+                <tr th:if="${candidate.guardianName != null and !candidate.guardianName.empty}">
+                    <td class="info-label">Responsável Legal:</td>
+                    <td class="info-value" th:text="${candidate.guardianName}">Nome do Responsável</td>
+                </tr>
+                <tr>
+                    <td class="info-label">Gênero:</td>
+                    <td class="info-value" th:text="${candidate.gender}">Feminino</td>
+                </tr>
+            </table>
+
+            <!-- MEDIDAS CORPORAIS -->
+            <div class="section-header">Medidas Corporais</div>
+            <table class="info-table">
+                <tr>
+                    <td class="info-label">Altura:</td>
+                    <td class="info-value" th:text="${candidate.heightCm} + ' cm'">178 cm</td>
+                </tr>
+                <tr th:if="${candidate.weightKg != null}">
+                    <td class="info-label">Peso:</td>
+                    <td class="info-value" th:text="${candidate.weightKg} + ' kg'">58 kg</td>
+                </tr>
+                <tr th:if="${candidate.bustChestCm != null}">
+                    <td class="info-label">Busto / Tórax:</td>
+                    <td class="info-value" th:text="${candidate.bustChestCm} + ' cm'">86 cm</td>
+                </tr>
+                <tr th:if="${candidate.waistCm != null}">
+                    <td class="info-label">Cintura:</td>
+                    <td class="info-value" th:text="${candidate.waistCm} + ' cm'">62 cm</td>
+                </tr>
+                <tr th:if="${candidate.hipsCm != null}">
+                    <td class="info-label">Quadril:</td>
+                    <td class="info-value" th:text="${candidate.hipsCm} + ' cm'">90 cm</td>
+                </tr>
+            </table>
+
+            <!-- MÍDIAS SOCIAIS -->
+            <div class="section-header" th:if="${(candidate.instagramHandle != null and !candidate.instagramHandle.empty) or (candidate.tiktokHandle != null and !candidate.tiktokHandle.empty)}">Presença Digital</div>
+            <table class="info-table" th:if="${(candidate.instagramHandle != null and !candidate.instagramHandle.empty) or (candidate.tiktokHandle != null and !candidate.tiktokHandle.empty)}">
+                <tr th:if="${candidate.instagramHandle != null and !candidate.instagramHandle.empty}">
+                    <td class="info-label">Instagram:</td>
+                    <td class="info-value" th:text="${candidate.instagramHandle}">@perfil</td>
+                </tr>
+                <tr th:if="${candidate.tiktokHandle != null and !candidate.tiktokHandle.empty}">
+                    <td class="info-label">TikTok:</td>
+                    <td class="info-value" th:text="${candidate.tiktokHandle}">@perfil</td>
+                </tr>
+            </table>
+
+            <!-- FOTOS ENVIADAS -->
+            <div class="section-header">Fotos para Avaliação (<span th:text="${candidate.photos.size()}">0</span>)</div>
+            <table class="info-table" width="100%">
+                <tr th:each="photo : ${candidate.photos}">
+                    <td style="padding: 10px 0; border-bottom: 1px solid #1a1e2b;">
+                        <span style="font-weight: 600; color: #cbd5e1;" th:text="'Foto #' + ${photo.photoPosition}">Foto #1</span>
+                    </td>
+                    <td style="padding: 10px 0; text-align: right; border-bottom: 1px solid #1a1e2b;">
+                        <a th:href="${photo.fileUrl}" target="_blank" style="color: #e5b35c; text-decoration: underline; font-weight: 600; font-size: 13px;">Visualizar Arquivo &rarr;</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="footer">
+            &copy; <span th:text="${currentYear}">2026</span> WB Scouting. Todos os direitos reservados.<br>
+            Notificação gerada pelo sistema integrado de scouting.
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<div class="login-page">
+  <div class="login-card card-editorial">
+    <div class="login-header text-center">
+      <div class="brand-title">WB SCOUTING</div>
+      <span class="badge-editorial">Painel Administrativo</span>
+      <p class="login-sub text-secondary">Acesso restrito para bookers e administradores</p>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="error-box">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <div class="form-group">
+        <label for="admin-email">E-mail Administrativo</label>
+        <input
+          id="admin-email"
+          type="email"
+          formControlName="email"
+          class="form-control"
+          placeholder="admin@wbscouting.com"
+          autocomplete="username" />
+        @if (loginForm.get('email')?.touched && loginForm.get('email')?.invalid) {
+          <span class="form-error">Informe um e-mail válido.</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <div class="label-row">
+          <label for="admin-pwd">Senha</label>
+          <a routerLink="/admin/forgot-password" class="forgot-link">Esqueceu a senha?</a>
+        </div>
+        <input
+          id="admin-pwd"
+          type="password"
+          formControlName="password"
+          class="form-control"
+          placeholder="••••••••"
+          autocomplete="current-password" />
+        @if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
+          <span class="form-error">A senha é obrigatória.</span>
+        }
+      </div>
+
+      <app-button
+        type="submit"
+        variant="gold"
+        size="lg"
+        class="w-full"
+        [loading]="isSubmitting()">
+        Entrar no Sistema
+      </app-button>
+    </form>
+
+    <div class="login-footer text-center">
+      <a routerLink="/" class="back-home-link">&larr; Retornar ao site público</a>
+    </div>
+  </div>
+</div>

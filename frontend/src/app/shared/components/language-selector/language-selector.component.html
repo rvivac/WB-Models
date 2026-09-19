@@ -1,0 +1,19 @@
+<div class="lang-selector" role="group" aria-label="Seleção de idioma">
+  <button 
+    type="button" 
+    class="lang-btn" 
+    [class.active]="isCurrent('pt')" 
+    (click)="changeLanguage('pt')"
+    aria-label="Mudar idioma para Português">
+    POR
+  </button>
+  <span class="lang-divider" aria-hidden="true">|</span>
+  <button 
+    type="button" 
+    class="lang-btn" 
+    [class.active]="isCurrent('en')" 
+    (click)="changeLanguage('en')"
+    aria-label="Switch language to English">
+    ENG
+  </button>
+</div>

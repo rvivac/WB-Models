@@ -1,0 +1,53 @@
+<div class="mgmt-page container">
+  <div class="mgmt-top">
+    <div>
+      <h1 class="font-serif mgmt-title">Gestão de Modelos</h1>
+      <p class="text-secondary">Cadastro, edição de medidas, books e composites dos modelos da agência.</p>
+    </div>
+    <button class="btn btn-gold">+ Novo Modelo</button>
+  </div>
+
+  <div class="mgmt-card card-editorial">
+    <div class="table-responsive">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Categoria</th>
+            <th>Altura</th>
+            <th>Mídias</th>
+            <th>Composite</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (model of models(); track model.id) {
+            <tr>
+              <td><strong>{{ model.name }}</strong></td>
+              <td><span class="badge-cat">{{ model.category }}</span></td>
+              <td>{{ model.heightCm }} cm</td>
+              <td>{{ model.photosCount }} arquivos</td>
+              <td>
+                <span [class.text-gold]="model.compositeReady" [class.text-muted]="!model.compositeReady">
+                  {{ model.compositeReady ? 'Gerado &check;' : 'Pendente' }}
+                </span>
+              </td>
+              <td>
+                <span class="status-pill" [class.status-active]="model.status === 'ATIVO'">
+                  {{ model.status }}
+                </span>
+              </td>
+              <td class="action-cell">
+                <button class="action-btn" (click)="toggleStatus(model)">
+                  {{ model.status === 'ATIVO' ? 'Desativar' : 'Ativar' }}
+                </button>
+                <button class="action-btn text-gold">Editar</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

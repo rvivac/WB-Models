@@ -1,0 +1,106 @@
+<div class="admin-layout">
+  <!-- Topbar Administrativa -->
+  <header class="admin-topbar glass-panel">
+    <div class="container topbar-inner">
+      <div class="admin-brand">
+        <span class="brand-text">WB SCOUTING</span>
+        <span class="badge-role">Backoffice CMS</span>
+      </div>
+
+      <div class="admin-user-nav">
+        <span class="user-greeting">
+          Olá, <strong>{{ authService.currentUser()?.name || 'Administrador' }}</strong>
+        </span>
+        <button class="btn btn-outline btn-sm" (click)="logout()">
+          Encerrar Sessão
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navegação de Abas do Admin -->
+  <div class="admin-nav-bar">
+    <div class="container admin-tabs">
+      <a routerLink="/admin/dashboard" routerLinkActive="active" class="tab-link">Visão Geral</a>
+      <a routerLink="/admin/models" routerLinkActive="active" class="tab-link">Gestão de Casting</a>
+      <a routerLink="/admin/candidates" routerLinkActive="active" class="tab-link">Candidaturas</a>
+      <a routerLink="/admin/content" routerLinkActive="active" class="tab-link">Conteúdos &amp; Vídeo Home</a>
+      <a routerLink="/" target="_blank" class="tab-link link-preview">Ver Site &nearr;</a>
+    </div>
+  </div>
+
+  <main class="container admin-main">
+    <div class="page-title-area">
+      <h1 class="font-serif page-title">Painel de Controle</h1>
+      <p class="text-secondary">Visão geral do sistema de inteligência e prospecção de casting.</p>
+    </div>
+
+    <!-- Cards de Métricas -->
+    <div class="stats-grid">
+      @for (stat of stats(); track stat.label) {
+        <div class="stat-card card-editorial">
+          <span class="stat-label tracking-editorial">{{ stat.label }}</span>
+          <div class="stat-value font-serif">{{ stat.value }}</div>
+          <span class="stat-change text-gold">{{ stat.change }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- Seção de Ações Rápidas & Candidaturas Recentes -->
+    <div class="dashboard-grid">
+      <div class="recent-card card-editorial">
+        <div class="card-top">
+          <h3 class="font-serif">Novas Candidaturas Recebidas</h3>
+          <a routerLink="/admin/candidates" class="text-gold text-sm font-semibold">Ver Todas &rarr;</a>
+        </div>
+
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Candidato</th>
+                <th>Idade</th>
+                <th>Altura</th>
+                <th>Cidade</th>
+                <th>Data</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (cand of recentCandidates(); track cand.name) {
+                <tr>
+                  <td><strong>{{ cand.name }}</strong></td>
+                  <td>{{ cand.age }} anos</td>
+                  <td>{{ cand.height }}</td>
+                  <td>{{ cand.city }}</td>
+                  <td>{{ cand.date }}</td>
+                  <td>
+                    <span class="badge-status" [class.badge-new]="cand.status === 'NOVO'">
+                      {{ cand.status }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Ações Rápidas -->
+      <div class="actions-card card-editorial">
+        <h3 class="font-serif mb-4">Ações Rápidas</h3>
+        <div class="action-buttons">
+          <a routerLink="/admin/models" class="btn btn-gold w-full text-center">
+            + Cadastrar Novo Modelo
+          </a>
+          <a routerLink="/admin/candidates" class="btn btn-outline w-full text-center">
+            Triar Fichas de Inscritos
+          </a>
+          <a routerLink="/admin/content" class="btn btn-ghost w-full text-center">
+            Atualizar Vídeo Institucional
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

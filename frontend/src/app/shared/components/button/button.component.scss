@@ -1,0 +1,34 @@
+:host {
+  display: inline-block;
+}
+
+.size-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+}
+
+.size-md {
+  padding: 0.8125rem 1.75rem;
+  font-size: 0.8125rem;
+}
+
+.size-lg {
+  padding: 1rem 2.25rem;
+  font-size: 0.875rem;
+}
+
+.btn-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

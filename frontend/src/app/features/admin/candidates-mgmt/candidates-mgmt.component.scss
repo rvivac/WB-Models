@@ -1,0 +1,151 @@
+.candidates-page {
+  padding-top: 2.5rem;
+  padding-bottom: 5rem;
+}
+
+.candidates-top {
+  margin-bottom: 2.5rem;
+
+  .page-title {
+    font-size: 2.25rem;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+  }
+}
+
+.candidates-card {
+  padding: 1.5rem;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  font-size: 0.8125rem;
+
+  th {
+    text-align: left;
+    padding: 0.875rem 0.75rem;
+    border-bottom: 1px solid var(--border-medium);
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.6875rem;
+    letter-spacing: 0.05em;
+  }
+
+  td {
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+  }
+}
+
+.status-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+
+  &.badge-pending {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fcd34d;
+  }
+
+  &.badge-approved {
+    background: rgba(16, 185, 129, 0.2);
+    color: #6ee7b7;
+  }
+}
+
+.candidate-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.detail-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.cand-name {
+  font-size: 1.85rem;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.status-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.box-title {
+  font-size: 0.75rem;
+  color: var(--gold-light);
+  margin-bottom: 1rem;
+}
+
+.measures-box {
+  background: var(--bg-elevated);
+  padding: 1.25rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+
+.measures-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  font-size: 0.875rem;
+
+  .lbl {
+    color: var(--text-muted);
+    margin-right: 0.25rem;
+  }
+}
+
+.photos-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.cand-photo-thumb {
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-primary);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-fast);
+
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+}
+
+.btn-xs {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.7rem;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+}
+
+.block {
+  display: block;
+}

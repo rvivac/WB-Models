@@ -1,0 +1,58 @@
+<header class="site-header glass-panel">
+  <div class="container header-inner">
+    <!-- Brand Logo -->
+    <a routerLink="/" class="brand-logo" (click)="closeMenu()">
+      <span class="logo-main">WB</span>
+      <span class="logo-divider">|</span>
+      <span class="logo-sub tracking-editorial">SCOUTING</span>
+    </a>
+
+    <!-- Desktop Navigation -->
+    <nav class="desktop-nav">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">
+        {{ 'nav.home' | translate }}
+      </a>
+      <a routerLink="/models" routerLinkActive="active" class="nav-link">
+        {{ 'nav.models' | translate }}
+      </a>
+      <a routerLink="/contact" routerLinkActive="active" class="nav-link">
+        {{ 'nav.contact' | translate }}
+      </a>
+      <app-language-selector></app-language-selector>
+      <a routerLink="/apply" class="btn btn-gold btn-apply">
+        {{ 'nav.apply' | translate }}
+      </a>
+    </nav>
+
+    <!-- Mobile Header Actions -->
+    <div class="mobile-header-actions">
+      <app-language-selector class="mobile-lang-top"></app-language-selector>
+      <button class="mobile-toggle" (click)="toggleMenu()" aria-label="Menu principal">
+        <span class="bar" [class.open]="themeService.isMobileMenuOpen()"></span>
+        <span class="bar" [class.open]="themeService.isMobileMenuOpen()"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Overlay Menu -->
+  @if (themeService.isMobileMenuOpen()) {
+    <div class="mobile-menu" (click)="closeMenu()">
+      <nav class="mobile-nav" (click)="$event.stopPropagation()">
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()" class="mobile-link">
+          {{ 'nav.home' | translate }}
+        </a>
+        <a routerLink="/models" routerLinkActive="active" (click)="closeMenu()" class="mobile-link">
+          {{ 'nav.models' | translate }}
+        </a>
+        <a routerLink="/contact" routerLinkActive="active" (click)="closeMenu()" class="mobile-link">
+          {{ 'nav.contact' | translate }}
+        </a>
+        <div class="mobile-action">
+          <a routerLink="/apply" (click)="closeMenu()" class="btn btn-gold w-full text-center">
+            {{ 'nav.apply' | translate }}
+          </a>
+        </div>
+      </nav>
+    </div>
+  }
+</header>

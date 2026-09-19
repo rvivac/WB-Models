@@ -1,0 +1,487 @@
+@import '../../../../../../styles/variables';
+
+.model-detail-page {
+  min-height: calc(100vh - var(--header-height));
+  padding-top: calc(var(--header-height) + 2rem);
+  padding-bottom: 6rem;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+// -------------------------------------------------------------
+// Breadcrumbs Navegacionais
+// -------------------------------------------------------------
+.detail-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+
+  .breadcrumb-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+
+    &:hover {
+      color: var(--gold-light);
+    }
+  }
+
+  .breadcrumb-separator {
+    color: var(--border-medium);
+  }
+
+  .breadcrumb-current {
+    color: var(--gold-primary);
+  }
+}
+
+// -------------------------------------------------------------
+// Layout Principal em Duas Colunas
+// -------------------------------------------------------------
+.detail-layout,
+.skeleton-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+
+  @include lg {
+    grid-template-columns: 360px 1fr;
+    gap: 3.5rem;
+    align-items: start;
+  }
+
+  @include xl {
+    grid-template-columns: 380px 1fr;
+    gap: 4rem;
+  }
+}
+
+// -------------------------------------------------------------
+// Coluna Lateral Sticky
+// -------------------------------------------------------------
+.sidebar-col {
+  @include lg {
+    position: sticky;
+    top: calc(var(--header-height) + 1.5rem);
+  }
+
+  .sticky-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .profile-cover-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    background: #141722;
+    margin: 0;
+
+    .profile-cover-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+    }
+
+    .star-badge {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.625rem;
+      background: rgba(7, 8, 11, 0.75);
+      border: 1px solid var(--gold-primary);
+      border-radius: var(--radius-sm);
+      color: var(--gold-light);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+  }
+
+  .profile-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    .profile-name {
+      font-size: 2rem;
+      font-weight: 400;
+      line-height: 1.15;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .demographics-wrap {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      font-weight: 400;
+
+      .demo-dot {
+        color: var(--gold-primary);
+        font-size: 0.65rem;
+      }
+    }
+
+    .instagram-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gold-primary);
+      text-decoration: none;
+      margin-top: 0.25rem;
+      transition: color var(--transition-fast);
+
+      &:hover {
+        color: var(--gold-light);
+      }
+    }
+  }
+
+  .profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+
+    .btn {
+      width: 100%;
+      text-align: center;
+    }
+  }
+}
+
+// -------------------------------------------------------------
+// Área Principal: Galerias de Book e Polaroids
+// -------------------------------------------------------------
+.gallery-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  .gallery-tabs-bar {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 0.25rem;
+
+    .tab-btn {
+      position: relative;
+      background: transparent;
+      border: none;
+      padding: 0.75rem 0.25rem 1rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-muted);
+      transition: color var(--transition-fast);
+
+      .tab-label {
+        font-family: var(--font-sans);
+        font-size: 0.875rem;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+
+      .tab-count {
+        font-size: 0.8125rem;
+        font-weight: 400;
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: transparent;
+        transition: background-color var(--transition-fast);
+      }
+
+      &:hover {
+        color: var(--text-primary);
+      }
+
+      &.active {
+        color: var(--gold-light);
+
+        &::after {
+          background: var(--gold-primary);
+        }
+      }
+    }
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+
+    @include md {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+  }
+
+  .photo-card {
+    position: relative;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    cursor: pointer;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    outline: none;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.4s ease,
+                box-shadow 0.4s ease;
+
+    .photo-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 3 / 4;
+      overflow: hidden;
+      margin: 0;
+
+      .photo-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top center;
+        display: block;
+        transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .photo-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(7, 8, 11, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity var(--transition-normal);
+
+        .zoom-indicator {
+          color: var(--text-primary);
+          font-size: 1.5rem;
+          transform: scale(0.8);
+          transition: transform var(--transition-fast);
+        }
+      }
+    }
+
+    &:hover,
+    &:focus-visible {
+      transform: translateY(-4px);
+      border-color: var(--border-gold);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+
+      .photo-img {
+        transform: scale(1.05);
+      }
+
+      .photo-overlay {
+        opacity: 1;
+
+        .zoom-indicator {
+          transform: scale(1);
+        }
+      }
+    }
+  }
+
+  .empty-gallery {
+    padding: 4rem 2rem;
+    text-align: center;
+    background: var(--bg-card);
+    border: 1px dashed var(--border-medium);
+    border-radius: var(--radius-md);
+
+    .empty-gallery-text {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      margin: 0;
+    }
+  }
+}
+
+// -------------------------------------------------------------
+// Skeletons Monocromáticos (Zero CLS)
+// -------------------------------------------------------------
+.skeleton-sidebar {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  .skeleton-image-wrap {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    background: #141722;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+
+  .skeleton-line {
+    border-radius: var(--radius-sm);
+    background: #1c2030;
+    animation: skeletonPulse 1.8s infinite ease-in-out;
+
+    &.title {
+      height: 24px;
+      width: 70%;
+    }
+
+    &.subtitle {
+      height: 14px;
+      width: 45%;
+    }
+
+    &.row {
+      height: 14px;
+      width: 100%;
+    }
+  }
+
+  .skeleton-measurements {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem 0;
+  }
+
+  .skeleton-btn {
+    height: 44px;
+    border-radius: var(--radius-sm);
+    background: #1c2030;
+    animation: skeletonPulse 1.8s infinite ease-in-out;
+  }
+}
+
+.skeleton-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  .skeleton-tabs {
+    display: flex;
+    gap: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-subtle);
+
+    .skeleton-tab {
+      width: 140px;
+      height: 20px;
+      border-radius: var(--radius-sm);
+      background: #1c2030;
+    }
+  }
+
+  .skeleton-photo-card {
+    aspect-ratio: 3 / 4;
+    background: #141722;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+}
+
+.skeleton-pulse {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(25, 28, 42, 0) 0%,
+    rgba(35, 40, 60, 0.4) 50%,
+    rgba(25, 28, 42, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.8s infinite ease-in-out;
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes skeletonPulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+// -------------------------------------------------------------
+// Estado 404 (Não Encontrado)
+// -------------------------------------------------------------
+.not-found-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem 1.5rem;
+  text-align: center;
+  gap: 1.5rem;
+  background: var(--bg-card);
+  border: 1px dashed var(--border-medium);
+  border-radius: var(--radius-md);
+  margin-top: 2rem;
+
+  .not-found-title {
+    font-size: 2.25rem;
+    font-weight: 300;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  .not-found-desc {
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    max-width: 480px;
+    line-height: 1.6;
+    margin: 0;
+  }
+}

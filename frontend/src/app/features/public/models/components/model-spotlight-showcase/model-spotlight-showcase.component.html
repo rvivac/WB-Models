@@ -1,0 +1,140 @@
+<section class="spotlight-section" aria-label="Vitrine de Talentos em Destaque">
+  <div class="container">
+    <!-- Cabeçalho da Vitrine -->
+    <header class="spotlight-header">
+      <div class="header-text">
+        <span class="editorial-tag tracking-editorial">
+          {{ 'spotlight.editorial_tag' | translate }}
+        </span>
+        <h2 class="spotlight-title font-serif">
+          {{ title() | translate }}
+        </h2>
+        <p class="spotlight-subtitle">
+          {{ subtitle() | translate }}
+        </p>
+      </div>
+
+      <!-- Controles de Navegação Superior -->
+      @if (models().length > 1) {
+        <div class="header-nav-buttons">
+          <button 
+            type="button" 
+            class="btn-arrow" 
+            (click)="prevSlide()" 
+            [attr.aria-label]="'spotlight.prev_slide' | translate">
+            &larr;
+          </button>
+          <button 
+            type="button" 
+            class="btn-arrow" 
+            (click)="nextSlide()" 
+            [attr.aria-label]="'spotlight.next_slide' | translate">
+            &rarr;
+          </button>
+        </div>
+      }
+    </header>
+
+    <!-- 1. Estado: Carregamento (Skeleton Monocromático - Zero CLS) -->
+    @if (isLoading()) {
+      <div class="spotlight-skeleton" aria-busy="true" aria-label="Carregando destaques">
+        <div class="skeleton-visual">
+          <div class="skeleton-pulse"></div>
+        </div>
+        <div class="skeleton-meta">
+          <div class="skeleton-line tag"></div>
+          <div class="skeleton-line title"></div>
+          <div class="skeleton-line subtitle"></div>
+          <div class="skeleton-btn"></div>
+        </div>
+      </div>
+    }
+
+    <!-- 2. Estado: Carrossel Ativo -->
+    @if (!isLoading() && hasModels()) {
+      <div 
+        class="spotlight-carousel"
+        (mouseenter)="pauseAutoPlay()"
+        (mouseleave)="resumeAutoPlay()"
+        (focusin)="pauseAutoPlay()"
+        (focusout)="resumeAutoPlay()"
+        (touchstart)="onTouchStart($event)"
+        (touchend)="onTouchEnd($event)"
+        role="region"
+        aria-roledescription="carousel"
+        aria-label="Carrossel de Destaques">
+        
+        <div class="carousel-track">
+          @for (model of models(); track model.id; let idx = $index) {
+            <div 
+              class="slide-item" 
+              [class.active]="idx === currentIndex()"
+              [attr.aria-hidden]="idx !== currentIndex()">
+              
+              <!-- Moldura Visual com Proporção Editorial 3:4 -->
+              <figure class="slide-image-wrap">
+                <img 
+                  [src]="getCoverImage(model)" 
+                  [alt]="'Destaque editorial de ' + model.stageName" 
+                  class="slide-image"
+                  [attr.fetchpriority]="idx === 0 ? 'high' : null"
+                  loading="lazy" 
+                />
+                <div class="slide-vignette"></div>
+              </figure>
+
+              <!-- Card Informativo Sobreposto -->
+              <div class="slide-info-card">
+                <div class="badge-row">
+                  <span class="star-pill tracking-editorial">
+                    {{ 'spotlight.star_talent' | translate }}
+                  </span>
+                </div>
+
+                <h3 class="model-name font-serif">{{ model.stageName }}</h3>
+
+                <div class="model-metrics">
+                  @if (model.heightCm) {
+                    <span class="metric-item">{{ model.heightCm }} cm</span>
+                  }
+                  @if (model.city) {
+                    <span class="metric-dot" aria-hidden="true">&bull;</span>
+                    <span class="metric-item">{{ model.city }}</span>
+                  }
+                  <span class="metric-dot" aria-hidden="true">&bull;</span>
+                  <span class="metric-item gender">
+                    {{ model.gender === 'FEMALE' ? ('nav.female' | translate) : ('nav.male' | translate) }}
+                  </span>
+                </div>
+
+                <div class="action-wrap">
+                  <a [routerLink]="['/models', model.id]" class="btn btn-gold btn-profile">
+                    <span>{{ 'spotlight.view_profile' | translate }}</span>
+                    <span class="arrow">&rarr;</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Indicadores de Linha (Dash Indicators) -->
+        @if (models().length > 1) {
+          <div class="dash-indicators" role="tablist" aria-label="Indicadores de slides">
+            @for (model of models(); track model.id; let idx = $index) {
+              <button 
+                type="button" 
+                class="dash-line" 
+                [class.active]="idx === currentIndex()"
+                (click)="goToSlide(idx)"
+                [attr.aria-label]="'Ir para slide ' + (idx + 1)"
+                role="tab"
+                [attr.aria-selected]="idx === currentIndex()">
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</section>

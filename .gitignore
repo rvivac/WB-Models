@@ -22,6 +22,7 @@ yarn-error.log*
 # Environment & Credentials
 .env
 *.local
+*.log
 
 # OS
 .DS_Store

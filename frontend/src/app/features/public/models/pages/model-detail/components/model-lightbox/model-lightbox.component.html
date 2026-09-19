@@ -1,0 +1,53 @@
+<div 
+  class="lightbox-backdrop" 
+  (click)="onBackdropClick($event)" 
+  role="dialog" 
+  aria-modal="true" 
+  aria-label="Visualizador de Fotografias em Alta Resolução">
+  
+  <!-- Barra Superior: Contador e Botão Fechar -->
+  <header class="lightbox-header">
+    <span class="lightbox-counter">
+      {{ currentIndex() + 1 }} / {{ images().length }}
+    </span>
+    
+    <button 
+      type="button" 
+      class="btn-close" 
+      (click)="closeModal()" 
+      [attr.aria-label]="'model_detail.lightbox_close' | translate">
+      &times;
+    </button>
+  </header>
+
+  <!-- Botão Foto Anterior -->
+  @if (images().length > 1) {
+    <button 
+      type="button" 
+      class="btn-nav btn-prev" 
+      (click)="prevImage()" 
+      [attr.aria-label]="'model_detail.lightbox_prev' | translate">
+      &#10094;
+    </button>
+  }
+
+  <!-- Imagem Central em Alta Definição -->
+  <div class="lightbox-content">
+    <img 
+      [src]="currentImageUrl()" 
+      alt="Fotografia do modelo em alta resolução" 
+      class="lightbox-image" 
+    />
+  </div>
+
+  <!-- Botão Próxima Foto -->
+  @if (images().length > 1) {
+    <button 
+      type="button" 
+      class="btn-nav btn-next" 
+      (click)="nextImage()" 
+      [attr.aria-label]="'model_detail.lightbox_next' | translate">
+      &#10095;
+    </button>
+  }
+</div>

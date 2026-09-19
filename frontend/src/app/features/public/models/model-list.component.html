@@ -1,0 +1,101 @@
+<div class="models-page-layout">
+  <div class="container">
+    <!-- 1. Cabeçalho Editorial da Página -->
+    <header class="page-header">
+      <div class="header-breadcrumbs">
+        <a routerLink="/" class="breadcrumb-link">{{ 'nav.home' | translate }}</a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">{{ headerTitleKey() | translate }}</span>
+      </div>
+
+      <h1 class="page-title font-serif">
+        {{ headerTitleKey() | translate }}
+      </h1>
+      <p class="page-subtitle">
+        {{ headerSubtitleKey() | translate }}
+      </p>
+    </header>
+
+    <!-- 2. Vitrine Spotlight Cinemática (Destaque especial na aba Stars) -->
+    @if (isStarCategory()) {
+      <app-model-spotlight-showcase
+        [title]="'models.stars_title'"
+        [subtitle]="'models.stars_subtitle'"
+        [limit]="6"
+        filterCategory="ALL"
+        [autoPlay]="true">
+      </app-model-spotlight-showcase>
+    }
+
+    <!-- 3. Barra de Filtros e Controle com Debounce -->
+    <app-model-filters
+      [totalCount]="totalElements()"
+      [initialSearch]="search()"
+      [initialSort]="sort()"
+      (filterChange)="onFilterChange($event)"
+      (resetFilters)="onResetFilters()">
+    </app-model-filters>
+
+    <!-- 3. Estado: Carregamento (Skeletons Monocromáticos - CLS = 0) -->
+    @if (isLoading()) {
+      <div class="models-grid skeleton-grid" aria-busy="true" aria-label="Carregando casting de modelos">
+        @for (item of skeletonArray; track item) {
+          <div class="skeleton-card" aria-hidden="true">
+            <div class="skeleton-image-wrap">
+              <div class="skeleton-pulse"></div>
+            </div>
+            <div class="skeleton-info">
+              <div class="skeleton-line title"></div>
+              <div class="skeleton-line sub"></div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- 4. Estado: Modelos Carregados com Sucesso -->
+    @if (!isLoading() && models().length > 0) {
+      <div class="models-grid" role="region" aria-label="Grelha de Modelos">
+        @for (model of models(); track model.id) {
+          <app-model-card [model]="model"></app-model-card>
+        }
+      </div>
+
+      <!-- Controles Elegantes de Paginação -->
+      @if (totalPages() > 1) {
+        <nav class="pagination-nav" aria-label="Navegação de páginas de casting">
+          <button 
+            type="button" 
+            class="btn-page btn-prev" 
+            [disabled]="currentPage() <= 1"
+            (click)="goToPage(currentPage() - 1)">
+            &larr; {{ 'models.page_prev' | translate }}
+          </button>
+
+          <span class="page-counter">
+            {{ 'models.page_info' | translate }} {{ currentPage() }} / {{ totalPages() }}
+          </span>
+
+          <button 
+            type="button" 
+            class="btn-page btn-next" 
+            [disabled]="currentPage() >= totalPages()"
+            (click)="goToPage(currentPage() + 1)">
+            {{ 'models.page_next' | translate }} &rarr;
+          </button>
+        </nav>
+      }
+    }
+
+    <!-- 5. Estado: Vazio (Nenhum Talento Encontrado) -->
+    @if (!isLoading() && models().length === 0) {
+      <div class="empty-casting-state">
+        <h2 class="empty-title font-serif">{{ 'models.empty_title' | translate }}</h2>
+        <p class="empty-desc">{{ 'models.empty_desc' | translate }}</p>
+        <button type="button" class="btn btn-outline" (click)="onResetFilters()">
+          {{ 'models.reset_search' | translate }} &rarr;
+        </button>
+      </div>
+    }
+  </div>
+</div>

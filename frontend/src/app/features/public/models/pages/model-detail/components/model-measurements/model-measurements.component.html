@@ -1,0 +1,14 @@
+<div class="measurements-container" aria-label="Tabela de Medidas Biométricas">
+  <h3 class="measurements-heading tracking-editorial">
+    {{ 'model_detail.measurements_title' | translate }}
+  </h3>
+
+  <dl class="measurements-grid">
+    @for (item of measurementList(); track item.labelKey) {
+      <div class="measurement-row">
+        <dt class="measurement-label">{{ item.labelKey | translate }}</dt>
+        <dd class="measurement-value">{{ item.value }}</dd>
+      </div>
+    }
+  </dl>
+</div>

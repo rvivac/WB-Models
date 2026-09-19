@@ -4,8 +4,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of } from 'rxjs';
 import { HomeHeroComponent } from './home-hero.component';
-import { PublicContentService } from '../../../../../../core/services/public-content.service';
-import { TranslationService } from '../../../../../../core/services/translation.service';
+import { PublicContentService } from '../../../../../core/services/public-content.service';
+import { TranslationService } from '../../../../../core/services/translation.service';
 
 describe('HomeHeroComponent', () => {
   let component: HomeHeroComponent;

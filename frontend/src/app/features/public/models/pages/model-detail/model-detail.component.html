@@ -1,0 +1,201 @@
+<div class="model-detail-page">
+  <div class="container">
+    
+    <!-- 1. Estado: Carregamento (Skeletons Monocromáticos - Zero CLS) -->
+    @if (isLoading()) {
+      <div class="skeleton-layout" aria-busy="true" aria-label="Carregando perfil do modelo">
+        <!-- Coluna Lateral Skeleton -->
+        <aside class="sidebar-col skeleton-sidebar">
+          <div class="skeleton-image-wrap">
+            <div class="skeleton-pulse"></div>
+          </div>
+          <div class="skeleton-line title"></div>
+          <div class="skeleton-line subtitle"></div>
+          <div class="skeleton-measurements">
+            <div class="skeleton-line row"></div>
+            <div class="skeleton-line row"></div>
+            <div class="skeleton-line row"></div>
+            <div class="skeleton-line row"></div>
+          </div>
+          <div class="skeleton-btn"></div>
+        </aside>
+
+        <!-- Área Principal Skeleton -->
+        <main class="gallery-col skeleton-gallery">
+          <div class="skeleton-tabs">
+            <div class="skeleton-tab"></div>
+            <div class="skeleton-tab"></div>
+          </div>
+          <div class="gallery-grid">
+            @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+              <div class="skeleton-photo-card">
+                <div class="skeleton-pulse"></div>
+              </div>
+            }
+          </div>
+        </main>
+      </div>
+    }
+
+    <!-- 2. Estado: Modelo Não Encontrado ou Inativo (404) -->
+    @if (!isLoading() && isNotFound()) {
+      <div class="not-found-state">
+        <h1 class="not-found-title font-serif">{{ 'model_detail.not_found_title' | translate }}</h1>
+        <p class="not-found-desc">{{ 'model_detail.not_found_desc' | translate }}</p>
+        <a routerLink="/models/female" class="btn btn-gold">
+          &larr; {{ 'model_detail.back_to_casting' | translate }}
+        </a>
+      </div>
+    }
+
+    <!-- 3. Estado: Modelo Carregado com Sucesso -->
+    @if (!isLoading() && !isNotFound() && model(); as m) {
+      <!-- Breadcrumb Navegacional -->
+      <nav class="detail-breadcrumbs" aria-label="Navegação estrutural">
+        <a routerLink="/" class="breadcrumb-link">{{ 'nav.home' | translate }}</a>
+        <span class="breadcrumb-separator">/</span>
+        <a [routerLink]="m.gender === 'FEMALE' ? '/models/female' : '/models/male'" class="breadcrumb-link">
+          {{ m.gender === 'FEMALE' ? ('nav.female' | translate) : ('nav.male' | translate) }}
+        </a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">{{ m.stageName }}</span>
+      </nav>
+
+      <div class="detail-layout">
+        <!-- Coluna Lateral Sticky: Identificação, Biometria e Ações -->
+        <aside class="sidebar-col">
+          <div class="sticky-card card-editorial">
+            <!-- Imagem de Capa do Perfil -->
+            <figure class="profile-cover-wrap">
+              <img 
+                [src]="primaryCoverImage()" 
+                [alt]="'Fotografia de destaque de ' + m.stageName" 
+                class="profile-cover-image" 
+              />
+              @if (m.isStar) {
+                <span class="star-badge tracking-editorial">
+                  {{ 'home.star_badge' | translate }}
+                </span>
+              }
+            </figure>
+
+            <!-- Identificação e Demografia -->
+            <div class="profile-header">
+              <h1 class="profile-name font-serif">{{ m.stageName }}</h1>
+              
+              <div class="demographics-wrap">
+                @if (m.age) {
+                  <span class="demo-item">{{ m.age }} {{ 'model_detail.years_old' | translate }}</span>
+                }
+                @if (m.city) {
+                  @if (m.age) { <span class="demo-dot">&bull;</span> }
+                  <span class="demo-item">{{ m.city }}</span>
+                }
+                @if (m.nationality) {
+                  <span class="demo-dot">&bull;</span>
+                  <span class="demo-item">{{ m.nationality }}</span>
+                }
+              </div>
+
+              @if (m.instagramUrl) {
+                <a [href]="m.instagramUrl" target="_blank" rel="noopener noreferrer" class="instagram-link">
+                  <span>Instagram</span>
+                  <span class="arrow">&nearr;</span>
+                </a>
+              }
+            </div>
+
+            <!-- Tabela Minimalista de Medidas Biométricas -->
+            <app-model-measurements [model]="m"></app-model-measurements>
+
+            <!-- Ações de Booking e Composite Card -->
+            <div class="profile-actions">
+              <a 
+                [routerLink]="getBookingRouterLink()" 
+                [queryParams]="getBookingQueryParams()" 
+                class="btn btn-gold btn-booking">
+                {{ 'model_detail.request_booking' | translate }}
+              </a>
+
+              @if (getCompositeUrl(); as compUrl) {
+                <a 
+                  [href]="compUrl" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  class="btn btn-outline btn-composite">
+                  <span>{{ 'model_detail.download_composite' | translate }}</span>
+                  <span class="arrow">&darr;</span>
+                </a>
+              }
+            </div>
+          </div>
+        </aside>
+
+        <!-- Área Principal: Galerias de Book e Polaroids -->
+        <main class="gallery-col">
+          <!-- Abas de Segmentação Editorial -->
+          <div class="gallery-tabs-bar">
+            <button 
+              type="button" 
+              class="tab-btn" 
+              [class.active]="activeTab() === 'BOOK'"
+              (click)="setTab('BOOK')">
+              <span class="tab-label">{{ 'model_detail.book_tab' | translate }}</span>
+              <span class="tab-count">({{ m.bookPhotos?.length || 0 }})</span>
+            </button>
+
+            <button 
+              type="button" 
+              class="tab-btn" 
+              [class.active]="activeTab() === 'POLAROIDS'"
+              (click)="setTab('POLAROIDS')">
+              <span class="tab-label">{{ 'model_detail.polaroids_tab' | translate }}</span>
+              <span class="tab-count">({{ m.polaroids?.length || 0 }})</span>
+            </button>
+          </div>
+
+          <!-- Grade de Imagens da Galeria Ativa -->
+          @if (currentGalleryPhotos().length > 0) {
+            <div class="gallery-grid">
+              @for (photo of currentGalleryPhotos(); track photo.id; let idx = $index) {
+                <article 
+                  class="photo-card" 
+                  (click)="openLightbox(idx)"
+                  tabindex="0"
+                  (keydown.enter)="openLightbox(idx)"
+                  [attr.aria-label]="'Abrir fotografia ' + (idx + 1) + ' em tela cheia'">
+                  
+                  <figure class="photo-wrap">
+                    <img 
+                      [src]="photo.fileUrl" 
+                      [alt]="m.stageName + ' - Foto ' + (idx + 1)" 
+                      class="photo-img" 
+                      loading="lazy" 
+                    />
+                    <div class="photo-overlay">
+                      <span class="zoom-indicator">&#x26F6;</span>
+                    </div>
+                  </figure>
+                </article>
+              }
+            </div>
+          } @else {
+            <div class="empty-gallery">
+              <p class="empty-gallery-text">{{ 'model_detail.no_photos' | translate }}</p>
+            </div>
+          }
+        </main>
+      </div>
+
+      <!-- 4. Modal Lightbox em Tela Cheia -->
+      @if (isLightboxOpen()) {
+        <app-model-lightbox
+          [images]="lightboxImages()"
+          [currentIndex]="lightboxIndex()"
+          (close)="closeLightbox()"
+          (indexChange)="onLightboxIndexChange($event)">
+        </app-model-lightbox>
+      }
+    }
+  </div>
+</div>

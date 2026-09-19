@@ -1,0 +1,43 @@
+<article 
+  class="model-card card-editorial" 
+  [routerLink]="['/models', model().id]"
+  tabindex="0"
+  [attr.aria-label]="model().stageName + ' - ' + (model().city || 'Modelo WB')">
+  
+  <figure class="model-image-wrap">
+    <img 
+      [src]="getImageSrc()" 
+      [alt]="'Fotografia editorial do modelo ' + model().stageName" 
+      class="model-image" 
+      loading="lazy" 
+      (error)="onImageError()"
+    />
+
+    <!-- Badge Minimalista de Star -->
+    @if (model().isStar) {
+      <span class="star-badge tracking-editorial">
+        {{ 'home.star_badge' | translate }}
+      </span>
+    }
+
+    <!-- Overlay Gradiente com Metadados Revelados no Hover -->
+    <div class="model-overlay">
+      <div class="model-metrics">
+        @if (model().heightCm) {
+          <span class="metric-item">{{ model().heightCm }} cm</span>
+        }
+        @if (model().city) {
+          <span class="metric-dot" aria-hidden="true">&bull;</span>
+          <span class="metric-item">{{ model().city }}</span>
+        }
+      </div>
+    </div>
+  </figure>
+
+  <div class="model-info">
+    <h3 class="model-name font-serif">{{ model().stageName }}</h3>
+    <span class="model-gender tracking-editorial">
+      {{ model().gender === 'FEMALE' ? ('nav.female' | translate) : ('nav.male' | translate) }}
+    </span>
+  </div>
+</article>

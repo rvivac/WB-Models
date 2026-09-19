@@ -1,0 +1,139 @@
+@import '../../../../../../../../styles/variables';
+
+:host {
+  display: block;
+}
+
+.lightbox-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1000;
+  background: rgba(7, 8, 11, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.25s ease-out;
+}
+
+// -------------------------------------------------------------
+// Barra Superior: Contador e Botão Fechar
+// -------------------------------------------------------------
+.lightbox-header {
+  position: absolute;
+  top: 1.5rem;
+  left: 2rem;
+  right: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1010;
+
+  .lightbox-counter {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .btn-close {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 2.25rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: color var(--transition-fast), transform var(--transition-fast);
+
+    &:hover {
+      color: var(--gold-light);
+      transform: scale(1.15);
+    }
+  }
+}
+
+// -------------------------------------------------------------
+// Conteúdo e Imagem Central
+// -------------------------------------------------------------
+.lightbox-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 90vw;
+  max-height: 85vh;
+  user-select: none;
+
+  .lightbox-image {
+    max-width: 90vw;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+    animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+// -------------------------------------------------------------
+// Botões de Navegação Lateral
+// -------------------------------------------------------------
+.btn-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(19, 22, 32, 0.6);
+  border: 1px solid var(--border-medium);
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1010;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: rgba(197, 160, 89, 0.2);
+    border-color: var(--gold-primary);
+    color: var(--gold-light);
+    transform: translateY(-50%) scale(1.08);
+  }
+
+  &.btn-prev {
+    left: 1.5rem;
+  }
+
+  &.btn-next {
+    right: 1.5rem;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

@@ -10,27 +10,30 @@ export const routes: Routes = [
   },
   {
     path: 'models',
-    loadComponent: () => import('./features/public/models/models.component').then(m => m.ModelsComponent),
-    title: 'Casting de Modelos | WB Scouting'
+    redirectTo: 'models/female',
+    pathMatch: 'full'
   },
   {
     path: 'models/female',
-    loadComponent: () => import('./features/public/models/models.component').then(m => m.ModelsComponent),
+    loadComponent: () => import('./features/public/models/model-list.component').then(m => m.ModelListComponent),
+    data: { gender: 'FEMALE' },
     title: 'Casting Feminino | WB Scouting'
   },
   {
     path: 'models/male',
-    loadComponent: () => import('./features/public/models/models.component').then(m => m.ModelsComponent),
+    loadComponent: () => import('./features/public/models/model-list.component').then(m => m.ModelListComponent),
+    data: { gender: 'MALE' },
     title: 'Casting Masculino | WB Scouting'
   },
   {
     path: 'models/stars',
-    loadComponent: () => import('./features/public/models/models.component').then(m => m.ModelsComponent),
+    loadComponent: () => import('./features/public/models/model-list.component').then(m => m.ModelListComponent),
+    data: { isStar: true },
     title: 'Stars | WB Scouting'
   },
   {
-    path: 'models/:slug',
-    loadComponent: () => import('./features/public/model-detail/model-detail.component').then(m => m.ModelDetailComponent),
+    path: 'models/:id',
+    loadComponent: () => import('./features/public/models/pages/model-detail/model-detail.component').then(m => m.ModelDetailComponent),
     title: 'Perfil do Modelo | WB Scouting'
   },
   {

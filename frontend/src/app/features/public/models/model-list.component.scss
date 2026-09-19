@@ -1,0 +1,243 @@
+@import '../../../../styles/variables';
+
+.models-page-layout {
+  min-height: calc(100vh - var(--header-height));
+  padding-top: calc(var(--header-height) + 2.5rem);
+  padding-bottom: 6rem;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+// -------------------------------------------------------------
+// Header Editorial da Página
+// -------------------------------------------------------------
+.page-header {
+  margin-bottom: 2.5rem;
+  max-width: 800px;
+
+  .header-breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+
+    .breadcrumb-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color var(--transition-fast);
+
+      &:hover {
+        color: var(--gold-light);
+      }
+    }
+
+    .breadcrumb-separator {
+      color: var(--border-medium);
+    }
+
+    .breadcrumb-current {
+      color: var(--gold-primary);
+    }
+  }
+
+  .page-title {
+    font-size: 2.5rem;
+    font-weight: 300;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+
+    @include md {
+      font-size: 3.5rem;
+    }
+  }
+
+  .page-subtitle {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    font-weight: 300;
+  }
+}
+
+// -------------------------------------------------------------
+// Grelha de Modelos (2 cols mobile, 3 cols tablet, 4 cols desktop)
+// -------------------------------------------------------------
+.models-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 4rem;
+
+  @include md {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  @include lg {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+  }
+}
+
+// -------------------------------------------------------------
+// Skeletons Monocromáticos (Zero CLS)
+// -------------------------------------------------------------
+.skeleton-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+
+  .skeleton-image-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    background: #141722;
+    overflow: hidden;
+
+    .skeleton-pulse {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        rgba(25, 28, 42, 0) 0%,
+        rgba(35, 40, 60, 0.4) 50%,
+        rgba(25, 28, 42, 0) 100%
+      );
+      background-size: 200% 100%;
+      animation: skeletonShimmer 1.8s infinite ease-in-out;
+    }
+  }
+
+  .skeleton-info {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    .skeleton-line {
+      height: 12px;
+      border-radius: var(--radius-sm);
+      background: #1c2030;
+      animation: skeletonPulse 1.8s infinite ease-in-out;
+
+      &.title {
+        width: 75%;
+      }
+
+      &.sub {
+        width: 45%;
+        height: 10px;
+      }
+    }
+  }
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes skeletonPulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+// -------------------------------------------------------------
+// Navegação de Paginação
+// -------------------------------------------------------------
+.pagination-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 3rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--border-subtle);
+
+  .btn-page {
+    background: transparent;
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    padding: 0.65rem 1.25rem;
+    font-family: var(--font-sans);
+    font-size: 0.775rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+
+    &:hover:not(:disabled) {
+      border-color: var(--gold-primary);
+      color: var(--gold-light);
+      background: rgba(197, 160, 89, 0.08);
+      transform: translateY(-1px);
+    }
+
+    &:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      border-color: var(--border-subtle);
+    }
+  }
+
+  .page-counter {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+}
+
+// -------------------------------------------------------------
+// Estado Vazio
+// -------------------------------------------------------------
+.empty-casting-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px dashed var(--border-medium);
+  border-radius: var(--radius-md);
+  text-align: center;
+  gap: 1.25rem;
+  margin: 2rem 0;
+
+  .empty-title {
+    font-size: 1.75rem;
+    font-weight: 400;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  .empty-desc {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    max-width: 480px;
+    line-height: 1.6;
+    margin: 0;
+  }
+}

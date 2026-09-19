@@ -1,0 +1,149 @@
+@import '../../../../../../styles/variables';
+
+:host {
+  display: block;
+}
+
+.model-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.4s ease;
+
+  &:hover,
+  &:focus-visible {
+    outline: none;
+    transform: translateY(-6px);
+    border-color: var(--border-gold);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65), 0 0 20px rgba(197, 160, 89, 0.15);
+
+    .model-image {
+      transform: scale(1.05);
+    }
+
+    .model-overlay {
+      opacity: 1;
+    }
+
+    .model-name {
+      color: var(--gold-light);
+    }
+  }
+
+  // Figura e imagem com proporção vertical estrita 3:4
+  .model-image-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    background-color: #12151f;
+    margin: 0;
+
+    .model-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+      display: block;
+    }
+
+    // Badge Minimalista de Star
+    .star-badge {
+      position: absolute;
+      top: 0.875rem;
+      right: 0.875rem;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.625rem;
+      background: rgba(7, 8, 11, 0.75);
+      border: 1px solid var(--gold-primary);
+      border-radius: var(--radius-sm);
+      color: var(--gold-light);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    // Overlay inferior com transição suave
+    .model-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 1.5rem 1rem 0.75rem;
+      background: linear-gradient(to top, rgba(7, 8, 11, 0.9) 0%, rgba(7, 8, 11, 0.4) 60%, transparent 100%);
+      opacity: 0.85;
+      transition: opacity 0.35s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+
+      @include md {
+        opacity: 0;
+      }
+    }
+
+    .model-metrics {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--text-primary);
+      font-weight: 500;
+      letter-spacing: 0.05em;
+
+      .metric-item {
+        white-space: nowrap;
+      }
+
+      .metric-dot {
+        color: var(--gold-primary);
+        font-size: 0.7rem;
+      }
+    }
+  }
+
+  // Rodapé do card com nome e categoria
+  .model-info {
+    padding: 1.125rem 1rem;
+    background: var(--bg-card);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    .model-name {
+      font-size: 1.125rem;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-primary);
+      margin: 0;
+      transition: color var(--transition-fast);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .model-gender {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+  }
+}

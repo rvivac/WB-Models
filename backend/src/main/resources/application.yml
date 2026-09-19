@@ -13,20 +13,19 @@ spring:
     name: wb-scouting-api
 
   datasource:
-    # URL do Supabase Connection Pooler (porta 6543 em Transaction Mode ou 5432)
-    # Formato: jdbc:postgresql://aws-0-sa-east-1.pooler.supabase.com:6543/postgres?sslmode=require
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/postgres}
-    username: ${DATABASE_USERNAME:postgres}
-    password: ${DATABASE_PASSWORD:postgres}
+    # URL via Session Mode do Pooler (porta 5432 com SSL obrigatório)
+    # Substitua [REGIAO] pela região do seu projeto (ex.: sa-east-1) copiada da DIRECT_URL
+    url: jdbc:postgresql://aws-0-sa-east-1.pooler.supabase.com:5432/postgres?sslmode=require
+    username: postgres.stmytwsdlonpnirqiufq
+    password: "ptyC15gru@#!15"
     driver-class-name: org.postgresql.Driver
     hikari:
       pool-name: WbScoutingHikariPool
-      maximum-pool-size: 10
-      minimum-idle: 2
+      maximum-pool-size: 5
+      minimum-idle: 1
       idle-timeout: 300000
       connection-timeout: 20000
       max-lifetime: 1200000
-      # Preparação para Transaction Pooler do Supabase (PgBouncer)
       connection-test-query: SELECT 1
       auto-commit: true
 
@@ -34,15 +33,7 @@ spring:
     open-in-view: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: validate # Validação estrita do schema gerado pelo DDL do Supabase
-    properties:
-      hibernate:
-        format_sql: false
-        show_sql: false
-        jdbc:
-          batch_size: 25
-          order_inserts: true
-          order_updates: true
+      ddl-auto: none
 
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
@@ -63,25 +54,25 @@ spring:
 # Configurações da Aplicação
 app:
   mail:
-    from-address: ${MAIL_FROM:no-reply@wbagency.com}
-    from-name: "WB Agency"
-    agency-notification-email: ${AGENCY_CONTACT_EMAIL:contato@wbagency.com}
+    from-address: ${MAIL_FROM:no-reply@wbscouting.com}
+    from-name: "WB Scouting"
+    agency-notification-email: ${AGENCY_CONTACT_EMAIL:contato@wbscouting.com}
     reset-password-base-url: ${RESET_PWD_URL:http://localhost:4200/admin/reset-password}
   security:
     jwt:
-      # Secret key com no mínimo 256 bits (HMAC-SHA256)
       secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
-      expiration-ms: ${JWT_EXPIRATION_MS:28800000} # 8 horas em milissegundos (8 * 60 * 60 * 1000)
+      expiration-ms: ${JWT_EXPIRATION_MS:28800000} # 8 horas
     initial-admin:
       email: ${INITIAL_ADMIN_EMAIL:admin@wbscouting.com}
       password: ${INITIAL_ADMIN_PASSWORD:Admin@WbScouting2026!}
       name: ${INITIAL_ADMIN_NAME:Administrador WB Scouting}
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,https://wbscouting.com}
+    # Adicionado http://localhost:4200 para permitir requisições do frontend Angular
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://localhost:3000,https://wbscouting.com}
 
 # Configurações do Supabase Storage e API
 supabase:
-  url: ${SUPABASE_URL:https://xyzcompany.supabase.co}
+  url: https://stmytwsdlonpnirqiufq.supabase.co
   service-role-key: ${SUPABASE_SERVICE_ROLE_KEY:dummy-key}
   anon-key: ${SUPABASE_ANON_KEY:dummy-key}
   buckets:

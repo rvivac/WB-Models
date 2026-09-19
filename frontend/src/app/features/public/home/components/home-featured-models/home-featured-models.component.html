@@ -1,0 +1,110 @@
+<section class="featured-models-section" id="destaques">
+  <div class="container">
+    <!-- Cabeçalho Editorial da Seção -->
+    <div class="section-header">
+      <div class="header-text">
+        <span class="section-tag tracking-editorial">
+          {{ 'home.featured_tag' | translate }}
+        </span>
+        <h2 class="font-serif section-title">
+          {{ 'home.featured_title' | translate }}
+        </h2>
+        <p class="section-subtitle">
+          {{ 'home.featured_subtitle' | translate }}
+        </p>
+      </div>
+
+      <div class="header-action">
+        <a routerLink="/models/female" class="view-all-link">
+          <span>{{ 'home.view_all' | translate }}</span>
+          <span class="arrow" aria-hidden="true">&rarr;</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- 1. Estado: Carregamento (Skeletons Monocromáticos com CLS = 0) -->
+    @if (isLoading()) {
+      <div class="models-grid skeleton-grid" aria-busy="true" aria-label="Carregando modelos em destaque">
+        @for (item of skeletonArray; track item) {
+          <div class="skeleton-card" aria-hidden="true">
+            <div class="skeleton-image-wrap">
+              <div class="skeleton-pulse"></div>
+            </div>
+            <div class="skeleton-info">
+              <div class="skeleton-line title"></div>
+              <div class="skeleton-line sub"></div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- 2. Estado: Modelos Carregados com Sucesso -->
+    @if (!isLoading() && hasModels()) {
+      <div class="models-grid">
+        @for (model of models(); track model.id) {
+          <article 
+            class="model-card card-editorial" 
+            [routerLink]="['/models', model.id]"
+            tabindex="0"
+            [attr.aria-label]="model.stageName + ' - ' + (model.city || 'Modelo')">
+            
+            <figure class="model-image-wrap">
+              <img 
+                [src]="getCoverImage(model)" 
+                [alt]="'Fotografia de editorial do modelo ' + model.stageName" 
+                class="model-image" 
+                loading="lazy" 
+              />
+
+              <!-- Badge Minimalista de Star -->
+              @if (model.isStar) {
+                <span class="star-badge tracking-editorial">
+                  {{ 'home.star_badge' | translate }}
+                </span>
+              }
+
+              <!-- Overlay Gradiente com Metadados Revelados no Hover -->
+              <div class="model-overlay">
+                <div class="model-metrics">
+                  @if (model.heightCm) {
+                    <span class="metric-item">{{ model.heightCm }} cm</span>
+                  }
+                  @if (model.city) {
+                    <span class="metric-dot" aria-hidden="true">&bull;</span>
+                    <span class="metric-item">{{ model.city }}</span>
+                  }
+                </div>
+              </div>
+            </figure>
+
+            <div class="model-info">
+              <h3 class="model-name font-serif">{{ model.stageName }}</h3>
+              <span class="model-gender tracking-editorial">
+                {{ model.gender === 'FEMALE' ? ('nav.female' | translate) : ('nav.male' | translate) }}
+              </span>
+            </div>
+          </article>
+        }
+      </div>
+    }
+
+    <!-- 3. Estado: Lista Vazia ou Falha Silenciosa Graciosa -->
+    @if (!isLoading() && !hasModels()) {
+      <div class="empty-state">
+        <p class="empty-text font-serif">{{ 'home.featured_empty' | translate }}</p>
+        <a routerLink="/models/female" class="btn btn-outline btn-sm">
+          {{ 'home.view_all' | translate }} &rarr;
+        </a>
+      </div>
+    }
+
+    <!-- Botão Call to Action ao final da grade -->
+    <div class="section-footer">
+      <a routerLink="/models/female" class="btn btn-gold btn-cta-casting">
+        <span>{{ 'home.featured_cta' | translate }}</span>
+        <span class="arrow" aria-hidden="true">&rarr;</span>
+      </a>
+    </div>
+  </div>
+</section>

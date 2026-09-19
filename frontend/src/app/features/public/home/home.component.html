@@ -1,6 +1,9 @@
 <!-- Seção Hero Institucional Fullscreen com Vídeo e Fallback -->
 <app-home-hero></app-home-hero>
 
+<!-- Seção de Destaques de Modelos (Consumindo API Pública com Skeletons, Stars e CTA) -->
+<app-home-featured-models></app-home-featured-models>
+
 <!-- Manifesto / Sobre a Agência -->
 <section class="manifesto-section" id="manifesto">
   <div class="container manifesto-inner">
@@ -15,39 +18,7 @@
   </div>
 </section>
 
-<!-- Casting em Destaque -->
-<section class="featured-section" id="casting-destaques">
-  <div class="container">
-    <div class="section-top">
-      <div>
-        <span class="section-tag tracking-editorial">{{ 'home.featured_tag' | translate }}</span>
-        <h2 class="font-serif">{{ 'home.featured_title' | translate }}</h2>
-      </div>
-      <a routerLink="/models/female" class="view-all-link">
-        {{ 'home.view_all' | translate }} &rarr;
-      </a>
-    </div>
-
-    <div class="models-grid">
-      @for (model of featuredModels(); track model.slug) {
-        <div class="model-card card-editorial" [routerLink]="['/models', model.slug]">
-          <div class="model-image-wrap">
-            <img [src]="model.imageUrl" [alt]="model.name" class="model-image" loading="lazy" />
-            <div class="model-overlay">
-              <span class="model-height">{{ model.height }}</span>
-            </div>
-          </div>
-          <div class="model-info">
-            <h3 class="model-name font-serif">{{ model.name }}</h3>
-            <span class="model-category tracking-editorial">{{ model.category }}</span>
-          </div>
-        </div>
-      }
-    </div>
-  </div>
-</section>
-
-<!-- Banner CTA Inscrição -->
+<!-- Banner CTA Inscrição ("Quero ser Modelo") -->
 <section class="cta-banner">
   <div class="container cta-inner">
     <div class="cta-text">

@@ -1,0 +1,68 @@
+<div class="filters-bar-container">
+  <div class="filters-bar">
+    <!-- 1. Campo de Pesquisa Textual com Debounce -->
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input 
+        type="text" 
+        [formControl]="searchControl"
+        [placeholder]="'models.search_placeholder' | translate" 
+        class="search-input" 
+        aria-label="Pesquisar modelo por nome"
+      />
+      @if (searchControl.value) {
+        <button 
+          type="button" 
+          (click)="searchControl.setValue('')" 
+          class="btn-clear-search" 
+          aria-label="Limpar pesquisa">
+          &times;
+        </button>
+      }
+    </div>
+
+    <!-- 2. Controles de Ordenação e Contador -->
+    <div class="controls-wrap">
+      <div class="sort-wrap">
+        <label for="sort-select" class="sort-label">
+          {{ 'models.sort_label' | translate }}
+        </label>
+        <select 
+          id="sort-select" 
+          [formControl]="sortControl" 
+          class="sort-select" 
+          aria-label="Opções de ordenação">
+          <option value="stageName,asc">{{ 'models.sort_name_asc' | translate }}</option>
+          <option value="stageName,desc">{{ 'models.sort_name_desc' | translate }}</option>
+          <option value="createdAt,desc">{{ 'models.sort_recent' | translate }}</option>
+        </select>
+      </div>
+
+      <!-- Botão para Limpar Filtros -->
+      @if (hasActiveFilters()) {
+        <button 
+          type="button" 
+          (click)="onClearFilters()" 
+          class="btn-reset-filters">
+          <span>{{ 'models.clear_filters' | translate }}</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- 3. Indicador de Contagem de Talentos Encontrados -->
+  <div class="results-meta">
+    <span class="count-indicator">
+      @if (totalCount() === 1) {
+        {{ 'models.count_single' | translate }}
+      } @else if (totalCount() > 1) {
+        {{ totalCount() }} {{ 'models.count_multiple' | translate }}
+      } @else {
+        {{ 'models.count_none' | translate }}
+      }
+    </span>
+  </div>
+</div>

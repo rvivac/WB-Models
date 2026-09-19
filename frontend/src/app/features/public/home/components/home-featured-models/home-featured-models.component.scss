@@ -1,0 +1,394 @@
+@import '../../../../../../styles/variables';
+
+.featured-models-section {
+  position: relative;
+  padding: 6rem 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden;
+
+  // Sutil gradiente de iluminação de passarela ao fundo
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-medium), transparent);
+  }
+}
+
+// -------------------------------------------------------------
+// Header Editorial da Seção
+// -------------------------------------------------------------
+.section-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 3.5rem;
+  gap: 1.5rem;
+
+  @include md {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+
+  .header-text {
+    max-width: 600px;
+  }
+
+  .section-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold-primary);
+    margin-bottom: 0.75rem;
+  }
+
+  .section-title {
+    font-size: 2.25rem;
+    font-weight: 300;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+
+    @include md {
+      font-size: 3rem;
+    }
+  }
+
+  .section-subtitle {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    font-weight: 300;
+  }
+
+  .header-action {
+    display: none;
+
+    @include md {
+      display: block;
+    }
+  }
+
+  .view-all-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color var(--transition-fast), transform var(--transition-fast);
+
+    .arrow {
+      transition: transform var(--transition-fast);
+    }
+
+    &:hover {
+      color: var(--gold-light);
+
+      .arrow {
+        transform: translateX(4px);
+      }
+    }
+  }
+}
+
+// -------------------------------------------------------------
+// Grid de Modelos (Responsivo, 1 col mobile, 2 tablet, 4 desktop)
+// -------------------------------------------------------------
+.models-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 4rem;
+
+  @include sm {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.75rem;
+  }
+
+  @include lg {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+  }
+}
+
+// -------------------------------------------------------------
+// Card Editorial de Modelo
+// -------------------------------------------------------------
+.model-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.4s ease;
+
+  &:hover,
+  &:focus-visible {
+    outline: none;
+    transform: translateY(-6px);
+    border-color: var(--border-gold);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65), 0 0 20px rgba(197, 160, 89, 0.15);
+
+    .model-image {
+      transform: scale(1.05);
+    }
+
+    .model-overlay {
+      opacity: 1;
+    }
+
+    .model-name {
+      color: var(--gold-light);
+    }
+  }
+
+  // Figura e imagem com aspect ratio rigoroso 3:4 (Zero CLS)
+  .model-image-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    background-color: #12151f;
+    margin: 0;
+
+    .model-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+      display: block;
+    }
+
+    // Badge Minimalista de Star
+    .star-badge {
+      position: absolute;
+      top: 0.875rem;
+      right: 0.875rem;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.625rem;
+      background: rgba(7, 8, 11, 0.75);
+      border: 1px solid var(--gold-primary);
+      border-radius: var(--radius-sm);
+      color: var(--gold-light);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    // Overlay inferior com transição suave
+    .model-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 1.5rem 1rem 0.75rem;
+      background: linear-gradient(to top, rgba(7, 8, 11, 0.9) 0%, rgba(7, 8, 11, 0.4) 60%, transparent 100%);
+      opacity: 0.85;
+      transition: opacity 0.35s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+
+      @include md {
+        opacity: 0;
+      }
+    }
+
+    .model-metrics {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--text-primary);
+      font-weight: 500;
+      letter-spacing: 0.05em;
+
+      .metric-item {
+        white-space: nowrap;
+      }
+
+      .metric-dot {
+        color: var(--gold-primary);
+        font-size: 0.7rem;
+      }
+    }
+  }
+
+  // Rodapé do card com nome e categoria
+  .model-info {
+    padding: 1.125rem 1rem;
+    background: var(--bg-card);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    .model-name {
+      font-size: 1.125rem;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-primary);
+      margin: 0;
+      transition: color var(--transition-fast);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .model-gender {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+  }
+}
+
+// -------------------------------------------------------------
+// 1. Skeletons Monocromáticos (Zero Layout Shift - CLS = 0)
+// -------------------------------------------------------------
+.skeleton-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+
+  .skeleton-image-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    background: #141722;
+    overflow: hidden;
+
+    .skeleton-pulse {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        rgba(25, 28, 42, 0) 0%,
+        rgba(35, 40, 60, 0.4) 50%,
+        rgba(25, 28, 42, 0) 100%
+      );
+      background-size: 200% 100%;
+      animation: skeletonShimmer 1.8s infinite ease-in-out;
+    }
+  }
+
+  .skeleton-info {
+    padding: 1.125rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+
+    .skeleton-line {
+      height: 14px;
+      border-radius: var(--radius-sm);
+      background: #1c2030;
+      animation: skeletonPulse 1.8s infinite ease-in-out;
+
+      &.title {
+        width: 70%;
+      }
+
+      &.sub {
+        width: 40%;
+        height: 10px;
+      }
+    }
+  }
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes skeletonPulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+// -------------------------------------------------------------
+// 2. Estado Vazio / Mensagem Elegante
+// -------------------------------------------------------------
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px dashed var(--border-medium);
+  border-radius: var(--radius-md);
+  text-align: center;
+  gap: 1.5rem;
+  margin-bottom: 3.5rem;
+
+  .empty-text {
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    max-width: 480px;
+    margin: 0;
+  }
+}
+
+// -------------------------------------------------------------
+// 3. Rodapé com Botão Call to Action
+// -------------------------------------------------------------
+.section-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .btn-cta-casting {
+    padding: 1rem 2.5rem;
+    font-size: 0.875rem;
+
+    .arrow {
+      transition: transform var(--transition-fast);
+    }
+
+    &:hover .arrow {
+      transform: translateX(4px);
+    }
+  }
+}

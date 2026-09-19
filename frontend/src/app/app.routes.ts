@@ -6,17 +6,17 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () => import('./features/public/home/home.component').then(m => m.HomeComponent),
-    title: 'WB Scouting | Model Management & Editorial Casting'
+    title: 'WB Agency | Model Management & Editorial Casting'
   },
   {
     path: 'models',
     loadComponent: () => import('./features/public/models/models.component').then(m => m.ModelsComponent),
-    title: 'Casting de Modelos | WB Scouting'
+    title: 'Casting de Modelos | WB Agency'
   },
   {
     path: 'models/:slug',
     loadComponent: () => import('./features/public/model-detail/model-detail.component').then(m => m.ModelDetailComponent),
-    title: 'Perfil do Modelo | WB Scouting'
+    title: 'Perfil do Modelo | WB Agency'
   },
   {
     path: 'apply',
@@ -26,24 +26,24 @@ export const routes: Routes = [
   {
     path: 'contact',
     loadComponent: () => import('./features/public/contact/contact.component').then(m => m.ContactComponent),
-    title: 'Contato & Casting Comercial | WB Scouting'
+    title: 'Contato & Casting Comercial | WB Agency'
   },
 
   // Rotas de Autenticação Administrativa
   {
     path: 'admin/login',
     loadComponent: () => import('./features/admin/auth/login/login.component').then(m => m.LoginComponent),
-    title: 'Acesso Administrativo | WB Scouting'
+    title: 'Acesso Administrativo | WB Agency'
   },
   {
     path: 'admin/forgot-password',
     loadComponent: () => import('./features/admin/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent),
-    title: 'Recuperação de Senha | WB Scouting'
+    title: 'Recuperação de Senha | WB Agency'
   },
   {
     path: 'admin/reset-password',
     loadComponent: () => import('./features/admin/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent),
-    title: 'Redefinição de Senha | WB Scouting'
+    title: 'Redefinição de Senha | WB Agency'
   },
 
   // Rotas Protegidas do Backoffice (CMS)
@@ -56,25 +56,25 @@ export const routes: Routes = [
     path: 'admin/dashboard',
     canActivate: [authGuard],
     loadComponent: () => import('./features/admin/dashboard/dashboard.component').then(m => m.DashboardComponent),
-    title: 'Painel de Controle | WB Scouting'
+    title: 'Painel de Controle | WB Agency'
   },
   {
     path: 'admin/models',
     canActivate: [authGuard],
     loadComponent: () => import('./features/admin/models-mgmt/models-mgmt.component').then(m => m.ModelsMgmtComponent),
-    title: 'Gestão de Modelos | WB Scouting'
+    title: 'Gestão de Modelos | WB Agency'
   },
   {
     path: 'admin/candidates',
     canActivate: [authGuard],
     loadComponent: () => import('./features/admin/candidates-mgmt/candidates-mgmt.component').then(m => m.CandidatesMgmtComponent),
-    title: 'Triagem de Candidaturas | WB Scouting'
+    title: 'Triagem de Candidaturas | WB Agency'
   },
   {
     path: 'admin/content',
     canActivate: [authGuard],
     loadComponent: () => import('./features/admin/content-mgmt/content-mgmt.component').then(m => m.ContentMgmtComponent),
-    title: 'Gestão de Conteúdo & Vídeo | WB Scouting'
+    title: 'Gestão de Conteúdo & Vídeo | WB Agency'
   },
 
   // Fallback para rota inicial

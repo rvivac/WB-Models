@@ -45,9 +45,9 @@ class EmailServiceImplTest {
     @BeforeEach
     void setUp() {
         mailProperties = new MailProperties();
-        mailProperties.setFromAddress("no-reply@wbscouting.com");
-        mailProperties.setFromName("WB Scouting");
-        mailProperties.setAgencyNotificationEmail("contato@wbscouting.com");
+        mailProperties.setFromAddress("no-reply@wbagency.com");
+        mailProperties.setFromName("WB Agency");
+        mailProperties.setAgencyNotificationEmail("contato@wbagency.com");
         mailProperties.setResetPasswordBaseUrl("http://localhost:4200/admin/reset-password");
 
         emailService = new EmailServiceImpl(mailSender, templateEngine, mailProperties);

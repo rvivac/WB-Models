@@ -45,7 +45,7 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("currentYear", Year.now().getValue());
 
             String htmlBody = templateEngine.process("email/password-reset", context);
-            String subject = "WB Scouting - Redefinição de Senha de Acesso";
+            String subject = "WB Agency - Redefinição de Senha de Acesso";
 
             sendHtmlEmail(recipientEmail, subject, htmlBody);
             log.info("[{}] E-mail de recuperação de senha enviado com sucesso para: {}", threadName, recipientEmail);
@@ -68,7 +68,7 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("currentYear", Year.now().getValue());
 
             String htmlBody = templateEngine.process("email/candidate-application", context);
-            String subject = "WB Scouting - Nova Candidatura Recebida: " + candidateData.getFullName();
+            String subject = "WB Agency - Nova Candidatura Recebida: " + candidateData.getFullName();
 
             sendHtmlEmail(recipientEmail, subject, htmlBody);
             log.info("[{}] E-mail de candidatura enviado com sucesso para: {}", threadName, recipientEmail);

@@ -63,9 +63,9 @@ spring:
 # Configurações da Aplicação
 app:
   mail:
-    from-address: ${MAIL_FROM:no-reply@wbscouting.com}
-    from-name: "WB Scouting"
-    agency-notification-email: ${AGENCY_CONTACT_EMAIL:contato@wbscouting.com}
+    from-address: ${MAIL_FROM:no-reply@wbagency.com}
+    from-name: "WB Agency"
+    agency-notification-email: ${AGENCY_CONTACT_EMAIL:contato@wbagency.com}
     reset-password-base-url: ${RESET_PWD_URL:http://localhost:4200/admin/reset-password}
   security:
     jwt:

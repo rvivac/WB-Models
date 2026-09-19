@@ -1,25 +1,32 @@
-<header class="site-header glass-panel">
+<header class="site-header" [class.scrolled]="isScrolled()">
   <div class="container header-inner">
     <!-- Brand Logo -->
     <a routerLink="/" class="brand-logo" (click)="closeMenu()">
       <span class="logo-main">WB</span>
-      <span class="logo-divider">|</span>
-      <span class="logo-sub tracking-editorial">AGENCY</span>
+      <span class="logo-divider">/</span>
+      <span class="logo-sub tracking-editorial">SCOUTING</span>
     </a>
 
     <!-- Desktop Navigation -->
     <nav class="desktop-nav">
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">
-        {{ 'nav.home' | translate }}
+      <a routerLink="/models/female" routerLinkActive="active" class="nav-link">
+        {{ 'nav.female' | translate }}
       </a>
-      <a routerLink="/models" routerLinkActive="active" class="nav-link">
-        {{ 'nav.models' | translate }}
+      <a routerLink="/models/male" routerLinkActive="active" class="nav-link">
+        {{ 'nav.male' | translate }}
+      </a>
+      <a routerLink="/models/stars" routerLinkActive="active" class="nav-link">
+        {{ 'nav.stars' | translate }}
       </a>
       <a routerLink="/contact" routerLinkActive="active" class="nav-link">
         {{ 'nav.contact' | translate }}
       </a>
+      
+      <div class="nav-divider"></div>
+
       <app-language-selector></app-language-selector>
-      <a routerLink="/apply" class="btn btn-gold btn-apply">
+
+      <a routerLink="/apply" class="btn btn-outline btn-apply">
         {{ 'nav.apply' | translate }}
       </a>
     </nav>
@@ -27,7 +34,11 @@
     <!-- Mobile Header Actions -->
     <div class="mobile-header-actions">
       <app-language-selector class="mobile-lang-top"></app-language-selector>
-      <button class="mobile-toggle" (click)="toggleMenu()" aria-label="Menu principal">
+      <button 
+        class="mobile-toggle" 
+        (click)="toggleMenu()" 
+        [attr.aria-expanded]="themeService.isMobileMenuOpen()"
+        aria-label="Menu principal">
         <span class="bar" [class.open]="themeService.isMobileMenuOpen()"></span>
         <span class="bar" [class.open]="themeService.isMobileMenuOpen()"></span>
       </button>
@@ -38,11 +49,14 @@
   @if (themeService.isMobileMenuOpen()) {
     <div class="mobile-menu" (click)="closeMenu()">
       <nav class="mobile-nav" (click)="$event.stopPropagation()">
-        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()" class="mobile-link">
-          {{ 'nav.home' | translate }}
+        <a routerLink="/models/female" routerLinkActive="active" (click)="closeMenu()" class="mobile-link">
+          {{ 'nav.female' | translate }}
         </a>
-        <a routerLink="/models" routerLinkActive="active" (click)="closeMenu()" class="mobile-link">
-          {{ 'nav.models' | translate }}
+        <a routerLink="/models/male" routerLinkActive="active" (click)="closeMenu()" class="mobile-link">
+          {{ 'nav.male' | translate }}
+        </a>
+        <a routerLink="/models/stars" routerLinkActive="active" (click)="closeMenu()" class="mobile-link">
+          {{ 'nav.stars' | translate }}
         </a>
         <a routerLink="/contact" routerLinkActive="active" (click)="closeMenu()" class="mobile-link">
           {{ 'nav.contact' | translate }}

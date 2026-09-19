@@ -1,5 +1,6 @@
 package com.wbscouting.api.config;
 
+import com.wbscouting.api.security.JwtAuthenticationEntryPoint;
 import com.wbscouting.api.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -24,19 +25,28 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                )
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Endpoints Públicos de Leitura (Catálogo, Home e Conteúdos)
+                        // 1. Endpoints Públicos de Leitura (Portal, Catálogo, Home e Conteúdos)
+                        .requestMatchers(HttpMethod.GET, "/public/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/public/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/public/contact-channels", "/public/contact-channels").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/public/i18n/**", "/public/i18n/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/models/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/site-contents/**").permitAll()
 
                         // 2. Endpoint Público de Inscrição (Quero ser modelo)
-                        .requestMatchers(HttpMethod.POST, "/candidates/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/public/candidates/**", "/candidates/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/public/candidates/**").permitAll()
 
                         // 3. Autenticação de Administradores
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
@@ -44,7 +54,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/auth/reset-password").permitAll()
 
                         // 4. Endpoints Protegidos (Gestão e Backoffice)
-                        .requestMatchers("/admin/**").hasAnyRole("SUPER_ADMIN", "CONTENT_ADMIN")
+                        .requestMatchers("/admin/**", "/api/v1/admin/**").hasAnyRole("SUPER_ADMIN", "CONTENT_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -54,7 +64,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(12);
     }
 
     @Bean
@@ -62,3 +72,4 @@ public class SecurityConfig {
         return authConfig.getAuthenticationManager();
     }
 }
+

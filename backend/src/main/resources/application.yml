@@ -71,7 +71,11 @@ app:
     jwt:
       # Secret key com no mínimo 256 bits (HMAC-SHA256)
       secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
-      expiration-ms: 86400000 # 24 horas em milissegundos
+      expiration-ms: ${JWT_EXPIRATION_MS:28800000} # 8 horas em milissegundos (8 * 60 * 60 * 1000)
+    initial-admin:
+      email: ${INITIAL_ADMIN_EMAIL:admin@wbscouting.com}
+      password: ${INITIAL_ADMIN_PASSWORD:Admin@WbScouting2026!}
+      name: ${INITIAL_ADMIN_NAME:Administrador WB Scouting}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,https://wbscouting.com}
 

@@ -1,67 +1,136 @@
 .site-footer {
-  background-color: var(--bg-secondary);
-  border-top: 1px solid var(--border-subtle);
-  padding-top: 4rem;
+  background-color: #07080b;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 5rem;
   margin-top: auto;
+  position: relative;
+  z-index: 10;
 }
 
 .footer-content {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 3rem;
-  padding-bottom: 3.5rem;
+  gap: 3.5rem;
+  padding-bottom: 4rem;
 
-  @media (min-width: 768px) {
-    grid-template-columns: 1.5fr 2.5fr;
+  @media (min-width: 900px) {
+    grid-template-columns: 1.2fr 2fr;
   }
 }
 
 .footer-brand {
   .brand-title {
-    font-family: var(--font-serif);
-    font-size: 1.75rem;
-    font-weight: 700;
+    font-size: 2rem;
+    font-weight: 600;
     letter-spacing: 0.15em;
-    color: var(--gold-light);
-    margin-bottom: 1rem;
+    color: var(--text-primary);
+    margin-bottom: 1.25rem;
   }
 
   .brand-desc {
-    font-size: 0.875rem;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
     color: var(--text-secondary);
     line-height: 1.7;
-    max-width: 380px;
+    max-width: 420px;
+    margin-bottom: 1.5rem;
+  }
+
+  .brand-badge {
+    font-family: var(--font-sans);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    color: var(--gold-light);
   }
 }
 
 .footer-links-group {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 2.5rem;
 }
 
 .col-title {
-  font-size: 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.725rem;
   font-weight: 700;
-  color: var(--gold-light);
-  margin-bottom: 1.25rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
 }
 
 ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.85rem;
 
   li {
-    font-size: 0.8125rem;
+    font-family: var(--font-sans);
+    font-size: 0.825rem;
     color: var(--text-secondary);
 
     a {
-      transition: color var(--transition-fast);
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color var(--transition-fast), padding-left var(--transition-fast);
 
       &:hover {
-        color: var(--gold-light);
+        color: var(--text-primary);
+        padding-left: 0.25rem;
       }
+    }
+  }
+}
+
+.contact-list {
+  gap: 1rem;
+
+  .contact-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+
+    .contact-label {
+      font-size: 0.675rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .contact-val {
+      color: #e2e8f0;
+      font-size: 0.85rem;
+    }
+
+    &.whatsapp-link .contact-val {
+      color: #34d399; // Emerald sutil para WhatsApp
+    }
+
+    &:hover .contact-val {
+      color: var(--gold-light);
+    }
+  }
+
+  .contact-item-static {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+
+    .contact-label {
+      font-size: 0.675rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .contact-val {
+      color: var(--text-secondary);
+      font-size: 0.825rem;
     }
   }
 }
@@ -76,8 +145,8 @@ ul {
 }
 
 .footer-bottom {
-  border-top: 1px solid var(--border-subtle);
-  padding: 1.5rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 2rem 0;
   font-size: 0.75rem;
   color: var(--text-muted);
 }
@@ -85,11 +154,15 @@ ul {
 .bottom-inner {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.75rem;
   align-items: center;
   justify-content: space-between;
 
   @media (min-width: 640px) {
     flex-direction: row;
+  }
+
+  .credits {
+    letter-spacing: 0.05em;
   }
 }

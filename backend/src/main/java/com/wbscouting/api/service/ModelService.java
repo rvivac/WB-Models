@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Service
+@Service("legacyModelService")
 @RequiredArgsConstructor
 public class ModelService {
 

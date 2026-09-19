@@ -144,9 +144,20 @@ export class ModelsComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    const path = this.route.snapshot.url.map(s => s.path).join('/');
+    if (path.includes('female')) {
+      this.selectedCategory.set('FEMALE');
+    } else if (path.includes('male')) {
+      this.selectedCategory.set('MALE');
+    } else if (path.includes('stars')) {
+      this.selectedCategory.set('SPECIAL');
+    }
+
     this.route.queryParams.subscribe(params => {
       if (params['category']) {
         this.selectedCategory.set(params['category']);
+      } else if (params['gender']) {
+        this.selectedCategory.set(params['gender']);
       }
     });
   }

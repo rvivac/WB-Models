@@ -1,0 +1,225 @@
+.hero-section {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  background-color: var(--bg-primary);
+}
+
+.hero-media-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.hero-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: brightness(0.85) contrast(1.05);
+}
+
+.hero-poster-fallback {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.8) contrast(1.05);
+
+  &.ken-burns {
+    animation: kenBurnsAnimation 20s infinite alternate ease-in-out;
+  }
+}
+
+@keyframes kenBurnsAnimation {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.08) translate(-1%, -0.5%);
+  }
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    rgba(7, 8, 11, 0.4) 0%,
+    rgba(7, 8, 11, 0.2) 30%,
+    rgba(7, 8, 11, 0.6) 70%,
+    rgba(7, 8, 11, 0.95) 100%
+  );
+  z-index: 2;
+  pointer-events: none;
+}
+
+.hero-content-inner {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  padding-bottom: 5rem;
+
+  @media (min-width: 768px) {
+    padding-bottom: 6rem;
+  }
+}
+
+.hero-typography {
+  max-width: 820px;
+}
+
+.hero-badge {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gold-light);
+  margin-bottom: 1.25rem;
+  padding: 0.35rem 0.85rem;
+  background: rgba(197, 160, 89, 0.12);
+  border: 1px solid rgba(197, 160, 89, 0.3);
+  border-radius: var(--radius-sm);
+  backdrop-filter: blur(8px);
+}
+
+.hero-headline {
+  font-size: clamp(2.5rem, 6.5vw, 5.5rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  margin-bottom: 1.25rem;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+.hero-manifesto {
+  font-family: var(--font-sans);
+  font-size: clamp(0.925rem, 1.8vw, 1.2rem);
+  font-weight: 300;
+  line-height: 1.6;
+  color: #cbd5e1;
+  max-width: 640px;
+  margin-bottom: 2.25rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.btn-hero {
+  padding: 0.95rem 2.25rem;
+  font-size: 0.825rem;
+  letter-spacing: 0.18em;
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(10, 10, 10, 0.4);
+  backdrop-filter: blur(8px);
+
+  &:hover {
+    background: var(--text-primary);
+    color: var(--text-inverse);
+    border-color: var(--text-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(255, 255, 255, 0.15);
+  }
+
+  .hero-arrow {
+    display: inline-block;
+    transition: transform var(--transition-fast);
+    margin-left: 0.4rem;
+  }
+
+  &:hover .hero-arrow {
+    transform: translateX(4px);
+  }
+}
+
+.btn-hero-secondary {
+  padding: 0.95rem 1.75rem;
+  font-size: 0.825rem;
+  letter-spacing: 0.15em;
+  color: #e2e8f0;
+
+  &:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.scroll-down-btn {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 3;
+  background: transparent;
+  border: none;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color var(--transition-fast), transform var(--transition-fast);
+
+  @media (min-width: 768px) {
+    display: flex;
+  }
+
+  &:hover {
+    color: var(--text-primary);
+    transform: translateY(-2px);
+  }
+
+  .scroll-mouse {
+    width: 20px;
+    height: 32px;
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    padding-top: 5px;
+  }
+
+  .scroll-wheel {
+    width: 3px;
+    height: 6px;
+    background-color: var(--text-primary);
+    border-radius: 2px;
+    animation: scrollWheel 2s infinite ease-in-out;
+  }
+
+  .scroll-text {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+  }
+}
+
+@keyframes scrollWheel {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}

@@ -111,6 +111,7 @@ CREATE TABLE IF NOT EXISTS public.model_media (
     file_url TEXT NOT NULL,
     file_path TEXT NOT NULL,
     display_order INTEGER NOT NULL DEFAULT 0,
+    is_cover BOOLEAN NOT NULL DEFAULT FALSE,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -140,42 +141,54 @@ CREATE TABLE IF NOT EXISTS public.candidates (
     full_name VARCHAR(200) NOT NULL,
     email VARCHAR(255) NOT NULL,
     phone VARCHAR(50) NOT NULL,
-    age INTEGER NOT NULL,
-    guardian_name VARCHAR(200) NULL,
+    birth_date DATE NULL,
+    age INTEGER NULL,
     gender VARCHAR(50) NOT NULL,
     height_cm NUMERIC(5,2) NOT NULL,
+    city VARCHAR(100) NULL,
+    state VARCHAR(50) NULL,
+    legal_guardian_name VARCHAR(200) NULL,
+    legal_guardian_contact VARCHAR(50) NULL,
+    guardian_name VARCHAR(200) NULL,
     weight_kg NUMERIC(5,2) NULL,
     bust_chest_cm NUMERIC(5,2) NULL,
     waist_cm NUMERIC(5,2) NULL,
     hips_cm NUMERIC(5,2) NULL,
+    shoe_size VARCHAR(20) NULL,
+    dress_size VARCHAR(20) NULL,
     instagram_handle VARCHAR(100) NULL,
+    portfolio_url VARCHAR(255) NULL,
     tiktok_handle VARCHAR(100) NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+    internal_notes TEXT NULL,
     
     -- Termos LGPD (Consentimento explícito e mandatório)
-    lgpd_accepted BOOLEAN NOT NULL CHECK (lgpd_accepted IS TRUE),
+    lgpd_accepted BOOLEAN NOT NULL DEFAULT TRUE CHECK (lgpd_accepted IS TRUE),
     lgpd_accepted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     
     -- Auditoria (Registro imutável de candidatura)
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- ------------------------------------------------------------------------------
 -- 4.5. TABELA: candidate_photos
--- Fotografias submetidas pelos candidatos (até 8 imagens)
+-- Fotografias submetidas pelos candidatos (mínimo 3, máximo 6 imagens no fluxo novo)
 -- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.candidate_photos (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     candidate_id UUID NOT NULL,
-    photo_position SMALLINT NOT NULL CHECK (photo_position BETWEEN 1 AND 8),
-    file_url TEXT NOT NULL,
-    file_path TEXT NOT NULL,
+    storage_path TEXT NOT NULL,
+    display_order INTEGER NOT NULL DEFAULT 1,
+    uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    photo_position SMALLINT NULL,
+    file_url TEXT NULL,
+    file_path TEXT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT fk_candidate_photos_candidate 
         FOREIGN KEY (candidate_id) 
         REFERENCES public.candidates(id) 
-        ON DELETE CASCADE,
-    CONSTRAINT uk_candidate_photos_position 
-        UNIQUE (candidate_id, photo_position)
+        ON DELETE CASCADE
 );
 
 -- ------------------------------------------------------------------------------

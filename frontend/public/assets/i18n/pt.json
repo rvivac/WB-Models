@@ -1,0 +1,42 @@
+{
+  "nav": {
+    "home": "Home",
+    "female": "Feminino",
+    "male": "Masculino",
+    "stars": "Stars",
+    "models": "Casting",
+    "apply": "Quero ser modelo",
+    "contact": "Contato"
+  },
+  "hero": {
+    "tag": "International Scouting & Management",
+    "title": "WB SCOUTING",
+    "subtitle": "Conectamos os rostos mais autênticos e promissores às principais passarelas, campanhas globais e produções editoriais de alto padrão.",
+    "cta": "Ver Casting"
+  },
+  "home": {
+    "manifesto_tag": "Nossa Visão",
+    "manifesto_title": "Redefinindo a excelência do agenciamento no Brasil",
+    "manifesto_text1": "A WB Scouting atua na vanguarda da representação de modelos, unindo curadoria artística refinada com métodos contemporâneos de seleção, desenvolvimento de carreira e posicionamento de imagem internacional.",
+    "manifesto_text2": "Nossa missão é lapidar talentos singulares com ética, autenticidade e preparo para suprir as demandas criativas das maiores casas de moda do mundo.",
+    "featured_tag": "Talentos",
+    "featured_title": "Casting em Destaque",
+    "view_all": "Ver todo o casting",
+    "cta_banner_title": "Seu talento merece a visibilidade certa.",
+    "cta_banner_desc": "Envie sua ficha de avaliação e fotos polaroids diretamente para os nossos olheiros e bookers.",
+    "cta_banner_button": "Iniciar Inscrição"
+  },
+  "footer": {
+    "slogan": "Agência de modelos e gestão internacional de talentos. Representação exclusiva, editorial e comercial com inteligência e inovação.",
+    "navigation": "Navegação",
+    "casting": "Casting",
+    "contact": "Canais Oficiais",
+    "rights": "WB Scouting. Todos os direitos reservados.",
+    "credits": "WB Scouting Fashion Technology & Management",
+    "whatsapp": "Conversar no WhatsApp",
+    "email": "E-mail Oficial",
+    "instagram": "Instagram Oficial",
+    "address": "Endereço Base",
+    "hours": "Horário de Atendimento"
+  }
+}

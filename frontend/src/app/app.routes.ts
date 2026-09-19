@@ -11,12 +11,27 @@ export const routes: Routes = [
   {
     path: 'models',
     loadComponent: () => import('./features/public/models/models.component').then(m => m.ModelsComponent),
-    title: 'Casting de Modelos | WB Agency'
+    title: 'Casting de Modelos | WB Scouting'
+  },
+  {
+    path: 'models/female',
+    loadComponent: () => import('./features/public/models/models.component').then(m => m.ModelsComponent),
+    title: 'Casting Feminino | WB Scouting'
+  },
+  {
+    path: 'models/male',
+    loadComponent: () => import('./features/public/models/models.component').then(m => m.ModelsComponent),
+    title: 'Casting Masculino | WB Scouting'
+  },
+  {
+    path: 'models/stars',
+    loadComponent: () => import('./features/public/models/models.component').then(m => m.ModelsComponent),
+    title: 'Stars | WB Scouting'
   },
   {
     path: 'models/:slug',
     loadComponent: () => import('./features/public/model-detail/model-detail.component').then(m => m.ModelDetailComponent),
-    title: 'Perfil do Modelo | WB Agency'
+    title: 'Perfil do Modelo | WB Scouting'
   },
   {
     path: 'apply',

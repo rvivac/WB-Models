@@ -2,7 +2,7 @@ package com.wbscouting.api.controller;
 
 import com.wbscouting.api.dto.ModelDTO;
 import com.wbscouting.api.enums.GenderType;
-import com.wbscouting.api.service.ModelService;
+import com.wbscouting.api.service.model.ModelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

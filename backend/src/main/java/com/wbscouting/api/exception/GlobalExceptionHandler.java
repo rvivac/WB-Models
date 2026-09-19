@@ -60,6 +60,15 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    @ExceptionHandler(InvalidApplicationException.class)
+    public ProblemDetail handleInvalidApplicationException(InvalidApplicationException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problemDetail.setTitle("Candidatura Inválida");
+        problemDetail.setType(URI.create("https://wbscouting.com/errors/invalid-application"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        return problemDetail;
+    }
+
     @ExceptionHandler(InvalidFileException.class)
     public ProblemDetail handleInvalidFileException(InvalidFileException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
@@ -92,6 +101,15 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "O arquivo enviado excede o limite máximo permitido pelo servidor.");
         problemDetail.setTitle("Tamanho Máximo de Requisição Excedido");
         problemDetail.setType(URI.create("https://wbscouting.com/errors/max-upload-size"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        return problemDetail;
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ProblemDetail handleInvalidTokenException(InvalidTokenException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problemDetail.setTitle("Ungültiges oder abgelaufenes Token");
+        problemDetail.setType(URI.create("https://wbscouting.com/errors/invalid-token"));
         problemDetail.setProperty("timestamp", Instant.now());
         return problemDetail;
     }

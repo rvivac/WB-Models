@@ -1,0 +1,66 @@
+<section class="hero-section">
+  <!-- Mídia de Fundo (Vídeo ou Fallback com Efeito Ken Burns) -->
+  <div class="hero-media-wrap">
+    @if (heroData().videoUrl && !isVideoError()) {
+      <video 
+        #heroVideo 
+        class="hero-video"
+        [src]="heroData().videoUrl" 
+        [poster]="heroData().posterImageUrl" 
+        autoplay 
+        loop 
+        muted 
+        playsinline 
+        preload="auto"
+        (loadeddata)="onVideoLoaded()"
+        (error)="onVideoError()">
+      </video>
+    }
+
+    @if (isVideoError() || !heroData().videoUrl) {
+      <div 
+        class="hero-poster-fallback ken-burns" 
+        [style.background-image]="'url(' + heroData().posterImageUrl + ')'">
+      </div>
+    }
+
+    <!-- Camada de Sobreposição Editorial com Gradiente -->
+    <div class="hero-overlay"></div>
+  </div>
+
+  <!-- Conteúdo de Tipografia Editorial -->
+  <div class="container hero-content-inner">
+    <div class="hero-typography">
+      <span class="hero-badge tracking-editorial">
+        {{ 'hero.tag' | translate }}
+      </span>
+
+      <h1 class="hero-headline font-serif">
+        {{ heroData().title || ('hero.title' | translate) }}
+      </h1>
+
+      <p class="hero-manifesto">
+        {{ heroData().subtitle || ('hero.subtitle' | translate) }}
+      </p>
+
+      <div class="hero-actions">
+        <a [routerLink]="heroData().ctaLink || '/models/female'" class="btn btn-outline btn-hero">
+          <span>{{ heroData().ctaText || ('hero.cta' | translate) }}</span>
+          <span class="hero-arrow" aria-hidden="true">&rarr;</span>
+        </a>
+
+        <a routerLink="/apply" class="btn btn-ghost btn-hero-secondary">
+          <span>{{ 'nav.apply' | translate }}</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Indicador Elegante de Rolagem -->
+  <button type="button" class="scroll-down-btn" (click)="scrollToContent()" aria-label="Rolar para os destaques">
+    <span class="scroll-mouse" aria-hidden="true">
+      <span class="scroll-wheel"></span>
+    </span>
+    <span class="scroll-text tracking-editorial">SCROLL</span>
+  </button>
+</section>

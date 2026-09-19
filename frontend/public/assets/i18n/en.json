@@ -1,0 +1,42 @@
+{
+  "nav": {
+    "home": "Home",
+    "female": "Female",
+    "male": "Male",
+    "stars": "Stars",
+    "models": "Casting",
+    "apply": "Be a Model",
+    "contact": "Contact"
+  },
+  "hero": {
+    "tag": "International Scouting & Management",
+    "title": "WB SCOUTING",
+    "subtitle": "Connecting the most authentic and promising faces to global runways, editorial campaigns, and luxury fashion productions.",
+    "cta": "View Casting"
+  },
+  "home": {
+    "manifesto_tag": "Our Vision",
+    "manifesto_title": "Redefining fashion scouting excellence in Brazil & Worldwide",
+    "manifesto_text1": "WB Scouting operates at the forefront of model representation, combining refined artistic curation with contemporary scouting methods, international career development, and editorial image positioning.",
+    "manifesto_text2": "Our mission is to cultivate unique talents with authenticity, ethics, and world-class preparation to meet the creative demands of top global fashion houses.",
+    "featured_tag": "Talents",
+    "featured_title": "Featured Casting",
+    "view_all": "View all casting",
+    "cta_banner_title": "Your talent deserves the right global spotlight.",
+    "cta_banner_desc": "Submit your profile and polaroid photos directly to our scouting team and international bookers.",
+    "cta_banner_button": "Apply Now"
+  },
+  "footer": {
+    "slogan": "Model management & international talent scouting. Exclusive representation, editorial & commercial fashion with innovation.",
+    "navigation": "Navigation",
+    "casting": "Casting",
+    "contact": "Official Channels",
+    "rights": "WB Scouting. All rights reserved.",
+    "credits": "WB Scouting Fashion Technology & Management",
+    "whatsapp": "Chat on WhatsApp",
+    "email": "Official Email",
+    "instagram": "Official Instagram",
+    "address": "Headquarters",
+    "hours": "Business Hours"
+  }
+}

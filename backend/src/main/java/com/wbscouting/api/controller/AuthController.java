@@ -1,7 +1,10 @@
 package com.wbscouting.api.controller;
 
-import com.wbscouting.api.dto.AuthDTO;
-import com.wbscouting.api.service.AuthService;
+import com.wbscouting.api.dto.auth.ForgotPasswordRequestDto;
+import com.wbscouting.api.dto.auth.LoginRequestDto;
+import com.wbscouting.api.dto.auth.LoginResponseDto;
+import com.wbscouting.api.dto.auth.ResetPasswordRequestDto;
+import com.wbscouting.api.service.auth.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +12,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -18,17 +23,25 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<AuthDTO.AuthResponse> login(@Valid @RequestBody AuthDTO.LoginRequest request) {
+    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
         return ResponseEntity.ok(authService.login(request));
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<AuthDTO.MessageResponse> forgotPassword(@Valid @RequestBody AuthDTO.ForgotPasswordRequest request) {
-        return ResponseEntity.ok(authService.forgotPassword(request));
+    public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDto request) {
+        authService.processForgotPassword(request);
+        return ResponseEntity.ok(Map.of(
+                "message", "Wenn die E-Mail im System registriert ist, wurde ein Wiederherstellungslink gesendet."
+        ));
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<AuthDTO.MessageResponse> resetPassword(@Valid @RequestBody AuthDTO.ResetPasswordRequest request) {
-        return ResponseEntity.ok(authService.resetPassword(request));
+    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequestDto request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok(Map.of(
+                "message", "Passwort erfolgreich zurückgesetzt."
+        ));
     }
 }
+
+

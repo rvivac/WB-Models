@@ -26,12 +26,4 @@ public class CandidateController {
         CandidateDTO.Response response = candidateService.submitApplication(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-
-    // Endpoint restrito aos administradores do Backoffice
-    @GetMapping("/admin/candidates")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CONTENT_ADMIN')")
-    public ResponseEntity<Page<CandidateDTO.Response>> listCandidates(
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(candidateService.listCandidates(pageable));
-    }
 }

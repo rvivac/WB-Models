@@ -1,40 +1,71 @@
 <footer class="site-footer">
   <div class="container footer-content">
+    <!-- Bloco Marca & Slogan Editorial -->
     <div class="footer-brand">
-      <div class="brand-title">WB AGENCY</div>
+      <div class="brand-title font-serif">WB SCOUTING</div>
       <p class="brand-desc">
-        Agência de modelos e gestão internacional de talentos. Representação exclusiva, editorial e comercial com inteligência e inovação.
+        {{ 'footer.slogan' | translate }}
       </p>
+      <div class="brand-badge tracking-editorial">
+        PARIS &bull; MILAN &bull; NEW YORK &bull; SÃO PAULO
+      </div>
     </div>
 
+    <!-- Grupos de Links -->
     <div class="footer-links-group">
+      <!-- Navegação Institucional -->
       <div class="links-col">
-        <h4 class="col-title tracking-editorial">Navegação</h4>
+        <h4 class="col-title tracking-editorial">{{ 'footer.navigation' | translate }}</h4>
         <ul>
-          <li><a routerLink="/">Home</a></li>
-          <li><a routerLink="/models">Casting</a></li>
-          <li><a routerLink="/apply">Quero ser modelo</a></li>
-          <li><a routerLink="/contact">Contato</a></li>
+          <li><a routerLink="/">{{ 'nav.home' | translate }}</a></li>
+          <li><a routerLink="/models/female">{{ 'nav.female' | translate }}</a></li>
+          <li><a routerLink="/models/male">{{ 'nav.male' | translate }}</a></li>
+          <li><a routerLink="/models/stars">{{ 'nav.stars' | translate }}</a></li>
+          <li><a routerLink="/apply">{{ 'nav.apply' | translate }}</a></li>
+          <li><a routerLink="/contact">{{ 'nav.contact' | translate }}</a></li>
         </ul>
       </div>
 
+      <!-- Canais Oficiais de Contato (Consumidos da API) -->
       <div class="links-col">
-        <h4 class="col-title tracking-editorial">Casting</h4>
-        <ul>
-          <li><a routerLink="/models" [queryParams]="{ category: 'FASHION' }">Fashion / Editorial</a></li>
-          <li><a routerLink="/models" [queryParams]="{ category: 'COMMERCIAL' }">Comercial</a></li>
-          <li><a routerLink="/models" [queryParams]="{ category: 'NEW_FACE' }">New Faces</a></li>
-          <li><a routerLink="/models" [queryParams]="{ category: 'SPECIAL' }">Special / Stars</a></li>
+        <h4 class="col-title tracking-editorial">{{ 'footer.contact' | translate }}</h4>
+        <ul class="contact-list">
+          <li>
+            <a [href]="'mailto:' + contactChannels().email" class="contact-link">
+              <span class="contact-label">{{ 'footer.email' | translate }}:</span>
+              <span class="contact-val">{{ contactChannels().email }}</span>
+            </a>
+          </li>
+          <li>
+            <a [href]="contactChannels().whatsappUrl" target="_blank" rel="noopener noreferrer" class="contact-link whatsapp-link">
+              <span class="contact-label">WhatsApp:</span>
+              <span class="contact-val">{{ contactChannels().whatsappNumber }}</span>
+            </a>
+          </li>
+          <li>
+            <a [href]="getInstagramUrl()" target="_blank" rel="noopener noreferrer" class="contact-link">
+              <span class="contact-label">Instagram:</span>
+              <span class="contact-val">{{ contactChannels().instagramHandle }}</span>
+            </a>
+          </li>
+          <li class="contact-item-static">
+            <span class="contact-label">{{ 'footer.address' | translate }}:</span>
+            <span class="contact-val">{{ contactChannels().address }}</span>
+          </li>
+          <li class="contact-item-static">
+            <span class="contact-label">{{ 'footer.hours' | translate }}:</span>
+            <span class="contact-val">{{ contactChannels().officeHours }}</span>
+          </li>
         </ul>
       </div>
 
+      <!-- Acesso Administrativo & Legal -->
       <div class="links-col">
-        <h4 class="col-title tracking-editorial">Agência</h4>
+        <h4 class="col-title tracking-editorial">Plataforma</h4>
         <ul>
-          <li><span>Peruíbe &amp; São Paulo - SP</span></li>
-          <li><a href="mailto:contato@wbagency.com">contato&#64;wbagency.com</a></li>
-          <li><a href="https://instagram.com/wbagency" target="_blank" rel="noopener">Instagram</a></li>
-          <li><a routerLink="/admin/login" class="admin-link">Backoffice</a></li>
+          <li><a routerLink="/contact">Imprensa &amp; Booking</a></li>
+          <li><a routerLink="/apply">Inscrição de Novos Talentos</a></li>
+          <li><a routerLink="/admin/login" class="admin-link">Acesso Administrativo (CMS)</a></li>
         </ul>
       </div>
     </div>
@@ -42,8 +73,8 @@
 
   <div class="footer-bottom">
     <div class="container bottom-inner">
-      <p>&copy; {{ currentYear }} WB Agency. Todos os direitos reservados.</p>
-      <p class="credits">Desenvolvido com tecnologia de alta performance</p>
+      <p>&copy; {{ currentYear }} {{ 'footer.rights' | translate }}</p>
+      <p class="credits">{{ 'footer.credits' | translate }}</p>
     </div>
   </div>
 </footer>

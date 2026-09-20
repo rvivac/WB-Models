@@ -29,26 +29,6 @@
   <!-- Overlay Editorial com transição suave para o fundo claro (#FBFBF9) -->
   <div class="hero-overlay absolute inset-0 z-10"></div>
 
-  <!-- Conteúdo em Primeiro Plano -->
-  <div class="hero-content relative z-20 text-center px-4 max-w-5xl mx-auto flex flex-col items-center hero-content-inner">
-    <h1 class="hero-headline font-serif text-3xl md:text-5xl lg:text-6xl text-white tracking-wider mb-4 uppercase">
-      {{ heroData().title || 'High Fashion & Scouting' }}
-    </h1>
-
-    <p class="hero-manifesto text-neutral-300 font-sans tracking-[0.3em] uppercase text-xs md:text-sm mb-8">
-      {{ heroData().subtitle || 'Gestão de Carreiras • Scouting Internacional' }}
-    </p>
-
-    <div class="hero-buttons flex gap-4">
-      <a [routerLink]="heroData().ctaLink || '/modelos'" class="btn-primary">
-        {{ heroData().ctaText || 'Ver Elenco' }}
-      </a>
-      <a routerLink="/seja-modelo" class="btn-secondary">
-        Seja Modelo
-      </a>
-    </div>
-  </div>
-
   <!-- Indicador de Rolagem Elegante -->
   <button 
     type="button" 

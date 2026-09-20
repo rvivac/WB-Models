@@ -39,11 +39,11 @@ describe('HomeHeroComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create and display hero typography and video', () => {
+  it('should create and display hero video without central text overlay', () => {
     expect(component).toBeTruthy();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.hero-headline')?.textContent).toContain('High Fashion & Scouting');
     expect(compiled.querySelector('video')).toBeTruthy();
+    expect(compiled.querySelector('.hero-headline')).toBeNull();
   });
 
   it('should trigger poster fallback when video encounters error', () => {

@@ -56,7 +56,7 @@ describe('TranslationService', () => {
     expect(service.currentLang()).toBe('en');
     expect(localStorage.getItem('wb_scouting_lang')).toBe('en');
 
-    const req = httpTesting.expectOne('/assets/i18n/en.json');
+    const req = httpTesting.expectOne('assets/i18n/en.json');
     expect(req.request.method).toBe('GET');
     req.flush({ nav: { home: 'Home' } });
 

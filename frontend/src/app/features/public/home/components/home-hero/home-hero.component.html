@@ -9,11 +9,11 @@
       playsinline
       preload="metadata"
       class="hero-video absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
-      [poster]="heroData().posterImageUrl || '/assets/images/hero-poster.jpg'"
+      [poster]="heroData().posterImageUrl || 'assets/images/hero-poster.jpg'"
       (loadeddata)="onVideoLoaded()"
       (error)="onVideoError()"
     >
-      <source [src]="heroData().videoUrl || '/assets/videos/wb-presentation.mp4'" type="video/mp4">
+      <source [src]="heroData().videoUrl || 'assets/videos/wb-presentation.mp4'" type="video/mp4">
       Seu navegador não suporta reprodução de vídeos em HTML5.
     </video>
   }
@@ -22,7 +22,7 @@
   @if (isVideoError()) {
     <div 
       class="hero-poster-fallback ken-burns absolute inset-0 w-full h-full bg-cover bg-center z-0"
-      [style.background-image]="'url(' + (heroData().posterImageUrl || '/assets/images/hero-poster.jpg') + ')'">
+      [style.background-image]="'url(' + (heroData().posterImageUrl || 'assets/images/hero-poster.jpg') + ')'">
     </div>
   }
 

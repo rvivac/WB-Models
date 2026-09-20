@@ -42,9 +42,9 @@ describe('ContactComponent (SITE-004 Anti-Scraping & CyberSecurity)', () => {
 
     it('should render contact data dynamically from SecureContactService', () => {
       const compiled = fixture.nativeElement as HTMLElement;
-      expect(compiled.textContent).toContain('+55 11 97065-6003');
-      expect(compiled.textContent).toContain('infowbscouting@gmail.com');
-      expect(compiled.textContent).toContain('@infowbagency');
+      expect(compiled.textContent).toContain(secureContactService.phoneDisplay);
+      expect(compiled.textContent).toContain(secureContactService.emailDisplay);
+      expect(compiled.textContent).toContain(secureContactService.instagramDisplay);
     });
   });
 

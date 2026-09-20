@@ -94,7 +94,7 @@ export class TranslationService {
    * Loads translation dictionary file via HttpClient.
    */
   private loadTranslations(lang: SupportedLanguage): Observable<Record<string, any>> {
-    return this.http.get<Record<string, any>>(`/assets/i18n/${lang}.json`).pipe(
+    return this.http.get<Record<string, any>>(`assets/i18n/${lang}.json`).pipe(
       tap((data) => {
         this.translations.set(data || {});
       }),

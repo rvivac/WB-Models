@@ -19,8 +19,8 @@ export class HomeHeroComponent implements OnInit {
   @ViewChild('heroVideo') videoRef?: ElementRef<HTMLVideoElement>;
 
   readonly heroData = signal<HomeHeroPayload>({
-    videoUrl: '/assets/videos/wb-presentation.mp4',
-    posterImageUrl: '/assets/images/hero-poster.jpg',
+    videoUrl: 'assets/videos/wb-presentation.mp4',
+    posterImageUrl: 'assets/images/hero-poster.jpg',
     title: 'High Fashion & Scouting',
     subtitle: 'Gestão de Carreiras • Scouting Internacional',
     ctaText: 'Ver Elenco',
@@ -47,7 +47,13 @@ export class HomeHeroComponent implements OnInit {
     this.publicContentService.getHeroContent(lang).subscribe({
       next: (data) => {
         if (data) {
-          this.heroData.set(data);
+          const videoUrl = data.videoUrl ? data.videoUrl.replace(/^\/assets\//, 'assets/') : 'assets/videos/wb-presentation.mp4';
+          const posterImageUrl = data.posterImageUrl ? data.posterImageUrl.replace(/^\/assets\//, 'assets/') : 'assets/images/hero-poster.jpg';
+          this.heroData.set({
+            ...data,
+            videoUrl,
+            posterImageUrl
+          });
           // Tentar reproduzir vídeo se o elemento estiver disponível
           setTimeout(() => this.attemptAutoplay(), 100);
         }

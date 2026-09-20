@@ -93,14 +93,26 @@ describe('PublicModelService', () => {
     });
   });
 
-  it('should return empty page gracefully on HTTP error', () => {
+  it('should return mock fallback models gracefully on HTTP error in getFeaturedModels', () => {
     service.getFeaturedModels(8).subscribe(response => {
       expect(response).toBeTruthy();
-      expect(response.content).toEqual([]);
+      expect(response.content.length).toBeGreaterThanOrEqual(4);
+      expect(response.content.every(m => m.isStar)).toBeTrue();
     });
 
     const req1 = httpTesting.expectOne(`${environment.apiUrl}/public/models?isStar=true&size=8&page=0`);
     req1.error(new ProgressEvent('error'));
+  });
+
+  it('should return mock fallback models gracefully on HTTP error in getModels', () => {
+    service.getModels({ gender: 'FEMALE' }).subscribe(response => {
+      expect(response).toBeTruthy();
+      expect(response.content.length).toBe(4);
+      expect(response.content.every(m => m.gender === 'FEMALE')).toBeTrue();
+    });
+
+    const req = httpTesting.expectOne(`${environment.apiUrl}/public/models?gender=FEMALE`);
+    req.error(new ProgressEvent('error'));
   });
 
   it('should get models with query filters and pagination', () => {
@@ -156,5 +168,17 @@ describe('PublicModelService', () => {
       heightCm: 180,
       bookPhotos: [{ id: 'bp-1', fileUrl: 'https://example.com/book1.jpg' }]
     });
+  });
+
+  it('should return mock model details gracefully on HTTP error in getModelById', () => {
+    service.getModelById('f1a2b3c4-1111-4000-8000-000000000001').subscribe(model => {
+      expect(model).toBeTruthy();
+      expect(model.stageName).toBe('Helena Rostova');
+      expect(model.gender).toBe('FEMALE');
+      expect(model.heightCm).toBe(179);
+    });
+
+    const req = httpTesting.expectOne(`${environment.apiUrl}/public/models/f1a2b3c4-1111-4000-8000-000000000001`);
+    req.error(new ProgressEvent('error'));
   });
 });

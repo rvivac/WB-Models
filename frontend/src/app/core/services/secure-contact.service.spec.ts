@@ -16,24 +16,24 @@ describe('SecureContactService', () => {
   });
 
   it('should correctly decode obfuscated email display', () => {
-    expect(service.emailDisplay).toBe('infowbscouting@gmail.com');
+    expect(service.emailDisplay).toBe('contato@wbscouting.com');
   });
 
   it('should return phone display format', () => {
-    expect(service.phoneDisplay).toBe('+55 11 97065-6003');
+    expect(service.phoneDisplay).toBe('+55 (11) 99999-9999');
   });
 
   it('should return instagram display handle', () => {
-    expect(service.instagramDisplay).toBe('@infowbagency');
+    expect(service.instagramDisplay).toBe('@wbscouting');
   });
 
-  it('should open WhatsApp with decoded number, encoded message and noopener/noreferrer', () => {
+  it('should open WhatsApp with direct link and noopener/noreferrer', () => {
     const windowSpy = spyOn(window, 'open').and.stub();
 
     service.openWhatsApp();
 
     expect(windowSpy).toHaveBeenCalledWith(
-      jasmine.stringMatching(/https:\/\/api\.whatsapp\.com\/send\?phone=5511970656003&text=/),
+      'https://wa.me/5511999999999',
       '_blank',
       'noopener,noreferrer'
     );
@@ -45,7 +45,7 @@ describe('SecureContactService', () => {
     service.openInstagram();
 
     expect(windowSpy).toHaveBeenCalledWith(
-      'https://www.instagram.com/infowbagency/',
+      'https://www.instagram.com/wbscouting/',
       '_blank',
       'noopener,noreferrer'
     );

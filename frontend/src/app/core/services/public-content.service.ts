@@ -34,8 +34,8 @@ export class PublicContentService {
   private readonly api = inject(ApiService);
 
   private readonly defaultHero: HomeHeroPayload = {
-    videoUrl: '/assets/videos/wb-presentation.mp4',
-    posterImageUrl: '/assets/images/hero-poster.jpg',
+    videoUrl: 'assets/videos/wb-presentation.mp4',
+    posterImageUrl: 'assets/images/hero-poster.jpg',
     title: 'High Fashion & Scouting',
     subtitle: 'Gestão de Carreiras • Scouting Internacional',
     ctaText: 'Ver Elenco',
@@ -44,8 +44,8 @@ export class PublicContentService {
 
   private readonly defaultContactChannels: ContactChannelsPublicDto = {
     email: 'contato@wbscouting.com',
-    whatsappNumber: '5511999999999',
-    whatsappUrl: 'https://wa.me/5511999999999?text=Ol%C3%A1%21%20Gostaria%20de%20mais%20informa%C3%A7%C3%B5es%20sobre%20a%20ag%C3%AAncia%20WB%20Scouting.',
+    whatsappNumber: '+55 (11) 99999-9999',
+    whatsappUrl: 'https://wa.me/5511999999999',
     instagramHandle: '@wbscouting',
     address: 'São Paulo - SP, Brasil',
     officeHours: 'Segunda a Sexta, das 09h às 18h'
@@ -55,9 +55,11 @@ export class PublicContentService {
     return this.api.get<SiteContentPublicDto>('/public/content/HOME_HERO', { lang }).pipe(
       map(response => {
         const payload = response?.payload || {};
+        const rawVideo = payload['videoUrl'] || this.defaultHero.videoUrl;
+        const rawPoster = payload['posterImageUrl'] || this.defaultHero.posterImageUrl;
         return {
-          videoUrl: payload['videoUrl'] || this.defaultHero.videoUrl,
-          posterImageUrl: payload['posterImageUrl'] || this.defaultHero.posterImageUrl,
+          videoUrl: rawVideo ? rawVideo.replace(/^\/assets\//, 'assets/') : this.defaultHero.videoUrl,
+          posterImageUrl: rawPoster ? rawPoster.replace(/^\/assets\//, 'assets/') : this.defaultHero.posterImageUrl,
           title: payload['title'] || this.defaultHero.title,
           subtitle: payload['subtitle'] || this.defaultHero.subtitle,
           ctaText: payload['ctaText'] || this.defaultHero.ctaText,

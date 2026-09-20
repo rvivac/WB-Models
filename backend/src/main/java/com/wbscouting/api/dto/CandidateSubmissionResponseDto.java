@@ -60,6 +60,7 @@ public class CandidateSubmissionResponseDto {
     private String reviewedBy;
     private OffsetDateTime reviewedAt;
     private String feedbackNotes;
+    private UUID convertedToModelId;
 
     public static CandidateSubmissionResponseDto fromEntity(CandidateSubmission entity) {
         if (entity == null) {
@@ -97,6 +98,7 @@ public class CandidateSubmissionResponseDto {
                 .reviewedBy(entity.getReviewedBy())
                 .reviewedAt(entity.getReviewedAt())
                 .feedbackNotes(entity.getFeedbackNotes())
+                .convertedToModelId(entity.getConvertedToModelId())
                 .build();
     }
 }

@@ -1,7 +1,7 @@
 package com.wbscouting.api.controller.admin;
 
 import com.wbscouting.api.dto.CandidateSubmissionResponseDto;
-import com.wbscouting.api.dto.submission.CandidateStatusUpdateDto;
+import com.wbscouting.api.dto.UpdateSubmissionStatusDto;
 import com.wbscouting.api.entity.Admin;
 import com.wbscouting.api.entity.CandidateSubmission;
 import com.wbscouting.api.enums.SubmissionGender;
@@ -45,7 +45,7 @@ public class CandidateAdminController {
             @RequestParam(required = false) BigDecimal maxHeight,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         log.info("Consulta administrativa de candidaturas. Status: {}, Search: {}, Pageable: {}", status, search, pageable);
 
@@ -67,21 +67,36 @@ public class CandidateAdminController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<CandidateSubmissionResponseDto> updateSubmissionStatus(
             @PathVariable UUID id,
-            @Valid @RequestBody CandidateStatusUpdateDto updateDto,
+            @Valid @RequestBody UpdateSubmissionStatusDto updateDto,
             Authentication authentication
     ) {
-        String reviewerName = "Administrador";
-        Authentication auth = authentication != null ? authentication : SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null) {
-            if (auth.getPrincipal() instanceof Admin admin) {
-                reviewerName = admin.getName() != null ? admin.getName() : admin.getEmail();
-            } else if (auth.getName() != null) {
-                reviewerName = auth.getName();
-            }
-        }
-
+        String reviewerName = extractReviewerName(authentication);
         log.info("Atualização de status da candidatura ID: {} para {} pelo revisor {}", id, updateDto.getStatus(), reviewerName);
         CandidateSubmissionResponseDto updated = adminService.updateSubmissionStatus(id, updateDto, reviewerName);
         return ResponseEntity.ok(updated);
+    }
+
+    @PostMapping({"/{id}/promote-to-model", "/{id}/convert-to-model", "/{id}/promote", "/{id}/convert"})
+    public ResponseEntity<CandidateSubmissionResponseDto> promoteToModel(
+            @PathVariable UUID id,
+            @RequestParam(required = false, defaultValue = "false") Boolean activateImmediately,
+            Authentication authentication
+    ) {
+        String reviewerName = extractReviewerName(authentication);
+        log.info("Ação operacional de promoção para modelo da candidatura ID: {} por {}", id, reviewerName);
+        CandidateSubmissionResponseDto promoted = adminService.promoteToModel(id, reviewerName, activateImmediately);
+        return ResponseEntity.ok(promoted);
+    }
+
+    private String extractReviewerName(Authentication authentication) {
+        Authentication auth = authentication != null ? authentication : SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            if (auth.getPrincipal() instanceof Admin admin) {
+                return admin.getName() != null ? admin.getName() : admin.getEmail();
+            } else if (auth.getName() != null) {
+                return auth.getName();
+            }
+        }
+        return "Administrador";
     }
 }

@@ -1,6 +1,7 @@
 package com.wbscouting.api.service.submission;
 
 import com.wbscouting.api.dto.CandidateSubmissionResponseDto;
+import com.wbscouting.api.dto.UpdateSubmissionStatusDto;
 import com.wbscouting.api.dto.submission.CandidateStatusUpdateDto;
 import com.wbscouting.api.entity.CandidateSubmission;
 import org.springframework.data.domain.Page;
@@ -16,4 +17,8 @@ public interface CandidateSubmissionAdminService {
     CandidateSubmissionResponseDto getSubmissionById(UUID id);
 
     CandidateSubmissionResponseDto updateSubmissionStatus(UUID id, CandidateStatusUpdateDto updateDto, String reviewer);
+
+    CandidateSubmissionResponseDto updateSubmissionStatus(UUID id, UpdateSubmissionStatusDto updateDto, String reviewer);
+
+    CandidateSubmissionResponseDto promoteToModel(UUID submissionId, String reviewer, Boolean activateImmediately);
 }

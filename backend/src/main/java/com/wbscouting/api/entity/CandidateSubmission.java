@@ -117,6 +117,9 @@ public class CandidateSubmission {
     @Column(name = "feedback_notes", length = 500)
     private String feedbackNotes;
 
+    @Column(name = "converted_to_model_id")
+    private UUID convertedToModelId;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;

@@ -4,7 +4,9 @@ import com.wbscouting.api.enums.MediaType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -28,7 +30,8 @@ public class ModelMedia {
     private Model model;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "media_type", nullable = false)
+    @Column(name = "media_type", nullable = false, columnDefinition = "media_type")
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     private MediaType mediaType;
 
     @Column(name = "file_url", columnDefinition = "TEXT", nullable = false)

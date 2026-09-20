@@ -1,13 +1,20 @@
 package com.wbscouting.api.service.submission;
 
 import com.wbscouting.api.dto.CandidateSubmissionResponseDto;
+import com.wbscouting.api.dto.UpdateSubmissionStatusDto;
 import com.wbscouting.api.dto.submission.CandidateStatusUpdateDto;
 import com.wbscouting.api.entity.CandidateSubmission;
+import com.wbscouting.api.entity.Model;
+import com.wbscouting.api.entity.ModelMedia;
+import com.wbscouting.api.enums.GenderType;
 import com.wbscouting.api.enums.SubmissionGender;
 import com.wbscouting.api.enums.SubmissionStatus;
 import com.wbscouting.api.event.CandidateApprovedEvent;
+import com.wbscouting.api.exception.BusinessException;
 import com.wbscouting.api.exception.ResourceNotFoundException;
 import com.wbscouting.api.repository.CandidateSubmissionRepository;
+import com.wbscouting.api.repository.ModelMediaRepository;
+import com.wbscouting.api.repository.ModelRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,6 +47,12 @@ class CandidateSubmissionAdminServiceTest {
     private CandidateSubmissionRepository repository;
 
     @Mock
+    private ModelRepository modelRepository;
+
+    @Mock
+    private ModelMediaRepository modelMediaRepository;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
@@ -63,6 +76,12 @@ class CandidateSubmissionAdminServiceTest {
                 .city("Panambi")
                 .state("RS")
                 .height(new BigDecimal("1.80"))
+                .bust(new BigDecimal("86"))
+                .waist(new BigDecimal("60"))
+                .hips(new BigDecimal("89"))
+                .shoeSize(38)
+                .eyeColor("Azul")
+                .hairColor("Loiro")
                 .status(SubmissionStatus.PENDING)
                 .facePhotoUrl("https://storage/face.jpg")
                 .profilePhotoUrl("https://storage/profile.jpg")
@@ -107,6 +126,31 @@ class CandidateSubmissionAdminServiceTest {
     }
 
     @Test
+    @DisplayName("updateSubmissionStatus - Transição para REVIEWING e CONTACTED com UpdateSubmissionStatusDto")
+    void shouldUpdateStatusToReviewingAndContacted() {
+        when(repository.findById(sampleId)).thenReturn(Optional.of(sampleSubmission));
+        when(repository.save(any(CandidateSubmission.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UpdateSubmissionStatusDto dtoReview = UpdateSubmissionStatusDto.builder()
+                .status(SubmissionStatus.REVIEWING)
+                .adminNotes("Perfil em triagem inicial")
+                .build();
+
+        CandidateSubmissionResponseDto resReview = adminService.updateSubmissionStatus(sampleId, dtoReview, "Booker Ana");
+        assertThat(resReview.getStatus()).isEqualTo(SubmissionStatus.REVIEWING);
+        assertThat(resReview.getFeedbackNotes()).isEqualTo("Perfil em triagem inicial");
+
+        UpdateSubmissionStatusDto dtoContacted = UpdateSubmissionStatusDto.builder()
+                .status(SubmissionStatus.CONTACTED)
+                .adminNotes("WhatsApp enviado solicitando medidas atualizadas")
+                .build();
+
+        CandidateSubmissionResponseDto resContacted = adminService.updateSubmissionStatus(sampleId, dtoContacted, "Booker Ana");
+        assertThat(resContacted.getStatus()).isEqualTo(SubmissionStatus.CONTACTED);
+        assertThat(resContacted.getFeedbackNotes()).isEqualTo("WhatsApp enviado solicitando medidas atualizadas");
+    }
+
+    @Test
     @DisplayName("updateSubmissionStatus - Transição para APPROVED grava auditoria e publica evento")
     void shouldApproveAndPublishEvent() {
         when(repository.findById(sampleId)).thenReturn(Optional.of(sampleSubmission));
@@ -142,5 +186,46 @@ class CandidateSubmissionAdminServiceTest {
 
         assertThat(result.getStatus()).isEqualTo(SubmissionStatus.REJECTED);
         verify(eventPublisher, never()).publishEvent(any(CandidateApprovedEvent.class));
+    }
+
+    @Test
+    @DisplayName("promoteToModel - Promove candidatura para Model e cria ModelMedia com sucesso")
+    void shouldPromoteCandidateToModelSuccessfully() {
+        UUID generatedModelId = UUID.randomUUID();
+        when(repository.findById(sampleId)).thenReturn(Optional.of(sampleSubmission));
+        when(modelRepository.save(any(Model.class))).thenAnswer(inv -> {
+            Model m = inv.getArgument(0);
+            m.setId(generatedModelId);
+            return m;
+        });
+        when(repository.save(any(CandidateSubmission.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        CandidateSubmissionResponseDto result = adminService.promoteToModel(sampleId, "Booker Chefe", false);
+
+        assertThat(result.getStatus()).isEqualTo(SubmissionStatus.APPROVED);
+        assertThat(result.getConvertedToModelId()).isEqualTo(generatedModelId);
+
+        verify(modelRepository, times(1)).save(argThat(m ->
+                m.getStageName().equals("Carol Trentini") &&
+                m.getGender() == GenderType.FEMALE &&
+                m.getHeightCm() == 180 &&
+                !m.getIsActive()
+        ));
+
+        verify(modelMediaRepository, times(3)).save(any(ModelMedia.class));
+        verify(eventPublisher, times(1)).publishEvent(any(CandidateApprovedEvent.class));
+    }
+
+    @Test
+    @DisplayName("promoteToModel - Lança DuplicatePromotionException quando a candidatura já tiver sido promovida")
+    void shouldThrowDuplicatePromotionExceptionWhenAlreadyPromoted() {
+        sampleSubmission.setConvertedToModelId(UUID.randomUUID());
+        when(repository.findById(sampleId)).thenReturn(Optional.of(sampleSubmission));
+
+        assertThatThrownBy(() -> adminService.promoteToModel(sampleId, "Booker Chefe", false))
+                .isInstanceOf(com.wbscouting.api.exception.DuplicatePromotionException.class)
+                .hasMessageContaining("já foi promovida");
+
+        verify(modelRepository, never()).save(any());
     }
 }

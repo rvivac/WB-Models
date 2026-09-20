@@ -2,7 +2,7 @@ package com.wbscouting.api.controller.admin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wbscouting.api.dto.CandidateSubmissionResponseDto;
-import com.wbscouting.api.dto.submission.CandidateStatusUpdateDto;
+import com.wbscouting.api.dto.UpdateSubmissionStatusDto;
 import com.wbscouting.api.enums.SubmissionGender;
 import com.wbscouting.api.enums.SubmissionStatus;
 import com.wbscouting.api.security.JwtAuthenticationEntryPoint;
@@ -33,6 +33,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CandidateAdminController.class)
@@ -119,27 +120,27 @@ class CandidateAdminControllerTest {
     }
 
     @Test
-    @DisplayName("PATCH /api/v1/admin/submissions/{id}/status - Deve aprovar candidatura e retornar 200 OK")
+    @DisplayName("PATCH /api/v1/admin/submissions/{id}/status - Deve atualizar status com UpdateSubmissionStatusDto")
     void shouldUpdateSubmissionStatus() throws Exception {
-        CandidateStatusUpdateDto updateDto = CandidateStatusUpdateDto.builder()
-                .status(SubmissionStatus.APPROVED)
-                .feedbackNotes("Perfil excelente para editorial e passarela.")
+        UpdateSubmissionStatusDto updateDto = UpdateSubmissionStatusDto.builder()
+                .status(SubmissionStatus.REVIEWING)
+                .adminNotes("Perfil sob avaliação detalhada.")
                 .build();
 
-        CandidateSubmissionResponseDto approvedDto = sampleDto;
-        approvedDto.setStatus(SubmissionStatus.APPROVED);
-        approvedDto.setReviewedBy("Admin Test");
-        approvedDto.setFeedbackNotes(updateDto.getFeedbackNotes());
+        CandidateSubmissionResponseDto reviewingDto = sampleDto;
+        reviewingDto.setStatus(SubmissionStatus.REVIEWING);
+        reviewingDto.setReviewedBy("Admin Test");
+        reviewingDto.setFeedbackNotes(updateDto.getAdminNotes());
 
-        when(adminService.updateSubmissionStatus(eq(sampleId), any(), any()))
-                .thenReturn(approvedDto);
+        when(adminService.updateSubmissionStatus(eq(sampleId), any(UpdateSubmissionStatusDto.class), any()))
+                .thenReturn(reviewingDto);
 
         mockMvc.perform(patch("/api/v1/admin/submissions/{id}/status", sampleId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateDto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("APPROVED"))
-                .andExpect(jsonPath("$.feedbackNotes").value("Perfil excelente para editorial e passarela."));
+                .andExpect(jsonPath("$.status").value("REVIEWING"))
+                .andExpect(jsonPath("$.feedbackNotes").value("Perfil sob avaliação detalhada."));
     }
 
     @Test
@@ -147,8 +148,26 @@ class CandidateAdminControllerTest {
     void shouldRejectEmptyStatus() throws Exception {
         mockMvc.perform(patch("/api/v1/admin/submissions/{id}/status", sampleId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"feedbackNotes\": \"Sem status\"}"))
+                        .content("{\"adminNotes\": \"Sem status\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value("Erro de Validação"));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/admin/submissions/{id}/promote-to-model - Promove com sucesso e retorna 200 OK")
+    void shouldPromoteToModel() throws Exception {
+        UUID modelId = UUID.randomUUID();
+        CandidateSubmissionResponseDto promotedDto = sampleDto;
+        promotedDto.setStatus(SubmissionStatus.APPROVED);
+        promotedDto.setConvertedToModelId(modelId);
+
+        when(adminService.promoteToModel(eq(sampleId), any(), any()))
+                .thenReturn(promotedDto);
+
+        mockMvc.perform(post("/api/v1/admin/submissions/{id}/promote-to-model", sampleId)
+                        .param("activateImmediately", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("APPROVED"))
+                .andExpect(jsonPath("$.convertedToModelId").value(modelId.toString()));
     }
 }

@@ -39,5 +39,26 @@
     "view_all": "Ver todo o casting",
     "cta_title": "Seu talento merece a visibilidade certa.",
     "cta_subtitle": "Envie sua ficha de avaliação e fotos polaroids diretamente para os nossos olheiros e bookers."
+  },
+  "model_detail": {
+    "not_found_title": "Modelo Não Encontrado",
+    "not_found_desc": "O perfil que você tentou acessar não está disponível no momento ou foi desativado.",
+    "back_to_casting": "Voltar ao Casting",
+    "years_old": "anos",
+    "request_booking": "Solicitar Booking",
+    "view_composite": "Visualizar Composite Oficial",
+    "download_composite": "Baixar Composite",
+    "composite_updating": "Composite em atualização",
+    "composite_modal_title": "Composite Oficial",
+    "composite_badge": "Sedcard Digital",
+    "zoom_in": "Aumentar Zoom",
+    "zoom_out": "Diminuir Zoom",
+    "reset_zoom": "Redefinir Zoom",
+    "download_file": "Download Direto",
+    "close": "Fechar",
+    "book_tab": "Book Editorial",
+    "polaroids_tab": "Polaroids",
+    "no_photos": "Nenhuma fotografia cadastrada no momento.",
+    "instagram_profile": "Perfil no Instagram"
   }
 }

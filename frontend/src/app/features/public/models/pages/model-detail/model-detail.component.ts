@@ -1,11 +1,13 @@
 import { Component, OnInit, OnDestroy, inject, signal, computed, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 import { PublicModelService, ModelDetailPublicDto } from '../../../../../core/services/public-model.service';
 import { ModelMeasurementsComponent } from './components/model-measurements/model-measurements.component';
 import { ModelLightboxComponent } from './components/model-lightbox/model-lightbox.component';
+import { ModelCompositeModalComponent } from './components/model-composite-modal/model-composite-modal.component';
 import { TranslatePipe } from '../../../../../shared/pipes/translate.pipe';
 
 @Component({
@@ -16,6 +18,7 @@ import { TranslatePipe } from '../../../../../shared/pipes/translate.pipe';
     RouterModule,
     ModelMeasurementsComponent,
     ModelLightboxComponent,
+    ModelCompositeModalComponent,
     TranslatePipe
   ],
   templateUrl: './model-detail.component.html',
@@ -24,6 +27,7 @@ import { TranslatePipe } from '../../../../../shared/pipes/translate.pipe';
 export class ModelDetailComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly http = inject(HttpClient);
   private readonly publicModelService = inject(PublicModelService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -31,6 +35,41 @@ export class ModelDetailComponent implements OnInit, OnDestroy {
   readonly isLoading = signal<boolean>(true);
   readonly isNotFound = signal<boolean>(false);
   readonly model = signal<ModelDetailPublicDto | null>(null);
+
+  // Modal de Composite Oficial e Download
+  readonly isCompositeModalOpen = signal<boolean>(false);
+  readonly isDownloadingComposite = signal<boolean>(false);
+
+  // URL do Composite Oficial
+  readonly compositeUrl = computed<string | null>(() => {
+    const m = this.model();
+    return m?.compositeUrl || m?.composite?.fileUrl || null;
+  });
+
+  // Higienização segura do Instagram (suporte a @handle e URL completa)
+  readonly sanitizedInstagram = computed<{ url: string; handle: string } | null>(() => {
+    const m = this.model();
+    const raw = m?.instagramHandle || m?.instagramUrl;
+    if (!raw || !raw.trim()) return null;
+
+    const trimmed = raw.trim();
+    let handle = trimmed;
+    let url = trimmed;
+
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      url = trimmed;
+      const clean = trimmed.replace(/\/+$/, '');
+      const parts = clean.split('/');
+      const lastPart = parts[parts.length - 1].replace('@', '');
+      handle = lastPart ? `@${lastPart}` : '@instagram';
+    } else {
+      const cleanHandle = trimmed.replace(/^@/, '');
+      url = `https://www.instagram.com/${cleanHandle}/`;
+      handle = `@${cleanHandle}`;
+    }
+
+    return { url, handle };
+  });
 
   // Abas de Galeria: Book vs Polaroids
   readonly activeTab = signal<'BOOK' | 'POLAROIDS'>('BOOK');
@@ -120,8 +159,56 @@ export class ModelDetailComponent implements OnInit, OnDestroy {
   }
 
   getCompositeUrl(): string | null {
-    const comp = this.model()?.composite;
-    return comp?.fileUrl || null;
+    return this.compositeUrl();
+  }
+
+  openCompositeModal(): void {
+    if (this.compositeUrl()) {
+      this.isCompositeModalOpen.set(true);
+    }
+  }
+
+  closeCompositeModal(): void {
+    this.isCompositeModalOpen.set(false);
+  }
+
+  downloadComposite(): void {
+    const url = this.compositeUrl();
+    const stageName = this.model()?.stageName || 'Model';
+    if (!url || this.isDownloadingComposite()) return;
+
+    this.isDownloadingComposite.set(true);
+
+    const safeName = stageName.trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+    const extMatch = url.match(/\.(pdf|webp|jpe?g|png)(?:\?|$)/i);
+    const ext = extMatch ? extMatch[1].toLowerCase() : (url.toLowerCase().includes('.pdf') ? 'pdf' : 'jpg');
+    const filename = `Composite_${safeName}.${ext}`;
+
+    this.http.get(url, { responseType: 'blob' }).subscribe({
+      next: (blob) => {
+        const objectUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = objectUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(objectUrl);
+        this.isDownloadingComposite.set(false);
+      },
+      error: () => {
+        // Fallback direto
+        const link = document.createElement('a');
+        link.href = url;
+        link.target = '_blank';
+        link.download = filename;
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        this.isDownloadingComposite.set(false);
+      }
+    });
   }
 
   getBookingRouterLink(): string[] {

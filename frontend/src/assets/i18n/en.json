@@ -39,5 +39,26 @@
     "view_all": "View All Models",
     "cta_title": "Your talent deserves the right spotlight.",
     "cta_subtitle": "Submit your assessment form and polaroids directly to our professional scouts and bookers."
+  },
+  "model_detail": {
+    "not_found_title": "Model Not Found",
+    "not_found_desc": "The profile you are looking for is currently unavailable or has been deactivated.",
+    "back_to_casting": "Back to Casting",
+    "years_old": "years old",
+    "request_booking": "Request Booking",
+    "view_composite": "View Official Composite",
+    "download_composite": "Download Composite",
+    "composite_updating": "Composite being updated",
+    "composite_modal_title": "Official Composite",
+    "composite_badge": "Digital Sedcard",
+    "zoom_in": "Zoom In",
+    "zoom_out": "Zoom Out",
+    "reset_zoom": "Reset Zoom",
+    "download_file": "Direct Download",
+    "close": "Close",
+    "book_tab": "Editorial Book",
+    "polaroids_tab": "Polaroids",
+    "no_photos": "No photographs registered at this time.",
+    "instagram_profile": "Instagram Profile"
   }
 }

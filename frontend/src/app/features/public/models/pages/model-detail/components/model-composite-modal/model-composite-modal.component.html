@@ -1,0 +1,134 @@
+<div 
+  class="composite-modal-backdrop" 
+  (click)="onBackdropClick($event)" 
+  role="dialog" 
+  aria-modal="true" 
+  [attr.aria-label]="('model_detail.composite_modal_title' | translate) + ' - ' + modelName()">
+
+  <div class="composite-modal-container">
+    <!-- Cabeçalho Editorial do Modal -->
+    <header class="composite-modal-header">
+      <div class="header-info">
+        <span class="badge-tag tracking-editorial">{{ 'model_detail.composite_badge' | translate }}</span>
+        <h2 class="model-title font-serif">{{ modelName() }}</h2>
+      </div>
+
+      <div class="header-actions">
+        <button 
+          type="button" 
+          class="btn-close" 
+          (click)="closeModal()" 
+          [attr.aria-label]="'model_detail.close' | translate">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Área de Exibição Principal (Viewport) -->
+    <main 
+      class="composite-viewport"
+      [class.can-drag]="zoomLevel() > 1"
+      [class.dragging]="isDragging()"
+      (mousedown)="startDrag($event)"
+      (mousemove)="onDrag($event)"
+      (mouseup)="endDrag()"
+      (mouseleave)="endDrag()">
+
+      @if (isPdf()) {
+        <!-- Exibição de Documento PDF -->
+        <div class="pdf-container">
+          <iframe 
+            [src]="compositeUrl()" 
+            class="pdf-frame" 
+            title="Composite PDF do modelo">
+          </iframe>
+        </div>
+      } @else {
+        <!-- Exibição de Imagem em Alta Resolução com Suporte a Zoom/Pan -->
+        <div 
+          class="image-wrapper" 
+          [style.transform]="transformStyle()">
+          <img 
+            [src]="compositeUrl()" 
+            [alt]="'Composite oficial de ' + modelName()" 
+            class="composite-image" 
+            draggable="false"
+          />
+        </div>
+      }
+    </main>
+
+    <!-- Barra de Ferramentas Flutuante Inferior -->
+    <footer class="composite-toolbar">
+      @if (!isPdf()) {
+        <div class="zoom-controls">
+          <button 
+            type="button" 
+            class="tool-btn" 
+            (click)="zoomOut()" 
+            [disabled]="zoomLevel() <= 0.75"
+            [title]="'model_detail.zoom_out' | translate"
+            aria-label="Diminuir zoom">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              <line x1="8" y1="11" x2="14" y2="11"></line>
+            </svg>
+          </button>
+
+          <span class="zoom-indicator">{{ (zoomLevel() * 100) | number:'1.0-0' }}%</span>
+
+          <button 
+            type="button" 
+            class="tool-btn" 
+            (click)="zoomIn()" 
+            [disabled]="zoomLevel() >= 3"
+            [title]="'model_detail.zoom_in' | translate"
+            aria-label="Aumentar zoom">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              <line x1="11" y1="8" x2="11" y2="14"></line>
+              <line x1="8" y1="11" x2="14" y2="11"></line>
+            </svg>
+          </button>
+
+          <button 
+            type="button" 
+            class="tool-btn btn-reset" 
+            (click)="resetZoom()" 
+            [disabled]="zoomLevel() === 1 && panX() === 0 && panY() === 0"
+            [title]="'model_detail.reset_zoom' | translate"
+            aria-label="Redefinir zoom">
+            1:1
+          </button>
+        </div>
+
+        <div class="toolbar-divider"></div>
+      }
+
+      <!-- Ação de Download Direto -->
+      <button 
+        type="button" 
+        class="btn-download-action" 
+        (click)="downloadComposite()"
+        [disabled]="isDownloading()"
+        [attr.aria-busy]="isDownloading()">
+        @if (isDownloading()) {
+          <span class="spinner-sm"></span>
+          <span>Baixando...</span>
+        } @else {
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>{{ 'model_detail.download_file' | translate }}</span>
+        }
+      </button>
+    </footer>
+  </div>
+</div>

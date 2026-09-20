@@ -47,6 +47,7 @@ export interface ModelDetailPublicDto {
   nationality?: string;
   age?: number;
   instagramUrl?: string;
+  instagramHandle?: string;
 
   // Medidas biométricas (renderizadas apenas quando presentes)
   heightCm?: number;
@@ -62,6 +63,7 @@ export interface ModelDetailPublicDto {
   bookPhotos?: ModelMediaPublicItemDto[];
   polaroids?: ModelMediaPublicItemDto[];
   composite?: ModelMediaPublicItemDto;
+  compositeUrl?: string;
 }
 
 @Injectable({

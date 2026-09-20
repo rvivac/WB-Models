@@ -148,7 +148,6 @@ class CandidatePublicControllerTest {
     void shouldReturn400WhenBusinessExceptionThrown() throws Exception {
         when(submissionService.submit(any(), any(), any(), any()))
                 .thenThrow(new BusinessException("Para candidatos menores de 18 anos, os dados do responsável legal são obrigatórios."));
-
         mockMvc.perform(multipart("/api/v1/submissions")
                         .file(dataPart)
                         .file(facePhoto)
@@ -157,5 +156,26 @@ class CandidatePublicControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value("Regra de Negócio Violada"))
                 .andExpect(jsonPath("$.detail").value("Para candidatos menores de 18 anos, os dados do responsável legal são obrigatórios."));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/submissions - Deve retornar status específico de StorageException sem mascarar como 502 genérico")
+    void shouldReturnSpecificStatusOnStorageException() throws Exception {
+        when(submissionService.submit(any(), any(), any(), any()))
+                .thenThrow(new com.wbscouting.api.exception.StorageException(
+                        "Falha de autenticação com Supabase Storage",
+                        org.springframework.http.HttpStatus.UNAUTHORIZED,
+                        "STORAGE_AUTH_FAILED",
+                        "Falha de Autenticação com Armazenamento"
+                ));
+
+        mockMvc.perform(multipart("/api/v1/submissions")
+                        .file(dataPart)
+                        .file(facePhoto)
+                        .file(profilePhoto)
+                        .file(fullBodyPhoto))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.title").value("Falha de Autenticação com Armazenamento"))
+                .andExpect(jsonPath("$.storageErrorCode").value("STORAGE_AUTH_FAILED"));
     }
 }

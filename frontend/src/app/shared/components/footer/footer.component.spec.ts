@@ -42,7 +42,7 @@ describe('FooterComponent', () => {
   it('should create footer with brand title and contact channels', () => {
     expect(component).toBeTruthy();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.brand-title')?.textContent).toContain('WB SCOUTING');
+    expect(compiled.querySelector('.footer-logo-img')?.getAttribute('alt')).toBe('WB Agency');
     expect(compiled.querySelector('.whatsapp-link')?.getAttribute('href')).toBe('https://wa.me/5511988887777');
   });
 

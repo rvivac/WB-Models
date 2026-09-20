@@ -125,6 +125,9 @@ class PublicModelDetailServiceImplTest {
         assertThat(result.getEyeColor()).isEqualTo("Castanhos");
         assertThat(result.getHairColor()).isEqualTo("Castanho Escuro");
 
+        assertThat(result.getInstagramUrl()).isEqualTo("https://instagram.com/laisribeiro");
+        assertThat(result.getInstagramHandle()).isEqualTo("@laisribeiro");
+
         // Valida agrupamento de mídias
         assertThat(result.getBookPhotos()).hasSize(2);
         assertThat(result.getBookPhotos().get(0).getFileUrl()).isEqualTo("https://supabase.co/book1.jpg");

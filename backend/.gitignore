@@ -1,0 +1,11 @@
+# Variáveis de ambiente e credenciais locais
+.env
+.env.*
+!.env.example
+target/
+uploads/
+
+# Ignorar arquivos internos e documentos da pasta Projeto
+Projeto/
+projeto/
+[Pp]rojeto/**

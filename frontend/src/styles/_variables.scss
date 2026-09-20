@@ -1,52 +1,88 @@
 :root {
-  // Paleta de Cores de Luxo & Moda Editorial
-  --bg-primary: #07080b;
-  --bg-secondary: #0d0f15;
-  --bg-card: #131620;
-  --bg-elevated: #191c2a;
-  --bg-glass: rgba(13, 15, 21, 0.75);
+  /* ==========================================================================
+     PALETA OFICIAL DA MARCA WB AGENCY (LIGHT MINIMALIST / WHITE EDITORIAL)
+     ========================================================================== */
+  
+  /* Cores Primárias da Marca */
+  --wb-primary: #4b584e;         /* Oliva Mineral / Deep Sage (monograma oficial WB) */
+  --wb-primary-dark: #38433b;    /* Variação para estados de hover e foco */
+  --wb-primary-light: #6a796e;   /* Variação suave para bordas sutis e chips */
+  --wb-primary-subtle: rgba(75, 88, 78, 0.08); /* Fundo suave com preenchimento mineral */
 
-  --gold-primary: #c5a059;
-  --gold-light: #e6bb68;
-  --gold-dark: #9e7933;
-  --gold-muted: rgba(197, 160, 89, 0.15);
+  /* Cores Secundárias e Acentos */
+  --wb-accent: #c2a87e;          /* Ouro champanhe sutil para destaques editoriais */
+  --wb-accent-hover: #ad9369;    /* Variação de hover para elementos dourados */
+  --wb-accent-light: #d8c29d;
 
-  --text-primary: #f8fafc;
-  --text-secondary: #a0aec0;
-  --text-muted: #64748b;
-  --text-inverse: #07080b;
+  /* Neutros e Tipografia Editorial Clara */
+  --wb-dark: #222624;            /* Grafite mineral escuro para títulos e textos principais */
+  --wb-text-subtle: #5f6661;     /* Cinza mineral para descrições e metadados */
+  --wb-border: #e8ebe8;          /* Linhas divisórias ultrafinas de 1px */
+  --wb-surface: #ffffff;         /* Fundos de cards e painéis brancos */
+  --wb-background: #fbfbf9;      /* Fundo minimalista off-white editorial */
+  
+  /* ==========================================================================
+     MAPEAMENTO SEMÂNTICO EDITORIAL CLARO (LIGHT LUXURY AESTHETIC)
+     ========================================================================== */
+  --bg-primary: #fbfbf9;         /* Fundo off-white da página */
+  --bg-secondary: #ffffff;       /* Fundo branco de seções */
+  --bg-card: #ffffff;            /* Fundo de cards brancos */
+  --bg-elevated: #f4f5f4;        /* Painéis e inputs elevados */
+  --bg-glass: rgba(255, 255, 255, 0.92); /* Glass claro translúcido */
 
-  --border-subtle: #1e2232;
-  --border-medium: #2a3045;
-  --border-gold: rgba(197, 160, 89, 0.35);
+  /* Acentos Champagne Gold */
+  --gold-primary: var(--wb-accent);
+  --gold-light: var(--wb-accent-light);
+  --gold-dark: var(--wb-accent-hover);
+  --gold-muted: rgba(194, 168, 126, 0.12);
 
+  /* Salva Mineral (Deep Sage) */
+  --sage-primary: var(--wb-primary);
+  --sage-dark: var(--wb-primary-dark);
+  --sage-light: var(--wb-primary-light);
+  --sage-muted: rgba(75, 88, 78, 0.08);
+
+  /* Textos */
+  --text-primary: #222624;       /* Grafite escuro elegante */
+  --text-secondary: #5f6661;     /* Cinza mineral */
+  --text-muted: #838a84;         /* Cinza suave para placeholders e notas */
+  --text-inverse: #ffffff;       /* Texto branco para botões e fundos escuros */
+
+  /* Bordas */
+  --border-subtle: #e8ebe8;      /* Linhas ultrafinas de 1px */
+  --border-medium: #d8ded8;      /* Linhas medianas */
+  --border-gold: rgba(194, 168, 126, 0.4);
+  --border-sage: rgba(75, 88, 78, 0.25);
+
+  /* Status */
   --status-success: #10b981;
   --status-warning: #f59e0b;
   --status-danger: #ef4444;
   --status-info: #3b82f6;
 
-  // Tipografia
+  /* Tipografia Editorial */
   --font-serif: 'Cormorant Garamond', 'Playfair Display', Didot, Georgia, serif;
   --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  // Sombras e Elevação
+  /* Sombras e Elevação Mineral */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.65);
-  --shadow-gold: 0 6px 25px rgba(197, 160, 89, 0.2);
+  --shadow-gold: 0 6px 25px rgba(194, 168, 126, 0.22);
+  --shadow-sage: 0 6px 25px rgba(75, 88, 78, 0.25);
 
-  // Raios de Borda
+  /* Raios de Borda */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 14px;
   --radius-full: 9999px;
 
-  // Transições Fluidas
+  /* Transições Fluidas */
   --transition-fast: 0.15s ease;
   --transition-normal: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   --transition-slow: 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 
-  // Layout e Dimensões
+  /* Layout e Dimensões */
   --header-height: 80px;
   --container-max-width: 1320px;
 }

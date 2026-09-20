@@ -26,6 +26,8 @@ public class ModelDetailPublicDto {
     private String nationality;
     private Integer age;
     private String instagramUrl;
+    private String instagramHandle;
+    private String compositeUrl;
 
     // Medidas biométricas (apenas preenchidas / não nulas)
     private Integer heightCm;
@@ -43,6 +45,28 @@ public class ModelDetailPublicDto {
     private ModelMediaPublicItemDto composite;
 
     public String getCompositeUrl() {
+        if (compositeUrl != null && !compositeUrl.isBlank()) {
+            return compositeUrl;
+        }
         return composite != null ? composite.getFileUrl() : null;
+    }
+
+    public String getInstagramHandle() {
+        if (instagramHandle != null && !instagramHandle.isBlank()) {
+            return instagramHandle;
+        }
+        if (instagramUrl == null || instagramUrl.isBlank()) {
+            return null;
+        }
+        String clean = instagramUrl.trim();
+        if (clean.startsWith("http://") || clean.startsWith("https://")) {
+            clean = clean.replaceAll("/+$", "");
+            int slash = clean.lastIndexOf('/');
+            if (slash >= 0 && slash < clean.length() - 1) {
+                return "@" + clean.substring(slash + 1).replace("@", "");
+            }
+            return clean;
+        }
+        return clean.startsWith("@") ? clean : "@" + clean;
     }
 }

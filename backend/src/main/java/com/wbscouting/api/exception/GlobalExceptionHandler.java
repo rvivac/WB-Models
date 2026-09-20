@@ -107,10 +107,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(StorageException.class)
     public ProblemDetail handleStorageException(StorageException ex) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_GATEWAY, ex.getMessage());
-        problemDetail.setTitle("Erro de Integração com Armazenamento");
-        problemDetail.setType(URI.create("https://wbscouting.com/errors/storage-error"));
+        HttpStatus status = ex.getStatus() != null ? ex.getStatus() : HttpStatus.BAD_GATEWAY;
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
+        problemDetail.setTitle(ex.getTitle() != null ? ex.getTitle() : "Erro de Integração com Armazenamento");
+        String typeSlug = ex.getErrorCode() != null ? ex.getErrorCode().toLowerCase().replace('_', '-') : "storage-error";
+        problemDetail.setType(URI.create("https://wbscouting.com/errors/" + typeSlug));
         problemDetail.setProperty("timestamp", Instant.now());
+        if (ex.getErrorCode() != null) {
+            problemDetail.setProperty("storageErrorCode", ex.getErrorCode());
+        }
         return problemDetail;
     }
 

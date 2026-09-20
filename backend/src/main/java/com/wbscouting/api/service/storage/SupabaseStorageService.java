@@ -9,6 +9,7 @@ import com.wbscouting.api.exception.StorageException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -54,7 +55,28 @@ public class SupabaseStorageService implements StorageService {
 
         String normalizedPath = normalizePath(path);
         String contentType = file.getContentType();
+        boolean localFallbackEnabled = supabaseProperties.getStorage() != null && supabaseProperties.getStorage().isLocalFallback();
 
+        // 1. Caso a chave do Supabase não esteja configurada ou seja dummy
+        if (!supabaseProperties.isKeyConfigured()) {
+            if (localFallbackEnabled) {
+                log.warn("[SUPABASE STORAGE LOCAL FALLBACK] Chave do Supabase ('supabase.service-role-key' / 'supabase.key') não configurada ou com valor dummy ('{}'). Realizando salvamento local para bucket='{}', path='{}'.",
+                        supabaseProperties.getEffectiveKey(), bucket, normalizedPath);
+                saveFileLocally(bucket, normalizedPath, file);
+                return normalizedPath;
+            } else {
+                log.error("[SUPABASE STORAGE AUTH ERROR] Tentativa de upload para o bucket '{}' com chave do Supabase ausente ou inválida ('{}').",
+                        bucket, supabaseProperties.getEffectiveKey());
+                throw new StorageException(
+                        "Chave do Supabase não configurada para upload no bucket '" + bucket + "'. Configure 'supabase.service-role-key' ou 'supabase.key'.",
+                        HttpStatus.UNAUTHORIZED,
+                        "STORAGE_AUTH_FAILED",
+                        "Falha de Autenticação com Armazenamento"
+                );
+            }
+        }
+
+        // 2. Tentativa de upload remoto para o Supabase Storage
         try {
             byte[] fileBytes = file.getBytes();
             String endpointPath = "/storage/v1/object/" + bucket + "/" + normalizedPath;
@@ -67,23 +89,47 @@ public class SupabaseStorageService implements StorageService {
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (request, response) -> {
                         String errorBody = new String(response.getBody().readAllBytes());
-                        log.error("Erro retornado pelo Supabase Storage no upload. Status: {}, Body: {}",
-                                response.getStatusCode(), errorBody);
-                        throw new StorageException("Erro no Supabase Storage durante o upload: " + errorBody);
+                        HttpStatusCode status = response.getStatusCode();
+                        handleRemoteStorageError(bucket, normalizedPath, status, errorBody);
                     })
                     .toBodilessEntity();
 
-            log.info("Upload concluído com sucesso: bucket='{}', path='{}'", bucket, normalizedPath);
+            log.info("Upload concluído com sucesso no Supabase Storage: bucket='{}', path='{}'", bucket, normalizedPath);
             return normalizedPath;
 
         } catch (IOException e) {
             log.error("Falha de I/O ao ler bytes do arquivo multipart", e);
             throw new InvalidFileException("Não foi possível processar o arquivo enviado para upload.", e);
         } catch (StorageException e) {
+            if (localFallbackEnabled) {
+                log.warn("[SUPABASE STORAGE LOCAL FALLBACK] Falha na integração remota com Supabase Storage. Ativando fallback local para bucket='{}', path='{}'. Motivo: {}",
+                        bucket, normalizedPath, e.getMessage());
+                saveFileLocally(bucket, normalizedPath, file);
+                return normalizedPath;
+            }
             throw e;
         } catch (Exception e) {
             log.error("Erro inesperado ao realizar upload para o Supabase Storage", e);
-            throw new StorageException("Falha na comunicação com o serviço de armazenamento: " + e.getMessage(), e);
+            boolean isTimeoutOrNetwork = e instanceof org.springframework.web.client.ResourceAccessException
+                    || e.getCause() instanceof java.net.SocketTimeoutException
+                    || e.getCause() instanceof java.net.ConnectException;
+
+            if (isTimeoutOrNetwork) {
+                log.error("[SUPABASE STORAGE TIMEOUT / NETWORK ERROR] Timeout ou falha de conexão com o Supabase Storage (URL: {}). Erro: {}",
+                        supabaseProperties.getUrl(), e.getMessage());
+            }
+
+            if (localFallbackEnabled) {
+                log.warn("[SUPABASE STORAGE LOCAL FALLBACK] Salvando arquivo localmente devido a falha de conexão/timeout com o Supabase Storage: bucket='{}', path='{}'.",
+                        bucket, normalizedPath);
+                saveFileLocally(bucket, normalizedPath, file);
+                return normalizedPath;
+            }
+
+            HttpStatus status = isTimeoutOrNetwork ? HttpStatus.GATEWAY_TIMEOUT : HttpStatus.BAD_GATEWAY;
+            String code = isTimeoutOrNetwork ? "STORAGE_TIMEOUT" : "STORAGE_COMMUNICATION_ERROR";
+            String title = isTimeoutOrNetwork ? "Timeout na Comunicação com Armazenamento" : "Falha na Comunicação com Armazenamento";
+            throw new StorageException("Falha na comunicação com o serviço de armazenamento: " + e.getMessage(), e, status, code, title);
         }
     }
 
@@ -98,6 +144,13 @@ public class SupabaseStorageService implements StorageService {
 
         String normalizedPath = normalizePath(path);
         log.info("Removendo arquivo do bucket='{}', path='{}'", bucket, normalizedPath);
+
+        deleteLocalFileIfExists(bucket, normalizedPath);
+
+        if (!supabaseProperties.isKeyConfigured()) {
+            log.info("[SUPABASE STORAGE LOCAL] Chave do Supabase dummy ou ausente. Exclusão remota ignorada para bucket='{}', path='{}'.", bucket, normalizedPath);
+            return;
+        }
 
         try {
             Map<String, Object> payload = Map.of("prefixes", List.of(normalizedPath));
@@ -134,9 +187,22 @@ public class SupabaseStorageService implements StorageService {
             throw new InvalidFileException("O caminho do arquivo é obrigatório.");
         }
 
-        String baseUrl = sanitizeBaseUrl(supabaseProperties.getUrl());
         String normalizedPath = normalizePath(path);
 
+        // Se o arquivo foi salvo localmente no fallback, retorna a URL do endpoint local
+        String baseDir = (supabaseProperties.getStorage() != null && StringUtils.hasText(supabaseProperties.getStorage().getLocalDir()))
+                ? supabaseProperties.getStorage().getLocalDir()
+                : "uploads";
+        java.nio.file.Path localFile = java.nio.file.Paths.get(baseDir, bucket, normalizedPath).normalize();
+
+        if (java.nio.file.Files.exists(localFile)) {
+            String localBaseUrl = (supabaseProperties.getStorage() != null && StringUtils.hasText(supabaseProperties.getStorage().getLocalBaseUrl()))
+                    ? sanitizeBaseUrl(supabaseProperties.getStorage().getLocalBaseUrl())
+                    : "http://localhost:8080";
+            return String.format("%s/api/v1/storage/local/%s/%s", localBaseUrl, bucket, normalizedPath);
+        }
+
+        String baseUrl = sanitizeBaseUrl(supabaseProperties.getUrl());
         return String.format("%s/storage/v1/object/public/%s/%s", baseUrl, bucket, normalizedPath);
     }
 
@@ -153,6 +219,27 @@ public class SupabaseStorageService implements StorageService {
         }
 
         String normalizedPath = normalizePath(path);
+
+        // Se existir localmente, retorna URL local direta
+        String baseDir = (supabaseProperties.getStorage() != null && StringUtils.hasText(supabaseProperties.getStorage().getLocalDir()))
+                ? supabaseProperties.getStorage().getLocalDir()
+                : "uploads";
+        java.nio.file.Path localFile = java.nio.file.Paths.get(baseDir, bucket, normalizedPath).normalize();
+        if (java.nio.file.Files.exists(localFile)) {
+            String localBaseUrl = (supabaseProperties.getStorage() != null && StringUtils.hasText(supabaseProperties.getStorage().getLocalBaseUrl()))
+                    ? sanitizeBaseUrl(supabaseProperties.getStorage().getLocalBaseUrl())
+                    : "http://localhost:8080";
+            return String.format("%s/api/v1/storage/local/%s/%s?expiresIn=%d", localBaseUrl, bucket, normalizedPath, expiresInSeconds);
+        }
+
+        boolean localFallbackEnabled = supabaseProperties.getStorage() != null && supabaseProperties.getStorage().isLocalFallback();
+        if (!supabaseProperties.isKeyConfigured() && localFallbackEnabled) {
+            String localBaseUrl = (supabaseProperties.getStorage() != null && StringUtils.hasText(supabaseProperties.getStorage().getLocalBaseUrl()))
+                    ? sanitizeBaseUrl(supabaseProperties.getStorage().getLocalBaseUrl())
+                    : "http://localhost:8080";
+            return String.format("%s/api/v1/storage/local/%s/%s?expiresIn=%d", localBaseUrl, bucket, normalizedPath, expiresInSeconds);
+        }
+
         log.info("Gerando Signed URL para bucket='{}', path='{}', expiraEm={}s", bucket, normalizedPath, expiresInSeconds);
 
         try {
@@ -166,8 +253,16 @@ public class SupabaseStorageService implements StorageService {
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (req, res) -> {
                         String errorBody = new String(res.getBody().readAllBytes());
+                        HttpStatusCode status = res.getStatusCode();
                         log.error("Erro retornado pelo Supabase Storage ao gerar Signed URL. Status: {}, Body: {}",
-                                res.getStatusCode(), errorBody);
+                                status, errorBody);
+                        if (status.value() == 401 || status.value() == 403) {
+                            throw new StorageException("Erro de autenticação ao gerar Signed URL: " + errorBody,
+                                    HttpStatus.UNAUTHORIZED, "STORAGE_AUTH_FAILED", "Falha de Autenticação com Armazenamento");
+                        } else if (status.value() == 404) {
+                            throw new StorageException("Objeto ou bucket não encontrado ao gerar Signed URL: " + errorBody,
+                                    HttpStatus.NOT_FOUND, "STORAGE_NOT_FOUND", "Recurso Não Encontrado");
+                        }
                         throw new StorageException("Erro ao gerar Signed URL no Supabase Storage: " + errorBody);
                     })
                     .body(SignedUrlResponse.class);
@@ -189,10 +284,82 @@ public class SupabaseStorageService implements StorageService {
             return baseUrl + signedUrl;
 
         } catch (StorageException e) {
+            if (localFallbackEnabled) {
+                String localBaseUrl = (supabaseProperties.getStorage() != null && StringUtils.hasText(supabaseProperties.getStorage().getLocalBaseUrl()))
+                        ? sanitizeBaseUrl(supabaseProperties.getStorage().getLocalBaseUrl())
+                        : "http://localhost:8080";
+                return String.format("%s/api/v1/storage/local/%s/%s?expiresIn=%d", localBaseUrl, bucket, normalizedPath, expiresInSeconds);
+            }
             throw e;
         } catch (Exception e) {
             log.error("Erro inesperado ao gerar Signed URL no Supabase Storage", e);
+            if (localFallbackEnabled) {
+                String localBaseUrl = (supabaseProperties.getStorage() != null && StringUtils.hasText(supabaseProperties.getStorage().getLocalBaseUrl()))
+                        ? sanitizeBaseUrl(supabaseProperties.getStorage().getLocalBaseUrl())
+                        : "http://localhost:8080";
+                return String.format("%s/api/v1/storage/local/%s/%s?expiresIn=%d", localBaseUrl, bucket, normalizedPath, expiresInSeconds);
+            }
             throw new StorageException("Falha na geração de URL assinada: " + e.getMessage(), e);
+        }
+    }
+
+    private void handleRemoteStorageError(String bucket, String path, HttpStatusCode status, String errorBody) {
+        if (status.value() == 401 || status.value() == 403) {
+            log.error("[SUPABASE STORAGE AUTH ERROR] Falha de autenticação no Supabase Storage ao acessar o bucket '{}'. Status: {}, Body: {}. Verifique se 'supabase.service-role-key' ou 'supabase.key' é válida.",
+                    bucket, status, errorBody);
+            throw new StorageException(
+                    "Erro de autenticação no Supabase Storage durante o upload: " + errorBody,
+                    HttpStatus.UNAUTHORIZED,
+                    "STORAGE_AUTH_FAILED",
+                    "Falha de Autenticação com Armazenamento"
+            );
+        } else if (status.value() == 404 || (errorBody != null && errorBody.toLowerCase().contains("bucket not found"))) {
+            log.error("[SUPABASE STORAGE BUCKET NOT FOUND] Bucket '{}' não foi encontrado no Supabase Storage. Status: 404, Body: {}. Certifique-se de que o bucket foi criado no painel do Supabase.",
+                    bucket, errorBody);
+            throw new StorageException(
+                    "Bucket '" + bucket + "' não foi encontrado no Supabase Storage: " + errorBody,
+                    HttpStatus.NOT_FOUND,
+                    "STORAGE_BUCKET_NOT_FOUND",
+                    "Bucket de Armazenamento Não Encontrado"
+            );
+        } else {
+            log.error("Erro retornado pelo Supabase Storage no upload. Status: {}, Body: {}", status, errorBody);
+            throw new StorageException("Erro no Supabase Storage durante o upload: " + errorBody);
+        }
+    }
+
+    private void saveFileLocally(String bucket, String normalizedPath, MultipartFile file) {
+        try {
+            String baseDir = (supabaseProperties.getStorage() != null && StringUtils.hasText(supabaseProperties.getStorage().getLocalDir()))
+                    ? supabaseProperties.getStorage().getLocalDir()
+                    : "uploads";
+            java.nio.file.Path targetPath = java.nio.file.Paths.get(baseDir, bucket, normalizedPath).normalize();
+            if (targetPath.getParent() != null) {
+                java.nio.file.Files.createDirectories(targetPath.getParent());
+            }
+            java.nio.file.Files.write(targetPath, file.getBytes(),
+                    java.nio.file.StandardOpenOption.CREATE,
+                    java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
+            log.info("[SUPABASE STORAGE LOCAL] Arquivo salvo localmente em: {}", targetPath.toAbsolutePath());
+        } catch (IOException e) {
+            log.error("Falha ao salvar arquivo no armazenamento local de fallback: {}", e.getMessage(), e);
+            throw new StorageException("Falha ao salvar arquivo no fallback local: " + e.getMessage(), e,
+                    HttpStatus.INTERNAL_SERVER_ERROR, "STORAGE_LOCAL_FALLBACK_FAILED", "Falha no Armazenamento Local");
+        }
+    }
+
+    private void deleteLocalFileIfExists(String bucket, String normalizedPath) {
+        try {
+            String baseDir = (supabaseProperties.getStorage() != null && StringUtils.hasText(supabaseProperties.getStorage().getLocalDir()))
+                    ? supabaseProperties.getStorage().getLocalDir()
+                    : "uploads";
+            java.nio.file.Path targetPath = java.nio.file.Paths.get(baseDir, bucket, normalizedPath).normalize();
+            if (java.nio.file.Files.exists(targetPath)) {
+                java.nio.file.Files.delete(targetPath);
+                log.info("[SUPABASE STORAGE LOCAL] Arquivo local excluído: {}", targetPath.toAbsolutePath());
+            }
+        } catch (Exception e) {
+            log.warn("Falha não-crítica ao tentar excluir arquivo local: {}", e.getMessage());
         }
     }
 

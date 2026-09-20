@@ -52,12 +52,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/submissions/**", "/api/v1/submissions/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/candidates/**", "/api/v1/candidates/**", "/public/candidates/**", "/api/v1/public/candidates/**").permitAll()
 
-                        // Endpoints públicos de leitura (Catálogo, Home, Conteúdos, Contato, I18n)
+                        // Endpoints públicos de leitura (Catálogo, Home, Conteúdos, Contato, I18n, Storage Local)
                         .requestMatchers(HttpMethod.GET, "/models/**", "/api/v1/models/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/public/**", "/api/v1/public/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/site-contents/**", "/api/v1/site-contents/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/contact-channels/**", "/api/v1/public/contact-channels/**", "/public/contact-channels/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/i18n/**", "/api/v1/public/i18n/**", "/public/i18n/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/storage/local/**", "/api/v1/storage/local/**").permitAll()
 
                         // Endpoints protegidos (Gestão e Backoffice)
                         .requestMatchers("/admin/**", "/api/v1/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN", "CONTENT_ADMIN")

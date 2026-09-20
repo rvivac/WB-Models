@@ -67,6 +67,24 @@ public class PublicModelDetailServiceImpl implements PublicModelDetailService {
             age = Period.between(model.getBirthDate(), LocalDate.now()).getYears();
         }
 
+        String compositeUrl = composite != null ? composite.getFileUrl() : null;
+        String rawInstagram = model.getInstagramUrl();
+        String instagramHandle = null;
+        if (rawInstagram != null && !rawInstagram.isBlank()) {
+            String clean = rawInstagram.trim();
+            if (clean.startsWith("http://") || clean.startsWith("https://")) {
+                clean = clean.replaceAll("/+$", "");
+                int slash = clean.lastIndexOf('/');
+                if (slash >= 0 && slash < clean.length() - 1) {
+                    instagramHandle = "@" + clean.substring(slash + 1).replace("@", "");
+                } else {
+                    instagramHandle = clean;
+                }
+            } else {
+                instagramHandle = clean.startsWith("@") ? clean : "@" + clean;
+            }
+        }
+
         return ModelDetailPublicDto.builder()
                 .id(model.getId())
                 .stageName(model.getStageName())
@@ -76,6 +94,7 @@ public class PublicModelDetailServiceImpl implements PublicModelDetailService {
                 .nationality(model.getNationality())
                 .age(age)
                 .instagramUrl(model.getInstagramUrl())
+                .instagramHandle(instagramHandle)
                 .heightCm(model.getHeightCm())
                 .bustChestCm(model.getBustChestCm())
                 .waistCm(model.getWaistCm())
@@ -87,6 +106,7 @@ public class PublicModelDetailServiceImpl implements PublicModelDetailService {
                 .bookPhotos(bookPhotos)
                 .polaroids(polaroids)
                 .composite(composite)
+                .compositeUrl(compositeUrl)
                 .build();
     }
 }

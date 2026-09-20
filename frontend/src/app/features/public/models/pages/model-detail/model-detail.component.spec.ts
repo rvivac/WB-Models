@@ -91,6 +91,73 @@ describe('ModelDetailComponent', () => {
     expect(compiled.querySelectorAll('.photo-card').length).toBe(2); // 2 fotos no book
   });
 
+  it('should sanitize instagram URL, add security attributes and render vector icon', () => {
+    spyOn(publicModelService, 'getModelById').and.returnValue(of(mockModelDetail));
+
+    fixture = TestBed.createComponent(ModelDetailComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const igLink = compiled.querySelector('.instagram-badge') as HTMLAnchorElement;
+    expect(igLink).toBeTruthy();
+    expect(igLink.href).toBe('https://www.instagram.com/valentinar/');
+    expect(igLink.target).toBe('_blank');
+    expect(igLink.rel).toContain('noopener');
+    expect(igLink.rel).toContain('noreferrer');
+    expect(igLink.querySelector('.instagram-icon')).toBeTruthy();
+  });
+
+  it('should not render instagram link when instagramHandle and instagramUrl are absent', () => {
+    const noIgModel: ModelDetailPublicDto = {
+      ...mockModelDetail,
+      instagramUrl: undefined,
+      instagramHandle: undefined
+    };
+    spyOn(publicModelService, 'getModelById').and.returnValue(of(noIgModel));
+
+    fixture = TestBed.createComponent(ModelDetailComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.instagram-badge')).toBeNull();
+  });
+
+  it('should not render composite button when compositeUrl is absent', () => {
+    const noCompositeModel: ModelDetailPublicDto = {
+      ...mockModelDetail,
+      composite: undefined,
+      compositeUrl: undefined
+    };
+    spyOn(publicModelService, 'getModelById').and.returnValue(of(noCompositeModel));
+
+    fixture = TestBed.createComponent(ModelDetailComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.btn-composite')).toBeNull();
+  });
+
+  it('should open and close composite modal when button is clicked', () => {
+    spyOn(publicModelService, 'getModelById').and.returnValue(of(mockModelDetail));
+
+    fixture = TestBed.createComponent(ModelDetailComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(component.isCompositeModalOpen()).toBeFalse();
+
+    component.openCompositeModal();
+    fixture.detectChanges();
+    expect(component.isCompositeModalOpen()).toBeTrue();
+
+    component.closeCompositeModal();
+    fixture.detectChanges();
+    expect(component.isCompositeModalOpen()).toBeFalse();
+  });
+
   it('should switch tabs between book and polaroids', () => {
     spyOn(publicModelService, 'getModelById').and.returnValue(of(mockModelDetail));
 

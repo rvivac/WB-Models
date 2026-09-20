@@ -27,11 +27,13 @@ public class StorageConfig {
             baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
         }
 
+        String effectiveKey = supabaseProperties.getEffectiveKey();
+
         return RestClient.builder()
                 .baseUrl(baseUrl != null ? baseUrl : "")
                 .requestFactory(requestFactory)
-                .defaultHeader("apikey", supabaseProperties.getServiceRoleKey())
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + supabaseProperties.getServiceRoleKey())
+                .defaultHeader("apikey", effectiveKey)
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + effectiveKey)
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }

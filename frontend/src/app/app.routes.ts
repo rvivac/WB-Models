@@ -14,6 +14,11 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
   {
+    path: 'modelos',
+    redirectTo: 'models/female',
+    pathMatch: 'full'
+  },
+  {
     path: 'models/female',
     loadComponent: () => import('./features/public/models/model-list.component').then(m => m.ModelListComponent),
     data: { gender: 'FEMALE' },
@@ -37,9 +42,19 @@ export const routes: Routes = [
     title: 'Perfil do Modelo | WB Scouting'
   },
   {
+    path: 'modelos/:id',
+    loadComponent: () => import('./features/public/models/pages/model-detail/model-detail.component').then(m => m.ModelDetailComponent),
+    title: 'Perfil do Modelo | WB Scouting'
+  },
+  {
     path: 'apply',
     loadComponent: () => import('./features/candidate-submission/candidate-submission-form.component').then(m => m.CandidateSubmissionFormComponent),
     title: 'Quero Ser Modelo | Inscrição de Novos Talentos'
+  },
+  {
+    path: 'seja-modelo',
+    redirectTo: 'apply',
+    pathMatch: 'full'
   },
   {
     path: 'candidate-submission',
@@ -48,6 +63,11 @@ export const routes: Routes = [
   },
   {
     path: 'contact',
+    loadComponent: () => import('./features/public/contact/contact.component').then(m => m.ContactComponent),
+    title: 'Contato & Casting Comercial | WB Agency'
+  },
+  {
+    path: 'contato',
     loadComponent: () => import('./features/public/contact/contact.component').then(m => m.ContactComponent),
     title: 'Contato & Casting Comercial | WB Agency'
   },

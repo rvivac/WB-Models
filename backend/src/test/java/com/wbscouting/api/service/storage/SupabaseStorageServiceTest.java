@@ -216,4 +216,65 @@ class SupabaseStorageServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("maior que zero");
     }
+
+    @Test
+    @DisplayName("Deve salvar arquivo localmente no fallback quando chave for dummy e localFallback estiver ativado")
+    void shouldFallbackToLocalStorageWhenKeyIsDummy() throws Exception {
+        properties.setServiceRoleKey("dummy-key");
+        properties.getStorage().setLocalFallback(true);
+        properties.getStorage().setLocalDir("target/test-uploads");
+
+        MockMultipartFile file = new MockMultipartFile("file", "cand.jpg", "image/jpeg", "dummy-content".getBytes());
+
+        String path = storageService.uploadFile("candidates-uploads", "submissions/c1/cand.jpg", file);
+
+        assertThat(path).isEqualTo("submissions/c1/cand.jpg");
+        java.nio.file.Path localFile = java.nio.file.Paths.get("target/test-uploads/candidates-uploads/submissions/c1/cand.jpg");
+        assertThat(java.nio.file.Files.exists(localFile)).isTrue();
+        assertThat(java.nio.file.Files.readAllBytes(localFile)).isEqualTo("dummy-content".getBytes());
+
+        // Testa exclusão local
+        storageService.deleteFile("candidates-uploads", "submissions/c1/cand.jpg");
+        assertThat(java.nio.file.Files.exists(localFile)).isFalse();
+    }
+
+    @Test
+    @DisplayName("Deve lançar erro de autenticação detalhado quando chave for dummy e localFallback estiver desativado")
+    void shouldThrowDetailedAuthExceptionWhenKeyIsDummyAndFallbackDisabled() {
+        properties.setServiceRoleKey("dummy-key");
+        properties.getStorage().setLocalFallback(false);
+
+        MockMultipartFile file = new MockMultipartFile("file", "cand.jpg", "image/jpeg", "content".getBytes());
+
+        assertThatThrownBy(() -> storageService.uploadFile("candidates-uploads", "submissions/c1/cand.jpg", file))
+                .isInstanceOf(StorageException.class)
+                .hasMessageContaining("Chave do Supabase não configurada")
+                .satisfies(ex -> {
+                    StorageException se = (StorageException) ex;
+                    assertThat(se.getStatus().value()).isEqualTo(401);
+                    assertThat(se.getErrorCode()).isEqualTo("STORAGE_AUTH_FAILED");
+                });
+    }
+
+    @Test
+    @DisplayName("Deve lançar erro detalhado quando Supabase retornar 404 Bucket Not Found e localFallback estiver desativado")
+    void shouldThrowDetailedBucketNotFoundExceptionWhen404AndFallbackDisabled() {
+        properties.getStorage().setLocalFallback(false);
+        MockMultipartFile file = new MockMultipartFile("file", "front.jpg", "image/jpeg", "image-content".getBytes());
+
+        mockServer.expect(requestTo("https://testref.supabase.co/storage/v1/object/candidates-uploads/c1/front.jpg"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withStatus(org.springframework.http.HttpStatus.NOT_FOUND).body("Bucket not found"));
+
+        assertThatThrownBy(() -> storageService.uploadFile("candidates-uploads", "c1/front.jpg", file))
+                .isInstanceOf(StorageException.class)
+                .hasMessageContaining("não foi encontrado no Supabase Storage")
+                .satisfies(ex -> {
+                    StorageException se = (StorageException) ex;
+                    assertThat(se.getStatus().value()).isEqualTo(404);
+                    assertThat(se.getErrorCode()).isEqualTo("STORAGE_BUCKET_NOT_FOUND");
+                });
+
+        mockServer.verify();
+    }
 }

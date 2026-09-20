@@ -28,9 +28,9 @@ describe('HomeHeroComponent', () => {
     spyOn(publicContentService, 'getHeroContent').and.returnValue(of({
       videoUrl: 'https://video.mp4',
       posterImageUrl: 'https://poster.jpg',
-      title: 'WB SCOUTING',
-      subtitle: 'Manifesto editorial de moda',
-      ctaText: 'Ver Casting',
+      title: 'High Fashion & Scouting',
+      subtitle: 'Gestão de Carreiras • Scouting Internacional',
+      ctaText: 'Ver Elenco',
       ctaLink: '/models/female'
     }));
 
@@ -42,7 +42,7 @@ describe('HomeHeroComponent', () => {
   it('should create and display hero typography and video', () => {
     expect(component).toBeTruthy();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.hero-headline')?.textContent).toContain('WB SCOUTING');
+    expect(compiled.querySelector('.hero-headline')?.textContent).toContain('High Fashion & Scouting');
     expect(compiled.querySelector('video')).toBeTruthy();
   });
 

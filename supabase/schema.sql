@@ -356,3 +356,47 @@ CREATE POLICY "Public Insert Candidate Photos"
 -- 'admins', 'candidates' e 'candidate_photos' não possuem política SELECT para 'anon',
 -- ficando acessíveis exclusivamente via Backend autenticado (Spring Data JPA com service_role / token de serviço)
 -- ou usuários autenticados com papéis específicos no Supabase.
+
+-- ------------------------------------------------------------------------------
+-- 7. TABELA: candidate_submissions (Backoffice & Triagem de Candidaturas - Prompts 3.3.1, 3.3.2, 3.3.3)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.candidate_submissions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    protocol VARCHAR(50) NOT NULL UNIQUE,
+    full_name VARCHAR(120) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    phone VARCHAR(50) NOT NULL,
+    birth_date DATE NOT NULL,
+    age INTEGER NOT NULL,
+    gender VARCHAR(20) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    state VARCHAR(50) NOT NULL,
+    height NUMERIC(4,2) NOT NULL,
+    bust NUMERIC(5,2),
+    waist NUMERIC(5,2),
+    hips NUMERIC(5,2),
+    shoe_size INTEGER,
+    eye_color VARCHAR(50),
+    hair_color VARCHAR(50),
+    instagram_handle VARCHAR(100),
+    guardian_name VARCHAR(120),
+    guardian_phone VARCHAR(50),
+    guardian_email VARCHAR(100),
+    face_photo_url TEXT NOT NULL,
+    profile_photo_url TEXT NOT NULL,
+    full_body_photo_url TEXT NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDING',
+    feedback_notes VARCHAR(500),
+    reviewed_by VARCHAR(150),
+    reviewed_at TIMESTAMPTZ,
+    converted_to_model_id UUID NULL REFERENCES public.models(id) ON DELETE SET NULL,
+    lgpd_consent BOOLEAN NOT NULL DEFAULT FALSE,
+    lgpd_consent_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_candidate_submissions_status ON public.candidate_submissions(status);
+CREATE INDEX IF NOT EXISTS idx_candidate_submissions_created_at ON public.candidate_submissions(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_candidate_submissions_converted_model ON public.candidate_submissions(converted_to_model_id);
+

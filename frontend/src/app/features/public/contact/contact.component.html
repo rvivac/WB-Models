@@ -1,60 +1,223 @@
 <div class="contact-page">
   <div class="container">
-    <div class="contact-header text-center">
-      <span class="badge-editorial">Casting &amp; Negócios</span>
-      <h1 class="font-serif contact-title">Fale Conosco</h1>
+    <!-- Cabeçalho Editorial -->
+    <header class="contact-header text-center">
+      <span class="badge-editorial tracking-editorial">Atendimento Oficial &bull; Proteção Anti-Spam</span>
+      <h1 class="font-serif contact-title">Canais de Contato</h1>
       <p class="contact-subtitle">
-        Entre em contato com a nossa equipe de bookers para orçamentos, campanhas ou dúvidas institucionais.
+        Conecte-se com a WB Agency através de nossos canais institucionais seguros ou solicite um orçamento de casting diretamente com nossos bookers.
       </p>
-    </div>
+    </header>
 
-    <div class="contact-grid">
-      <!-- Informações de Contato -->
-      <div class="contact-info-card card-editorial">
-        <h3 class="font-serif info-heading">WB Agency Management</h3>
-        <p class="info-text text-secondary">
-          Atendimento a agências de publicidade, fotógrafos, diretores de cinema e marcas de moda em todo o território nacional e internacional.
-        </p>
-
-        <div class="info-items">
-          <div class="info-item">
-            <span class="info-label tracking-editorial">E-mail Comercial</span>
-            <a href="mailto:contato@wbagency.com" class="info-val text-gold">contato&#64;wbagency.com</a>
+    <!-- Grid de Canais de Atendimento Seguro -->
+    <section class="channels-grid" aria-label="Canais Oficiais de Atendimento">
+      <!-- 1. Casting & Representação (Novos Modelos) -->
+      <article class="channel-card card-editorial" id="card-casting">
+        <div class="card-glow"></div>
+        <div class="card-content">
+          <div class="channel-badge-wrap">
+            <span class="channel-badge tracking-editorial">Novos Talentos</span>
+            <div class="status-indicator">
+              <span class="status-dot"></span>
+              <span>Scouting Ativo</span>
+            </div>
           </div>
 
-          <div class="info-item">
-            <span class="info-label tracking-editorial">Telefone &amp; WhatsApp</span>
-            <span class="info-val">+55 (11) 99999-9999</span>
+          <div class="channel-header">
+            <div class="channel-icon-box">
+              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <h2 class="channel-title font-serif">Casting &amp; Representação</h2>
           </div>
 
-          <div class="info-item">
-            <span class="info-label tracking-editorial">Localização</span>
-            <span class="info-val">Peruíbe - SP &amp; São Paulo - Capital</span>
-          </div>
+          <p class="channel-desc text-secondary">
+            Deseja fazer parte do elenco exclusivo da WB Agency? As inscrições e triagens para novas modelos e talentos masculinos acontecem exclusivamente pelo nosso portal de scouting digital.
+          </p>
 
-          <div class="info-item">
-            <span class="info-label tracking-editorial">Redes Sociais</span>
-            <a href="https://instagram.com/wbagency" target="_blank" rel="noopener" class="info-val text-gold">&#64;wbagency</a>
+          <ul class="channel-guidelines">
+            <li>
+              <span class="check-bullet">&bull;</span>
+              <span>Avaliação de fotos naturais e sem maquiagem (polaroids).</span>
+            </li>
+            <li>
+              <span class="check-bullet">&bull;</span>
+              <span>Perfil nacional e internacional com suporte de carreira.</span>
+            </li>
+          </ul>
+
+          <div class="channel-action">
+            <a 
+              routerLink="/seja-modelo" 
+              class="btn-channel btn-channel-gold"
+              id="btn-apply-casting">
+              <span>Quero Ser Modelo</span>
+              <span class="action-arrow">&rarr;</span>
+            </a>
           </div>
         </div>
-      </div>
+      </article>
 
-      <!-- Formulário de Contato -->
-      <div class="contact-form-card card-editorial">
+      <!-- 2. Bookers & Atendimento Comercial (Marcas, Produtoras e Clientes) -->
+      <article class="channel-card card-editorial highlighted" id="card-bookers">
+        <div class="card-glow gold"></div>
+        <div class="card-content">
+          <div class="channel-badge-wrap">
+            <span class="channel-badge gold tracking-editorial">Comercial &bull; Direto</span>
+            <div class="status-indicator online">
+              <span class="status-dot pulse"></span>
+              <span>Bookers Online</span>
+            </div>
+          </div>
+
+          <div class="channel-header">
+            <div class="channel-icon-box gold">
+              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
+                <line x1="12" y1="17" x2="12" y2="21"></line>
+              </svg>
+            </div>
+            <h2 class="channel-title font-serif">Bookers &amp; Comercial</h2>
+          </div>
+
+          <p class="channel-desc text-secondary">
+            Atendimento prioritário a agências de publicidade, fotógrafos, diretores de cinema, e-commerces e marcas de moda para cotações e contratações de casting.
+          </p>
+
+          <!-- Ações Protegidas Anti-Scraping acionadas via clique do usuário -->
+          <div class="protected-actions-list">
+            <!-- Botão Seguro WhatsApp -->
+            <button 
+              type="button" 
+              (click)="onWhatsAppClick()" 
+              class="btn-protected btn-whatsapp" 
+              id="btn-secure-whatsapp"
+              aria-label="Iniciar conversa com a equipe de bookers via WhatsApp">
+              <div class="btn-protected-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.694.062-1.121-.077-.282-.092-.647-.215-1.116-.421-1.996-.879-3.298-2.906-3.398-3.041-.099-.136-.811-1.081-.811-2.062 0-.981.513-1.464.697-1.664.183-.2.401-.25.535-.25.134 0 .268.001.385.007.123.006.288-.047.45.343.167.405.571 1.393.621 1.495.05.101.084.221.017.354-.067.133-.101.216-.201.332-.1.117-.21.261-.3.35-.1.101-.205.211-.088.411.117.2 1.521 2.476 1.705 2.678.183.201.288.167.421.034.133-.134.571-.667.724-.897.152-.23.305-.192.513-.115.209.077 1.328.626 1.558.741.23.115.385.172.441.269.057.098.057.568-.087.973z"/>
+                  <path d="M12.004 2c-5.523 0-10 4.477-10 10 0 1.83.498 3.546 1.364 5.023l-1.368 5.001 5.127-1.344c1.436.817 3.099 1.284 4.877 1.284 5.523 0 10-4.477 10-10s-4.477-10-10-10zm0 18.062c-1.574 0-3.05-.448-4.309-1.222l-.309-.191-3.042.798.812-2.966-.208-.332c-.852-1.356-1.31-2.936-1.31-4.579 0-4.636 3.771-8.406 8.406-8.406 4.636 0 8.406 3.77 8.406 8.406 0 4.635-3.77 8.405-8.406 8.405z"/>
+                </svg>
+              </div>
+              <div class="btn-protected-text">
+                <span class="btn-action-label">WhatsApp Bookers</span>
+                <span class="btn-action-val">{{ secureContact.phoneDisplay }}</span>
+              </div>
+              <span class="btn-click-hint">Chamar &rarr;</span>
+            </button>
+
+            <!-- Botão Seguro E-mail -->
+            <button 
+              type="button" 
+              (click)="onMailClick()" 
+              class="btn-protected btn-email" 
+              id="btn-secure-email"
+              aria-label="Enviar e-mail para o departamento comercial da WB Agency">
+              <div class="btn-protected-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+              </div>
+              <div class="btn-protected-text">
+                <span class="btn-action-label">E-mail Comercial</span>
+                <span class="btn-action-val">{{ secureContact.emailDisplay }}</span>
+              </div>
+              <span class="btn-click-hint">Escrever &rarr;</span>
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- 3. Canal Social Oficial (Instagram Verificado) -->
+      <article class="channel-card card-editorial" id="card-instagram">
+        <div class="card-glow"></div>
+        <div class="card-content">
+          <div class="channel-badge-wrap">
+            <span class="channel-badge tracking-editorial">Social Verificado</span>
+            <div class="status-indicator">
+              <span class="status-dot"></span>
+              <span>Oficial</span>
+            </div>
+          </div>
+
+          <div class="channel-header">
+            <div class="channel-icon-box">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+              </svg>
+            </div>
+            <h2 class="channel-title font-serif">Canal Social Oficial</h2>
+          </div>
+
+          <p class="channel-desc text-secondary">
+            Acompanhe editoriais de moda exclusivos, estreias de novos rostos, bastidores de castings internacionais e publicações oficiais da agência.
+          </p>
+
+          <div class="channel-guidelines">
+            <div class="verified-pill">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="var(--wb-primary)">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+              </svg>
+              <span>Canal Institucional Verificado</span>
+            </div>
+          </div>
+
+          <div class="channel-action">
+            <button 
+              type="button" 
+              (click)="onInstagramClick()" 
+              class="btn-channel btn-channel-instagram"
+              id="btn-secure-instagram"
+              aria-label="Abrir Instagram oficial da WB Agency">
+              <span>{{ secureContact.instagramDisplay }}</span>
+              <span class="action-arrow">&nearr;</span>
+            </button>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- Seção Secundária: Formulário Estruturado de Orçamento Comercial -->
+    <section class="booking-form-section" aria-label="Solicitação de Casting e Orçamento">
+      <div class="booking-form-card card-editorial">
+        <div class="form-header-wrap">
+          <span class="badge-editorial tracking-editorial">Atendimento a Produtoras e Marcas</span>
+          <h2 class="font-serif form-heading">Solicitar Orçamento de Casting</h2>
+          <p class="form-subtext text-secondary">
+            Preencha os detalhes da sua campanha publicitária, catálogo ou desfile para receber um casting personalizado e estimativa de honorários.
+          </p>
+        </div>
+
         @if (isSubmitted()) {
-          <div class="form-success text-center">
-            <div class="check-icon">&check;</div>
-            <h3 class="font-serif">Mensagem Enviada!</h3>
-            <p class="text-secondary">Obrigado pelo contato. Um de nossos bookers retornará o seu e-mail em breve.</p>
-            <button class="btn btn-outline mt-4" (click)="isSubmitted.set(false)">Enviar Outra Mensagem</button>
+          <div class="form-success text-center" role="alert">
+            <div class="check-icon-wrap">
+              <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <h3 class="font-serif success-title">Solicitação Enviada com Sucesso</h3>
+            <p class="text-secondary success-desc">
+              Obrigado pelo contato. Um de nossos bookers especializados analisará o briefing e retornará sua solicitação em breve.
+            </p>
+            <button type="button" class="btn btn-outline btn-new-message" (click)="isSubmitted.set(false)">
+              Enviar Outra Solicitação
+            </button>
           </div>
         } @else {
-          <form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
-            <h3 class="font-serif form-title">Solicitar Orçamento de Casting</h3>
-
+          <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="editorial-form">
             <div class="form-group">
-              <label for="c-name">Seu Nome *</label>
-              <input id="c-name" type="text" formControlName="name" class="form-control" placeholder="Nome do solicitante" />
+              <label for="c-name">Nome Completo do Solicitante *</label>
+              <input 
+                id="c-name" 
+                type="text" 
+                formControlName="name" 
+                class="form-control" 
+                placeholder="Ex.: Lucas Mendes" 
+                autocomplete="name" />
               @if (contactForm.get('name')?.touched && contactForm.get('name')?.invalid) {
                 <span class="form-error">O nome é obrigatório.</span>
               }
@@ -62,17 +225,23 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label for="c-company">Empresa / Agência</label>
-                <input id="c-company" type="text" formControlName="company" class="form-control" placeholder="Marca ou produtora" />
+                <label for="c-company">Marca / Produtora / Agência</label>
+                <input 
+                  id="c-company" 
+                  type="text" 
+                  formControlName="company" 
+                  class="form-control" 
+                  placeholder="Ex.: Vogue Brasil, Osklen, etc." 
+                  autocomplete="organization" />
               </div>
 
               <div class="form-group">
-                <label for="c-interest">Tipo de Projeto *</label>
+                <label for="c-interest">Finalidade do Projeto *</label>
                 <select id="c-interest" formControlName="interestType" class="form-control">
-                  <option value="BOOKING">Contratação de Modelo</option>
-                  <option value="CAMPAIGN">Campanha Publicitária</option>
-                  <option value="EDITORIAL">Editorial de Moda</option>
-                  <option value="OTHER">Outros Assuntos</option>
+                  <option value="BOOKING">Contratação Direta de Modelo</option>
+                  <option value="CAMPAIGN">Campanha Publicitária / Lookbook</option>
+                  <option value="EDITORIAL">Editorial de Moda / Capa</option>
+                  <option value="OTHER">Parcerias e Outros Assuntos</option>
                 </select>
               </div>
             </div>
@@ -80,39 +249,58 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="c-email">E-mail Corporativo *</label>
-                <input id="c-email" type="email" formControlName="email" class="form-control" placeholder="seu@email.com" />
+                <input 
+                  id="c-email" 
+                  type="email" 
+                  formControlName="email" 
+                  class="form-control" 
+                  placeholder="contato@suaempresa.com" 
+                  autocomplete="email" />
                 @if (contactForm.get('email')?.touched && contactForm.get('email')?.invalid) {
-                  <span class="form-error">Informe um e-mail válido.</span>
+                  <span class="form-error">Informe um e-mail corporativo válido.</span>
                 }
               </div>
 
               <div class="form-group">
-                <label for="c-phone">Telefone / WhatsApp *</label>
-                <input id="c-phone" type="tel" formControlName="phone" class="form-control" placeholder="(11) 99999-9999" />
+                <label for="c-phone">Telefone / WhatsApp Comercial *</label>
+                <input 
+                  id="c-phone" 
+                  type="tel" 
+                  formControlName="phone" 
+                  class="form-control" 
+                  placeholder="(11) 99999-9999" 
+                  autocomplete="tel" />
                 @if (contactForm.get('phone')?.touched && contactForm.get('phone')?.invalid) {
-                  <span class="form-error">O telefone é obrigatório.</span>
+                  <span class="form-error">O telefone de contato é obrigatório.</span>
                 }
               </div>
             </div>
 
             <div class="form-group">
-              <label for="c-message">Detalhes do Projeto ou Modelo Desejado *</label>
-              <textarea id="c-message" rows="4" formControlName="message" class="form-control" placeholder="Descreva brevemente o projeto, datas, mídia e perfil desejado..."></textarea>
+              <label for="c-message">Briefing do Casting ou Projeto *</label>
+              <textarea 
+                id="c-message" 
+                rows="4" 
+                formControlName="message" 
+                class="form-control" 
+                placeholder="Descreva o perfil do modelo desejado, datas previstas de captação, praça de veiculação e mídias..."></textarea>
               @if (contactForm.get('message')?.touched && contactForm.get('message')?.invalid) {
-                <span class="form-error">A mensagem deve ter pelo menos 10 caracteres.</span>
+                <span class="form-error">Descreva os detalhes do projeto (mínimo de 10 caracteres).</span>
               }
             </div>
 
-            <app-button
-              type="submit"
-              variant="gold"
-              size="lg"
-              [loading]="isSending()">
-              Enviar Mensagem
-            </app-button>
+            <div class="form-footer">
+              <app-button
+                type="submit"
+                variant="gold"
+                size="lg"
+                [loading]="isSending()">
+                Solicitar Casting
+              </app-button>
+            </div>
           </form>
         }
       </div>
-    </div>
+    </section>
   </div>
 </div>

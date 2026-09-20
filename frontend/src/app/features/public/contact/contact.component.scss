@@ -1,115 +1,594 @@
+@import '../../../../styles/variables';
+
 .contact-page {
-  padding-top: calc(var(--header-height) + 3rem);
+  padding-top: calc(var(--header-height, 80px) + 3rem);
   padding-bottom: 6rem;
   min-height: 100vh;
+  position: relative;
+  background-color: var(--wb-background); // #FBFBF9
 }
 
 .contact-header {
-  max-width: 650px;
-  margin: 0 auto 4rem auto;
+  max-width: 720px;
+  margin: 0 auto 3.5rem auto;
 }
 
-.contact-title {
-  font-size: clamp(2.5rem, 4vw, 3.75rem);
-  color: var(--text-primary);
-  margin-top: 1rem;
-  margin-bottom: 0.75rem;
-}
-
-.contact-subtitle {
-  color: var(--text-secondary);
-  font-size: 1.0625rem;
-  line-height: 1.6;
-}
-
-.contact-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2.5rem;
-
-  @media (min-width: 850px) {
-    grid-template-columns: 1fr 1.35fr;
-  }
-}
-
-.contact-info-card {
-  padding: 2.5rem;
-  height: fit-content;
-}
-
-.info-heading {
-  font-size: 1.75rem;
-  color: var(--gold-light);
+.badge-editorial {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wb-primary); // #4B584E
+  padding: 0.35rem 0.85rem;
+  background: var(--wb-primary-subtle); // rgba(75, 88, 78, 0.08)
+  border: 1px solid var(--border-subtle); // #E8EBE8
+  border-radius: 2px;
   margin-bottom: 1rem;
 }
 
-.info-text {
-  font-size: 0.9375rem;
-  line-height: 1.7;
-  margin-bottom: 2.5rem;
+.contact-title {
+  font-size: clamp(2.25rem, 4vw, 3.5rem);
+  color: var(--text-primary); // #222624
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin-bottom: 0.85rem;
 }
 
-.info-items {
-  display: flex;
-  flex-direction: column;
+.contact-subtitle {
+  color: var(--text-secondary); // #5F6661
+  font-size: 1.05rem;
+  line-height: 1.65;
+  margin: 0 auto;
+}
+
+// -------------------------------------------------------------
+// 1. Grid de Cartões de Canais Oficiais
+// -------------------------------------------------------------
+.channels-grid {
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 1.75rem;
+  margin-bottom: 4rem;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1100px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
-.info-item {
+.channel-card {
+  position: relative;
+  padding: 2.25rem;
+  border-radius: 2px;
+  background: #ffffff;
+  border: 1px solid var(--border-subtle); // #E8EBE8
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  transition: all var(--transition-normal);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(75, 88, 78, 0.05);
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: var(--wb-primary); // #4B584E
+    box-shadow: 0 12px 32px rgba(75, 88, 78, 0.1);
+  }
+
+  &.highlighted {
+    border-color: var(--wb-primary);
+    background: #ffffff;
+    box-shadow: 0 6px 24px rgba(75, 88, 78, 0.08);
+
+    &:hover {
+      border-color: var(--wb-primary-dark);
+      box-shadow: 0 14px 36px rgba(75, 88, 78, 0.14);
+    }
+  }
+
+  .card-glow {
+    display: none; // Elimina glow escuro/dourado obsoleto
+  }
+
+  .card-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .channel-badge-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+
+  .channel-badge {
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--wb-primary);
+    background: var(--wb-primary-subtle);
+    padding: 0.25rem 0.65rem;
+    border-radius: 2px;
+    border: 1px solid var(--border-subtle);
+
+    &.gold {
+      color: var(--wb-primary);
+      background: var(--wb-primary-subtle);
+      border-color: rgba(75, 88, 78, 0.2);
+    }
+  }
+
+  .status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.6875rem;
+    color: var(--text-secondary);
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--wb-primary-light);
+
+      &.pulse {
+        background: #059669;
+        box-shadow: 0 0 8px rgba(5, 150, 105, 0.6);
+        animation: pulseGreen 2s infinite;
+      }
+    }
+
+    &.online {
+      color: #059669;
+      font-weight: 600;
+    }
+  }
+
+  .channel-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .channel-icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 2px;
+    background: var(--wb-primary-subtle);
+    border: 1px solid rgba(75, 88, 78, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--wb-primary);
+    flex-shrink: 0;
+
+    &.gold {
+      background: var(--wb-primary-subtle);
+      border-color: rgba(75, 88, 78, 0.25);
+      color: var(--wb-primary);
+    }
+  }
+
+  .channel-title {
+    font-size: 1.35rem;
+    color: var(--text-primary); // #222624
+    margin: 0;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .channel-desc {
+    font-size: 0.875rem;
+    line-height: 1.65;
+    color: var(--text-secondary); // #5F6661
+    margin-bottom: 1.5rem;
+    flex-grow: 1;
+  }
+
+  .channel-guidelines {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.75rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    li {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+
+      .check-bullet {
+        color: var(--wb-primary);
+        font-size: 1rem;
+      }
+    }
+  }
+
+  .verified-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    color: var(--wb-primary);
+    background: var(--wb-primary-subtle);
+    padding: 0.4rem 0.85rem;
+    border-radius: 2px;
+    border: 1px solid var(--border-subtle);
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+  }
+
+  .channel-action {
+    margin-top: auto;
+  }
 }
 
-.info-label {
-  font-size: 0.6875rem;
-  color: var(--text-muted);
+// -------------------------------------------------------------
+// 2. Botões de Ação Direta (Seguros / Anti-Scraping)
+// -------------------------------------------------------------
+.btn-channel {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--transition-normal);
+
+  .action-arrow {
+    transition: transform var(--transition-fast);
+  }
+
+  &:hover .action-arrow {
+    transform: translateX(4px);
+  }
+
+  &.btn-channel-gold {
+    background: var(--wb-primary); // #4B584E
+    color: #ffffff;
+    border: 1px solid var(--wb-primary);
+    box-shadow: 0 2px 8px rgba(75, 88, 78, 0.15);
+
+    &:hover {
+      background: var(--wb-primary-dark); // #38433B
+      border-color: var(--wb-primary-dark);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(75, 88, 78, 0.25);
+      transform: translateY(-1px);
+    }
+  }
+
+  &.btn-channel-instagram {
+    background: transparent;
+    border: 1px solid var(--wb-primary);
+    color: var(--wb-primary);
+
+    &:hover {
+      background: rgba(75, 88, 78, 0.08);
+      border-color: var(--wb-primary-dark);
+      color: var(--wb-primary-dark);
+      transform: translateY(-1px);
+
+      .action-arrow {
+        transform: translate(2px, -2px);
+      }
+    }
+  }
 }
 
-.info-val {
-  font-size: 1rem;
-  font-weight: 500;
+.protected-actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.btn-protected {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.75rem 1rem;
+  background: #ffffff;
+  border: 1px solid var(--border-subtle); // #E8EBE8
+  border-radius: 2px;
   color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition-normal);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+
+  .btn-protected-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform var(--transition-fast);
+  }
+
+  .btn-protected-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    flex-grow: 1;
+
+    .btn-action-label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+
+    .btn-action-val {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-family: inherit;
+    }
+  }
+
+  .btn-click-hint {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+
+  &:hover {
+    border-color: var(--wb-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(75, 88, 78, 0.08);
+  }
+
+  // Estilo específico do WhatsApp
+  &.btn-whatsapp {
+    .btn-protected-icon {
+      background: rgba(16, 185, 129, 0.1);
+      color: #059669;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    &:hover {
+      border-color: #059669;
+
+      .btn-click-hint {
+        color: #059669;
+        transform: translateX(3px);
+      }
+    }
+  }
+
+  // Estilo específico do E-mail
+  &.btn-email {
+    .btn-protected-icon {
+      background: var(--wb-primary-subtle);
+      color: var(--wb-primary);
+      border: 1px solid rgba(75, 88, 78, 0.2);
+    }
+
+    &:hover {
+      border-color: var(--wb-primary);
+
+      .btn-click-hint {
+        color: var(--wb-primary);
+        transform: translateX(3px);
+      }
+    }
+  }
 }
 
-.contact-form-card {
-  padding: 2.5rem;
+// -------------------------------------------------------------
+// 3. Seção do Formulário de Orçamento Comercial
+// -------------------------------------------------------------
+.booking-form-section {
+  max-width: 860px;
+  margin: 0 auto;
 }
 
-.form-title {
-  font-size: 1.75rem;
-  color: var(--text-primary);
-  margin-bottom: 1.75rem;
+.booking-form-card {
+  padding: 3rem;
+  background: #ffffff;
+  border: 1px solid var(--border-subtle); // #E8EBE8
+  border-radius: 2px;
+  box-shadow: 0 8px 30px rgba(75, 88, 78, 0.06);
+
+  @media (max-width: 640px) {
+    padding: 1.75rem;
+  }
+}
+
+.form-header-wrap {
+  text-align: center;
+  margin-bottom: 2.5rem;
+
+  .form-heading {
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    color: var(--text-primary);
+    margin-top: 0.75rem;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-weight: 600;
+  }
+
+  .form-subtext {
+    max-width: 580px;
+    margin: 0 auto;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+}
+
+.editorial-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.25rem;
+  gap: 1.5rem;
 
-  @media (min-width: 550px) {
+  @media (min-width: 640px) {
     grid-template-columns: 1fr 1fr;
   }
 }
 
-.form-success {
-  padding: 3rem 1rem;
-}
-
-.check-icon {
-  width: 54px;
-  height: 54px;
-  background: var(--gold-muted);
-  border: 2px solid var(--gold-primary);
-  color: var(--gold-light);
-  border-radius: 50%;
+.form-group {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.75rem;
-  margin: 0 auto 1.25rem auto;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 0.85rem 1.15rem;
+    background: #ffffff;
+    border: 1px solid var(--border-subtle); // #E8EBE8
+    border-radius: 2px;
+    color: var(--text-primary); // #222624
+    font-size: 0.9375rem;
+    font-family: inherit;
+    transition: all var(--transition-fast);
+
+    &:focus {
+      outline: none;
+      border-color: var(--wb-primary); // #4B584E
+      box-shadow: 0 0 0 2px rgba(75, 88, 78, 0.15);
+      background: #ffffff;
+    }
+
+    &::placeholder {
+      color: var(--text-muted);
+    }
+  }
+
+  select.form-control {
+    cursor: pointer;
+
+    option {
+      background: #ffffff;
+      color: var(--text-primary);
+    }
+  }
+
+  textarea.form-control {
+    resize: vertical;
+    min-height: 110px;
+  }
+
+  .form-error {
+    font-size: 0.75rem;
+    color: var(--status-danger);
+    margin-top: 0.2rem;
+  }
 }
 
-.mt-4 {
-  margin-top: 1.5rem;
+.form-footer {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+
+  @media (max-width: 640px) {
+    justify-content: stretch;
+
+    app-button {
+      width: 100%;
+    }
+  }
+}
+
+// -------------------------------------------------------------
+// 4. Estado de Sucesso no Envio
+// -------------------------------------------------------------
+.form-success {
+  padding: 3rem 1.5rem;
+
+  .check-icon-wrap {
+    width: 68px;
+    height: 68px;
+    background: var(--wb-primary-subtle);
+    border: 2px solid var(--wb-primary);
+    color: var(--wb-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem auto;
+    box-shadow: 0 4px 20px rgba(75, 88, 78, 0.15);
+  }
+
+  .success-title {
+    font-size: 1.75rem;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+  }
+
+  .success-desc {
+    max-width: 500px;
+    margin: 0 auto 2rem auto;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+
+  .btn-new-message {
+    padding: 0.75rem 1.75rem;
+    border-radius: 2px;
+    border-color: var(--wb-primary);
+    color: var(--wb-primary);
+
+    &:hover {
+      background: var(--wb-primary);
+      color: #ffffff;
+    }
+  }
+}
+
+// Animações
+@keyframes pulseGreen {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.6);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(5, 150, 105, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(5, 150, 105, 0);
+  }
 }

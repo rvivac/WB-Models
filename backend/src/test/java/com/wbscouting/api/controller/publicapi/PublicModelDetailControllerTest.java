@@ -114,7 +114,8 @@ class PublicModelDetailControllerTest {
                 .andExpect(jsonPath("$.isStar").value(true))
                 .andExpect(jsonPath("$.bookPhotos[0].fileUrl").value("https://supabase.co/book1.jpg"))
                 .andExpect(jsonPath("$.polaroids[0].fileUrl").value("https://supabase.co/pol1.jpg"))
-                .andExpect(jsonPath("$.composite.fileUrl").value("https://supabase.co/composite.jpg"));
+                .andExpect(jsonPath("$.composite.fileUrl").value("https://supabase.co/composite.jpg"))
+                .andExpect(jsonPath("$.compositeUrl").value("https://supabase.co/composite.jpg"));
     }
 
     @Test

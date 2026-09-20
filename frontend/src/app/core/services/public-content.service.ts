@@ -34,11 +34,11 @@ export class PublicContentService {
   private readonly api = inject(ApiService);
 
   private readonly defaultHero: HomeHeroPayload = {
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-fashion-model-in-neon-light-40156-large.mp4',
-    posterImageUrl: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1920&auto=format&fit=crop',
-    title: 'WB SCOUTING',
-    subtitle: 'Conectando os rostos mais autênticos e promissores às principais passarelas, campanhas globais e produções editoriais de alto padrão.',
-    ctaText: 'Ver Casting',
+    videoUrl: '/assets/videos/wb-presentation.mp4',
+    posterImageUrl: '/assets/images/hero-poster.jpg',
+    title: 'High Fashion & Scouting',
+    subtitle: 'Gestão de Carreiras • Scouting Internacional',
+    ctaText: 'Ver Elenco',
     ctaLink: '/models/female'
   };
 

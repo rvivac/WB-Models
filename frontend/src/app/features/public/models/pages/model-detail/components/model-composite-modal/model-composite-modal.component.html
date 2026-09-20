@@ -39,15 +39,15 @@
 
       @if (isPdf()) {
         <!-- Exibição de Documento PDF -->
-        <div class="pdf-container">
+        <div class="pdf-container" (click)="$event.stopPropagation()">
           <iframe 
-            [src]="compositeUrl()" 
+            [src]="safePdfUrl()" 
             class="pdf-frame" 
             title="Composite PDF do modelo">
           </iframe>
         </div>
       } @else {
-        <!-- Exibição de Imagem em Alta Resolução com Suporte a Zoom/Pan -->
+        <!-- Exibição de Imagem em Alta Resolução com Suporte a Zoom/Pan e Manutenção de Proporção -->
         <div 
           class="image-wrapper" 
           [style.transform]="transformStyle()">
@@ -56,13 +56,14 @@
             [alt]="'Composite oficial de ' + modelName()" 
             class="composite-image" 
             draggable="false"
+            (click)="$event.stopPropagation()"
           />
         </div>
       }
     </main>
 
     <!-- Barra de Ferramentas Flutuante Inferior -->
-    <footer class="composite-toolbar">
+    <footer class="composite-toolbar" (click)="$event.stopPropagation()">
       @if (!isPdf()) {
         <div class="zoom-controls">
           <button 

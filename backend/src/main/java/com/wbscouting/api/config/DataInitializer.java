@@ -63,6 +63,14 @@ public class DataInitializer implements CommandLineRunner {
             // Garante coluna updated_by em site_contents
             jdbcTemplate.execute("ALTER TABLE public.site_contents ADD COLUMN IF NOT EXISTS updated_by UUID NULL;");
             
+            // Garante composite inicial de demonstração para Isabella Fontana
+            jdbcTemplate.execute("""
+                INSERT INTO public.model_media (id, model_id, media_type, file_url, file_path, display_order, is_cover, is_active, created_at, updated_at)
+                SELECT gen_random_uuid(), '487b27d7-206f-422d-a46c-8961ed8c827c', 'COMPOSITE'::media_type, 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1200&auto=format&fit=crop', 'composites/isabella_fontana_comp.jpg', 1, false, true, NOW(), NOW()
+                WHERE EXISTS (SELECT 1 FROM public.models WHERE id = '487b27d7-206f-422d-a46c-8961ed8c827c')
+                  AND NOT EXISTS (SELECT 1 FROM public.model_media WHERE model_id = '487b27d7-206f-422d-a46c-8961ed8c827c' AND media_type = 'COMPOSITE'::media_type);
+            """);
+
             log.info("Migrações DDL complementares executadas com sucesso.");
         } catch (Exception ex) {
             log.error("Erro ao aplicar migrações DDL em DataInitializer: {}", ex.getMessage(), ex);

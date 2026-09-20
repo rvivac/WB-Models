@@ -27,9 +27,56 @@ public class SupabaseProperties {
     private String anonKey;
 
     /**
+     * Chave genérica de API (supabase.key) alternativa
+     */
+    private String key;
+
+    /**
+     * Configurações de armazenamento e fallback local
+     */
+    private Storage storage = new Storage();
+
+    /**
      * Mapeamento dos nomes dos buckets provisionados
      */
     private Buckets buckets = new Buckets();
+
+    public String getEffectiveKey() {
+        if (org.springframework.util.StringUtils.hasText(serviceRoleKey) && !isDummy(serviceRoleKey)) {
+            return serviceRoleKey.trim();
+        }
+        if (org.springframework.util.StringUtils.hasText(key) && !isDummy(key)) {
+            return key.trim();
+        }
+        if (org.springframework.util.StringUtils.hasText(serviceRoleKey)) {
+            return serviceRoleKey.trim();
+        }
+        if (org.springframework.util.StringUtils.hasText(key)) {
+            return key.trim();
+        }
+        return "dummy-key";
+    }
+
+    public boolean isKeyConfigured() {
+        String effective = getEffectiveKey();
+        return org.springframework.util.StringUtils.hasText(effective) && !isDummy(effective);
+    }
+
+    public static boolean isDummy(String val) {
+        if (val == null || val.isBlank()) {
+            return true;
+        }
+        String trimmed = val.trim();
+        return "dummy-key".equalsIgnoreCase(trimmed) || "your-service-role-key".equalsIgnoreCase(trimmed);
+    }
+
+    @Getter
+    @Setter
+    public static class Storage {
+        private boolean localFallback = false;
+        private String localDir = "uploads";
+        private String localBaseUrl = "http://localhost:8080";
+    }
 
     @Getter
     @Setter

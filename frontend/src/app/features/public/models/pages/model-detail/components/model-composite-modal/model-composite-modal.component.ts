@@ -1,6 +1,7 @@
-import { Component, HostListener, input, output, signal, computed, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, HostListener, input, output, signal, computed, inject, OnInit, OnDestroy, Renderer2 } from '@angular/core';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { TranslatePipe } from '../../../../../../../shared/pipes/translate.pipe';
 
 @Component({
@@ -10,8 +11,11 @@ import { TranslatePipe } from '../../../../../../../shared/pipes/translate.pipe'
   templateUrl: './model-composite-modal.component.html',
   styleUrls: ['./model-composite-modal.component.scss']
 })
-export class ModelCompositeModalComponent {
+export class ModelCompositeModalComponent implements OnInit, OnDestroy {
   private readonly http = inject(HttpClient);
+  private readonly renderer = inject(Renderer2);
+  private readonly document = inject(DOCUMENT);
+  private readonly sanitizer = inject(DomSanitizer);
 
   readonly compositeUrl = input.required<string>();
   readonly modelName = input.required<string>();
@@ -27,11 +31,34 @@ export class ModelCompositeModalComponent {
 
   private dragStartX = 0;
   private dragStartY = 0;
+  private originalBodyOverflow = '';
+
+  ngOnInit(): void {
+    // Bloqueia o scroll da página principal enquanto o modal estiver aberto
+    this.originalBodyOverflow = this.document.body.style.overflow || '';
+    this.renderer.setStyle(this.document.body, 'overflow', 'hidden');
+  }
+
+  ngOnDestroy(): void {
+    // Restaura o scroll da página principal ao fechar
+    if (this.originalBodyOverflow) {
+      this.renderer.setStyle(this.document.body, 'overflow', this.originalBodyOverflow);
+    } else {
+      this.renderer.removeStyle(this.document.body, 'overflow');
+    }
+  }
 
   // Detecção de tipo de arquivo (PDF vs Imagem)
   readonly isPdf = computed(() => {
     const url = this.compositeUrl()?.toLowerCase() || '';
     return url.endsWith('.pdf') || url.includes('.pdf?') || url.includes('/pdf/');
+  });
+
+  // URL segura para renderização no iframe de documento PDF
+  readonly safePdfUrl = computed<SafeResourceUrl | null>(() => {
+    const url = this.compositeUrl();
+    if (!url || !this.isPdf()) return null;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   });
 
   // Estilo dinâmico para zoom e pan
@@ -61,7 +88,7 @@ export class ModelCompositeModalComponent {
 
   onBackdropClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
-    if (target.classList.contains('composite-modal-backdrop') || target.classList.contains('composite-viewport')) {
+    if (target.classList.contains('composite-modal-backdrop') || target.classList.contains('composite-viewport') || target.classList.contains('image-wrapper')) {
       this.closeModal();
     }
   }
@@ -115,7 +142,9 @@ export class ModelCompositeModalComponent {
 
     this.isDownloading.set(true);
 
-    const safeName = (this.modelName() || 'Model').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+    // Formata o nome do modelo: substitui espaços por underscores e remove caracteres perigosos
+    const rawName = (this.modelName() || 'Model').trim();
+    const safeName = rawName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
     const extMatch = url.match(/\.(pdf|webp|jpe?g|png)(?:\?|$)/i);
     const ext = extMatch ? extMatch[1].toLowerCase() : (this.isPdf() ? 'pdf' : 'jpg');
     const filename = `Composite_${safeName}.${ext}`;

@@ -51,7 +51,7 @@ describe('PublicContentService', () => {
   it('should fallback to default hero content on HTTP error', () => {
     service.getHeroContent('en').subscribe(data => {
       expect(data).toBeTruthy();
-      expect(data.title).toBe('WB SCOUTING');
+      expect(data.title).toBe('High Fashion & Scouting');
     });
 
     const req = httpTesting.expectOne(`${environment.apiUrl}/public/content/HOME_HERO?lang=en`);

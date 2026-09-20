@@ -76,3 +76,40 @@ h4, .h4 {
   padding: 0.25rem 0.75rem;
   border-radius: var(--radius-full);
 }
+
+.badge-sage {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-sans);
+  font-size: 0.725rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wb-primary-light);
+  background: var(--sage-muted);
+  border: 1px solid var(--border-sage);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+}
+
+// Utilitários de Cor WB Agency
+.text-wb-primary {
+  color: var(--wb-primary);
+}
+
+.text-wb-primary-light {
+  color: var(--wb-primary-light);
+}
+
+.text-wb-accent {
+  color: var(--wb-accent);
+}
+
+.text-wb-subtle {
+  color: var(--wb-text-subtle);
+}
+
+.text-wb-dark {
+  color: var(--wb-dark);
+}
+

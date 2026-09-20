@@ -21,9 +21,22 @@ yarn-error.log*
 
 # Environment & Credentials
 .env
+**/.env
+.env.*
+**/.env.*
+!**/.env.example
 *.local
 *.log
+uploads/
+**/uploads/
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Ignorar pasta Projeto
+Projeto/
+[Pp]rojeto/**
+
+Projeto/
+projeto/

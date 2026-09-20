@@ -22,8 +22,8 @@
   &:focus-visible {
     outline: none;
     transform: translateY(-6px);
-    border-color: var(--border-gold);
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65), 0 0 20px rgba(197, 160, 89, 0.15);
+    border-color: var(--wb-primary);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65), 0 0 20px rgba(75, 88, 78, 0.25);
 
     .model-image {
       transform: scale(1.05);

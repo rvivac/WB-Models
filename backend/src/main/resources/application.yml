@@ -4,6 +4,10 @@ server:
     context-path: /api/v1
 
 spring:
+  config:
+    import:
+      - optional:file:.env[.properties]
+
   servlet:
     multipart:
       max-file-size: 25MB
@@ -70,10 +74,15 @@ app:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://localhost:3000,https://wbscouting.com}
 
 # Configurações do Supabase Storage e API
-supabase:
-  url: https://stmytwsdlonpnirqiufq.supabase.co
-  service-role-key: ${SUPABASE_SERVICE_ROLE_KEY:dummy-key}
-  anon-key: ${SUPABASE_ANON_KEY:dummy-key}
+ssupabase:
+  url: ${SUPABASE_URL:https://stmytwsdlonpnirqiufq.supabase.co}
+  key: ${SUPABASE_KEY}
+  service-role-key: ${SUPABASE_SERVICE_ROLE_KEY}
+  anon-key: ${SUPABASE_ANON_KEY}
+  storage:
+    local-fallback: false
+    local-dir: uploads
+    local-base-url: http://localhost:8080
   buckets:
     site-assets: site-assets
     models-media: models-media

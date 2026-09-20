@@ -1,6 +1,6 @@
 .site-footer {
-  background-color: #07080b;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: #ffffff;
+  border-top: 1px solid var(--wb-border); // #E8EBE8
   padding-top: 5rem;
   margin-top: auto;
   position: relative;
@@ -19,18 +19,36 @@
 }
 
 .footer-brand {
-  .brand-title {
-    font-size: 2rem;
-    font-weight: 600;
-    letter-spacing: 0.15em;
-    color: var(--text-primary);
-    margin-bottom: 1.25rem;
+  .footer-logo-link {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    text-decoration: none;
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
+
+    &:hover {
+      opacity: 0.88;
+      transform: translateY(-2px);
+    }
+  }
+
+  .footer-logo-img {
+    height: 3.25rem;
+    max-height: 56px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.04));
+
+    @media (min-width: 768px) {
+      height: 3.75rem;
+    }
   }
 
   .brand-desc {
     font-family: var(--font-sans);
     font-size: 0.85rem;
-    color: var(--text-secondary);
+    color: var(--text-secondary); // #5F6661
     line-height: 1.7;
     max-width: 420px;
     margin-bottom: 1.5rem;
@@ -41,7 +59,7 @@
     font-size: 0.65rem;
     font-weight: 600;
     letter-spacing: 0.25em;
-    color: var(--gold-light);
+    color: var(--wb-primary); // #4B584E
   }
 }
 
@@ -57,7 +75,7 @@
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--text-primary);
+  color: var(--text-primary); // #222624
   margin-bottom: 1.5rem;
 }
 
@@ -80,7 +98,7 @@ ul {
       transition: color var(--transition-fast), padding-left var(--transition-fast);
 
       &:hover {
-        color: var(--text-primary);
+        color: var(--wb-primary); // #4B584E
         padding-left: 0.25rem;
       }
     }
@@ -103,16 +121,16 @@ ul {
     }
 
     .contact-val {
-      color: #e2e8f0;
+      color: var(--text-primary);
       font-size: 0.85rem;
     }
 
     &.whatsapp-link .contact-val {
-      color: #34d399; // Emerald sutil para WhatsApp
+      color: #059669; // Verde refinado para WhatsApp no tema claro
     }
 
     &:hover .contact-val {
-      color: var(--gold-light);
+      color: var(--wb-primary);
     }
   }
 
@@ -129,7 +147,7 @@ ul {
     }
 
     .contact-val {
-      color: var(--text-secondary);
+      color: var(--text-primary);
       font-size: 0.825rem;
     }
   }
@@ -140,15 +158,15 @@ ul {
   font-size: 0.75rem;
 
   &:hover {
-    color: var(--gold-primary) !important;
+    color: var(--wb-primary) !important;
   }
 }
 
 .footer-bottom {
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--wb-border);
   padding: 2rem 0;
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .bottom-inner {

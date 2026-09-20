@@ -1,10 +1,12 @@
 <header class="site-header" [class.scrolled]="isScrolled()">
   <div class="container header-inner">
     <!-- Brand Logo -->
-    <a routerLink="/" class="brand-logo" (click)="closeMenu()">
-      <span class="logo-main">WB</span>
-      <span class="logo-divider">/</span>
-      <span class="logo-sub tracking-editorial">SCOUTING</span>
+    <a routerLink="/" class="brand-logo flex items-center" (click)="closeMenu()" aria-label="WB Agency Home">
+      <img 
+        src="/assets/images/logo-wb-agency.png" 
+        alt="WB Agency" 
+        class="brand-logo-img h-8 md:h-10 w-auto object-contain"
+      >
     </a>
 
     <!-- Desktop Navigation -->
@@ -26,7 +28,7 @@
 
       <app-language-selector></app-language-selector>
 
-      <a routerLink="/apply" class="btn btn-outline btn-apply">
+      <a routerLink="/apply" class="btn btn-apply">
         {{ 'nav.apply' | translate }}
       </a>
     </nav>
@@ -62,7 +64,7 @@
           {{ 'nav.contact' | translate }}
         </a>
         <div class="mobile-action">
-          <a routerLink="/apply" (click)="closeMenu()" class="btn btn-gold w-full text-center">
+          <a routerLink="/apply" (click)="closeMenu()" class="btn btn-apply w-full text-center">
             {{ 'nav.apply' | translate }}
           </a>
         </div>

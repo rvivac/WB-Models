@@ -42,9 +42,9 @@
 
 .cta-banner {
   padding: 5rem 0;
-  background: linear-gradient(135deg, #131622 0%, #090a0e 100%);
-  border-top: 1px solid var(--border-subtle);
-  border-bottom: 1px solid var(--border-subtle);
+  background-color: var(--wb-background); // #FBFBF9
+  border-top: 1px solid var(--wb-border); // #E8EBE8
+  border-bottom: 1px solid var(--wb-border);
 }
 
 .cta-inner {

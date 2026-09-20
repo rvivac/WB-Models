@@ -112,11 +112,12 @@
   }
 
   .composite-image {
-    max-width: 90vw;
+    max-width: min(90vw, calc((100vh - 180px) * (210 / 297)));
     max-height: calc(100vh - 180px);
     width: auto;
     height: auto;
     object-fit: contain;
+    aspect-ratio: auto;
     border-radius: var(--radius-sm);
     box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8),
                 0 0 0 1px rgba(197, 160, 89, 0.15);
@@ -124,8 +125,9 @@
   }
 
   .pdf-container {
-    width: 85vw;
+    width: min(85vw, calc((100vh - 180px) * (210 / 297)));
     height: calc(100vh - 180px);
+    aspect-ratio: 210 / 297;
     background: #141722;
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-subtle);

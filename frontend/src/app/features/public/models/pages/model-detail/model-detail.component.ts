@@ -9,6 +9,7 @@ import { ModelMeasurementsComponent } from './components/model-measurements/mode
 import { ModelLightboxComponent } from './components/model-lightbox/model-lightbox.component';
 import { ModelCompositeModalComponent } from './components/model-composite-modal/model-composite-modal.component';
 import { TranslatePipe } from '../../../../../shared/pipes/translate.pipe';
+import { InstagramUrlPipe, sanitizeInstagramUrl, extractInstagramHandle } from '../../../../../shared/pipes/instagram-url.pipe';
 
 @Component({
   selector: 'app-model-detail',
@@ -19,7 +20,8 @@ import { TranslatePipe } from '../../../../../shared/pipes/translate.pipe';
     ModelMeasurementsComponent,
     ModelLightboxComponent,
     ModelCompositeModalComponent,
-    TranslatePipe
+    TranslatePipe,
+    InstagramUrlPipe
   ],
   templateUrl: './model-detail.component.html',
   styleUrls: ['./model-detail.component.scss']
@@ -52,23 +54,11 @@ export class ModelDetailComponent implements OnInit, OnDestroy {
     const raw = m?.instagramHandle || m?.instagramUrl;
     if (!raw || !raw.trim()) return null;
 
-    const trimmed = raw.trim();
-    let handle = trimmed;
-    let url = trimmed;
+    const url = sanitizeInstagramUrl(raw);
+    const handle = extractInstagramHandle(raw);
+    if (!url) return null;
 
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-      url = trimmed;
-      const clean = trimmed.replace(/\/+$/, '');
-      const parts = clean.split('/');
-      const lastPart = parts[parts.length - 1].replace('@', '');
-      handle = lastPart ? `@${lastPart}` : '@instagram';
-    } else {
-      const cleanHandle = trimmed.replace(/^@/, '');
-      url = `https://www.instagram.com/${cleanHandle}/`;
-      handle = `@${cleanHandle}`;
-    }
-
-    return { url, handle };
+    return { url, handle: handle || '@instagram' };
   });
 
   // Abas de Galeria: Book vs Polaroids

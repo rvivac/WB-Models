@@ -15,9 +15,9 @@
   width: 100%;
   max-width: 680px;
   background: var(--bg-card);
-  border: 1px solid var(--border-medium);
+  border: 1px solid var(--wb-primary);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), 0 0 20px rgba(75, 88, 78, 0.2);
   max-height: 90vh;
   display: flex;
   flex-direction: column;

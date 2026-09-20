@@ -17,7 +17,7 @@
   }
 }
 
-// Botões Editoriais de Alta Moda
+// Botões Editoriais de Alta Moda (WB Agency Light Minimalist)
 .btn {
   display: inline-flex;
   align-items: center;
@@ -26,23 +26,46 @@
   font-family: var(--font-sans);
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   padding: 0.875rem 1.75rem;
-  border-radius: var(--radius-sm);
+  border-radius: 2px;
   transition: all var(--transition-normal);
   cursor: pointer;
   white-space: nowrap;
 
-  &.btn-gold {
-    background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-primary) 100%);
-    color: var(--text-inverse);
-    box-shadow: var(--shadow-gold);
+  &.btn-primary,
+  &.btn-sage,
+  &.btn-gold,
+  &.btn-accent {
+    background: var(--wb-primary); // #4B584E
+    color: #ffffff;
+    border: 1px solid var(--wb-primary);
+    box-shadow: 0 2px 8px rgba(75, 88, 78, 0.15);
 
-    &:hover {
-      background: linear-gradient(135deg, #f0ca7d 0%, var(--gold-light) 100%);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(197, 160, 89, 0.35);
+    &:hover, &:focus {
+      background: var(--wb-primary-dark); // #38433B
+      border-color: var(--wb-primary-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(75, 88, 78, 0.25);
+      color: #ffffff;
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  &.btn-secondary {
+    background: transparent;
+    color: var(--text-primary); // #222624
+    border: 1px solid var(--wb-primary); // #4B584E
+
+    &:hover, &:focus {
+      background: rgba(75, 88, 78, 0.08);
+      border-color: var(--wb-primary-dark);
+      color: var(--wb-primary-dark);
+      transform: translateY(-1px);
     }
 
     &:active {
@@ -53,13 +76,25 @@
   &.btn-outline {
     background: transparent;
     color: var(--text-primary);
-    border: 1px solid var(--border-medium);
+    border: 1px solid var(--border-subtle); // #E8EBE8
 
-    &:hover {
-      border-color: var(--gold-primary);
-      color: var(--gold-light);
-      background: rgba(197, 160, 89, 0.05);
-      transform: translateY(-2px);
+    &:hover, &:focus {
+      border-color: var(--wb-primary);
+      color: var(--wb-primary);
+      background: rgba(75, 88, 78, 0.04);
+      transform: translateY(-1px);
+    }
+  }
+
+  &.btn-outline-sage {
+    background: transparent;
+    color: var(--wb-primary);
+    border: 1px solid var(--wb-primary);
+
+    &:hover, &:focus {
+      background: var(--wb-primary);
+      color: #ffffff;
+      transform: translateY(-1px);
     }
   }
 
@@ -67,9 +102,9 @@
     background: transparent;
     color: var(--text-secondary);
 
-    &:hover {
-      color: var(--text-primary);
-      background: rgba(255, 255, 255, 0.05);
+    &:hover, &:focus {
+      color: var(--wb-primary);
+      background: rgba(75, 88, 78, 0.05);
     }
   }
 
@@ -80,17 +115,109 @@
   }
 }
 
-// Cards Editoriais
+// Botões Globais Standalone WB Agency
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: var(--wb-primary);
+  color: #ffffff;
+  border: 1px solid var(--wb-primary);
+  padding: 0.875rem 1.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(75, 88, 78, 0.15);
+
+  &:hover, &:focus {
+    background-color: var(--wb-primary-dark);
+    border-color: var(--wb-primary-dark);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(75, 88, 78, 0.25);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--wb-primary);
+  padding: 0.875rem 1.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+
+  &:hover, &:focus {
+    background: rgba(75, 88, 78, 0.08);
+    border-color: var(--wb-primary-dark);
+    color: var(--wb-primary-dark);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// Utilitários de Superfície e Fundo WB
+.bg-wb-primary {
+  background-color: var(--wb-primary);
+}
+
+.bg-wb-surface {
+  background-color: var(--wb-surface);
+}
+
+.bg-wb-background {
+  background-color: var(--wb-background);
+}
+
+.bg-wb-dark {
+  background-color: var(--wb-dark);
+}
+
+.border-wb-subtle {
+  border-color: var(--wb-border);
+}
+
+.border-wb-primary {
+  border-color: var(--wb-primary);
+}
+
+// Cards Editoriais e Modais
 .card-editorial {
   background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle); // #E8EBE8
+  border-radius: 2px;
   overflow: hidden;
   transition: border-color var(--transition-normal), transform var(--transition-normal), box-shadow var(--transition-normal);
 
   &:hover {
-    border-color: var(--border-gold);
-    box-shadow: var(--shadow-md);
+    border-color: var(--wb-primary); // #4B584E
+    box-shadow: 0 8px 24px rgba(75, 88, 78, 0.08);
   }
 }
 
@@ -118,17 +245,17 @@
 
   .form-control {
     width: 100%;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm);
+    background: #ffffff;
+    border: 1px solid var(--border-subtle); // #E8EBE8
+    border-radius: 2px;
     padding: 0.75rem 1rem;
     font-size: 0.9375rem;
-    color: var(--text-primary);
+    color: var(--text-primary); // #222624
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 
     &:focus {
-      border-color: var(--gold-primary);
-      box-shadow: 0 0 0 2px rgba(197, 160, 89, 0.2);
+      border-color: var(--wb-primary); // #4B584E
+      box-shadow: 0 0 0 2px rgba(75, 88, 78, 0.15);
     }
 
     &::placeholder {

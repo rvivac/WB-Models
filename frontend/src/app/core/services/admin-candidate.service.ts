@@ -60,9 +60,32 @@ export class AdminCandidateService {
   }
 
   /**
-   * Atualiza o status operacional (APPROVED, REJECTED, ARCHIVED) com notas de feedback do Booker.
+   * Atualiza o status operacional (PENDING, REVIEWING, APPROVED, REJECTED, CONTACTED, ARCHIVED) com notas de feedback do Booker.
+   * Suporta chamada com objeto CandidateStatusUpdate ou com parâmetros (status, adminNotes).
    */
-  updateStatus(id: string, payload: CandidateStatusUpdate): Observable<CandidateSubmissionResponse> {
-    return this.http.patch<CandidateSubmissionResponse>(`${this.baseUrl}/admin/submissions/${id}/status`, payload);
+  updateStatus(id: string, payloadOrStatus: CandidateStatusUpdate | string, adminNotes?: string): Observable<CandidateSubmissionResponse> {
+    const body = typeof payloadOrStatus === 'string'
+      ? { status: payloadOrStatus, adminNotes: adminNotes ?? '' }
+      : { status: payloadOrStatus.status, adminNotes: payloadOrStatus.adminNotes ?? payloadOrStatus.feedbackNotes ?? '' };
+
+    return this.http.patch<CandidateSubmissionResponse>(`${this.baseUrl}/admin/submissions/${id}/status`, body);
+  }
+
+  /**
+   * Promove uma candidatura aprovada para o elenco oficial de Modelos.
+   */
+  promoteToModel(id: string, activateImmediately = false): Observable<CandidateSubmissionResponse> {
+    let params = new HttpParams();
+    if (activateImmediately) {
+      params = params.set('activateImmediately', 'true');
+    }
+    return this.http.post<CandidateSubmissionResponse>(`${this.baseUrl}/admin/submissions/${id}/promote-to-model`, null, { params });
+  }
+
+  /**
+   * Converte uma candidatura aprovada para o elenco oficial de Modelos (alias).
+   */
+  convertToModel(id: string): Observable<CandidateSubmissionResponse> {
+    return this.http.post<CandidateSubmissionResponse>(`${this.baseUrl}/admin/submissions/${id}/convert-to-model`, {});
   }
 }

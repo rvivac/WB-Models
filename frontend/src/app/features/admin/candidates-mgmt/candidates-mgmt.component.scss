@@ -307,7 +307,28 @@
   color: var(--text-secondary);
 }
 
-// STATUS BADGES
+// STATUS BADGES & CELLS
+.status-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.tag-model-promoted {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: rgba(197, 160, 89, 0.15);
+  color: var(--gold-light);
+  border: 1px solid rgba(197, 160, 89, 0.45);
+  padding: 0.15rem 0.45rem;
+  border-radius: 3px;
+  letter-spacing: 0.06em;
+  display: inline-flex;
+  align-items: center;
+}
+
 .status-badge {
   display: inline-block;
   font-size: 0.6875rem;
@@ -321,6 +342,18 @@
     background: rgba(255, 193, 7, 0.15);
     color: #ffc107;
     border: 1px solid rgba(255, 193, 7, 0.3);
+  }
+
+  &.badge-reviewing {
+    background: rgba(77, 124, 254, 0.15);
+    color: #7096ff;
+    border: 1px solid rgba(77, 124, 254, 0.35);
+  }
+
+  &.badge-contacted {
+    background: rgba(20, 184, 166, 0.15);
+    color: #2dd4bf;
+    border: 1px solid rgba(20, 184, 166, 0.35);
   }
 
   &.badge-approved {
@@ -495,6 +528,59 @@
         background: rgba(197, 160, 89, 0.1);
         padding: 0.2rem 0.5rem;
         border-radius: var(--radius-sm);
+      }
+    }
+
+    .promoted-card-banner {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 0.85rem;
+      padding: 0.65rem 0.9rem;
+      background: rgba(197, 160, 89, 0.08);
+      border: 1px solid rgba(197, 160, 89, 0.35);
+      border-radius: var(--radius-sm);
+
+      .promoted-badge-icon {
+        color: var(--gold-primary);
+        font-size: 1.15rem;
+        line-height: 1;
+      }
+
+      .promoted-details {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+
+        .promoted-title {
+          font-size: 0.75rem;
+          font-weight: 700;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          color: var(--gold-light);
+        }
+
+        .promoted-id {
+          font-family: var(--font-mono);
+          font-size: 0.65rem;
+          color: var(--text-muted);
+        }
+      }
+
+      .btn-view-model-link {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--gold-light);
+        text-decoration: none;
+        padding: 0.25rem 0.55rem;
+        border: 1px solid var(--border-gold);
+        border-radius: var(--radius-sm);
+        transition: all var(--transition-fast);
+
+        &:hover {
+          background: var(--gold-primary);
+          color: var(--text-inverse);
+        }
       }
     }
   }
@@ -731,34 +817,130 @@
   font-size: 0.875rem;
 }
 
+.status-selector-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  .status-select-label {
+    font-size: 0.725rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .select-status {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    color: var(--gold-light);
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+
+    &:focus {
+      border-color: var(--gold-primary);
+      outline: none;
+    }
+  }
+}
+
 // DRAWER FOOTER
 .drawer-footer {
   padding: 1.5rem 2rem;
   border-top: 1px solid var(--border-subtle);
   background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 
-  .action-buttons-group {
-    display: flex;
-    gap: 0.75rem;
+  .promote-section {
+    width: 100%;
 
-    button {
-      flex: 1;
-      padding: 0.85rem;
+    .btn-action-promote {
+      width: 100%;
+      padding: 0.95rem 1.25rem;
+      background: linear-gradient(135deg, #c5a059 0%, #dfba73 50%, #b8934b 100%);
+      color: #0c0d12;
+      border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: var(--radius-sm);
-      font-size: 0.775rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
+      font-size: 0.8125rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 0.4rem;
+      gap: 0.5rem;
+      box-shadow: 0 4px 18px rgba(197, 160, 89, 0.35);
+      transition: all var(--transition-fast);
+
+      &:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 24px rgba(197, 160, 89, 0.55);
+        filter: brightness(1.06);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+    }
+  }
+
+  .action-buttons-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+
+    button {
+      flex: 1;
+      min-width: 90px;
+      padding: 0.75rem 0.5rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.725rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
       transition: all var(--transition-fast);
 
       &:disabled {
-        opacity: 0.4;
+        opacity: 0.35;
         cursor: not-allowed;
+      }
+    }
+
+    .btn-action-reviewing {
+      background: rgba(77, 124, 254, 0.12);
+      color: #7096ff;
+      border: 1px solid rgba(77, 124, 254, 0.35);
+
+      &:hover:not(:disabled) {
+        background: #4d7cfe;
+        color: #fff;
+      }
+    }
+
+    .btn-action-contacted {
+      background: rgba(20, 184, 166, 0.12);
+      color: #2dd4bf;
+      border: 1px solid rgba(20, 184, 166, 0.35);
+
+      &:hover:not(:disabled) {
+        background: #14b8a6;
+        color: #fff;
       }
     }
 
@@ -793,5 +975,21 @@
         color: var(--text-primary);
       }
     }
+  }
+}
+
+.spinner-sm {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }

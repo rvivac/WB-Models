@@ -158,9 +158,14 @@
 
               <!-- Status Badge -->
               <td>
-                <span class="status-badge" [ngClass]="getStatusClass(sub.status)">
-                  {{ getStatusLabel(sub.status) }}
-                </span>
+                <div class="status-cell">
+                  <span class="status-badge" [ngClass]="getStatusClass(sub.status)">
+                    {{ getStatusLabel(sub.status) }}
+                  </span>
+                  @if (sub.convertedToModelId) {
+                    <span class="tag-model-promoted" title="Convertido em Modelo Oficial">★ Modelo</span>
+                  }
+                </div>
               </td>
 
               <!-- Ações -->
@@ -223,7 +228,21 @@
               <span class="status-badge" [ngClass]="getStatusClass(sub.status)">
                 {{ getStatusLabel(sub.status) }}
               </span>
+              @if (sub.convertedToModelId) {
+                <span class="tag-model-promoted">★ Modelo Oficial</span>
+              }
             </div>
+
+            @if (sub.convertedToModelId) {
+              <div class="promoted-card-banner">
+                <div class="promoted-badge-icon">★</div>
+                <div class="promoted-details">
+                  <span class="promoted-title">Candidato Promovido a Modelo Oficial</span>
+                  <span class="promoted-id">ID: {{ sub.convertedToModelId }}</span>
+                </div>
+                <a [routerLink]="['/admin/models']" class="btn-view-model-link" (click)="closeInspection()">Ver no Elenco &rarr;</a>
+              </div>
+            }
           </div>
           <button type="button" class="btn-close-drawer" (click)="closeInspection()">&times;</button>
         </div>
@@ -376,30 +395,103 @@
               (ngModelChange)="feedbackNotes.set($event)"
             ></textarea>
           </section>
+
+          <!-- 6. CONTROLE RÁPIDO DE STATUS -->
+          <section class="dossier-section">
+            <h4 class="dossier-section-title">Controle Operacional de Status</h4>
+            <div class="status-selector-box">
+              <label for="statusSelect" class="status-select-label">ALTERAR STATUS:</label>
+              <select
+                id="statusSelect"
+                class="form-control select-status"
+                [ngModel]="sub.status"
+                (ngModelChange)="updateStatus($event)"
+                [disabled]="isUpdating() || isPromoting()"
+              >
+                <option value="PENDING">Pendente</option>
+                <option value="REVIEWING">Em Análise</option>
+                <option value="CONTACTED">Contatado</option>
+                <option value="APPROVED">Aprovado</option>
+                <option value="REJECTED">Recusado</option>
+                <option value="ARCHIVED">Arquivado</option>
+              </select>
+            </div>
+          </section>
         </div>
 
         <!-- Drawer Actions Footer -->
         <div class="drawer-footer">
+          <!-- AÇÃO PROMOVER A MODELO ATIVO (SE APROVADO E NÃO CONVERTIDO) -->
+          @if (!sub.convertedToModelId && sub.status === 'APPROVED') {
+            <div class="promote-section">
+              <button
+                type="button"
+                class="btn btn-action-promote"
+                [disabled]="isPromoting() || isUpdating()"
+                (click)="promoteCandidate(sub)"
+              >
+                @if (isPromoting()) {
+                  <span class="spinner-sm"></span>
+                  <span>Promovendo ao Elenco Oficial...</span>
+                } @else {
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                  <span>PROMOVER A MODELO ATIVO</span>
+                }
+              </button>
+            </div>
+          }
+
           <div class="action-buttons-group">
             <button
               type="button"
-              class="btn btn-action-approve"
-              [disabled]="isUpdating() || sub.status === 'APPROVED'"
-              (click)="updateStatus('APPROVED')"
+              class="btn btn-action-reviewing"
+              [disabled]="isUpdating() || isPromoting() || sub.status === 'REVIEWING'"
+              (click)="updateStatus('REVIEWING')"
+              title="Marcar em Análise Técnica"
             >
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <span>Em Análise</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-action-contacted"
+              [disabled]="isUpdating() || isPromoting() || sub.status === 'CONTACTED'"
+              (click)="updateStatus('CONTACTED')"
+              title="Registrar que o candidato foi contatado"
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+              </svg>
+              <span>Contatado</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-action-approve"
+              [disabled]="isUpdating() || isPromoting() || sub.status === 'APPROVED'"
+              (click)="updateStatus('APPROVED')"
+              title="Aprovar Candidatura"
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
-              <span>Aprovar Candidatura</span>
+              <span>Aprovar</span>
             </button>
 
             <button
               type="button"
               class="btn btn-action-reject"
-              [disabled]="isUpdating() || sub.status === 'REJECTED'"
+              [disabled]="isUpdating() || isPromoting() || sub.status === 'REJECTED'"
               (click)="updateStatus('REJECTED')"
+              title="Rejeitar Candidatura"
             >
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
@@ -409,8 +501,9 @@
             <button
               type="button"
               class="btn btn-action-archive"
-              [disabled]="isUpdating() || sub.status === 'ARCHIVED'"
+              [disabled]="isUpdating() || isPromoting() || sub.status === 'ARCHIVED'"
               (click)="updateStatus('ARCHIVED')"
+              title="Arquivar Registro"
             >
               <span>Arquivar</span>
             </button>

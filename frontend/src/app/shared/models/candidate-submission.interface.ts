@@ -1,5 +1,5 @@
 export type SubmissionGender = 'FEMALE' | 'MALE' | 'NON_BINARY' | 'OTHER';
-export type SubmissionStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
+export type SubmissionStatus = 'PENDING' | 'REVIEWING' | 'APPROVED' | 'REJECTED' | 'CONTACTED' | 'ARCHIVED';
 
 export interface CandidateSubmissionModel {
   fullName: string;
@@ -34,6 +34,7 @@ export interface CandidateSubmissionResponse {
   protocol: string;
   message?: string;
   status: SubmissionStatus;
+  convertedToModelId?: string | null;
   createdAt: string;
   updatedAt?: string;
 
@@ -76,6 +77,7 @@ export interface CandidateSubmissionResponse {
 export interface CandidateStatusUpdate {
   status: SubmissionStatus;
   feedbackNotes?: string;
+  adminNotes?: string;
 }
 
 export interface CandidateSubmissionFilters {

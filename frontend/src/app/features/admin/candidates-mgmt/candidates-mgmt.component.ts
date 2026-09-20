@@ -27,6 +27,7 @@ export class CandidatesMgmtComponent implements OnInit, OnDestroy {
   readonly selectedSubmission = signal<CandidateSubmissionResponse | null>(null);
   readonly isLoading = signal<boolean>(false);
   readonly isUpdating = signal<boolean>(false);
+  readonly isPromoting = signal<boolean>(false);
 
   // Paginação & Busca
   readonly searchTerm = signal<string>('');
@@ -44,6 +45,8 @@ export class CandidatesMgmtComponent implements OnInit, OnDestroy {
   readonly statusTabs: { label: string; value: SubmissionStatus | 'ALL' }[] = [
     { label: 'Todos', value: 'ALL' },
     { label: 'Pendentes', value: 'PENDING' },
+    { label: 'Em Análise', value: 'REVIEWING' },
+    { label: 'Contatados', value: 'CONTACTED' },
     { label: 'Aprovados', value: 'APPROVED' },
     { label: 'Rejeitados', value: 'REJECTED' },
     { label: 'Arquivados', value: 'ARCHIVED' }
@@ -163,13 +166,58 @@ export class CandidatesMgmtComponent implements OnInit, OnDestroy {
           list.map(item => item.id === updated.id ? updated : item)
         );
 
-        const statusLabel = newStatus === 'APPROVED' ? 'aprovada' : (newStatus === 'REJECTED' ? 'rejeitada' : 'arquivada');
-        this.showToast(`Candidatura de ${updated.fullName} ${statusLabel} com sucesso!`, 'success');
+        const statusLabels: Record<SubmissionStatus, string> = {
+          APPROVED: 'aprovada',
+          REJECTED: 'rejeitada',
+          ARCHIVED: 'arquivada',
+          REVIEWING: 'colocada em análise',
+          CONTACTED: 'marcada como contatada',
+          PENDING: 'revertida para pendente'
+        };
+
+        const actionText = statusLabels[newStatus] || 'atualizada';
+        this.showToast(`Candidatura de ${updated.fullName} ${actionText} com sucesso!`, 'success');
       },
       error: (err) => {
         this.isUpdating.set(false);
         console.error('Erro ao atualizar status da candidatura:', err);
-        this.showToast('Erro ao atualizar status. Tente novamente.', 'error');
+        const msg = err.error?.message || 'Erro ao atualizar status. Tente novamente.';
+        this.showToast(msg, 'error');
+      }
+    });
+  }
+
+  promoteCandidate(candidate: CandidateSubmissionResponse): void {
+    if (!candidate || candidate.convertedToModelId) return;
+
+    const confirmed = window.confirm(
+      `Deseja promover ${candidate.fullName} ao elenco oficial de Modelos?\n\n` +
+      `Será gerado um novo perfil de Modelo com biometria completa e fotos de polaroid/book.`
+    );
+    if (!confirmed) return;
+
+    this.isPromoting.set(true);
+
+    this.adminCandidateService.promoteToModel(candidate.id, true).subscribe({
+      next: (updated) => {
+        this.isPromoting.set(false);
+        this.selectedSubmission.set(updated);
+
+        // Atualiza na listagem local
+        this.submissions.update(list =>
+          list.map(item => item.id === updated.id ? updated : item)
+        );
+
+        this.showToast(`✨ ${updated.fullName} foi promovido(a) a Modelo Oficial com sucesso!`, 'success');
+        setTimeout(() => {
+          this.closeInspection();
+        }, 1200);
+      },
+      error: (err) => {
+        this.isPromoting.set(false);
+        console.error('Erro ao converter candidato para modelo:', err);
+        const msg = err.error?.message || 'Falha ao promover candidato para modelo.';
+        this.showToast(msg, 'error');
       }
     });
   }
@@ -182,6 +230,10 @@ export class CandidatesMgmtComponent implements OnInit, OnDestroy {
         return 'badge-rejected';
       case 'ARCHIVED':
         return 'badge-archived';
+      case 'REVIEWING':
+        return 'badge-reviewing';
+      case 'CONTACTED':
+        return 'badge-contacted';
       case 'PENDING':
       default:
         return 'badge-pending';
@@ -196,6 +248,10 @@ export class CandidatesMgmtComponent implements OnInit, OnDestroy {
         return 'Rejeitado';
       case 'ARCHIVED':
         return 'Arquivado';
+      case 'REVIEWING':
+        return 'Em Análise';
+      case 'CONTACTED':
+        return 'Contatado';
       case 'PENDING':
       default:
         return 'Pendente';

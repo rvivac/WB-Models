@@ -1,0 +1,610 @@
+<div class="submission-page">
+  <!-- SUCCESS STATE BANNER/CARD -->
+  @if (submissionSuccess(); as success) {
+    <div class="container py-12">
+      <div class="success-card card-editorial glass-panel">
+        <div class="success-icon-badge">
+          <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <span class="gold-subtitle">CANDIDATURA RECEBIDA COM SUCESSO</span>
+        <h2 class="editorial-title">BEM-VINDO AO CASTING WB</h2>
+        <p class="success-description">
+          Sua ficha e material fotográfico foram registrados com segurança em nossos servidores.
+          Nossa equipe de bookers e scouting avaliará seu perfil minuciosamente.
+        </p>
+
+        <div class="protocol-box">
+          <span class="protocol-label">NÚMERO DE PROTOCOLO</span>
+          <span class="protocol-value">{{ success.protocol }}</span>
+          <span class="protocol-hint">Guarde este código para acompanhar sua inscrição junto à agência.</span>
+        </div>
+
+        <div class="success-steps">
+          <div class="step-item">
+            <span class="step-num">01</span>
+            <h4>Triagem Inicial</h4>
+            <p>Análise de proporções e fotogenia pelo comitê de casting.</p>
+          </div>
+          <div class="step-item">
+            <span class="step-num">02</span>
+            <h4>Contato Direto</h4>
+            <p>Se o seu perfil for aprovado, nossa equipe entrará em contato via telefone ou WhatsApp.</p>
+          </div>
+          <div class="step-item">
+            <span class="step-num">03</span>
+            <h4>Entrevista & Polaroides</h4>
+            <p>Agendamento de teste presencial ou digital para compor o composite.</p>
+          </div>
+        </div>
+
+        <div class="success-actions">
+          <button type="button" class="btn btn-gold" (click)="resetForm()">Enviar Nova Candidatura</button>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <!-- MAIN FORM HEADER & CONTENT -->
+    <header class="submission-hero">
+      <div class="container text-center">
+        <span class="gold-subtitle">WB SCOUTING DIRECTORY</span>
+        <h1 class="hero-title">QUERO SER MODELO</h1>
+        <p class="hero-description">
+          A agência WB Scouting busca constantemente novos rostos e personalidades únicas para o mercado
+          editorial e comercial. Preencha seus dados reais e anexe suas fotos naturais.
+        </p>
+      </div>
+    </header>
+
+    <main class="container py-8">
+      @if (submissionError(); as error) {
+        <div class="alert-banner alert-danger mb-8" role="alert">
+          <div class="alert-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          </div>
+          <div class="alert-content">
+            <strong>Atenção:</strong> {{ error }}
+          </div>
+        </div>
+      }
+
+      <form [formGroup]="submissionForm" (ngSubmit)="onSubmit()" class="editorial-form">
+        <!-- 1. DADOS PESSOAIS & CONTATO -->
+        <section class="form-section card-editorial">
+          <div class="section-header">
+            <span class="section-badge">ETAPA 01</span>
+            <h3 class="section-title">Dados Pessoais & Contato</h3>
+            <p class="section-desc">Identificação oficial e formas diretas para contato da agência.</p>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group col-span-2">
+              <label for="fullName">Nome Completo *</label>
+              <input
+                id="fullName"
+                type="text"
+                class="form-control"
+                placeholder="Ex: Maria Clara Silveira"
+                formControlName="fullName"
+              />
+              @if (submissionForm.get('fullName')?.touched && submissionForm.get('fullName')?.invalid) {
+                <span class="form-error">O nome completo é obrigatório (3 a 120 caracteres).</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="email">E-mail Principal *</label>
+              <input
+                id="email"
+                type="email"
+                class="form-control"
+                placeholder="seuemail@exemplo.com"
+                formControlName="email"
+              />
+              @if (submissionForm.get('email')?.touched && submissionForm.get('email')?.invalid) {
+                <span class="form-error">Informe um e-mail com formato válido.</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="phone">Telefone / WhatsApp *</label>
+              <input
+                id="phone"
+                type="tel"
+                class="form-control"
+                placeholder="(11) 98888-7777 ou +55 11..."
+                formControlName="phone"
+              />
+              @if (submissionForm.get('phone')?.touched && submissionForm.get('phone')?.invalid) {
+                <span class="form-error">Telefone obrigatório com DDD (ex: (11) 98765-4321).</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="birthDate">Data de Nascimento *</label>
+              <input
+                id="birthDate"
+                type="date"
+                class="form-control"
+                formControlName="birthDate"
+              />
+              @if (submissionForm.get('birthDate')?.touched && submissionForm.get('birthDate')?.invalid) {
+                <span class="form-error">A data de nascimento é obrigatória.</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="gender">Gênero de Apresentação *</label>
+              <select id="gender" class="form-control" formControlName="gender">
+                @for (opt of genderOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. RESPONSÁVEL LEGAL (CONDICIONAL PARA < 18 ANOS) -->
+        @if (isUnderage()) {
+          <section class="form-section card-editorial guardian-section animate-slide-down">
+            <div class="section-header">
+              <span class="section-badge badge-warning">MENOR DE IDADE</span>
+              <h3 class="section-title">Dados do Responsável Legal</h3>
+              <p class="section-desc">
+                Identificamos que você tem menos de 18 anos. De acordo com a legislação e políticas de proteção,
+                o consentimento e contato do responsável legal são mandatórios.
+              </p>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group col-span-2">
+                <label for="guardianName">Nome Completo do Responsável *</label>
+                <input
+                  id="guardianName"
+                  type="text"
+                  class="form-control"
+                  placeholder="Nome do pai, mãe ou tutor legal"
+                  formControlName="guardianName"
+                />
+                @if (submissionForm.get('guardianName')?.touched && submissionForm.get('guardianName')?.invalid) {
+                  <span class="form-error">O nome do responsável é obrigatório para menores de 18 anos.</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="guardianPhone">Telefone do Responsável *</label>
+                <input
+                  id="guardianPhone"
+                  type="tel"
+                  class="form-control"
+                  placeholder="(11) 99999-0000"
+                  formControlName="guardianPhone"
+                />
+                @if (submissionForm.get('guardianPhone')?.touched && submissionForm.get('guardianPhone')?.invalid) {
+                  <span class="form-error">Telefone válido do responsável é obrigatório.</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="guardianEmail">E-mail do Responsável *</label>
+                <input
+                  id="guardianEmail"
+                  type="email"
+                  class="form-control"
+                  placeholder="responsavel@exemplo.com"
+                  formControlName="guardianEmail"
+                />
+                @if (submissionForm.get('guardianEmail')?.touched && submissionForm.get('guardianEmail')?.invalid) {
+                  <span class="form-error">E-mail válido do responsável é obrigatório.</span>
+                }
+              </div>
+            </div>
+          </section>
+        }
+
+        <!-- 3. LOCALIZAÇÃO -->
+        <section class="form-section card-editorial">
+          <div class="section-header">
+            <span class="section-badge">ETAPA 02</span>
+            <h3 class="section-title">Localização Atual</h3>
+            <p class="section-desc">Região de residência para planejamento logístico de castings e semanas de moda.</p>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group col-span-2">
+              <label for="city">Cidade *</label>
+              <input
+                id="city"
+                type="text"
+                class="form-control"
+                placeholder="Ex: São Paulo"
+                formControlName="city"
+              />
+              @if (submissionForm.get('city')?.touched && submissionForm.get('city')?.invalid) {
+                <span class="form-error">A cidade é obrigatória.</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="state">Estado (UF) *</label>
+              <input
+                id="state"
+                type="text"
+                class="form-control text-uppercase"
+                maxlength="2"
+                placeholder="SP"
+                formControlName="state"
+              />
+              @if (submissionForm.get('state')?.touched && submissionForm.get('state')?.invalid) {
+                <span class="form-error">Informe a UF com exatamente 2 letras (ex: SP, RJ, RS).</span>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. MEDIDAS FÍSICAS & CARACTERÍSTICAS -->
+        <section class="form-section card-editorial">
+          <div class="section-header">
+            <span class="section-badge">ETAPA 03</span>
+            <h3 class="section-title">Medidas & Características Físicas</h3>
+            <p class="section-desc">Medidas corporais e dados de perfil para direcionamento editorial.</p>
+          </div>
+
+          <div class="form-grid grid-cols-4">
+            <div class="form-group highlight-gold">
+              <label for="height">Altura (Metros) *</label>
+              <input
+                id="height"
+                type="number"
+                step="0.01"
+                min="1.20"
+                max="2.30"
+                class="form-control"
+                placeholder="Ex: 1.78"
+                formControlName="height"
+              />
+              @if (submissionForm.get('height')?.touched && submissionForm.get('height')?.invalid) {
+                <span class="form-error">Altura obrigatória entre 1.20m e 2.30m.</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="bust">Busto / Tórax (cm)</label>
+              <input
+                id="bust"
+                type="number"
+                step="0.5"
+                class="form-control"
+                placeholder="Ex: 86"
+                formControlName="bust"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="waist">Cintura (cm)</label>
+              <input
+                id="waist"
+                type="number"
+                step="0.5"
+                class="form-control"
+                placeholder="Ex: 60"
+                formControlName="waist"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="hips">Quadril (cm)</label>
+              <input
+                id="hips"
+                type="number"
+                step="0.5"
+                class="form-control"
+                placeholder="Ex: 89"
+                formControlName="hips"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="shoeSize">Calçado (BR)</label>
+              <input
+                id="shoeSize"
+                type="number"
+                min="30"
+                max="50"
+                class="form-control"
+                placeholder="Ex: 38"
+                formControlName="shoeSize"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="eyeColor">Cor dos Olhos</label>
+              <input
+                id="eyeColor"
+                type="text"
+                class="form-control"
+                placeholder="Ex: Castanhos, Verdes"
+                formControlName="eyeColor"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="hairColor">Cor do Cabelo</label>
+              <input
+                id="hairColor"
+                type="text"
+                class="form-control"
+                placeholder="Ex: Castanho Escuro, Loiro"
+                formControlName="hairColor"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="instagramHandle">Instagram (&#64;)</label>
+              <input
+                id="instagramHandle"
+                type="text"
+                class="form-control"
+                placeholder="usuario (sem &#64;)"
+                formControlName="instagramHandle"
+              />
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. MATERIAL FOTOGRÁFICO OBRIGATÓRIO (UPLOADS) -->
+        <section class="form-section card-editorial">
+          <div class="section-header">
+            <span class="section-badge">ETAPA 04</span>
+            <h3 class="section-title">Material Fotográfico Obrigatório (3 Fotos)</h3>
+            <p class="section-desc">
+              Envie fotos naturais com luz do dia, sem maquiagem artística e sem retoques de aplicativos.
+              Formatos aceitos: <strong>JPEG e PNG</strong> (máximo de <strong>5 MB</strong> por foto).
+            </p>
+          </div>
+
+          <div class="photos-grid">
+            <!-- 5.1 FOTO ROSTO -->
+            @if (photoSlots().facePhoto; as slot) {
+              <div class="photo-card" [class.has-file]="slot.file" [class.has-error]="slot.error">
+                <div class="photo-card-header">
+                  <h4>{{ slot.label }}</h4>
+                  <span class="mandatory-badge">Obrigatório</span>
+                </div>
+                <p class="photo-card-desc">{{ slot.description }}</p>
+
+                <div
+                  class="photo-dropzone"
+                  (dragover)="onDragOver($event)"
+                  (drop)="onFileDropped($event, 'facePhoto')"
+                  (click)="faceInput.click()"
+                >
+                  <input
+                    #faceInput
+                    type="file"
+                    accept="image/jpeg,image/png"
+                    class="hidden-input"
+                    (change)="onFileSelected($event, 'facePhoto')"
+                  />
+
+                  @if (slot.previewUrl) {
+                    <div class="preview-container">
+                      <img [src]="slot.previewUrl" alt="Prévia Rosto" class="photo-preview" />
+                      <button type="button" class="btn-remove-photo" (click)="removePhoto('facePhoto', $event)" title="Remover foto">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="dropzone-placeholder">
+                      <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                        <circle cx="12" cy="13" r="4" />
+                      </svg>
+                      <span class="dropzone-text">Clique ou arraste a foto de rosto</span>
+                      <span class="dropzone-hint">JPG ou PNG até 5MB</span>
+                    </div>
+                  }
+                </div>
+                @if (slot.error) {
+                  <span class="photo-error">{{ slot.error }}</span>
+                }
+              </div>
+            }
+
+            <!-- 5.2 FOTO PERFIL -->
+            @if (photoSlots().profilePhoto; as slot) {
+              <div class="photo-card" [class.has-file]="slot.file" [class.has-error]="slot.error">
+                <div class="photo-card-header">
+                  <h4>{{ slot.label }}</h4>
+                  <span class="mandatory-badge">Obrigatório</span>
+                </div>
+                <p class="photo-card-desc">{{ slot.description }}</p>
+
+                <div
+                  class="photo-dropzone"
+                  (dragover)="onDragOver($event)"
+                  (drop)="onFileDropped($event, 'profilePhoto')"
+                  (click)="profileInput.click()"
+                >
+                  <input
+                    #profileInput
+                    type="file"
+                    accept="image/jpeg,image/png"
+                    class="hidden-input"
+                    (change)="onFileSelected($event, 'profilePhoto')"
+                  />
+
+                  @if (slot.previewUrl) {
+                    <div class="preview-container">
+                      <img [src]="slot.previewUrl" alt="Prévia Perfil" class="photo-preview" />
+                      <button type="button" class="btn-remove-photo" (click)="removePhoto('profilePhoto', $event)" title="Remover foto">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="dropzone-placeholder">
+                      <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                        <circle cx="12" cy="13" r="4" />
+                      </svg>
+                      <span class="dropzone-text">Clique ou arraste a foto de perfil</span>
+                      <span class="dropzone-hint">JPG ou PNG até 5MB</span>
+                    </div>
+                  }
+                </div>
+                @if (slot.error) {
+                  <span class="photo-error">{{ slot.error }}</span>
+                }
+              </div>
+            }
+
+            <!-- 5.3 FOTO CORPO INTEIRO -->
+            @if (photoSlots().fullBodyPhoto; as slot) {
+              <div class="photo-card" [class.has-file]="slot.file" [class.has-error]="slot.error">
+                <div class="photo-card-header">
+                  <h4>{{ slot.label }}</h4>
+                  <span class="mandatory-badge">Obrigatório</span>
+                </div>
+                <p class="photo-card-desc">{{ slot.description }}</p>
+
+                <div
+                  class="photo-dropzone"
+                  (dragover)="onDragOver($event)"
+                  (drop)="onFileDropped($event, 'fullBodyPhoto')"
+                  (click)="bodyInput.click()"
+                >
+                  <input
+                    #bodyInput
+                    type="file"
+                    accept="image/jpeg,image/png"
+                    class="hidden-input"
+                    (change)="onFileSelected($event, 'fullBodyPhoto')"
+                  />
+
+                  @if (slot.previewUrl) {
+                    <div class="preview-container">
+                      <img [src]="slot.previewUrl" alt="Prévia Corpo Inteiro" class="photo-preview" />
+                      <button type="button" class="btn-remove-photo" (click)="removePhoto('fullBodyPhoto', $event)" title="Remover foto">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="dropzone-placeholder">
+                      <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                        <circle cx="12" cy="13" r="4" />
+                      </svg>
+                      <span class="dropzone-text">Clique ou arraste a foto de corpo inteiro</span>
+                      <span class="dropzone-hint">JPG ou PNG até 5MB</span>
+                    </div>
+                  }
+                </div>
+                @if (slot.error) {
+                  <span class="photo-error">{{ slot.error }}</span>
+                }
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- 6. TERMOS & LGPD -->
+        <section class="form-section card-editorial">
+          <div class="lgpd-consent-box">
+            <label class="custom-checkbox">
+              <input type="checkbox" formControlName="lgpdConsent" />
+              <span class="checkmark"></span>
+              <span class="checkbox-label">
+                Declaro que li e concordo com a
+                <button type="button" class="btn-link" (click)="showLgpdModal.set(true)">
+                  Política de Privacidade e Termos de Captação da WB Agency (LGPD)
+                </button>
+                , autorizando o armazenamento seguro e o uso estrito das minhas fotografias para finalidade exclusiva de avaliação de casting. *
+              </span>
+            </label>
+            @if (submissionForm.get('lgpdConsent')?.touched && submissionForm.get('lgpdConsent')?.invalid) {
+              <span class="form-error">O aceite dos termos da LGPD é mandatório para prosseguir.</span>
+            }
+          </div>
+        </section>
+
+        <!-- SUBMIT BAR -->
+        <div class="form-actions text-center">
+          <button
+            type="submit"
+            class="btn btn-gold btn-submit"
+            [disabled]="isSubmitting()"
+          >
+            @if (isSubmitting()) {
+              <span class="spinner"></span>
+              <span>ENVIANDO CANDIDATURA...</span>
+            } @else {
+              <span>SUBMETER FICHA DE CANDIDATURA</span>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            }
+          </button>
+          <p class="form-security-note">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            Transmissão criptografada de ponta a ponta com armazenamento seguro.
+          </p>
+        </div>
+      </form>
+    </main>
+  }
+
+  <!-- LGPD MODAL -->
+  @if (showLgpdModal()) {
+    <div class="modal-backdrop" (click)="showLgpdModal.set(false)">
+      <div class="modal-container glass-panel" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <span class="gold-subtitle">TRANSPARÊNCIA & LGPD</span>
+          <h3>Termos de Privacidade e Proteção de Dados</h3>
+          <button type="button" class="btn-close" (click)="showLgpdModal.set(false)">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>
+            A <strong>WB Agency & Scouting</strong> valoriza a sua privacidade e cumpre integralmente
+            as diretrizes da Lei Geral de Proteção de Dados (Lei nº 13.709/2018 - LGPD).
+          </p>
+          <h4>1. Finalidade do Tratamento</h4>
+          <p>
+            Os dados biométricos, medidas corporais, informações de contato e fotografias encaminhadas são coletados
+            com a finalidade única e restrita de avaliar a viabilidade de agenciamento de novos talentos (casting).
+          </p>
+          <h4>2. Armazenamento Seguro</h4>
+          <p>
+            Todo o material fotográfico e cadastral é armazenado em infraestrutura de nuvem segura com controle de acesso
+            estrito (RLS - Row Level Security), não sendo comercializado ou divulgado a terceiros sem prévio contrato de agenciamento formal.
+          </p>
+          <h4>3. Menores de 18 Anos</h4>
+          <p>
+            Candidaturas de menores de idade exigem expressamente a ciência e contato dos pais ou representantes legais,
+            sendo qualquer comunicação intermediada pelos mesmos.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-gold" (click)="showLgpdModal.set(false)">Compreendi e Concordo</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

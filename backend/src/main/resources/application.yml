@@ -13,18 +13,17 @@ spring:
     name: wb-scouting-api
 
   datasource:
-    # URL via Session Mode do Pooler (porta 5432 com SSL obrigatório)
-    # Substitua [REGIAO] pela região do seu projeto (ex.: sa-east-1) copiada da DIRECT_URL
-    url: jdbc:postgresql://aws-0-sa-east-1.pooler.supabase.com:5432/postgres?sslmode=require
+    # Pooler via porta 6543 com flags explícitas para evitar retenção de buffers TLS
+    url: jdbc:postgresql://aws-0-sa-east-1.pooler.supabase.com:6543/postgres?sslmode=require&prepareThreshold=0
     username: postgres.stmytwsdlonpnirqiufq
-    password: "ptyC15gru@#!15"
+    password: U7MevYDCOEjBOBS3
     driver-class-name: org.postgresql.Driver
     hikari:
       pool-name: WbScoutingHikariPool
-      maximum-pool-size: 5
+      maximum-pool-size: 3
       minimum-idle: 1
       idle-timeout: 300000
-      connection-timeout: 20000
+      connection-timeout: 30000
       max-lifetime: 1200000
       connection-test-query: SELECT 1
       auto-commit: true

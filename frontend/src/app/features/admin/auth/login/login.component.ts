@@ -8,7 +8,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, ButtonComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
@@ -17,6 +17,8 @@ export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
+  // Controle reativo de exibição da senha e estado de envio
+  readonly showPassword = signal<boolean>(false);
   readonly isSubmitting = signal<boolean>(false);
   readonly errorMessage = signal<string | null>(null);
 
@@ -24,6 +26,10 @@ export class LoginComponent {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]]
   });
+
+  togglePasswordVisibility(): void {
+    this.showPassword.update(prev => !prev);
+  }
 
   onSubmit(): void {
     if (this.loginForm.invalid) {
@@ -37,12 +43,11 @@ export class LoginComponent {
     this.authService.login(this.loginForm.value).subscribe({
       next: () => {
         this.isSubmitting.set(false);
-        this.router.navigate(['/admin/dashboard']);
+        this.router.navigate(['/admin/submissions']);
       },
       error: (err) => {
         this.isSubmitting.set(false);
-        console.error('Erro de login:', err);
-        this.errorMessage.set('Credenciais inválidas. Verifique seu e-mail e senha.');
+        this.errorMessage.set(err.error?.detail || 'Credenciais inválidas. Verifique seu e-mail e senha.');
       }
     });
   }

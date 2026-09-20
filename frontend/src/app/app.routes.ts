@@ -38,8 +38,13 @@ export const routes: Routes = [
   },
   {
     path: 'apply',
-    loadComponent: () => import('./features/public/apply/apply.component').then(m => m.ApplyComponent),
+    loadComponent: () => import('./features/candidate-submission/candidate-submission-form.component').then(m => m.CandidateSubmissionFormComponent),
     title: 'Quero Ser Modelo | Inscrição de Novos Talentos'
+  },
+  {
+    path: 'candidate-submission',
+    redirectTo: 'apply',
+    pathMatch: 'full'
   },
   {
     path: 'contact',
@@ -87,6 +92,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/admin/candidates-mgmt/candidates-mgmt.component').then(m => m.CandidatesMgmtComponent),
     title: 'Triagem de Candidaturas | WB Agency'
+  },
+  {
+    path: 'admin/submissions',
+    redirectTo: 'admin/candidates',
+    pathMatch: 'full'
   },
   {
     path: 'admin/content',

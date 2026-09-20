@@ -192,6 +192,55 @@ CREATE TABLE IF NOT EXISTS public.candidate_photos (
 );
 
 -- ------------------------------------------------------------------------------
+-- 4.5.1. TABELA: candidate_submissions
+-- Submissões do endpoint público de captação (/api/v1/submissions - Prompt 3.3.1)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.candidate_submissions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    protocol VARCHAR(50) NOT NULL,
+    full_name VARCHAR(120) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    phone VARCHAR(50) NOT NULL,
+    birth_date DATE NOT NULL,
+    age INTEGER NOT NULL,
+    gender VARCHAR(30) NOT NULL,
+    city VARCHAR(80) NOT NULL,
+    state VARCHAR(2) NOT NULL,
+    height NUMERIC(4,2) NOT NULL,
+    bust NUMERIC(5,2) NULL,
+    waist NUMERIC(5,2) NULL,
+    hips NUMERIC(5,2) NULL,
+    shoe_size INTEGER NULL,
+    eye_color VARCHAR(50) NULL,
+    hair_color VARCHAR(50) NULL,
+    instagram_handle VARCHAR(80) NULL,
+    guardian_name VARCHAR(120) NULL,
+    guardian_phone VARCHAR(50) NULL,
+    guardian_email VARCHAR(100) NULL,
+    lgpd_consent BOOLEAN NOT NULL DEFAULT TRUE CHECK (lgpd_consent IS TRUE),
+    lgpd_consent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDING',
+    face_photo_url TEXT NOT NULL,
+    profile_photo_url TEXT NOT NULL,
+    full_body_photo_url TEXT NOT NULL,
+    reviewed_by VARCHAR(150) NULL,
+    reviewed_at TIMESTAMPTZ NULL,
+    feedback_notes VARCHAR(500) NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uk_candidate_submissions_protocol UNIQUE (protocol)
+);
+
+DROP TRIGGER IF EXISTS set_timestamp_candidate_submissions ON public.candidate_submissions;
+CREATE TRIGGER set_timestamp_candidate_submissions
+    BEFORE UPDATE ON public.candidate_submissions
+    FOR EACH ROW
+    EXECUTE FUNCTION trigger_set_timestamp();
+
+CREATE INDEX IF NOT EXISTS idx_candidate_submissions_status ON public.candidate_submissions (status);
+CREATE INDEX IF NOT EXISTS idx_candidate_submissions_email ON public.candidate_submissions (email);
+
+-- ------------------------------------------------------------------------------
 -- 4.6. TABELA: site_contents
 -- Conteúdos institucionais dinâmicos e internacionalização (PT/EN)
 -- ------------------------------------------------------------------------------
@@ -246,6 +295,7 @@ ALTER TABLE public.models ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.model_media ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.candidates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.candidate_photos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.candidate_submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.site_contents ENABLE ROW LEVEL SECURITY;
 
 -- 6.1. Políticas de Leitura Pública (Catálogo e Site Institucional)

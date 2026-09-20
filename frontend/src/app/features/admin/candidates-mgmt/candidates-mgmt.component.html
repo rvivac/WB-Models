@@ -1,100 +1,422 @@
-<div class="candidates-page container">
-  <div class="candidates-top">
-    <div>
-      <h1 class="font-serif page-title">Triagem de Candidaturas</h1>
-      <p class="text-secondary">Avaliação e seleção de aspirantes a modelo que submeteram o formulário "Quero ser modelo".</p>
+<div class="admin-candidates-page">
+  <!-- TOAST NOTIFICATION -->
+  @if (toastMessage(); as toast) {
+    <div class="toast-banner" [class.toast-success]="toast.type === 'success'" [class.toast-error]="toast.type === 'error'">
+      <span>{{ toast.text }}</span>
+      <button type="button" class="btn-toast-close" (click)="toastMessage.set(null)">&times;</button>
+    </div>
+  }
+
+  <!-- PAGE HEADER -->
+  <header class="page-header">
+    <div class="header-left">
+      <span class="gold-subtitle">BACKOFFICE SCOUTING</span>
+      <h1 class="page-title">Triagem de Candidaturas</h1>
+      <p class="page-desc">Avaliação técnica, biometria e despacho de novos talentos inscritos no portal.</p>
+    </div>
+    <div class="header-right">
+      <button type="button" class="btn btn-outline" (click)="loadSubmissions()" [disabled]="isLoading()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10" />
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+        </svg>
+        <span>Atualizar</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- TOOLBAR & FILTERS -->
+  <div class="toolbar-card card-editorial glass-panel">
+    <!-- Status Tabs -->
+    <div class="status-tabs">
+      @for (tab of statusTabs; track tab.value) {
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="selectedStatus() === tab.value"
+          (click)="setStatusFilter(tab.value)"
+        >
+          <span>{{ tab.label }}</span>
+        </button>
+      }
+    </div>
+
+    <!-- Search & Controls -->
+    <div class="toolbar-controls">
+      <div class="search-input-wrapper">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Buscar por nome, e-mail ou cidade..."
+          [value]="searchTerm()"
+          (input)="onSearch($any($event.target).value)"
+        />
+      </div>
+
+      <div class="page-size-selector">
+        <label for="pageSize">Itens por página:</label>
+        <select id="pageSize" class="form-control select-size" [value]="pageSize()" (change)="onPageSizeChange($event)">
+          <option [value]="10">10</option>
+          <option [value]="20">20</option>
+          <option [value]="50">50</option>
+        </select>
+      </div>
     </div>
   </div>
 
-  <div class="card-editorial candidates-card">
-    <div class="table-responsive">
-      <table class="admin-table">
+  <!-- TABLE CONTAINER -->
+  <div class="table-container card-editorial">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <span>Carregando candidaturas...</span>
+      </div>
+    } @else if (submissions().length === 0) {
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+        <h3>Nenhuma candidatura encontrada</h3>
+        <p>Não há inscrições correspondentes aos filtros selecionados.</p>
+      </div>
+    } @else {
+      <table class="editorial-table">
         <thead>
           <tr>
-            <th>Candidato</th>
-            <th>Idade</th>
-            <th>Gênero</th>
-            <th>Altura</th>
-            <th>Contato</th>
+            <th>Miniatura</th>
+            <th>Candidato / Protocolo</th>
+            <th>Idade / Gênero</th>
+            <th>Cidade / UF</th>
+            <th>Altura & Medidas</th>
             <th>Data de Envio</th>
             <th>Status</th>
-            <th>Ações</th>
+            <th class="text-right">Ação</th>
           </tr>
         </thead>
         <tbody>
-          @for (c of candidates(); track c.id) {
-            <tr>
+          @for (sub of submissions(); track sub.id) {
+            <tr (click)="openInspection(sub)" class="table-row-clickable">
+              <!-- Miniatura -->
               <td>
-                <strong>{{ c.fullName }}</strong>
-                @if (c.instagram) {
-                  <span class="block text-muted text-xs">{{ c.instagram }}</span>
-                }
+                <div class="thumbnail-wrapper">
+                  @if (sub.facePhotoUrl) {
+                    <img [src]="sub.facePhotoUrl" [alt]="sub.fullName" class="candidate-thumb" />
+                  } @else {
+                    <div class="thumb-placeholder">
+                      {{ sub.fullName?.charAt(0) || '?' }}
+                    </div>
+                  }
+                </div>
               </td>
-              <td>{{ c.age }} anos</td>
-              <td>{{ c.gender }}</td>
-              <td>{{ c.heightCm }} cm</td>
+
+              <!-- Nome & Protocolo -->
               <td>
-                <span>{{ c.phone }}</span>
-                <span class="block text-muted text-xs">{{ c.email }}</span>
+                <div class="candidate-name-col">
+                  <span class="candidate-fullname">{{ sub.fullName }}</span>
+                  <span class="candidate-protocol">{{ sub.protocol }}</span>
+                </div>
               </td>
-              <td>{{ c.createdAt }}</td>
+
+              <!-- Idade / Gênero -->
               <td>
-                <span class="status-badge" [class.badge-pending]="c.status === 'PENDENTE'" [class.badge-approved]="c.status === 'APROVADO'">
-                  {{ c.status }}
+                <div class="candidate-meta-col">
+                  <span>{{ sub.age ? sub.age + ' anos' : '—' }}</span>
+                  @if (sub.age && sub.age < 18) {
+                    <span class="tag-minor">Menor</span>
+                  }
+                </div>
+              </td>
+
+              <!-- Cidade / UF -->
+              <td>
+                <span class="candidate-location">{{ sub.city || '—' }} - {{ sub.state || '—' }}</span>
+              </td>
+
+              <!-- Altura & Medidas -->
+              <td>
+                <div class="biometrics-cell">
+                  <strong>{{ sub.height ? sub.height + ' m' : '—' }}</strong>
+                  <span class="sub-measure">
+                    @if (sub.bust || sub.waist || sub.hips) {
+                      {{ sub.bust || '—' }}/{{ sub.waist || '—' }}/{{ sub.hips || '—' }}
+                    }
+                  </span>
+                </div>
+              </td>
+
+              <!-- Data de Envio -->
+              <td>
+                <span class="candidate-date">{{ sub.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+              </td>
+
+              <!-- Status Badge -->
+              <td>
+                <span class="status-badge" [ngClass]="getStatusClass(sub.status)">
+                  {{ getStatusLabel(sub.status) }}
                 </span>
               </td>
-              <td>
-                <button class="btn btn-outline btn-xs" (click)="openDetails(c)">
-                  Ver Ficha &amp; Fotos
+
+              <!-- Ações -->
+              <td class="text-right" (click)="$event.stopPropagation()">
+                <button type="button" class="btn-inspect" (click)="openInspection(sub)">
+                  <span>Inspecionar</span>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
                 </button>
               </td>
             </tr>
           }
         </tbody>
       </table>
-    </div>
+
+      <!-- PAGINAÇÃO -->
+      <div class="pagination-footer">
+        <div class="pagination-info">
+          Exibindo <strong>{{ submissions().length }}</strong> de <strong>{{ totalElements() }}</strong> candidaturas
+          (Página <strong>{{ currentPage() + 1 }}</strong> de <strong>{{ totalPages() || 1 }}</strong>)
+        </div>
+
+        <div class="pagination-nav">
+          <button
+            type="button"
+            class="btn-page"
+            [disabled]="currentPage() === 0"
+            (click)="goToPage(currentPage() - 1)"
+          >
+            &laquo; Anterior
+          </button>
+
+          <span class="page-indicator">{{ currentPage() + 1 }}</span>
+
+          <button
+            type="button"
+            class="btn-page"
+            [disabled]="currentPage() >= totalPages() - 1"
+            (click)="goToPage(currentPage() + 1)"
+          >
+            Próxima &raquo;
+          </button>
+        </div>
+      </div>
+    }
   </div>
-</div>
 
-<!-- Modal de Detalhes da Ficha do Candidato -->
-<app-modal [isOpen]="!!selectedCandidate()" title="Ficha Completa de Candidatura" (close)="closeDetails()">
-  @if (selectedCandidate(); as cand) {
-    <div class="candidate-detail-body">
-      <div class="detail-header-row">
-        <div>
-          <h2 class="font-serif cand-name">{{ cand.fullName }}</h2>
-          <span class="text-secondary">{{ cand.age }} anos &bull; {{ cand.city }}</span>
+  <!-- INSPECTION DRAWER / DOSSIÊ LATERAL -->
+  @if (selectedSubmission(); as sub) {
+    <div class="drawer-backdrop" (click)="closeInspection()">
+      <div class="drawer-container glass-panel" (click)="$event.stopPropagation()">
+        <!-- Drawer Header -->
+        <div class="drawer-header">
+          <div class="drawer-title-group">
+            <span class="gold-subtitle">DOSSIÊ DO CANDIDATO</span>
+            <h2>{{ sub.fullName }}</h2>
+            <div class="drawer-meta-badges">
+              <span class="protocol-chip">{{ sub.protocol }}</span>
+              <span class="status-badge" [ngClass]="getStatusClass(sub.status)">
+                {{ getStatusLabel(sub.status) }}
+              </span>
+            </div>
+          </div>
+          <button type="button" class="btn-close-drawer" (click)="closeInspection()">&times;</button>
         </div>
-        <div class="status-actions">
-          <button class="btn btn-gold btn-sm" (click)="updateStatus(cand.id, 'APROVADO')">
-            Aprovar para Casting Presencial &check;
-          </button>
-          <button class="btn btn-ghost btn-sm" (click)="updateStatus(cand.id, 'ARQUIVADO')">
-            Arquivar
-          </button>
-        </div>
-      </div>
 
-      <div class="measures-box">
-        <h4 class="box-title tracking-editorial">Medidas Físicas</h4>
-        <div class="measures-grid">
-          <div><span class="lbl">Altura:</span> <strong>{{ cand.heightCm }} cm</strong></div>
-          <div><span class="lbl">Busto:</span> <strong>{{ cand.bustCm }} cm</strong></div>
-          <div><span class="lbl">Cintura:</span> <strong>{{ cand.waistCm }} cm</strong></div>
-          <div><span class="lbl">Quadril:</span> <strong>{{ cand.hipsCm }} cm</strong></div>
-        </div>
-      </div>
+        <!-- Drawer Content -->
+        <div class="drawer-body">
+          <!-- 1. GALERIA VISUAL (3 FOTOS) -->
+          <section class="dossier-section">
+            <h4 class="dossier-section-title">Inspeção Visual (Fotos Naturais)</h4>
+            @if (getCurrentPhotos(sub); as photos) {
+              @if (photos.length > 0) {
+                <div class="gallery-wrapper">
+                  <div class="main-photo-container">
+                    <img [src]="photos[activePhotoIndex()].url" [alt]="photos[activePhotoIndex()].label" class="main-photo" />
+                    <span class="photo-active-label">{{ photos[activePhotoIndex()].label }}</span>
+                  </div>
 
-      <div class="photos-box">
-        <h4 class="box-title tracking-editorial">Fotos para Avaliação (Polaroids)</h4>
-        <div class="photos-gallery">
-          @for (photo of cand.photos; track photo) {
-            <a [href]="photo" target="_blank" class="cand-photo-thumb">
-              <img [src]="photo" alt="Foto do candidato" />
-            </a>
+                  <div class="photo-selector-strip">
+                    @for (photo of photos; track $index) {
+                      <div
+                        class="thumb-strip-item"
+                        [class.active]="activePhotoIndex() === $index"
+                        (click)="selectPhoto($index)"
+                      >
+                        <img [src]="photo.url" [alt]="photo.label" />
+                        <span class="thumb-caption">{{ photo.label }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <p class="text-muted">Nenhuma fotografia anexada.</p>
+              }
+            }
+          </section>
+
+          <!-- 2. ALERTA MENOR DE IDADE -->
+          @if (sub.age && sub.age < 18) {
+            <div class="minor-alert-box">
+              <div class="minor-alert-header">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <strong>Candidato Menor de 18 Anos ({{ sub.age }} anos)</strong>
+              </div>
+              <p>Qualquer contato de casting deve ser conduzido diretamente com o responsável legal cadastrado:</p>
+              <div class="guardian-details-grid">
+                <div>
+                  <span class="detail-label">Responsável:</span>
+                  <strong>{{ sub.guardianName || 'Não informado' }}</strong>
+                </div>
+                <div>
+                  <span class="detail-label">Telefone:</span>
+                  <strong>{{ sub.guardianPhone || 'Não informado' }}</strong>
+                </div>
+                <div>
+                  <span class="detail-label">E-mail:</span>
+                  <strong>{{ sub.guardianEmail || 'Não informado' }}</strong>
+                </div>
+              </div>
+            </div>
           }
+
+          <!-- 3. BIOMETRIA & CARACTERÍSTICAS -->
+          <section class="dossier-section">
+            <h4 class="dossier-section-title">Medidas & Perfil Físico</h4>
+            <div class="metrics-grid">
+              <div class="metric-card highlight">
+                <span class="metric-label">Altura</span>
+                <span class="metric-val">{{ sub.height ? sub.height + ' m' : '—' }}</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-label">Busto</span>
+                <span class="metric-val">{{ sub.bust ? sub.bust + ' cm' : '—' }}</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-label">Cintura</span>
+                <span class="metric-val">{{ sub.waist ? sub.waist + ' cm' : '—' }}</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-label">Quadril</span>
+                <span class="metric-val">{{ sub.hips ? sub.hips + ' cm' : '—' }}</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-label">Calçado</span>
+                <span class="metric-val">{{ sub.shoeSize || '—' }}</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-label">Olhos</span>
+                <span class="metric-val">{{ sub.eyeColor || '—' }}</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-label">Cabelo</span>
+                <span class="metric-val">{{ sub.hairColor || '—' }}</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-label">Instagram</span>
+                <span class="metric-val">
+                  @if (sub.instagramHandle) {
+                    <a [href]="'https://instagram.com/' + sub.instagramHandle" target="_blank" rel="noopener noreferrer" class="link-instagram">
+                      &#64;{{ sub.instagramHandle }}
+                    </a>
+                  } @else {
+                    —
+                  }
+                </span>
+              </div>
+            </div>
+          </section>
+
+          <!-- 4. CONTATO & RESIDÊNCIA -->
+          <section class="dossier-section">
+            <h4 class="dossier-section-title">Contato & Localização</h4>
+            <div class="contact-info-list">
+              <div class="info-row">
+                <span class="info-lbl">E-mail:</span>
+                <span class="info-val">{{ sub.email }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-lbl">Telefone / WhatsApp:</span>
+                <span class="info-val">{{ sub.phone }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-lbl">Localização:</span>
+                <span class="info-val">{{ sub.city }} - {{ sub.state }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-lbl">Data de Inscrição:</span>
+                <span class="info-val">{{ sub.createdAt | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+              </div>
+              @if (sub.reviewedBy) {
+                <div class="info-row audit-row">
+                  <span class="info-lbl">Última Revisão:</span>
+                  <span class="info-val">{{ sub.reviewedBy }} em {{ sub.reviewedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+              }
+            </div>
+          </section>
+
+          <!-- 5. NOTAS DO BOOKER -->
+          <section class="dossier-section">
+            <h4 class="dossier-section-title">Anotações Internas do Booker</h4>
+            <textarea
+              class="form-control feedback-textarea"
+              rows="3"
+              placeholder="Insira justificativas de casting, orientações ou motivos de despacho..."
+              [ngModel]="feedbackNotes()"
+              (ngModelChange)="feedbackNotes.set($event)"
+            ></textarea>
+          </section>
+        </div>
+
+        <!-- Drawer Actions Footer -->
+        <div class="drawer-footer">
+          <div class="action-buttons-group">
+            <button
+              type="button"
+              class="btn btn-action-approve"
+              [disabled]="isUpdating() || sub.status === 'APPROVED'"
+              (click)="updateStatus('APPROVED')"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span>Aprovar Candidatura</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-action-reject"
+              [disabled]="isUpdating() || sub.status === 'REJECTED'"
+              (click)="updateStatus('REJECTED')"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+              <span>Rejeitar</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-action-archive"
+              [disabled]="isUpdating() || sub.status === 'ARCHIVED'"
+              (click)="updateStatus('ARCHIVED')"
+            >
+              <span>Arquivar</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
   }
-</app-modal>
+</div>

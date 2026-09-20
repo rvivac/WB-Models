@@ -52,13 +52,23 @@ export class AuthService {
     return localStorage.getItem(this.TOKEN_KEY);
   }
 
-  private setSession(authResponse: AuthResponse): void {
-    localStorage.setItem(this.TOKEN_KEY, authResponse.token);
+  private setSession(authResponse: any): void {
+    // Captura resiliente do token JWT devolvido pelo Spring Boot
+    const jwt = authResponse.token || authResponse.accessToken || authResponse.jwt || authResponse.data?.token;
+
+    if (!jwt) {
+      console.error('Token JWT não encontrado na resposta de autenticação:', authResponse);
+      return;
+    }
+
+    localStorage.setItem(this.TOKEN_KEY, jwt);
+
     const user: AdminUser = {
-      name: authResponse.name,
-      email: authResponse.email,
-      role: authResponse.role
+      name: authResponse.name || authResponse.adminName || authResponse.user?.name || 'Administrador',
+      email: authResponse.email || authResponse.adminEmail || authResponse.user?.email || 'admin@wbscouting.com',
+      role: authResponse.role || authResponse.user?.role || 'SUPER_ADMIN'
     };
+
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
     this.currentUser.set(user);
   }

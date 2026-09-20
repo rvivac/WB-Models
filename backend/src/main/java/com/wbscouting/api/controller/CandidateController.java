@@ -14,13 +14,21 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping({"/candidates", "/api/v1/candidates"})
 @RequiredArgsConstructor
 public class CandidateController {
 
     private final CandidateService candidateService;
 
+    // Listagem paginada de candidatos cadastrados
+    @GetMapping
+    public ResponseEntity<Page<CandidateDTO.Response>> listCandidates(
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(candidateService.listCandidates(pageable));
+    }
+
     // Endpoint público para envio de ficha de novos talentos (Quero ser modelo)
-    @PostMapping("/candidates")
+    @PostMapping
     public ResponseEntity<CandidateDTO.Response> submitApplication(
             @Valid @RequestBody CandidateDTO.ApplicationRequest request) {
         CandidateDTO.Response response = candidateService.submitApplication(request);

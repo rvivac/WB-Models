@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, effect, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, inject, signal, effect, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { PublicContentService, HomeHeroPayload } from '../../../../../core/services/public-content.service';
@@ -12,11 +12,23 @@ import { TranslatePipe } from '../../../../../shared/pipes/translate.pipe';
   templateUrl: './home-hero.component.html',
   styleUrls: ['./home-hero.component.scss']
 })
-export class HomeHeroComponent implements OnInit {
+export class HomeHeroComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly publicContentService = inject(PublicContentService);
   private readonly translationService = inject(TranslationService);
 
-  @ViewChild('heroVideo') videoRef?: ElementRef<HTMLVideoElement>;
+  @ViewChild('heroVideo') heroVideo!: ElementRef<HTMLVideoElement>;
+
+  get videoRef(): ElementRef<HTMLVideoElement> | undefined {
+    return this.heroVideo;
+  }
+
+  isMuted: boolean = true;
+  // Limite máximo interno do player (5% do ganho do arquivo)
+  readonly TARGET_VOLUME: number = 0.05;
+  get targetVolume(): number {
+    return this.TARGET_VOLUME;
+  }
+  private fadeInterval: any;
 
   readonly heroData = signal<HomeHeroPayload>({
     videoUrl: 'assets/videos/wb-presentation.mp4',
@@ -41,6 +53,52 @@ export class HomeHeroComponent implements OnInit {
   ngOnInit(): void {
     // Carregamento inicial garantido
     this.loadHero(this.translationService.currentLang());
+  }
+
+  ngAfterViewInit(): void {
+    if (this.heroVideo?.nativeElement) {
+      const video = this.heroVideo.nativeElement;
+      // O vídeo inicia mudo por exigência de autoplay dos navegadores
+      video.muted = true;
+      video.volume = 0;
+
+      video.play()?.catch(() => {
+        // Trata exceção de autoplay em navegadores com economia de energia
+      });
+    }
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.fadeInterval);
+  }
+
+  toggleAudio(): void {
+    if (this.heroVideo?.nativeElement) {
+      const video = this.heroVideo.nativeElement;
+      clearInterval(this.fadeInterval);
+
+      if (this.isMuted) {
+        // Desmuta e faz fade-in progressivo até 0.05 no próprio vídeo
+        video.muted = false;
+        this.isMuted = false;
+        let current = 0;
+        video.volume = current;
+
+        this.fadeInterval = setInterval(() => {
+          if (current < this.TARGET_VOLUME) {
+            current = Math.min(this.TARGET_VOLUME, current + 0.02);
+            video.volume = Number(current.toFixed(2));
+          } else {
+            clearInterval(this.fadeInterval);
+          }
+        }, 50); // Transição suave
+      } else {
+        // Muta imediatamente e zera o ganho do player
+        video.muted = true;
+        video.volume = 0;
+        this.isMuted = true;
+      }
+    }
   }
 
   loadHero(lang: string): void {
@@ -74,9 +132,10 @@ export class HomeHeroComponent implements OnInit {
   }
 
   attemptAutoplay(): void {
-    if (this.videoRef?.nativeElement) {
-      const video = this.videoRef.nativeElement;
+    if (this.heroVideo?.nativeElement) {
+      const video = this.heroVideo.nativeElement;
       video.muted = true;
+      video.volume = 0;
       video.playsInline = true;
       const playPromise = video.play();
       if (playPromise !== undefined) {

@@ -177,6 +177,67 @@
   }
 }
 
+/* Controlo de Áudio Editorial (Mute/Unmute) */
+.audio-toggle-btn {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.875rem;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(75, 88, 78, 0.25);
+  border-radius: 9999px;
+  color: #222624;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+  @media (min-width: 768px) {
+    bottom: 6.5rem;
+  }
+
+  &:hover {
+    background: #ffffff;
+    border-color: #4b584e;
+    color: #4b584e;
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 4px 12px rgba(75, 88, 78, 0.15);
+  }
+
+  &:active {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #4b584e;
+    outline-offset: 2px;
+  }
+
+  .audio-icon-wrapper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .audio-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .audio-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    user-select: none;
+  }
+}
+
 /* Indicador de Rolagem */
 .scroll-down-btn {
   position: absolute;

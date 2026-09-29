@@ -42,6 +42,12 @@ public class AuthController {
                 "message", "Passwort erfolgreich zurückgesetzt."
         ));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response) {
+        authService.logout(request, response);
+        return ResponseEntity.noContent().build();
+    }
 }
 
 

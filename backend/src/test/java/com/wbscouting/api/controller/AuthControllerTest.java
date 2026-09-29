@@ -22,6 +22,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -136,6 +138,16 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Deve revogar sessão e retornar HTTP 204 No Content no logout")
+    void shouldLogoutSuccessfully() throws Exception {
+        mockMvc.perform(post("/auth/logout")
+                        .header("Authorization", "Bearer valid-jwt-token"))
+                .andExpect(status().isNoContent());
+
+        verify(authService, times(1)).logout(any(), any());
     }
 }
 

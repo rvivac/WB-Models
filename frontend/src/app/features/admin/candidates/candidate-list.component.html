@@ -1,0 +1,460 @@
+<div class="scouting-desk-container">
+  
+  <!-- TOAST FEEDBACK FLUTUANTE -->
+  @if (toast(); as t) {
+    <div class="toast-notification" [class.toast-success]="t.type === 'success'" [class.toast-error]="t.type === 'error'" [class.toast-info]="t.type === 'info'">
+      <span>{{ t.message }}</span>
+      <button type="button" class="btn-toast-close" (click)="toast.set(null)">&times;</button>
+    </div>
+  }
+
+  <!-- CABEÇALHO EDITORIAL DO SCOUTING DESK -->
+  <header class="scouting-header">
+    <div class="header-titles">
+      <span class="eyebrow-tag">SCOUTING DESK &bull; EAP 4.2.1</span>
+      <h1 class="scouting-title">Triagem de Candidaturas</h1>
+      <p class="scouting-subtitle">
+        Curadoria editorial, biometria e avaliação de novos talentos submetidos pelo portal.
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <button type="button" class="btn-refresh" (click)="loadCandidates()" [disabled]="isLoading()" title="Atualizar listagem">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10" />
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+        </svg>
+        <span>Atualizar</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- BARRA DE CONTROLE: ABAS DE STATUS E BUSCA -->
+  <section class="toolbar-section">
+    <!-- Abas de Status -->
+    <div class="status-tabs-wrapper">
+      @for (tab of statusTabs; track tab.value) {
+        <button
+          type="button"
+          class="status-tab-btn"
+          [class.active]="activeStatusTab() === tab.value"
+          (click)="setStatusTab(tab.value)"
+        >
+          <span>{{ tab.label }}</span>
+          @if (tab.value === 'PENDING') {
+            <span class="tab-badge badge-pending-count">{{ pendingCount() }}</span>
+          } @else if (tab.value === 'APPROVED') {
+            <span class="tab-badge badge-approved-count">{{ approvedCount() }}</span>
+          } @else if (tab.value === 'REJECTED') {
+            <span class="tab-badge badge-rejected-count">{{ rejectedCount() }}</span>
+          }
+        </button>
+      }
+    </div>
+
+    <!-- Campo de Busca Rápida -->
+    <div class="search-box-wrapper">
+      <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Buscar por nome, cidade ou telefone..."
+        [value]="searchTerm()"
+        (input)="onSearchInput($event)"
+      />
+      @if (searchTerm()) {
+        <button type="button" class="clear-search-btn" (click)="searchTerm.set(''); loadCandidates()">
+          &times;
+        </button>
+      }
+    </div>
+  </section>
+
+  <!-- CONTEÚDO PRINCIPAL: GRID DE CARDS 3:4 -->
+  <main class="grid-content-area">
+    
+    @if (isLoading()) {
+      <div class="loading-state-wrapper">
+        <div class="spinner"></div>
+        <p>Carregando dossiês de candidatura...</p>
+      </div>
+    } @else if (candidates().length === 0) {
+      <div class="empty-state-card">
+        <svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="#5F6661" stroke-width="1.2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+        <h3 class="empty-title">Nenhum candidato encontrado</h3>
+        <p class="empty-desc">Não foram encontradas inscrições para o filtro "{{ activeStatusTab() }}" ou termo pesquisado.</p>
+        <button type="button" class="btn-reset-filters" (click)="setStatusTab('ALL'); searchTerm.set(''); loadCandidates()">
+          Limpar Filtros
+        </button>
+      </div>
+    } @else {
+      <div class="candidates-grid">
+        @for (candidate of candidates(); track candidate.id) {
+          <article class="candidate-card" (click)="openDrawer(candidate)">
+            
+            <!-- Foto Principal com Aspect Ratio 3:4 Editorial -->
+            <div class="card-media-wrapper">
+              <img
+                [src]="getMainPhoto(candidate)"
+                [alt]="candidate.fullName"
+                class="candidate-polaroid-photo"
+                loading="lazy"
+              />
+              <div class="media-overlay"></div>
+              
+              <!-- Pílula de Status no Topo do Card -->
+              <div class="card-top-badges">
+                <span class="status-pill" [ngClass]="getStatusBadgeClass(candidate.status)">
+                  {{ getStatusLabel(candidate.status) }}
+                </span>
+
+                @if (candidate.isMinor) {
+                  <span class="minor-pill" title="Candidato menor de 18 anos com autorização de responsável legal">
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                    Menor
+                  </span>
+                }
+              </div>
+            </div>
+
+            <!-- Dados do Candidato -->
+            <div class="card-body">
+              <div class="card-title-row">
+                <h2 class="candidate-name">{{ candidate.fullName }}</h2>
+                <span class="candidate-location">{{ candidate.city }}, {{ candidate.state }}</span>
+              </div>
+
+              <!-- Idade e Tag -->
+              <div class="age-gender-row">
+                <span class="meta-tag">{{ candidate.age ? candidate.age + ' anos' : 'Idade N/I' }}</span>
+                @if (candidate.instagramHandle) {
+                  <span class="meta-tag instagram-tag">{{ candidate.instagramHandle }}</span>
+                }
+              </div>
+
+              <!-- Ficha Métrica Compacta -->
+              <div class="metrics-chip">
+                <span class="metric-item" title="Altura"><strong>Alt:</strong> {{ candidate.height }}cm</span>
+                <span class="metric-separator">&bull;</span>
+                <span class="metric-item" title="Busto / Cintura / Quadril">
+                  <strong>Medidas:</strong> {{ candidate.bust }} | {{ candidate.waist }} | {{ candidate.hips }}
+                </span>
+                @if (candidate.shoes) {
+                  <span class="metric-separator">&bull;</span>
+                  <span class="metric-item" title="Calçado"><strong>Calç:</strong> {{ candidate.shoes }}</span>
+                }
+              </div>
+
+              <!-- Botões de Ação Rápida -->
+              <div class="card-actions" (click)="$event.stopPropagation()">
+                <button
+                  type="button"
+                  class="btn-review"
+                  (click)="openDrawer(candidate)"
+                  title="Abrir dossiê completo"
+                >
+                  Revisar Ficha
+                </button>
+
+                <div class="action-buttons-group">
+                  <button
+                    type="button"
+                    class="btn-quick-approve"
+                    [class.is-active]="candidate.status === 'APPROVED'"
+                    (click)="quickApprove(candidate, $event)"
+                    title="Aprovar candidatura"
+                  >
+                    Aprovar
+                  </button>
+
+                  <button
+                    type="button"
+                    class="btn-quick-reject"
+                    [class.is-active]="candidate.status === 'REJECTED'"
+                    (click)="quickReject(candidate, $event)"
+                    title="Reprovar candidatura"
+                  >
+                    Reprovar
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+          </article>
+        }
+      </div>
+
+      <!-- PAGINAÇÃO -->
+      @if (totalPages() > 1) {
+        <footer class="pagination-footer">
+          <button
+            type="button"
+            class="btn-pagination"
+            [disabled]="currentPage() === 0"
+            (click)="goToPage(currentPage() - 1)"
+          >
+            &larr; Anterior
+          </button>
+
+          <span class="pagination-indicator">
+            Página <strong>{{ currentPage() + 1 }}</strong> de <strong>{{ totalPages() }}</strong>
+            <small>({{ totalElements() }} candidatos)</small>
+          </span>
+
+          <button
+            type="button"
+            class="btn-pagination"
+            [disabled]="currentPage() >= totalPages() - 1"
+            (click)="goToPage(currentPage() + 1)"
+          >
+            Próxima &rarr;
+          </button>
+        </footer>
+      }
+    }
+
+  </main>
+
+  <!-- MODAL / DRAWER LATERAL DE AVALIAÇÃO DETALHADA -->
+  @if (selectedCandidate(); as candidate) {
+    <div class="drawer-backdrop" (click)="closeDrawer()">
+      <div class="drawer-panel" (click)="$event.stopPropagation()">
+        
+        <!-- Cabeçalho do Drawer -->
+        <div class="drawer-header">
+          <div class="drawer-header-left">
+            <span class="drawer-eyebrow">DOSSIÊ DO CANDIDATO</span>
+            <h2 class="drawer-title">{{ candidate.fullName }}</h2>
+            <div class="drawer-subtags">
+              <span class="status-pill" [ngClass]="getStatusBadgeClass(candidate.status)">
+                {{ getStatusLabel(candidate.status) }}
+              </span>
+              <span class="drawer-date">Enviado em {{ candidate.createdAt | date:'dd/MM/yyyy às HH:mm' }}</span>
+            </div>
+          </div>
+          
+          <button type="button" class="btn-drawer-close" (click)="closeDrawer()" aria-label="Fechar dossiê">
+            &times;
+          </button>
+        </div>
+
+        <!-- Conteúdo Rolável do Drawer -->
+        <div class="drawer-body">
+          
+          <!-- GALERIA DE POLAROIDS EM ALTA RESOLUÇÃO -->
+          <section class="polaroid-gallery-section">
+            <h3 class="section-heading">Galeria de Polaroids &amp; Book</h3>
+            
+            @if (candidate.photos && candidate.photos.length > 0) {
+              <!-- Foto em Exibição Principal -->
+              <div class="featured-polaroid-container">
+                <img
+                  [src]="candidate.photos[activePhotoIndex()].url"
+                  [alt]="candidate.fullName + ' - ' + getPhotoTypeLabel(candidate.photos[activePhotoIndex()].type)"
+                  class="featured-polaroid-image"
+                />
+                <span class="polaroid-type-tag">
+                  {{ getPhotoTypeLabel(candidate.photos[activePhotoIndex()].type) }}
+                </span>
+              </div>
+
+              <!-- Miniaturas para Alternar Fotos -->
+              <div class="polaroid-thumbnails-bar">
+                @for (photo of candidate.photos; track photo.id; let idx = $index) {
+                  <button
+                    type="button"
+                    class="thumb-btn"
+                    [class.active]="activePhotoIndex() === idx"
+                    (click)="selectPhoto(idx)"
+                  >
+                    <img [src]="photo.url" [alt]="'Miniatura ' + (idx + 1)" class="thumb-img" />
+                    <span class="thumb-label">{{ getPhotoTypeLabel(photo.type) }}</span>
+                  </button>
+                }
+              </div>
+            } @else {
+              <div class="no-photos-alert">
+                <p>Nenhuma foto anexada a esta candidatura.</p>
+              </div>
+            }
+          </section>
+
+          <!-- BIOMETRIA & MEDIDAS EDITORIAIS -->
+          <section class="biometrics-section">
+            <h3 class="section-heading">Ficha Antropométrica &amp; Biometria</h3>
+            <div class="biometrics-grid">
+              <div class="bio-card">
+                <span class="bio-label">Altura</span>
+                <span class="bio-val">{{ candidate.height }} cm</span>
+              </div>
+              <div class="bio-card">
+                <span class="bio-label">Busto / Tórax</span>
+                <span class="bio-val">{{ candidate.bust }} cm</span>
+              </div>
+              <div class="bio-card">
+                <span class="bio-label">Cintura</span>
+                <span class="bio-val">{{ candidate.waist }} cm</span>
+              </div>
+              <div class="bio-card">
+                <span class="bio-label">Quadril</span>
+                <span class="bio-val">{{ candidate.hips }} cm</span>
+              </div>
+              <div class="bio-card">
+                <span class="bio-label">Calçado</span>
+                <span class="bio-val">{{ candidate.shoes || 'N/I' }}</span>
+              </div>
+              <div class="bio-card">
+                <span class="bio-label">Olhos</span>
+                <span class="bio-val">{{ candidate.eyeColor || 'N/I' }}</span>
+              </div>
+              <div class="bio-card">
+                <span class="bio-label">Cabelos</span>
+                <span class="bio-val">{{ candidate.hairColor || 'N/I' }}</span>
+              </div>
+              <div class="bio-card">
+                <span class="bio-label">Gênero</span>
+                <span class="bio-val">{{ candidate.gender || 'Feminino' }}</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- DADOS PESSOAIS & CONTATO -->
+          <section class="contact-section">
+            <h3 class="section-heading">Contato &amp; Localização</h3>
+            <div class="contact-details-list">
+              <div class="detail-row">
+                <span class="detail-label">E-mail:</span>
+                <a [href]="'mailto:' + candidate.email" class="detail-link">{{ candidate.email }}</a>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Telefone / WhatsApp:</span>
+                <a [href]="'tel:' + candidate.phone" class="detail-link">{{ candidate.phone }}</a>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Cidade / Estado:</span>
+                <span class="detail-val">{{ candidate.city }} - {{ candidate.state }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Data de Nasc.:</span>
+                <span class="detail-val">{{ candidate.birthDate | date:'dd/MM/yyyy' }} ({{ candidate.age }} anos)</span>
+              </div>
+              @if (candidate.instagramHandle) {
+                <div class="detail-row">
+                  <span class="detail-label">Instagram:</span>
+                  <a [href]="'https://instagram.com/' + candidate.instagramHandle.replace('@', '')" target="_blank" rel="noopener" class="detail-link">
+                    {{ candidate.instagramHandle }}
+                  </a>
+                </div>
+              }
+            </div>
+          </section>
+
+          <!-- DADOS DO RESPONSÁVEL LEGAL (SE MENOR DE IDADE) -->
+          @if (candidate.isMinor) {
+            <section class="guardian-section">
+              <div class="guardian-badge-header">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#4B584E" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+                <h4>Candidato Menor de 18 Anos &bull; Responsável Legal Registrado</h4>
+              </div>
+
+              <div class="guardian-details">
+                <div class="detail-row">
+                  <span class="detail-label">Nome do Responsável:</span>
+                  <span class="detail-val"><strong>{{ candidate.guardianName || 'Declarado na Inscrição' }}</strong></span>
+                </div>
+                @if (candidate.guardianPhone) {
+                  <div class="detail-row">
+                    <span class="detail-label">Telefone do Responsável:</span>
+                    <a [href]="'tel:' + candidate.guardianPhone" class="detail-link">{{ candidate.guardianPhone }}</a>
+                  </div>
+                }
+                @if (candidate.guardianEmail) {
+                  <div class="detail-row">
+                    <span class="detail-label">E-mail do Responsável:</span>
+                    <a [href]="'mailto:' + candidate.guardianEmail" class="detail-link">{{ candidate.guardianEmail }}</a>
+                  </div>
+                }
+                <div class="lgpd-confirm-pill">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#16a34a" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  <span>Termo de Representação e Conformidade LGPD Validada</span>
+                </div>
+              </div>
+            </section>
+          }
+
+          <!-- FORMULÁRIO DE DECISÃO DO SCOUT & OBSERVAÇÕES -->
+          <section class="scout-decision-section">
+            <h3 class="section-heading">Avaliação Técnica do Scout</h3>
+            
+            <div class="notes-form-group">
+              <label for="scoutNotes" class="notes-label">
+                Observações Internas da Banca de Curadoria
+              </label>
+              <textarea
+                id="scoutNotes"
+                class="notes-textarea"
+                rows="3"
+                [(ngModel)]="scoutNotes"
+                placeholder="Insira notas sobre potencial de passarela, perfil comercial, referências estéticas ou recomendações de desenvolvimento..."
+              ></textarea>
+              <div class="notes-actions">
+                <button
+                  type="button"
+                  class="btn-save-notes"
+                  (click)="saveScoutNotes()"
+                  [disabled]="isActionLoading()"
+                >
+                  Salvar Observações
+                </button>
+              </div>
+            </div>
+
+            <!-- BOTÕES DE DESPACHO E TRANSIÇÃO DE STATUS -->
+            <div class="decision-actions-panel">
+              <button
+                type="button"
+                class="btn-promote-elenco"
+                (click)="promoteToElenco()"
+                [disabled]="isActionLoading() || candidate.convertedToModelId != null"
+                title="Aprovar e cadastrar como modelo oficial"
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                <span>{{ candidate.convertedToModelId ? 'Promovido a Modelo Oficial' : 'Aprovar para Elenco' }}</span>
+              </button>
+
+              <button
+                type="button"
+                class="btn-decline-candidate"
+                (click)="quickReject(candidate)"
+                [disabled]="isActionLoading() || candidate.status === 'REJECTED'"
+              >
+                Declinar Candidatura
+              </button>
+            </div>
+
+          </section>
+
+        </div>
+
+      </div>
+    </div>
+  }
+
+</div>

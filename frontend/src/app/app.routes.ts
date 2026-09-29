@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth.guard';
+import { adminAuthGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   // Rotas Públicas Institucionais
@@ -72,57 +72,69 @@ export const routes: Routes = [
     title: 'Contato & Casting Comercial | WB Agency'
   },
 
-  // Rotas de Autenticação Administrativa
+  // Rota de Login Administrativo (Pública)
+  {
+    path: 'login',
+    redirectTo: 'admin/login',
+    pathMatch: 'full'
+  },
   {
     path: 'admin/login',
-    loadComponent: () => import('./features/admin/auth/login/login.component').then(m => m.LoginComponent),
+    loadComponent: () => import('./features/admin/login/admin-login.component').then(m => m.AdminLoginComponent),
     title: 'Acesso Administrativo | WB Agency'
   },
   {
     path: 'admin/forgot-password',
-    loadComponent: () => import('./features/admin/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent),
-    title: 'Recuperação de Senha | WB Agency'
+    loadComponent: () => import('./features/admin/auth/forgot-password.component').then(m => m.ForgotPasswordComponent),
+    title: 'Recuperação de Acesso | WB Agency'
   },
   {
     path: 'admin/reset-password',
-    loadComponent: () => import('./features/admin/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent),
+    loadComponent: () => import('./features/admin/auth/reset-password.component').then(m => m.ResetPasswordComponent),
     title: 'Redefinição de Senha | WB Agency'
   },
 
-  // Rotas Protegidas do Backoffice (CMS)
+  // Rotas Administrativas Protegidas (Backoffice / CMS)
   {
     path: 'admin',
-    redirectTo: 'admin/dashboard',
-    pathMatch: 'full'
-  },
-  {
-    path: 'admin/dashboard',
-    canActivate: [authGuard],
-    loadComponent: () => import('./features/admin/dashboard/dashboard.component').then(m => m.DashboardComponent),
-    title: 'Painel de Controle | WB Agency'
-  },
-  {
-    path: 'admin/models',
-    canActivate: [authGuard],
-    loadComponent: () => import('./features/admin/models-mgmt/models-mgmt.component').then(m => m.ModelsMgmtComponent),
-    title: 'Gestão de Modelos | WB Agency'
-  },
-  {
-    path: 'admin/candidates',
-    canActivate: [authGuard],
-    loadComponent: () => import('./features/admin/candidates-mgmt/candidates-mgmt.component').then(m => m.CandidatesMgmtComponent),
-    title: 'Triagem de Candidaturas | WB Agency'
-  },
-  {
-    path: 'admin/submissions',
-    redirectTo: 'admin/candidates',
-    pathMatch: 'full'
-  },
-  {
-    path: 'admin/content',
-    canActivate: [authGuard],
-    loadComponent: () => import('./features/admin/content-mgmt/content-mgmt.component').then(m => m.ContentMgmtComponent),
-    title: 'Gestão de Conteúdo & Vídeo | WB Agency'
+    canActivate: [adminAuthGuard],
+    children: [
+      {
+        path: '',
+        redirectTo: 'candidatos',
+        pathMatch: 'full'
+      },
+      {
+        path: 'candidatos',
+        loadComponent: () => import('./features/admin/candidates/candidate-list.component').then(m => m.CandidateListComponent),
+        title: 'Triagem de Candidaturas | WB Agency'
+      },
+      {
+        path: 'candidates',
+        redirectTo: 'candidatos',
+        pathMatch: 'full'
+      },
+      {
+        path: 'submissions',
+        redirectTo: 'candidatos',
+        pathMatch: 'full'
+      },
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./features/admin/dashboard/dashboard.component').then(m => m.DashboardComponent),
+        title: 'Painel de Controle | WB Agency'
+      },
+      {
+        path: 'models',
+        loadComponent: () => import('./features/admin/models-mgmt/models-mgmt.component').then(m => m.ModelsMgmtComponent),
+        title: 'Gestão de Modelos | WB Agency'
+      },
+      {
+        path: 'content',
+        loadComponent: () => import('./features/admin/content-mgmt/content-mgmt.component').then(m => m.ContentMgmtComponent),
+        title: 'Gestão de Conteúdo & Vídeo | WB Agency'
+      }
+    ]
   },
 
   // Fallback para rota inicial

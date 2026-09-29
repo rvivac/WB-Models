@@ -24,4 +24,11 @@ public class ResetPasswordRequestDto {
             message = "Das Passwort muss mindestens einen Großbuchstaben, einen Kleinbuchstaben und eine Ziffer oder ein Sonderzeichen enthalten."
     )
     private String newPassword;
+
+    private String confirmPassword;
+
+    public ResetPasswordRequestDto(String token, String newPassword) {
+        this.token = token;
+        this.newPassword = newPassword;
+    }
 }

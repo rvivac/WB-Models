@@ -17,5 +17,7 @@ public interface AuthService {
     AuthDTO.MessageResponse forgotPassword(AuthDTO.ForgotPasswordRequest request);
 
     AuthDTO.MessageResponse resetPassword(AuthDTO.ResetPasswordRequest request);
+
+    void logout(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response);
 }
 

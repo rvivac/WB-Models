@@ -1,0 +1,408 @@
+.login-page-container {
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #FBFBF9;
+  padding: clamp(0.5rem, 2vh, 2rem) clamp(0.75rem, 3vw, 1.5rem);
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.login-card {
+  width: 100%;
+  max-width: clamp(20rem, 92vw, 27.5rem);
+  background-color: #ffffff;
+  border: 1px solid #E8EBE8;
+  padding: clamp(1.25rem, 3.5vh, 2.5rem) clamp(1.25rem, 3.5vw, 2.25rem);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  border-radius: 0;
+  box-sizing: border-box;
+  margin: auto;
+
+  @media (min-width: 640px) {
+    padding: clamp(1.5rem, 3.5vh, 2.75rem) clamp(1.5rem, 3.5vw, 2.5rem);
+  }
+}
+
+.brand-header {
+  text-align: center;
+  margin-bottom: clamp(0.75rem, 2.2vh, 1.75rem);
+}
+
+.admin-brand-logo {
+  height: clamp(65px, 22vh, 270px);
+  max-height: 270px;
+  width: auto;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: clamp(0.5rem, 1.6vh, 1.25rem);
+  object-fit: contain;
+  display: block;
+  transition: all 0.2s ease;
+}
+
+.brand-title {
+  font-family: var(--font-serif, "Cormorant Garamond", Georgia, serif);
+  font-size: clamp(1.15rem, 2.2vh, 1.35rem);
+  line-height: 1.25;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #222624;
+  margin: 0 0 0.25rem 0;
+  font-weight: 500;
+}
+
+.brand-subtitle {
+  font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, sans-serif);
+  font-size: clamp(0.65rem, 1.1vh, 0.725rem);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #5F6661;
+  margin: 0;
+}
+
+.alert-error {
+  margin-bottom: clamp(0.75rem, 1.5vh, 1.25rem);
+  padding: 0.75rem 1rem;
+  background-color: #fef2f2;
+  border-left: 3px solid #dc2626;
+  color: #b91c1c;
+  font-size: 0.775rem;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.65rem, 1.8vh, 1.25rem);
+}
+
+.form-field-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.field-label {
+  display: block;
+  font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, sans-serif);
+  font-size: clamp(0.65rem, 1.1vh, 0.725rem);
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #222624;
+  margin-bottom: clamp(0.2rem, 0.5vh, 0.45rem);
+}
+
+.field-input {
+  width: 100%;
+  padding: clamp(0.55rem, 1.2vh, 0.85rem) 1rem;
+  background-color: #FBFBF9;
+  border: 1px solid #E8EBE8;
+  color: #222624;
+  font-size: clamp(0.8125rem, 1.3vh, 0.875rem);
+  font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, sans-serif);
+  border-radius: 0;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #4B584E;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 1px #4B584E;
+  }
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+}
+
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.field-input-password {
+  padding-right: 2.75rem;
+}
+
+.password-visibility-btn {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  padding: 0 0.85rem;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5F6661;
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #4B584E;
+  }
+
+  svg {
+    display: block;
+  }
+}
+
+.field-error {
+  display: block;
+  font-size: 0.725rem;
+  color: #dc2626;
+  margin-top: 0.35rem;
+  letter-spacing: 0.02em;
+}
+
+.form-options-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: clamp(0.15rem, 0.4vh, 0.35rem) 0;
+}
+
+.remember-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: clamp(0.725rem, 1.2vh, 0.775rem);
+  color: #5F6661;
+  user-select: none;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #222624;
+  }
+}
+
+.checkbox-input {
+  width: 0.95rem;
+  height: 0.95rem;
+  accent-color: #4B584E;
+  cursor: pointer;
+  border: 1px solid #E8EBE8;
+  border-radius: 2px;
+}
+
+.forgot-link {
+  font-size: clamp(0.725rem, 1.2vh, 0.775rem);
+  font-weight: 500;
+  color: #4B584E;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #38433B;
+    text-decoration: underline;
+  }
+}
+
+.btn-login-submit {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #4B584E !important;
+  color: #ffffff !important;
+  border: 1px solid #4B584E !important;
+  padding: clamp(0.6rem, 1.4vh, 0.9rem) 1.5rem !important;
+  min-height: clamp(38px, 4.5vh, 46px);
+  font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, sans-serif) !important;
+  font-size: clamp(0.75rem, 1.3vh, 0.8125rem) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.25em !important;
+  text-transform: uppercase !important;
+  border-radius: 0 !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 14px rgba(75, 88, 78, 0.25) !important;
+  transition: all 0.2s ease !important;
+  margin-top: clamp(0.2rem, 0.6vh, 0.5rem);
+  box-sizing: border-box;
+
+  span {
+    color: #ffffff !important;
+  }
+
+  &:hover:not(:disabled) {
+    background-color: #38433B !important;
+    border-color: #38433B !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(75, 88, 78, 0.35) !important;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+  }
+}
+
+.loading-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+  width: 1rem;
+  height: 1rem;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.opacity-25 {
+  opacity: 0.25;
+}
+
+.opacity-75 {
+  opacity: 0.75;
+}
+
+.card-footer {
+  margin-top: clamp(0.75rem, 1.8vh, 1.75rem);
+  text-align: center;
+  border-top: 1px solid #E8EBE8;
+  padding-top: clamp(0.6rem, 1.4vh, 1.25rem);
+}
+
+.back-link {
+  font-size: clamp(0.675rem, 1.1vh, 0.725rem);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #5F6661;
+  text-decoration: none;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #4B584E;
+  }
+}
+
+/* Otimizações Dinâmicas para Telas com Altura Reduzida (Laptops, Janelas Reduzidas, Tablets) */
+@media (max-height: 800px) {
+  .login-page-container {
+    padding: 0.75rem 1rem;
+  }
+
+  .login-card {
+    padding: 1.5rem 1.75rem;
+  }
+
+  .admin-brand-logo {
+    height: clamp(55px, 18vh, 160px);
+    margin-bottom: 0.65rem;
+  }
+
+  .brand-header {
+    margin-bottom: 0.85rem;
+  }
+
+  .login-form {
+    gap: 0.75rem;
+  }
+
+  .field-input {
+    padding: 0.6rem 0.85rem;
+  }
+
+  .card-footer {
+    margin-top: 0.85rem;
+    padding-top: 0.75rem;
+  }
+}
+
+@media (max-height: 650px) {
+  .login-page-container {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .login-card {
+    padding: 1rem 1.25rem;
+    max-width: 25rem;
+  }
+
+  .admin-brand-logo {
+    height: clamp(45px, 14vh, 90px);
+    margin-bottom: 0.4rem;
+  }
+
+  .brand-title {
+    font-size: 1.1rem;
+    margin: 0;
+  }
+
+  .brand-subtitle {
+    font-size: 0.625rem;
+  }
+
+  .brand-header {
+    margin-bottom: 0.6rem;
+  }
+
+  .login-form {
+    gap: 0.55rem;
+  }
+
+  .field-label {
+    margin-bottom: 0.2rem;
+    font-size: 0.625rem;
+  }
+
+  .field-input {
+    padding: 0.45rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .btn-login-submit {
+    padding: 0.55rem 1rem !important;
+    min-height: 38px;
+    margin-top: 0.2rem;
+  }
+
+  .card-footer {
+    margin-top: 0.6rem;
+    padding-top: 0.5rem;
+  }
+}
+
+/* Otimização para Telas Mobile Estreitas */
+@media (max-width: 480px) {
+  .login-page-container {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .login-card {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .form-options-row {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}

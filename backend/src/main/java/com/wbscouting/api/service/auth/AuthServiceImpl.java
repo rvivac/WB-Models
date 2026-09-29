@@ -32,6 +32,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final EmailService emailService;
+    private final com.wbscouting.api.security.TokenBlacklistService tokenBlacklistService;
 
     @Override
     @Transactional(readOnly = true)
@@ -103,6 +104,12 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidTokenException("Ungültiges oder abgelaufenes Token.");
         }
 
+        if (request.getConfirmPassword() != null && !request.getConfirmPassword().isBlank()) {
+            if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+                throw new IllegalArgumentException("As senhas não coincidem.");
+            }
+        }
+
         validatePasswordComplexity(request.getNewPassword());
 
         admin.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
@@ -146,5 +153,44 @@ public class AuthServiceImpl implements AuthService {
     public AuthDTO.MessageResponse resetPassword(AuthDTO.ResetPasswordRequest request) {
         resetPassword(new ResetPasswordRequestDto(request.getToken(), request.getNewPassword()));
         return new AuthDTO.MessageResponse("Passwort erfolgreich zurückgesetzt.");
+    }
+
+    @Override
+    public void logout(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response) {
+        String bearerToken = request.getHeader("Authorization");
+        if (org.springframework.util.StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            String token = bearerToken.substring(7).trim();
+            try {
+                java.util.Date expiration = jwtService.extractExpiration(token);
+                tokenBlacklistService.blacklistToken(token, expiration);
+            } catch (Exception ex) {
+                tokenBlacklistService.blacklistToken(token, null);
+            }
+        }
+
+        // Limpeza de cookies de sessão / refresh token
+        if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if (cookie.getName().equalsIgnoreCase("refreshToken") ||
+                        cookie.getName().equalsIgnoreCase("wb_refresh_token")) {
+                    cookie.setValue("");
+                    cookie.setPath("/");
+                    cookie.setMaxAge(0);
+                    cookie.setHttpOnly(true);
+                    response.addCookie(cookie);
+                }
+            }
+        }
+
+        org.springframework.http.ResponseCookie deleteCookie = org.springframework.http.ResponseCookie.from("wb_refresh_token", "")
+                .path("/")
+                .maxAge(0)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Strict")
+                .build();
+        response.addHeader(org.springframework.http.HttpHeaders.SET_COOKIE, deleteCookie.toString());
+
+        log.info("Sessão administrativa encerrada e credenciais revogadas com sucesso (Hard Logout).");
     }
 }

@@ -1,0 +1,67 @@
+<header class="w-full h-20 bg-white border-b border-[#E8EBE8] px-6 flex items-center justify-between">
+  <!-- Identificação da Seção -->
+  <div class="flex items-center gap-4">
+    <img src="assets/images/logo-wb-agency.jpeg" alt="WB Agency" class="h-16 object-contain">
+    <span class="text-xs uppercase tracking-[0.2em] text-[#5F6661] border-l border-[#E8EBE8] pl-4">
+      Painel Administrativo
+    </span>
+  </div>
+
+  <!-- Ações e Deslogar Seguro -->
+  <div class="flex items-center gap-4">
+    <span class="text-xs font-sans text-[#222624] tracking-wide hidden md:inline">
+      {{ (authService.currentUser())?.email || 'admin@wbscouting.com' }}
+    </span>
+
+    <!-- Botão de Deslogar Seguro -->
+    <button
+      type="button"
+      (click)="confirmLogout()"
+      class="flex items-center gap-2 px-3 py-1.5 border border-[#E8EBE8] text-[#5F6661] hover:text-red-700 hover:border-red-200 hover:bg-red-50 text-[11px] uppercase tracking-[0.15em] transition-all cursor-pointer rounded-none"
+      title="Encerrar sessão com segurança e destruir credenciais"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+      </svg>
+      <span>Sair com Segurança</span>
+    </button>
+  </div>
+</header>
+
+<!-- Modal de Confirmação Rápida de Saída Segura -->
+@if (showConfirmModal()) {
+  <div class="modal-backdrop fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="modal-card bg-white border border-[#E8EBE8] p-6 max-w-sm w-full shadow-lg rounded-none">
+      <div class="flex items-center gap-3 mb-4 text-[#222624]">
+        <div class="p-2 bg-red-50 border border-red-200 text-red-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-sm font-semibold uppercase tracking-wider text-[#222624]">Encerrar Sessão</h3>
+          <p class="text-xs text-[#5F6661] mt-0.5">Deseja realmente sair do painel?</p>
+        </div>
+      </div>
+      <p class="text-xs text-[#5F6661] leading-relaxed mb-6">
+        Todas as credenciais locais serão destruídas e a sessão será revogada no servidor com segurança defensiva.
+      </p>
+      <div class="flex justify-end gap-3 text-xs uppercase tracking-wider">
+        <button
+          type="button"
+          (click)="cancelLogout()"
+          class="px-4 py-2 border border-[#E8EBE8] text-[#5F6661] hover:bg-[#FBFBF9] transition-all cursor-pointer rounded-none"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="executeLogout()"
+          class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white transition-all cursor-pointer rounded-none border-0"
+        >
+          Confirmar Saída
+        </button>
+      </div>
+    </div>
+  </div>
+}

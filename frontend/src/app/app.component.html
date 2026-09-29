@@ -1,5 +1,7 @@
 @if (!isAdminRoute()) {
   <app-header></app-header>
+} @else if (showAdminHeader()) {
+  <app-admin-header></app-admin-header>
 }
 
 <main class="app-main-content" [class.admin-mode]="isAdminRoute()">

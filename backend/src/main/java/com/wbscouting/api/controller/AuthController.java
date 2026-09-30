@@ -31,7 +31,7 @@ public class AuthController {
     public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDto request) {
         authService.processForgotPassword(request);
         return ResponseEntity.ok(Map.of(
-                "message", "Wenn die E-Mail im System registriert ist, wurde ein Wiederherstellungslink gesendet."
+                "message", "Se o e-mail informado estiver cadastrado em nosso sistema, as instruções para redefinição de senha serão enviadas em instantes."
         ));
     }
 
@@ -39,7 +39,7 @@ public class AuthController {
     public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequestDto request) {
         authService.resetPassword(request);
         return ResponseEntity.ok(Map.of(
-                "message", "Passwort erfolgreich zurückgesetzt."
+                "message", "Senha redefinida com sucesso."
         ));
     }
 

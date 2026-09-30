@@ -27,6 +27,7 @@
           <li><a routerLink="/models/female">{{ 'nav.female' | translate }}</a></li>
           <li><a routerLink="/models/male">{{ 'nav.male' | translate }}</a></li>
           <li><a routerLink="/models/stars">{{ 'nav.stars' | translate }}</a></li>
+          <li><a routerLink="/sobre">{{ 'nav.about' | translate }}</a></li>
           <li><a routerLink="/apply">{{ 'nav.apply' | translate }}</a></li>
           <li><a routerLink="/contact">{{ 'nav.contact' | translate }}</a></li>
         </ul>
@@ -71,7 +72,6 @@
         <ul>
           <li><a routerLink="/contact">Imprensa &amp; Booking</a></li>
           <li><a routerLink="/apply">Inscrição de Novos Talentos</a></li>
-          <li><a routerLink="/admin/login" class="admin-link">Acesso Administrativo (CMS)</a></li>
         </ul>
       </div>
     </div>
@@ -80,7 +80,11 @@
   <div class="footer-bottom">
     <div class="container bottom-inner">
       <p>&copy; {{ currentYear }} {{ 'footer.rights' | translate }}</p>
-      <p class="credits">{{ 'footer.credits' | translate }}</p>
+      <p class="credits">
+        <a href="https://www.rvivacguild.com.br" target="_blank" rel="noopener noreferrer" class="credits-link">
+          {{ 'footer.credits' | translate }}
+        </a>
+      </p>
     </div>
   </div>
 </footer>

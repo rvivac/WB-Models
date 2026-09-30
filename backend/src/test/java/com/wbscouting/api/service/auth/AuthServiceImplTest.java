@@ -91,7 +91,7 @@ class AuthServiceImplTest {
 
         assertThatThrownBy(() -> authService.login(request))
                 .isInstanceOf(BadCredentialsException.class)
-                .hasMessageContaining("Email ou senha inválidos.");
+                .hasMessageContaining("Credenciais inválidas. Verifique seu e-mail e senha.");
 
         verify(jwtService, never()).generateToken(any());
     }
@@ -106,7 +106,7 @@ class AuthServiceImplTest {
 
         assertThatThrownBy(() -> authService.login(request))
                 .isInstanceOf(BadCredentialsException.class)
-                .hasMessageContaining("Email ou senha inválidos.");
+                .hasMessageContaining("Credenciais inválidas. Verifique seu e-mail e senha.");
 
         verify(jwtService, never()).generateToken(any());
     }
@@ -169,7 +169,7 @@ class AuthServiceImplTest {
 
         assertThatThrownBy(() -> authService.resetPassword(request))
                 .isInstanceOf(com.wbscouting.api.exception.InvalidTokenException.class)
-                .hasMessageContaining("Ungültiges oder abgelaufenes Token.");
+                .hasMessageContaining("O link de redefinição de senha é inválido ou expirou.");
 
         verify(adminRepository, never()).save(any());
     }
@@ -183,7 +183,7 @@ class AuthServiceImplTest {
 
         assertThatThrownBy(() -> authService.resetPassword(request))
                 .isInstanceOf(com.wbscouting.api.exception.InvalidTokenException.class)
-                .hasMessageContaining("Ungültiges oder abgelaufenes Token.");
+                .hasMessageContaining("O link de redefinição de senha é inválido ou expirou.");
     }
 }
 

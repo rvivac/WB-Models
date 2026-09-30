@@ -76,6 +76,7 @@ public class CandidateAdminController {
         return ResponseEntity.ok(updated);
     }
 
+    @Deprecated(since = "1.1.0", forRemoval = true)
     @PostMapping({"/{id}/promote-to-model", "/{id}/convert-to-model", "/{id}/promote", "/{id}/convert"})
     public ResponseEntity<CandidateSubmissionResponseDto> promoteToModel(
             @PathVariable UUID id,

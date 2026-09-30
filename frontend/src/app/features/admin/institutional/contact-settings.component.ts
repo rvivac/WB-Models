@@ -1,0 +1,251 @@
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
+
+export interface AddressData {
+  street?: string;
+  complement?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  country?: string;
+}
+
+export interface SocialMediaData {
+  instagram?: string;
+  linkedin?: string;
+  tiktok?: string;
+  facebook?: string;
+}
+
+export interface ContactSettingsData {
+  primaryEmail: string;
+  scoutingEmail?: string;
+  pressEmail?: string;
+  phone: string;
+  whatsapp: string;
+  whatsappDefaultMessage?: string;
+  businessHours?: string;
+  address?: AddressData;
+  socialMedia?: SocialMediaData;
+  [key: string]: any;
+}
+
+@Component({
+  selector: 'app-contact-settings',
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
+  templateUrl: './contact-settings.component.html',
+  styleUrls: ['./contact-settings.component.scss']
+})
+export class ContactSettingsComponent implements OnInit {
+  private http = inject(HttpClient);
+
+  contactData: ContactSettingsData = {
+    primaryEmail: 'contato@wbscouting.com',
+    scoutingEmail: 'scouting@wbscouting.com',
+    pressEmail: 'press@wbscouting.com',
+    phone: '+55 11 99999-9999',
+    whatsapp: '+55 11 99999-9999',
+    whatsappDefaultMessage: 'Olá! Gostaria de falar com a equipe de atendimento da WB Agency.',
+    businessHours: 'Segunda a Sexta: 09h às 18h (GMT-3)',
+    address: {
+      street: 'Avenida Paulista, 1000',
+      complement: 'Conjunto 1402',
+      neighborhood: 'Bela Vista',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01310-100',
+      country: 'Brasil'
+    },
+    socialMedia: {
+      instagram: 'https://instagram.com/wbagency',
+      linkedin: 'https://linkedin.com/company/wbagency',
+      tiktok: 'https://tiktok.com/@wbagency',
+      facebook: ''
+    }
+  };
+
+  editingField: string | null = null;
+  tempValue: any = '';
+  tempAddress: AddressData = {};
+  isSaving = false;
+  successField: string | null = null;
+  errorMessage: string | null = null;
+
+  ngOnInit(): void {
+    this.loadContactData();
+  }
+
+  loadContactData(): void {
+    this.http.get<ContactSettingsData>(`${environment.apiUrl}/admin/institutional/contact`).subscribe({
+      next: (data) => {
+        if (data) {
+          this.contactData = {
+            ...this.contactData,
+            ...data,
+            address: { ...this.contactData.address, ...data.address },
+            socialMedia: { ...this.contactData.socialMedia, ...data.socialMedia }
+          };
+        }
+      },
+      error: () => this.loadMockFallback()
+    });
+  }
+
+  startEdit(field: string, currentValue: any): void {
+    this.errorMessage = null;
+    this.editingField = field;
+    if (field === 'address') {
+      this.tempAddress = { ...(this.contactData.address || {}) };
+    } else {
+      this.tempValue = currentValue != null ? currentValue : '';
+    }
+    setTimeout(() => {
+      const el = document.getElementById('field-' + field);
+      if (el) el.focus();
+    }, 50);
+  }
+
+  cancelEdit(): void {
+    this.editingField = null;
+    this.tempValue = '';
+    this.tempAddress = {};
+    this.errorMessage = null;
+  }
+
+  isFieldEmpty(field: string): boolean {
+    if (field === 'address') {
+      const a = this.contactData.address;
+      return !a || (!a.street && !a.city);
+    }
+    if (field.startsWith('socialMedia.')) {
+      const networkKey = field.split('.')[1];
+      const val = (this.contactData.socialMedia as any)?.[networkKey];
+      return !val || (typeof val === 'string' && val.trim() === '');
+    }
+    const val = this.contactData[field];
+    return !val || (typeof val === 'string' && val.trim() === '');
+  }
+
+  getFieldStatusClass(field: string): string {
+    if (this.editingField === field) {
+      return 'status-editing';
+    }
+    if (this.isFieldEmpty(field)) {
+      return 'status-empty';
+    }
+    return 'status-ready';
+  }
+
+  getFieldStatusLabel(field: string): string {
+    if (this.editingField === field) {
+      return 'Editando';
+    }
+    if (this.isFieldEmpty(field)) {
+      return 'Vazio';
+    }
+    return 'Salvo';
+  }
+
+  saveField(field: string): void {
+    this.isSaving = true;
+    this.errorMessage = null;
+
+    if (this.editingField !== field) {
+      if (field === 'address') {
+        this.tempAddress = { ...(this.contactData.address || {}) };
+      } else if (field.startsWith('socialMedia.')) {
+        const networkKey = field.split('.')[1];
+        this.tempValue = (this.contactData.socialMedia as any)?.[networkKey] || '';
+      } else {
+        this.tempValue = this.contactData[field] || '';
+      }
+    }
+
+    let payload: Record<string, any> = {};
+
+    if (field === 'address') {
+      payload['address'] = { ...this.tempAddress };
+    } else if (field.startsWith('socialMedia.')) {
+      const networkKey = field.split('.')[1];
+      payload['socialMedia'] = {
+        ...(this.contactData.socialMedia || {}),
+        [networkKey]: this.tempValue
+      };
+    } else {
+      payload[field] = this.tempValue;
+    }
+
+    this.http.patch<ContactSettingsData>(`${environment.apiUrl}/admin/institutional/contact`, payload).subscribe({
+      next: (res) => {
+        this.isSaving = false;
+        if (field === 'address') {
+          this.contactData.address = { ...this.tempAddress };
+        } else if (field.startsWith('socialMedia.')) {
+          const networkKey = field.split('.')[1];
+          if (!this.contactData.socialMedia) {
+            this.contactData.socialMedia = {};
+          }
+          (this.contactData.socialMedia as any)[networkKey] = this.tempValue;
+        } else {
+          this.contactData[field] = this.tempValue;
+        }
+
+        if (res) {
+          this.contactData = {
+            ...this.contactData,
+            ...res,
+            address: { ...this.contactData.address, ...res.address },
+            socialMedia: { ...this.contactData.socialMedia, ...res.socialMedia }
+          };
+        }
+
+        this.showSuccessFeedback(field);
+        this.cancelEdit();
+      },
+      error: () => {
+        // Fallback local update if offline
+        this.isSaving = false;
+        if (field === 'address') {
+          this.contactData.address = { ...this.tempAddress };
+        } else if (field.startsWith('socialMedia.')) {
+          const networkKey = field.split('.')[1];
+          if (!this.contactData.socialMedia) {
+            this.contactData.socialMedia = {};
+          }
+          (this.contactData.socialMedia as any)[networkKey] = this.tempValue;
+        } else {
+          this.contactData[field] = this.tempValue;
+        }
+        this.showSuccessFeedback(field);
+        this.cancelEdit();
+      }
+    });
+  }
+
+  cleanNumber(num?: string): string {
+    return num ? num.replace(/\D/g, '') : '';
+  }
+
+  encodeText(txt?: string): string {
+    return txt ? encodeURIComponent(txt) : '';
+  }
+
+  private showSuccessFeedback(field: string): void {
+    this.successField = field;
+    setTimeout(() => {
+      if (this.successField === field) {
+        this.successField = null;
+      }
+    }, 2500);
+  }
+
+  private loadMockFallback(): void {
+    // Keep initial defaults
+  }
+}

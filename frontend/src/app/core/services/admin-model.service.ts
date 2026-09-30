@@ -1,0 +1,453 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import {
+  AdminModelFilterParams,
+  AdminModelPageResponse,
+  ModelAdminItem,
+  ModelFormData
+} from '../../shared/models/admin-model.interface';
+
+const MOCK_MODELS_STORAGE_KEY = 'wb_agency_admin_models_mock';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AdminModelService {
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = `${environment.apiUrl}/admin/models`;
+
+  /**
+   * Consulta paginada e filtrada de modelos na área administrativa.
+   */
+  getModels(filters: AdminModelFilterParams = {}): Observable<AdminModelPageResponse> {
+    let params = new HttpParams()
+      .set('page', String(filters.page ?? 0))
+      .set('size', String(filters.size ?? 20));
+
+    if (filters.gender && filters.gender !== 'ALL') {
+      params = params.set('gender', filters.gender);
+    }
+    if (filters.isStar !== undefined && filters.isStar !== null) {
+      params = params.set('isStar', String(filters.isStar));
+    }
+    if (filters.isActive !== undefined && filters.isActive !== null) {
+      params = params.set('isActive', String(filters.isActive));
+    }
+    if (filters.search && filters.search.trim()) {
+      params = params.set('search', filters.search.trim());
+    }
+    if (filters.sort) {
+      params = params.set('sort', filters.sort);
+    }
+
+    return this.http.get<any>(this.apiUrl, { params }).pipe(
+      map((res) => this.normalizePageResponse(res)),
+      catchError((err) => {
+        console.warn('Backend offline ou inacessível. Operando via Mock Admin Models Local:', err);
+        return of(this.getMockPagedModels(filters));
+      })
+    );
+  }
+
+  /**
+   * Obtém detalhes de um modelo por ID para edição.
+   */
+  getModelById(id: string): Observable<ModelAdminItem> {
+    return this.http.get<ModelAdminItem>(`${this.apiUrl}/${id}`).pipe(
+      catchError((err) => {
+        console.warn(`Backend offline para obter modelo ${id}. Buscando no Mock Local:`, err);
+        const found = this.getMockList().find((m) => m.id === id);
+        if (found) {
+          return of(found);
+        }
+        return throwError(() => new Error('Modelo não encontrado'));
+      })
+    );
+  }
+
+  /**
+   * Cadastra um novo modelo no casting oficial.
+   */
+  createModel(data: ModelFormData): Observable<ModelAdminItem> {
+    return this.http.post<ModelAdminItem>(this.apiUrl, data).pipe(
+      tap((created) => this.upsertLocalMock(created)),
+      catchError((err) => {
+        console.warn('Backend offline ao cadastrar modelo. Salvando no Mock Local:', err);
+        const newModel: ModelAdminItem = {
+          id: 'model-' + Math.random().toString(36).substring(2, 9),
+          ...data,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          photosCount: 0,
+          compositeReady: false
+        };
+        this.upsertLocalMock(newModel);
+        return of(newModel);
+      })
+    );
+  }
+
+  /**
+   * Atualiza os dados completos de um modelo existente.
+   */
+  updateModel(id: string, data: ModelFormData): Observable<ModelAdminItem> {
+    return this.http.put<ModelAdminItem>(`${this.apiUrl}/${id}`, data).pipe(
+      tap((updated) => this.upsertLocalMock(updated)),
+      catchError((err) => {
+        console.warn(`Backend offline ao atualizar modelo ${id}. Atualizando no Mock Local:`, err);
+        const existingList = this.getMockList();
+        const index = existingList.findIndex((m) => m.id === id);
+        if (index >= 0) {
+          const updated: ModelAdminItem = {
+            ...existingList[index],
+            ...data,
+            id,
+            updatedAt: new Date().toISOString()
+          };
+          existingList[index] = updated;
+          this.saveMockList(existingList);
+          return of(updated);
+        }
+        return throwError(() => new Error('Modelo não encontrado para atualização'));
+      })
+    );
+  }
+
+  /**
+   * Alterna a classificação Star do modelo (Patch rápido).
+   */
+  updateStar(id: string, isStar: boolean): Observable<ModelAdminItem> {
+    return this.http.patch<ModelAdminItem>(`${this.apiUrl}/${id}/star`, { isStar }).pipe(
+      tap((updated) => this.upsertLocalMock(updated)),
+      catchError((err) => {
+        console.warn(`Backend offline ao alternar Star para ${id}:`, err);
+        const mockList = this.getMockList();
+        const item = mockList.find((m) => m.id === id);
+        if (item) {
+          item.isStar = isStar;
+          item.updatedAt = new Date().toISOString();
+          this.saveMockList(mockList);
+          return of(item);
+        }
+        return throwError(() => err);
+      })
+    );
+  }
+
+  /**
+   * Alterna o status Ativo/Inativo do modelo (Patch rápido).
+   */
+  updateStatus(id: string, isActive: boolean): Observable<ModelAdminItem> {
+    return this.http.patch<ModelAdminItem>(`${this.apiUrl}/${id}/status`, { isActive }).pipe(
+      tap((updated) => this.upsertLocalMock(updated)),
+      catchError((err) => {
+        console.warn(`Backend offline ao alternar Status para ${id}:`, err);
+        const mockList = this.getMockList();
+        const item = mockList.find((m) => m.id === id);
+        if (item) {
+          item.isActive = isActive;
+          item.updatedAt = new Date().toISOString();
+          this.saveMockList(mockList);
+          return of(item);
+        }
+        return throwError(() => err);
+      })
+    );
+  }
+
+  /**
+   * Alterna destaque na Home e ordem.
+   */
+  updateFeatured(id: string, isFeaturedHome: boolean, featuredOrder?: number | null): Observable<ModelAdminItem> {
+    return this.http.patch<ModelAdminItem>(`${this.apiUrl}/${id}/featured`, { isFeaturedHome, featuredOrder }).pipe(
+      tap((updated) => this.upsertLocalMock(updated)),
+      catchError((err) => {
+        console.warn(`Backend offline ao alternar Destaque para ${id}:`, err);
+        const mockList = this.getMockList();
+        const item = mockList.find((m) => m.id === id);
+        if (item) {
+          item.isFeaturedHome = isFeaturedHome;
+          item.featuredOrder = featuredOrder ?? null;
+          item.updatedAt = new Date().toISOString();
+          this.saveMockList(mockList);
+          return of(item);
+        }
+        return throwError(() => err);
+      })
+    );
+  }
+
+  /**
+   * Remove o modelo do catálogo.
+   */
+  deleteModel(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+      tap(() => this.removeLocalMock(id)),
+      catchError((err) => {
+        console.warn(`Backend offline ao remover modelo ${id}:`, err);
+        this.removeLocalMock(id);
+        return of(void 0);
+      })
+    );
+  }
+
+  // --- Métodos de Normalização e Mocking Local ---
+
+  private normalizePageResponse(res: any): AdminModelPageResponse {
+    if (!res) {
+      return { content: [], totalElements: 0, totalPages: 0, size: 20, number: 0 };
+    }
+    const content = res.content || (Array.isArray(res) ? res : []);
+    return {
+      content,
+      totalElements: res.totalElements ?? content.length,
+      totalPages: res.totalPages ?? 1,
+      size: res.size ?? content.length,
+      number: res.number ?? 0,
+      first: res.first ?? true,
+      last: res.last ?? true
+    };
+  }
+
+  private getMockPagedModels(filters: AdminModelFilterParams): AdminModelPageResponse {
+    let list = this.getMockList();
+
+    if (filters.gender && filters.gender !== 'ALL') {
+      list = list.filter((m) => m.gender === filters.gender);
+    }
+    if (filters.isStar !== undefined && filters.isStar !== null) {
+      list = list.filter((m) => m.isStar === filters.isStar);
+    }
+    if (filters.isActive !== undefined && filters.isActive !== null) {
+      list = list.filter((m) => m.isActive === filters.isActive);
+    }
+    if (filters.search && filters.search.trim()) {
+      const q = filters.search.trim().toLowerCase();
+      list = list.filter(
+        (m) =>
+          m.stageName.toLowerCase().includes(q) ||
+          (m.city && m.city.toLowerCase().includes(q)) ||
+          (m.nationality && m.nationality.toLowerCase().includes(q))
+      );
+    }
+
+    const page = filters.page ?? 0;
+    const size = filters.size ?? 20;
+    const start = page * size;
+    const pagedContent = list.slice(start, start + size);
+
+    return {
+      content: pagedContent,
+      totalElements: list.length,
+      totalPages: Math.max(1, Math.ceil(list.length / size)),
+      size,
+      number: page,
+      first: page === 0,
+      last: start + size >= list.length
+    };
+  }
+
+  private getMockList(): ModelAdminItem[] {
+    if (typeof localStorage !== 'undefined') {
+      const stored = localStorage.getItem(MOCK_MODELS_STORAGE_KEY);
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch (e) {
+          console.error('Erro ao ler mock models de localStorage:', e);
+        }
+      }
+    }
+
+    // Modelos sementes de alta costura e fidelidade
+    const defaults: ModelAdminItem[] = [
+      {
+        id: '487b27d7-206f-422d-a46c-8961ed8c827c',
+        stageName: 'Isabella Fontana',
+        gender: 'FEMALE',
+        isStar: true,
+        isFeaturedHome: true,
+        featuredOrder: 1,
+        isActive: true,
+        primaryPhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop',
+        instagramUrl: 'https://instagram.com/isabellafontana',
+        birthDate: '2001-05-14',
+        heightCm: 179,
+        city: 'São Paulo, SP',
+        nationality: 'Brasileira',
+        dressSize: '36',
+        shoeSize: '38',
+        bustChestCm: 86.0,
+        waistCm: 61.0,
+        hipsCm: 90.0,
+        hairColor: 'Castanho Claro',
+        eyesColor: 'Verdes',
+        photosCount: 14,
+        compositeReady: true,
+        createdAt: '2026-01-10T12:00:00Z',
+        updatedAt: '2026-03-15T15:30:00Z'
+      },
+      {
+        id: '921c38e8-317f-433e-b57d-9072fe9d938d',
+        stageName: 'Gabriel Alencar',
+        gender: 'MALE',
+        isStar: true,
+        isFeaturedHome: true,
+        featuredOrder: 2,
+        isActive: true,
+        primaryPhotoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop',
+        instagramUrl: 'https://instagram.com/gabriel.alencar',
+        birthDate: '1999-08-22',
+        heightCm: 188,
+        city: 'Rio de Janeiro, RJ',
+        nationality: 'Brasileiro',
+        dressSize: '42',
+        shoeSize: '42',
+        bustChestCm: 102.0,
+        waistCm: 79.0,
+        hipsCm: 98.0,
+        hairColor: 'Castanho Escuro',
+        eyesColor: 'Castanhos',
+        photosCount: 18,
+        compositeReady: true,
+        createdAt: '2026-01-12T10:00:00Z',
+        updatedAt: '2026-03-18T11:20:00Z'
+      },
+      {
+        id: '154a49f9-428a-544f-c68e-0183af0e049e',
+        stageName: 'Helena Vasconcelos',
+        gender: 'FEMALE',
+        isStar: false,
+        isFeaturedHome: false,
+        featuredOrder: null,
+        isActive: true,
+        primaryPhotoUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=800&auto=format&fit=crop',
+        instagramUrl: 'https://instagram.com/helenavasconcelos',
+        birthDate: '2004-11-03',
+        heightCm: 177,
+        city: 'Belo Horizonte, MG',
+        nationality: 'Brasileira',
+        dressSize: '34',
+        shoeSize: '37',
+        bustChestCm: 82.0,
+        waistCm: 59.0,
+        hipsCm: 88.0,
+        hairColor: 'Loiro Dourado',
+        eyesColor: 'Azuis',
+        photosCount: 8,
+        compositeReady: true,
+        createdAt: '2026-02-01T14:15:00Z',
+        updatedAt: '2026-02-28T09:40:00Z'
+      },
+      {
+        id: '265b50a0-539b-655a-d79f-1294bf1f150f',
+        stageName: 'Lucas Mendes',
+        gender: 'MALE',
+        isStar: false,
+        isFeaturedHome: false,
+        featuredOrder: null,
+        isActive: true,
+        primaryPhotoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=800&auto=format&fit=crop',
+        instagramUrl: 'https://instagram.com/lucas.mendes_wb',
+        birthDate: '2000-03-18',
+        heightCm: 185,
+        city: 'Curitiba, PR',
+        nationality: 'Brasileiro',
+        dressSize: '40',
+        shoeSize: '41',
+        bustChestCm: 99.0,
+        waistCm: 76.0,
+        hipsCm: 95.0,
+        hairColor: 'Preto',
+        eyesColor: 'Castanhos Escuros',
+        photosCount: 12,
+        compositeReady: false,
+        createdAt: '2026-02-10T16:00:00Z',
+        updatedAt: '2026-03-01T14:00:00Z'
+      },
+      {
+        id: '376c61b1-64ac-766b-e80a-2305cf2a261a',
+        stageName: 'Camila Rocha',
+        gender: 'FEMALE',
+        isStar: true,
+        isFeaturedHome: true,
+        featuredOrder: 3,
+        isActive: true,
+        primaryPhotoUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=800&auto=format&fit=crop',
+        instagramUrl: 'https://instagram.com/camilarocha.model',
+        birthDate: '2002-07-29',
+        heightCm: 180,
+        city: 'Porto Alegre, RS',
+        nationality: 'Brasileira',
+        dressSize: '38',
+        shoeSize: '39',
+        bustChestCm: 89.0,
+        waistCm: 63.0,
+        hipsCm: 92.0,
+        hairColor: 'Castanho Acobreado',
+        eyesColor: 'Mel',
+        photosCount: 16,
+        compositeReady: true,
+        createdAt: '2026-02-15T08:30:00Z',
+        updatedAt: '2026-03-10T17:50:00Z'
+      },
+      {
+        id: '487d72c2-75bd-877c-f91b-3416da3b372b',
+        stageName: 'Sophia Benitez',
+        gender: 'FEMALE',
+        isStar: false,
+        isFeaturedHome: false,
+        featuredOrder: null,
+        isActive: false,
+        primaryPhotoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=800&auto=format&fit=crop',
+        instagramUrl: 'https://instagram.com/sophiabenitez',
+        birthDate: '2003-12-11',
+        heightCm: 175,
+        city: 'Florianópolis, SC',
+        nationality: 'Brasileira',
+        dressSize: '36',
+        shoeSize: '37',
+        bustChestCm: 85.0,
+        waistCm: 60.0,
+        hipsCm: 89.0,
+        hairColor: 'Castanho',
+        eyesColor: 'Verdes',
+        photosCount: 6,
+        compositeReady: false,
+        createdAt: '2026-03-01T11:00:00Z',
+        updatedAt: '2026-03-20T10:10:00Z'
+      }
+    ];
+
+    this.saveMockList(defaults);
+    return defaults;
+  }
+
+  private saveMockList(list: ModelAdminItem[]): void {
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem(MOCK_MODELS_STORAGE_KEY, JSON.stringify(list));
+      } catch (e) {
+        console.error('Erro ao salvar mock models em localStorage:', e);
+      }
+    }
+  }
+
+  private upsertLocalMock(model: ModelAdminItem): void {
+    const list = this.getMockList();
+    const idx = list.findIndex((m) => m.id === model.id);
+    if (idx >= 0) {
+      list[idx] = { ...list[idx], ...model };
+    } else {
+      list.unshift(model);
+    }
+    this.saveMockList(list);
+  }
+
+  private removeLocalMock(id: string): void {
+    const list = this.getMockList().filter((m) => m.id !== id);
+    this.saveMockList(list);
+  }
+}

@@ -1,0 +1,17 @@
+:host {
+  display: block;
+  background-color: #FBFBF9;
+  min-height: 100vh;
+  color: #222624;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+// Suavização do lightbox e zoom
+.cursor-zoom-in {
+  cursor: zoom-in;
+}
+
+// Estilo dos botões e animações
+button {
+  transition: all 0.2s ease-in-out;
+}

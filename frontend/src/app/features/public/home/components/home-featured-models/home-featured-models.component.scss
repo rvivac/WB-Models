@@ -190,7 +190,7 @@
       padding: 0.25rem 0.625rem;
       background: rgba(255, 255, 255, 0.95);
       border: 1px solid var(--wb-primary);
-      border-radius: 2px;
+      border-radius: 0;
       color: var(--wb-primary);
       font-size: 0.65rem;
       font-weight: 700;
@@ -280,7 +280,7 @@
   flex-direction: column;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  border-radius: 2px;
+  border-radius: 0;
   overflow: hidden;
 
   .skeleton-image-wrap {
@@ -312,7 +312,7 @@
 
     .skeleton-line {
       height: 14px;
-      border-radius: 2px;
+      border-radius: 0;
       background: #e2e6e2;
       animation: skeletonPulse 1.8s infinite ease-in-out;
 

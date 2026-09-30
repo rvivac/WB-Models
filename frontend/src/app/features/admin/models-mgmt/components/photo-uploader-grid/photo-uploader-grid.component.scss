@@ -1,0 +1,418 @@
+:host {
+  display: block;
+}
+
+$sage: #4B584E;
+$sage-dark: #38433B;
+$sage-light: #6A7A6D;
+$sage-bg: #F4F5F4;
+$border-color: #E8EBE8;
+$bg-card: #FBFBF9;
+$text-dark: #222624;
+$text-muted: #5F6661;
+$gold-polaroid: #C2A87E;
+
+.photo-uploader-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+// Cabeçalho
+.uploader-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid $border-color;
+
+  @media (min-width: 640px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-family: inherit;
+    color: $text-dark;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .header-desc {
+    font-size: 0.72rem;
+    color: $text-muted;
+    margin-top: 0.25rem;
+  }
+}
+
+// Filtros de Categoria
+.filter-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: 1px solid $border-color;
+  padding: 2px;
+  background: $bg-card;
+  border-radius: 2px;
+
+  .filter-tab-btn {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: $text-muted;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 2px;
+
+    &.active {
+      background: #ffffff;
+      color: $sage;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    &:hover:not(.active) {
+      color: $text-dark;
+    }
+  }
+}
+
+// Dropzone de Arquivos
+.dropzone-area {
+  position: relative;
+  border: 2px dashed $border-color;
+  background: $bg-card;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border-radius: 4px;
+
+  &:hover,
+  &.is-dragover {
+    border-color: $sage;
+    background: $sage-bg;
+  }
+
+  .file-input-hidden {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 10;
+  }
+
+  .dropzone-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+
+    .dropzone-icon {
+      width: 32px;
+      height: 32px;
+      color: $sage;
+      margin-bottom: 0.75rem;
+    }
+
+    .dropzone-main-text {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: $text-dark;
+      font-weight: 500;
+      margin: 0;
+    }
+
+    .dropzone-sub-text {
+      font-size: 0.68rem;
+      color: $text-muted;
+      letter-spacing: 0.05em;
+      margin-top: 0.35rem;
+    }
+  }
+}
+
+// Grid de Fotos
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+// Card de Fotografia Editorial
+.photo-card {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid $border-color;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+  cursor: grab;
+  user-select: none;
+  border-radius: 3px;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &:hover {
+    border-color: rgba($sage, 0.5);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+
+    .card-overlay {
+      opacity: 1;
+    }
+
+    .photo-img {
+      transform: scale(1.05);
+    }
+  }
+
+  .photo-media-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    background: #f0f0f0;
+    overflow: hidden;
+
+    .photo-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.35s ease;
+    }
+  }
+
+  // Overlay com Ações no Hover
+  .card-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0.6rem;
+    pointer-events: auto;
+    z-index: 5;
+
+    .overlay-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .order-badge {
+        font-size: 0.65rem;
+        font-family: monospace;
+        font-weight: 700;
+        background: rgba(0, 0, 0, 0.7);
+        color: #ffffff;
+        padding: 0.15rem 0.45rem;
+        border-radius: 2px;
+      }
+
+      .btn-remove-photo {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(220, 38, 38, 0.85);
+        color: #ffffff;
+        border: none;
+        border-radius: 2px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: background 0.2s;
+
+        &:hover {
+          background: rgb(220, 38, 38);
+        }
+      }
+    }
+
+    .overlay-bottom {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+
+      .btn-cover {
+        width: 100%;
+        padding: 0.35rem 0.5rem;
+        background: $sage;
+        color: #ffffff;
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        border: none;
+        border-radius: 2px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background 0.2s;
+
+        &:hover {
+          background: $sage-dark;
+        }
+      }
+
+      .btn-category {
+        width: 100%;
+        padding: 0.35rem 0.5rem;
+        background: rgba(255, 255, 255, 0.95);
+        color: $text-dark;
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        border: none;
+        border-radius: 2px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background 0.2s;
+
+        &:hover {
+          background: #ffffff;
+        }
+      }
+    }
+  }
+
+  // Badges Fixos
+  .cover-badge {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    background: $sage;
+    color: #ffffff;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    padding: 0.2rem 0.5rem;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+    z-index: 2;
+  }
+
+  .category-badge {
+    position: absolute;
+    bottom: 0.5rem;
+    left: 0.5rem;
+    color: #ffffff;
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 0.15rem 0.4rem;
+    border-radius: 2px;
+    opacity: 0.95;
+    z-index: 2;
+
+    &.badge-book {
+      background: #222624;
+    }
+
+    &.badge-polaroid {
+      background: $gold-polaroid;
+    }
+  }
+
+  // Upload progress
+  .upload-progress-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 6;
+
+    .progress-bar-track {
+      width: 100%;
+      height: 6px;
+      background: $border-color;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 0.4rem;
+
+      .progress-bar-fill {
+        height: 100%;
+        background: $sage;
+        transition: width 0.15s ease;
+      }
+    }
+
+    .progress-text {
+      font-size: 0.65rem;
+      color: $text-dark;
+      font-family: monospace;
+      letter-spacing: 0.05em;
+    }
+  }
+}
+
+// Animações e ajustes de Drag & Drop do CDK
+.cdk-drag-preview {
+  box-sizing: border-box;
+  border: 1px solid $sage;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  opacity: 0.95;
+  transform: rotate(2deg);
+  border-radius: 4px;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.cdk-placeholder-box {
+  opacity: 0.25;
+  border: 2px dashed $sage !important;
+  background: $sage-bg;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drop-list-dragging .cdk-drag:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.empty-gallery-state {
+  text-align: center;
+  padding: 1.5rem;
+  color: $text-muted;
+  font-size: 0.78rem;
+}

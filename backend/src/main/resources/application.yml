@@ -74,7 +74,7 @@ app:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://localhost:3000,https://wbscouting.com}
 
 # Configurações do Supabase Storage e API
-ssupabase:
+supabase:
   url: ${SUPABASE_URL:https://stmytwsdlonpnirqiufq.supabase.co}
   key: ${SUPABASE_KEY}
   service-role-key: ${SUPABASE_SERVICE_ROLE_KEY}

@@ -21,4 +21,8 @@ public interface CandidateSubmissionAdminService {
     CandidateSubmissionResponseDto updateSubmissionStatus(UUID id, UpdateSubmissionStatusDto updateDto, String reviewer);
 
     CandidateSubmissionResponseDto promoteToModel(UUID submissionId, String reviewer, Boolean activateImmediately);
+
+    com.wbscouting.api.dto.model.ModelResponseDto promoteCandidateToModel(UUID submissionId);
+
+    com.wbscouting.api.dto.model.ModelResponseDto promoteCandidateToModel(UUID submissionId, String reviewer, Boolean activateImmediately);
 }

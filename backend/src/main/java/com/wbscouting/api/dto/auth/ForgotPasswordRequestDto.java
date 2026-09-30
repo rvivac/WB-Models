@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ForgotPasswordRequestDto {
 
-    @NotBlank(message = "E-Mail-Adresse ist erforderlich.")
-    @Email(message = "Ungültiges E-Mail-Format.")
+    @NotBlank(message = "O e-mail é obrigatório.")
+    @Email(message = "Formato de e-mail inválido.")
     private String email;
 }

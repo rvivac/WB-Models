@@ -1,14 +1,21 @@
 // Identidade Visual Light Minimalist / Deep Sage (#4B584E)
 .scouting-desk-container {
-  min-height: 100vh;
+  min-height: calc(100vh - var(--header-height, 80px));
   background-color: #FBFBF9;
-  padding: 2.5rem 2rem;
+  padding: 2.5rem;
   box-sizing: border-box;
   font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, sans-serif);
   color: #222624;
 
   @media (max-width: 768px) {
-    padding: 1.5rem 1rem;
+    padding: 1.5rem;
+  }
+
+  .scouting-desk-inner {
+    max-width: 80rem;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
   }
 }
 

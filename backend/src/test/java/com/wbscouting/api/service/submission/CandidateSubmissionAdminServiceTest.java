@@ -228,4 +228,32 @@ class CandidateSubmissionAdminServiceTest {
 
         verify(modelRepository, never()).save(any());
     }
+
+    @Test
+    @DisplayName("promoteCandidateToModel - Retorna ModelResponseDto e atualiza status da candidatura para APPROVED")
+    void shouldPromoteCandidateToModelResponseDtoSuccessfully() {
+        UUID generatedModelId = UUID.randomUUID();
+        when(repository.findById(sampleId)).thenReturn(Optional.of(sampleSubmission));
+        when(modelRepository.save(any(Model.class))).thenAnswer(inv -> {
+            Model m = inv.getArgument(0);
+            m.setId(generatedModelId);
+            return m;
+        });
+        when(repository.save(any(CandidateSubmission.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        com.wbscouting.api.dto.model.ModelResponseDto result = adminService.promoteCandidateToModel(sampleId, "Booker Chefe", true);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(generatedModelId);
+        assertThat(result.getStageName()).isEqualTo("Carol Trentini");
+        assertThat(result.getHeightCm()).isEqualTo(180);
+        assertThat(result.getIsActive()).isTrue();
+
+        assertThat(sampleSubmission.getStatus()).isEqualTo(SubmissionStatus.APPROVED);
+        assertThat(sampleSubmission.getConvertedToModelId()).isEqualTo(generatedModelId);
+
+        verify(modelRepository, times(1)).save(any(Model.class));
+        verify(modelMediaRepository, times(3)).save(any(ModelMedia.class));
+        verify(eventPublisher, times(1)).publishEvent(any(CandidateApprovedEvent.class));
+    }
 }

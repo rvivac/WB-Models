@@ -1,0 +1,252 @@
+<div class="min-h-screen bg-[#FBFBF9] p-6 md:p-10 selection:bg-[#4B584E] selection:text-white" *ngIf="candidate">
+  
+  <!-- Barra Superior -->
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between border-b border-[#E8EBE8] pb-6 gap-4">
+    <div class="flex items-center gap-4 flex-wrap">
+      <a routerLink="/admin/candidaturas" class="text-xs uppercase font-sans tracking-[0.15em] text-[#5F6661] hover:text-[#4B584E] transition-colors">
+        &larr; Voltar &agrave; Tabela
+      </a>
+      <span class="text-[#E8EBE8]">|</span>
+      <h1 class="text-lg font-serif uppercase tracking-wider text-[#222624]">{{ candidate.fullName }}</h1>
+      <span 
+        [ngClass]="{
+          'bg-[#F4F5F4] text-[#4B584E] border border-[#E8EBE8]': candidate.status === 'PENDING',
+          'bg-emerald-50 text-emerald-800 border border-emerald-200': candidate.status === 'APPROVED',
+          'bg-neutral-100 text-neutral-500 border border-neutral-200': candidate.status === 'REJECTED'
+        }"
+        class="text-[10px] uppercase tracking-[0.2em] px-2.5 py-0.5"
+      >
+        {{ candidate.status === 'PENDING' ? 'Pendente' : (candidate.status === 'APPROVED' ? 'Aprovada' : 'Declinada') }}
+      </span>
+      <span *ngIf="candidate.isMinor" class="bg-amber-100 text-amber-800 text-[9px] px-2 py-0.5 uppercase tracking-widest font-semibold border border-amber-200">
+        Menor de Idade
+      </span>
+    </div>
+
+    <!-- Ações de Decisão e Exclusão -->
+    <div class="flex items-center gap-3">
+      <button 
+        type="button" 
+        (click)="updateStatus('APPROVED')" 
+        [disabled]="isProcessing"
+        class="px-4 py-2 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-[0.15em] transition-all cursor-pointer shadow-sm rounded-none disabled:opacity-50"
+      >
+        Aprovar
+      </button>
+      <button 
+        type="button" 
+        (click)="updateStatus('REJECTED')" 
+        [disabled]="isProcessing"
+        class="px-4 py-2 bg-white border border-[#E8EBE8] hover:border-[#4B584E] text-[#222624] text-xs uppercase tracking-[0.15em] transition-all cursor-pointer rounded-none disabled:opacity-50"
+      >
+        Declinar
+      </button>
+      <button 
+        type="button" 
+        (click)="openDeleteConfirmation()" 
+        [disabled]="isProcessing"
+        class="px-3 py-2 bg-white border border-red-200 text-red-700 hover:bg-red-50 text-xs uppercase tracking-[0.15em] transition-all cursor-pointer rounded-none disabled:opacity-50"
+        title="Excluir Permanentemente (Purge LGPD)"
+      >
+        Excluir Registro
+      </button>
+    </div>
+  </div>
+
+  <!-- Feedback Toast / Alerta -->
+  <div *ngIf="feedbackMessage" class="max-w-7xl mx-auto mt-4 p-3 text-xs bg-emerald-50 border border-emerald-200 text-emerald-800 transition-opacity">
+    {{ feedbackMessage }}
+  </div>
+
+  <!-- Corpo Principal: 2 Colunas -->
+  <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 mt-6 items-start">
+    
+    <!-- Coluna Esquerda: Galeria de Polaroids (7 Colunas) -->
+    <div class="lg:col-span-7 bg-white border border-[#E8EBE8] p-6 shadow-sm space-y-4">
+      <div class="flex items-center justify-between border-b border-[#E8EBE8] pb-3">
+        <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">Polaroids &amp; Ensaio de Scouting</h2>
+        <span class="text-[10px] text-[#5F6661] uppercase tracking-wider">Clique na foto para inspecionar</span>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div 
+          *ngFor="let photo of candidate.photos; let i = index" 
+          (click)="openLightbox(i)"
+          class="group relative aspect-[3/4] bg-[#F4F5F4] border border-[#E8EBE8] overflow-hidden cursor-zoom-in"
+        >
+          <img [src]="photo.url" [alt]="photo.type" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+          <div class="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-xs p-1.5 text-center text-white text-[9px] uppercase tracking-widest">
+            {{ formatPhotoType(photo.type) }}
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="candidate.photos.length === 0" class="py-12 text-center text-xs text-[#5F6661] uppercase tracking-wider">
+        Nenhuma fotografia anexada a esta candidatura.
+      </div>
+    </div>
+
+    <!-- Coluna Direita: Dados Biométricos & LGPD (5 Colunas) -->
+    <div class="lg:col-span-5 space-y-6">
+      
+      <!-- Card de Menoridade (Se Aplicável) -->
+      <div *ngIf="candidate.isMinor" class="bg-amber-50 border-l-2 border-amber-600 p-4 text-amber-900 space-y-1">
+        <p class="text-xs font-semibold uppercase tracking-wider">Aten&ccedil;&atilde;o: Candidata(o) Menor de Idade</p>
+        <p class="text-xs">Respons&aacute;vel Legal: <span class="font-medium">{{ candidate.guardianName || 'N&atilde;o informado' }}</span></p>
+        <p class="text-xs">Contato do Respons&aacute;vel: <span class="font-medium">{{ candidate.guardianPhone || 'N&atilde;o informado' }}</span> ({{ candidate.guardianEmail || 'N&atilde;o informado' }})</p>
+      </div>
+
+      <!-- Ficha de Biometria -->
+      <div class="bg-white border border-[#E8EBE8] p-6 shadow-sm space-y-4">
+        <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624] border-b border-[#E8EBE8] pb-3">Ficha M&eacute;trica &amp; Biotipo</h2>
+        
+        <div class="grid grid-cols-2 gap-4 text-xs font-sans">
+          <div>
+            <span class="text-[#5F6661] uppercase tracking-wider text-[10px] block">Altura</span>
+            <span class="font-medium text-[#222624] text-sm">{{ candidate.biometrics.height || '-' }} cm</span>
+          </div>
+          <div>
+            <span class="text-[#5F6661] uppercase tracking-wider text-[10px] block">Cal&ccedil;ado</span>
+            <span class="font-medium text-[#222624] text-sm">{{ candidate.biometrics.shoes || '-' }}</span>
+          </div>
+          <div>
+            <span class="text-[#5F6661] uppercase tracking-wider text-[10px] block">Busto / T&oacute;rax</span>
+            <span class="font-medium text-[#222624] text-sm">{{ candidate.biometrics.bust || '-' }} cm</span>
+          </div>
+          <div>
+            <span class="text-[#5F6661] uppercase tracking-wider text-[10px] block">Cintura</span>
+            <span class="font-medium text-[#222624] text-sm">{{ candidate.biometrics.waist || '-' }} cm</span>
+          </div>
+          <div>
+            <span class="text-[#5F6661] uppercase tracking-wider text-[10px] block">Quadril</span>
+            <span class="font-medium text-[#222624] text-sm">{{ candidate.biometrics.hips || '-' }} cm</span>
+          </div>
+          <div>
+            <span class="text-[#5F6661] uppercase tracking-wider text-[10px] block">Olhos / Cabelos</span>
+            <span class="font-medium text-[#222624] text-sm">{{ candidate.biometrics.eyes }} / {{ candidate.biometrics.hair }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contato e Localização -->
+      <div class="bg-white border border-[#E8EBE8] p-6 shadow-sm space-y-3 text-xs">
+        <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624] border-b border-[#E8EBE8] pb-3">Localiza&ccedil;&atilde;o &amp; Contato</h2>
+        <p><span class="text-[#5F6661] uppercase tracking-wider text-[10px]">Origem:</span> {{ candidate.city }}, {{ candidate.state }}</p>
+        <p><span class="text-[#5F6661] uppercase tracking-wider text-[10px]">E-mail:</span> {{ candidate.email }}</p>
+        <p>
+          <span class="text-[#5F6661] uppercase tracking-wider text-[10px]">WhatsApp:</span> 
+          <a [href]="'https://wa.me/' + cleanPhone(candidate.phone)" target="_blank" rel="noopener noreferrer" class="text-[#4B584E] underline font-medium ml-1">
+            {{ candidate.phone }}
+          </a>
+        </p>
+        <p *ngIf="candidate.instagram">
+          <span class="text-[#5F6661] uppercase tracking-wider text-[10px]">Instagram:</span> 
+          <a [href]="'https://instagram.com/' + cleanInstagram(candidate.instagram)" target="_blank" rel="noopener noreferrer" class="text-[#4B584E] underline ml-1">
+            {{ candidate.instagram }}
+          </a>
+        </p>
+        <p>
+          <span class="text-[#5F6661] uppercase tracking-wider text-[10px]">Data de Submiss&atilde;o:</span> 
+          <span class="font-mono text-[11px] text-[#5F6661] ml-1">{{ candidate.submittedAt | date:'dd/MM/yyyy' }} às {{ candidate.submittedAt | date:'HH:mm' }}</span>
+        </p>
+      </div>
+
+      <!-- Registro LGPD -->
+      <div class="bg-white border border-[#E8EBE8] p-6 shadow-sm space-y-2 text-xs">
+        <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624] border-b border-[#E8EBE8] pb-3">Conformidade LGPD</h2>
+        <p class="text-[#5F6661]">
+          Consentimento registrado em: <strong class="text-[#222624] font-mono">{{ candidate.lgpdConsentAt | date:'dd/MM/yyyy' }} às {{ candidate.lgpdConsentAt | date:'HH:mm:ss' }}</strong>
+        </p>
+        <p class="text-[11px] text-[#5F6661]">
+          Termos aceitos expressamente na submiss&atilde;o p&uacute;blica com base legal para triagem editorial de talentos.
+        </p>
+      </div>
+
+      <!-- Parecer do Scout -->
+      <div class="bg-white border border-[#E8EBE8] p-6 shadow-sm space-y-3">
+        <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624] border-b border-[#E8EBE8] pb-3">Parecer do Booker (Uso Interno)</h2>
+        <textarea 
+          [(ngModel)]="internalNotes" 
+          rows="3" 
+          placeholder="Insira observa&ccedil;&otilde;es sobre perfil, desenvoltura ou direcionamento..."
+          class="w-full p-3 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] focus:bg-white rounded-none resize-y"
+        ></textarea>
+        <button 
+          type="button" 
+          (click)="saveNotes()" 
+          [disabled]="isSavingNotes"
+          class="px-3 py-1.5 bg-white border border-[#E8EBE8] hover:border-[#4B584E] text-[#222624] text-[10px] uppercase tracking-wider cursor-pointer transition-colors disabled:opacity-50"
+        >
+          {{ isSavingNotes ? 'Salvando...' : 'Salvar Anota&ccedil;&otilde;es' }}
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- LIGHTBOX / INSPEÇÃO DE FOTO EM ALTA RESOLUÇÃO -->
+  <div *ngIf="isLightboxOpen && candidate.photos.length > 0" class="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-between p-4 backdrop-blur-sm select-none">
+    <div class="w-full flex justify-between items-center text-white text-xs px-4">
+      <span class="uppercase tracking-widest font-sans">{{ activePhotoIndex + 1 }} de {{ candidate.photos.length }} &mdash; {{ formatPhotoType(candidate.photos[activePhotoIndex].type) }}</span>
+      <div class="flex items-center gap-4">
+        <button (click)="toggleZoom()" class="text-xs uppercase tracking-wider hover:text-[#C2A87E] cursor-pointer transition-colors">
+          Zoom ({{ currentZoom }}x)
+        </button>
+        <button (click)="closeLightbox()" class="text-xl font-bold cursor-pointer hover:text-red-400 transition-colors">&times;</button>
+      </div>
+    </div>
+
+    <!-- Imagem Central com Zoom -->
+    <div class="flex-1 flex items-center justify-center overflow-auto max-h-[85vh] w-full p-2">
+      <img 
+        [src]="candidate.photos[activePhotoIndex].url" 
+        [style.transform]="'scale(' + currentZoom + ')'" 
+        class="max-h-[80vh] max-w-[90vw] object-contain transition-transform duration-200 cursor-pointer"
+        (click)="toggleZoom()"
+        [alt]="formatPhotoType(candidate.photos[activePhotoIndex].type)"
+      >
+    </div>
+
+    <!-- Navegação Inferior -->
+    <div class="flex items-center gap-6 text-white pb-2">
+      <button (click)="prevPhoto()" [disabled]="activePhotoIndex === 0" class="disabled:opacity-30 uppercase tracking-widest text-xs cursor-pointer hover:text-[#C2A87E] transition-colors">&larr; Anterior</button>
+      <span class="text-[11px] font-mono opacity-60">{{ activePhotoIndex + 1 }} / {{ candidate.photos.length }}</span>
+      <button (click)="nextPhoto()" [disabled]="activePhotoIndex === candidate.photos.length - 1" class="disabled:opacity-30 uppercase tracking-widest text-xs cursor-pointer hover:text-[#C2A87E] transition-colors">Pr&oacute;xima &rarr;</button>
+    </div>
+  </div>
+
+  <!-- MODAL DE EXCLUSÃO SEGURA / PURGE TOTAL LGPD -->
+  <div *ngIf="isDeleteModalOpen" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white border border-[#E8EBE8] p-6 space-y-4 shadow-xl">
+      <h3 class="text-sm font-serif uppercase tracking-wider text-red-700">Confirma&ccedil;&atilde;o de Exclus&atilde;o Defensiva</h3>
+      <p class="text-xs text-[#5F6661] leading-relaxed">
+        Esta a&ccedil;&atilde;o &eacute; <strong>irrevers&iacute;vel</strong>. O registro no banco e todas as fotografias no Supabase Storage associadas a <strong>{{ candidate.fullName }}</strong> ser&atilde;o permanentemente purgados (Conformidade LGPD).
+      </p>
+      <div>
+        <label class="block text-[11px] uppercase tracking-wider text-[#222624] mb-1">Digite <strong>EXCLUIR</strong> para confirmar:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="deleteConfirmInput" 
+          placeholder="EXCLUIR" 
+          class="w-full px-3 py-2 bg-[#FBFBF9] border border-[#E8EBE8] text-xs focus:outline-none focus:border-red-600 rounded-none uppercase font-mono"
+        />
+      </div>
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" (click)="closeDeleteModal()" class="px-4 py-2 border border-[#E8EBE8] text-xs uppercase tracking-wider hover:bg-[#FBFBF9] transition-colors cursor-pointer">
+          Cancelar
+        </button>
+        <button 
+          type="button" 
+          (click)="executeSecureDelete()" 
+          [disabled]="deleteConfirmInput !== 'EXCLUIR' || isDeleting"
+          class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white text-xs uppercase tracking-wider disabled:opacity-40 cursor-pointer transition-colors shadow-sm"
+        >
+          <span *ngIf="!isDeleting">Purgar Dados</span>
+          <span *ngIf="isDeleting">Purgando...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -18,5 +18,7 @@ public interface CandidateSubmissionRepository extends JpaRepository<CandidateSu
 
     Page<CandidateSubmission> findByStatus(SubmissionStatus status, Pageable pageable);
 
+    long countByStatus(SubmissionStatus status);
+
     boolean existsByEmailAndStatus(String email, SubmissionStatus status);
 }

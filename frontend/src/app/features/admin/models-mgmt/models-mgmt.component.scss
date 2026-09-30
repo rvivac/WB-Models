@@ -1,88 +1,505 @@
+$gold: #c5a059;
+$gold-light: #dfba73;
+$gold-dark: #9e7d3b;
+$bg-dark: #0d0d0f;
+$bg-card: #151518;
+$bg-card-elevated: #1c1c20;
+$border-color: rgba(255, 255, 255, 0.08);
+$border-gold: rgba(197, 160, 89, 0.35);
+$text-main: #f5f5f7;
+$text-secondary: #9a9aa2;
+$text-muted: #66666e;
+$danger: #e05252;
+$success: #4ec985;
+
 .mgmt-page {
-  padding-top: 2.5rem;
-  padding-bottom: 5rem;
+  min-height: calc(100vh - var(--header-height, 80px));
+  background-color: #FBFBF9;
+  padding: 2.5rem;
+  box-sizing: border-box;
+  color: #222624;
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+  }
+
+  .mgmt-inner {
+    max-width: 80rem;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  }
+}
+
+// Toast
+.toast-alert {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.5rem;
+  border-radius: 8px;
+  background: $bg-card-elevated;
+  border: 1px solid rgba($gold, 0.4);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+  color: #fff;
+  animation: slideIn 0.3s ease;
+
+  .toast-icon {
+    color: $gold;
+    font-weight: bold;
+  }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
 .mgmt-top {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 2.5rem;
-  flex-wrap: wrap;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #E8EBE8;
   gap: 1.5rem;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .mgmt-title {
+    font-family: var(--font-serif, "Cormorant Garamond", Georgia, serif);
+    font-size: 2.25rem;
+    font-weight: 400;
+    line-height: 1.15;
+    color: #222624;
+    margin: 0 0 0.5rem 0;
+    letter-spacing: -0.01em;
+
+    @media (max-width: 640px) {
+      font-size: 1.75rem;
+    }
+  }
+
+  .text-secondary {
+    font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, sans-serif);
+    font-size: 0.875rem;
+    color: #5F6661;
+    margin: 0;
+    max-width: 40rem;
+    line-height: 1.5;
+  }
 }
 
-.mgmt-title {
-  font-size: 2.25rem;
-  color: var(--text-primary);
-  margin-bottom: 0.25rem;
+// Barra de Filtros
+.filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  background: $bg-card;
+  border: 1px solid $border-color;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    .filter-label {
+      font-size: 0.84rem;
+      color: $text-muted;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+  }
+
+  .pill-group {
+    display: flex;
+    gap: 0.35rem;
+    background: $bg-dark;
+    padding: 3px;
+    border-radius: 6px;
+    border: 1px solid $border-color;
+
+    .pill-btn {
+      background: transparent;
+      border: none;
+      color: $text-secondary;
+      padding: 0.4rem 0.85rem;
+      font-size: 0.82rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &.active {
+        background: #28282e;
+        color: #fff;
+        font-weight: 600;
+      }
+
+      &.pill-gold.active {
+        background: linear-gradient(135deg, $gold 0%, $gold-dark 100%);
+        color: #000;
+      }
+
+      &:hover:not(.active) {
+        color: #fff;
+      }
+    }
+  }
+
+  .search-input-wrapper {
+    display: flex;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 260px;
+    max-width: 380px;
+
+    .search-input {
+      flex: 1;
+      padding: 0.5rem 0.85rem;
+      background: $bg-dark;
+      border: 1px solid $border-color;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 0.88rem;
+
+      &:focus {
+        outline: none;
+        border-color: $gold;
+      }
+    }
+
+    .search-btn {
+      padding: 0.5rem 1rem;
+      background: #25252a;
+      border: 1px solid $border-color;
+      color: #fff;
+      border-radius: 6px;
+      font-size: 0.84rem;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background: #33333a;
+        border-color: $gold;
+      }
+    }
+  }
 }
 
+// Card da Tabela
 .mgmt-card {
-  padding: 1.5rem;
+  background: $bg-card;
+  border: 1px solid $border-color;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
 .table-responsive {
+  width: 100%;
   overflow-x: auto;
 }
 
 .admin-table {
   width: 100%;
-  font-size: 0.8125rem;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  text-align: left;
 
   th {
-    text-align: left;
-    padding: 0.875rem 0.75rem;
-    border-bottom: 1px solid var(--border-medium);
-    color: var(--text-muted);
-    font-weight: 600;
+    padding: 1rem 1.25rem;
+    background: #111114;
+    color: $text-muted;
+    font-weight: 500;
     text-transform: uppercase;
-    font-size: 0.6875rem;
-    letter-spacing: 0.05em;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid $border-color;
   }
 
   td {
-    padding: 1.125rem 0.75rem;
-    border-bottom: 1px solid var(--border-subtle);
-    color: var(--text-secondary);
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    vertical-align: middle;
+  }
+
+  tr:hover td {
+    background: rgba(255, 255, 255, 0.015);
+  }
+
+  .model-profile-cell {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .model-thumb {
+      width: 44px;
+      height: 56px;
+      border-radius: 4px;
+      overflow: hidden;
+      background: #000;
+      flex-shrink: 0;
+      border: 1px solid $border-color;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .thumb-fallback {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: $gold;
+        font-weight: 700;
+        font-size: 0.85rem;
+      }
+    }
+
+    .model-name {
+      display: block;
+      color: #fff;
+      font-size: 0.98rem;
+    }
+
+    .instagram-sub {
+      display: block;
+      font-size: 0.78rem;
+      color: $text-muted;
+    }
+  }
+
+  .badge-cat {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.76rem;
+    letter-spacing: 0.04em;
+    background: rgba(220, 100, 180, 0.12);
+    color: #f7a8dc;
+    border: 1px solid rgba(220, 100, 180, 0.25);
+
+    &.badge-male {
+      background: rgba(80, 150, 240, 0.12);
+      color: #9ac4f8;
+      border-color: rgba(80, 150, 240, 0.25);
+    }
+  }
+
+  .star-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: $text-muted;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    .star-glyph {
+      font-size: 0.95rem;
+    }
+
+    &.is-star {
+      background: linear-gradient(135deg, rgba($gold, 0.2) 0%, rgba($gold-dark, 0.15) 100%);
+      border-color: $gold;
+      color: $gold-light;
+      font-weight: 700;
+      box-shadow: 0 0 10px rgba($gold, 0.12);
+    }
+
+    &:hover {
+      border-color: $gold;
+    }
+  }
+
+  .measurements-cell {
+    display: flex;
+    flex-direction: column;
+
+    .height-highlight {
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .bwh-line {
+      font-size: 0.78rem;
+      color: $text-muted;
+    }
+  }
+
+  .city-text {
+    color: $text-secondary;
+  }
+
+  .status-pill {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.76rem;
+    background: rgba($danger, 0.15);
+    color: #f59696;
+    border: 1px solid rgba($danger, 0.3);
+
+    &.status-active {
+      background: rgba($success, 0.15);
+      color: #7eedae;
+      border-color: rgba($success, 0.3);
+    }
+  }
+
+  .action-cell {
+    white-space: nowrap;
+
+    .action-btn {
+      background: transparent;
+      border: none;
+      color: $text-secondary;
+      padding: 0.3rem 0.6rem;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: color 0.2s;
+
+      &:hover { color: #fff; }
+
+      &.text-gold {
+        color: $gold;
+        font-weight: 500;
+        &:hover { color: $gold-light; text-decoration: underline; }
+      }
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: $text-muted;
   }
 }
 
-.badge-cat {
-  font-size: 0.6875rem;
-  padding: 0.2rem 0.5rem;
-  background: var(--bg-elevated);
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
-}
-
-.status-pill {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-full);
-  background: rgba(239, 68, 68, 0.15);
-  color: #fca5a5;
-
-  &.status-active {
-    background: rgba(16, 185, 129, 0.15);
-    color: #6ee7b7;
-  }
-}
-
-.action-cell {
+.loading-state {
   display: flex;
-  gap: 0.75rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1.5rem;
+  color: $text-muted;
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba($gold, 0.2);
+    border-top-color: $gold;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 1rem;
+  }
 }
 
-.action-btn {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  background: transparent;
-  transition: color var(--transition-fast);
+@keyframes spin { to { transform: rotate(360deg); } }
 
-  &:hover {
-    color: var(--text-primary);
+// Drawer Modal Backdrop & Panel para o Formulário de Modelo
+.drawer-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  justify-content: flex-end;
+  animation: fadeInBackdrop 0.25s ease-out;
+
+  .drawer-panel {
+    position: relative;
+    width: 100%;
+    max-width: 1100px;
+    height: 100vh;
+    background: $bg-dark;
+    border-left: 1px solid $border-gold;
+    overflow-y: auto;
+    box-shadow: -15px 0 45px rgba(0, 0, 0, 0.8);
+    animation: slideInDrawer 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+
+    .drawer-close-btn {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.5rem;
+      background: $bg-card-elevated;
+      border: 1px solid $border-color;
+      color: $text-secondary;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      transition: all 0.2s;
+
+      &:hover {
+        background: #33333a;
+        color: #fff;
+        border-color: $gold;
+      }
+    }
+  }
+}
+
+@keyframes fadeInBackdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInDrawer {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+// Botão Gold
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1.4rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+
+  &.btn-gold {
+    background: linear-gradient(135deg, $gold 0%, $gold-light 50%, $gold-dark 100%);
+    color: #0b0b0d;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba($gold, 0.2);
+
+    &:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 6px 20px rgba($gold, 0.35);
+      transform: translateY(-1px);
+    }
   }
 }

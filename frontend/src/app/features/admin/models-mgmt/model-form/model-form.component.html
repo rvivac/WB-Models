@@ -1,0 +1,541 @@
+<div class="model-form-container">
+  <!-- Toast de Notificação -->
+  @if (toast()) {
+    <div class="toast-alert" [class.toast-success]="toast()?.type === 'success'" [class.toast-error]="toast()?.type === 'error'">
+      <span class="toast-icon">
+        @if (toast()?.type === 'success') { &check; } @else { &excl; }
+      </span>
+      <span class="toast-message">{{ toast()?.message }}</span>
+    </div>
+  }
+
+  <!-- Barra de Navegação e Título -->
+  <header class="form-header">
+    <div class="header-left">
+      <nav class="breadcrumb">
+        <a (click)="onCancel()" class="breadcrumb-link">Painel</a>
+        <span class="breadcrumb-sep">/</span>
+        <a (click)="onCancel()" class="breadcrumb-link">Gestão de Casting</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">{{ isEditMode() ? 'Editar Modelo' : 'Novo Modelo' }}</span>
+      </nav>
+      <h1 class="font-serif form-title">
+        {{ isEditMode() ? 'Editar Cadastro de Modelo' : 'Novo Cadastro no Elenco' }}
+      </h1>
+      <p class="form-subtitle">
+        Preencha os dados profissionais, medidas biométricas de alta precisão e parametrize as tags de visibilidade.
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <button type="button" class="btn btn-outline" (click)="onCancel()">
+        &times; Cancelar
+      </button>
+      <button
+        type="button"
+        class="btn btn-gold"
+        [disabled]="modelForm.invalid || isSaving()"
+        (click)="onSubmit()"
+      >
+        @if (isSaving()) {
+          <span class="spinner-inline"></span> Salvando...
+        } @else {
+          {{ isEditMode() ? 'Atualizar Modelo' : 'Cadastrar Modelo' }}
+        }
+      </button>
+    </div>
+  </header>
+
+  <!-- Card de Pré-visualização Dinâmica (Live Editorial Preview) -->
+  <div class="editorial-preview-card" [class.preview-star]="modelForm.get('isStar')?.value">
+    <div class="preview-avatar-wrapper">
+      @if (modelForm.get('primaryPhotoUrl')?.value) {
+        <img
+          [src]="modelForm.get('primaryPhotoUrl')?.value"
+          [alt]="modelForm.get('stageName')?.value || 'Preview'"
+          class="preview-avatar"
+        />
+      } @else {
+        <div class="preview-avatar-placeholder">
+          <span>WB</span>
+        </div>
+      }
+      @if (modelForm.get('isStar')?.value) {
+        <div class="star-glow-badge" title="Modelo Categoria Stars">
+          &starf; STAR
+        </div>
+      }
+    </div>
+
+    <div class="preview-info">
+      <div class="preview-headline">
+        <h2 class="preview-name font-serif">
+          {{ modelForm.get('stageName')?.value || 'Nome Artístico do Modelo' }}
+        </h2>
+        <div class="preview-tags">
+          <span class="tag-gender" [class.tag-male]="modelForm.get('gender')?.value === 'MALE'">
+            {{ modelForm.get('gender')?.value === 'MALE' ? 'Masculino' : 'Feminino' }}
+          </span>
+          @if (computedAge()) {
+            <span class="tag-age">{{ computedAge() }} anos</span>
+          }
+          @if (modelForm.get('isActive')?.value) {
+            <span class="tag-active">Ativo no Casting</span>
+          } @else {
+            <span class="tag-inactive">Inativo</span>
+          }
+          @if (modelForm.get('isFeaturedHome')?.value) {
+            <span class="tag-featured">Vitrine Home #{{ modelForm.get('featuredOrder')?.value || 1 }}</span>
+          }
+        </div>
+      </div>
+
+      <div class="preview-measurements">
+        <span class="measurements-label">Perfil Técnico:</span>
+        <span class="measurements-value">{{ computedMeasurements() }}</span>
+        @if (modelForm.get('city')?.value) {
+          <span class="measurements-city">&bull; {{ modelForm.get('city')?.value }}</span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulário Reativo Principal -->
+  <form [formGroup]="modelForm" (ngSubmit)="onSubmit()" class="model-reactive-form">
+    
+    <!-- SEÇÃO 1: Identidade Artística e Mídia de Capa -->
+    <section class="form-section card-editorial">
+      <div class="section-header">
+        <span class="section-number">01</span>
+        <div>
+          <h3 class="section-title font-serif">Identidade Artística & Imagem</h3>
+          <p class="section-desc">Defina o nome profissional de trabalho e a fotografia principal do perfil.</p>
+        </div>
+      </div>
+
+      <div class="form-grid grid-2">
+        <!-- Nome Artístico -->
+        <div class="form-group">
+          <label for="stageName" class="form-label">
+            Nome Artístico <span class="required-mark">*</span>
+          </label>
+          <input
+            id="stageName"
+            type="text"
+            formControlName="stageName"
+            class="form-control"
+            placeholder="Ex: Isabella Fontana"
+            [class.is-invalid]="modelForm.get('stageName')?.invalid && modelForm.get('stageName')?.touched"
+          />
+          @if (modelForm.get('stageName')?.invalid && modelForm.get('stageName')?.touched) {
+            <span class="error-feedback">O nome artístico é obrigatório (máx. 150 caracteres).</span>
+          }
+        </div>
+
+        <!-- Seletor de Gênero -->
+        <div class="form-group">
+          <label class="form-label">Gênero <span class="required-mark">*</span></label>
+          <div class="gender-toggle-group">
+            <button
+              type="button"
+              class="gender-btn"
+              [class.active]="modelForm.get('gender')?.value === 'FEMALE'"
+              (click)="setGender('FEMALE')"
+            >
+              Feminino
+            </button>
+            <button
+              type="button"
+              class="gender-btn"
+              [class.active]="modelForm.get('gender')?.value === 'MALE'"
+              (click)="setGender('MALE')"
+            >
+              Masculino
+            </button>
+          </div>
+        </div>
+
+        <!-- Instagram -->
+        <div class="form-group">
+          <label for="instagramUrl" class="form-label">Instagram Profissional</label>
+          <div class="input-prefix-group">
+            <span class="input-prefix">&#64;</span>
+            <input
+              id="instagramUrl"
+              type="text"
+              formControlName="instagramUrl"
+              class="form-control with-prefix"
+              placeholder="usuario ou https://instagram.com/usuario"
+            />
+          </div>
+          <span class="field-hint">Pode ser informado o &#64;handle ou link completo.</span>
+        </div>
+
+        <!-- Foto Principal / Capa -->
+        <div class="form-group">
+          <label for="primaryPhotoUrl" class="form-label">URL da Foto Principal (Capa)</label>
+          <input
+            id="primaryPhotoUrl"
+            type="url"
+            formControlName="primaryPhotoUrl"
+            class="form-control"
+            placeholder="https://images.unsplash.com/..."
+          />
+          <div class="sample-photos-row">
+            <span class="sample-label">Sugestões de teste:</span>
+            <div class="sample-thumbnails">
+              @for (photo of samplePhotos; track photo) {
+                <button
+                  type="button"
+                  class="sample-thumb-btn"
+                  (click)="selectSamplePhoto(photo)"
+                  title="Usar esta foto"
+                >
+                  <img [src]="photo" alt="Sample" />
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEÇÃO 2: Destaques, Categoria e Switch Stars -->
+    <section class="form-section card-editorial">
+      <div class="section-header">
+        <span class="section-number">02</span>
+        <div>
+          <h3 class="section-title font-serif">Classificação no Casting & Switch Stars</h3>
+          <p class="section-desc">Gerencie o enquadramento de categoria e exibição nos canais da agência.</p>
+        </div>
+      </div>
+
+      <div class="switches-container">
+        <!-- SWITCH STARS (Destaque Principal) -->
+        <div class="switch-card switch-card-star" [class.is-active]="modelForm.get('isStar')?.value">
+          <div class="switch-card-info">
+            <div class="switch-title-wrap">
+              <span class="star-icon">&starf;</span>
+              <h4 class="switch-title">Categoria Stars</h4>
+              <span class="badge-gold">Exclusivo</span>
+            </div>
+            <p class="switch-desc">
+              Identifica talentos de renome ou alto escalão da WB Agency. Habilitar este switch adiciona o modelo à aba exclusiva <strong>STARS</strong> no catálogo do site.
+            </p>
+          </div>
+          <label class="custom-toggle" for="switchStar">
+            <input
+              id="switchStar"
+              type="checkbox"
+              formControlName="isStar"
+            />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- SWITCH DESTAQUE NA HOME -->
+        <div class="switch-card" [class.is-active]="modelForm.get('isFeaturedHome')?.value">
+          <div class="switch-card-info">
+            <div class="switch-title-wrap">
+              <h4 class="switch-title">Vitrine da Página Inicial (Home)</h4>
+            </div>
+            <p class="switch-desc">
+              Exibe este modelo na galeria rotativa de destaques da Home.
+            </p>
+            @if (modelForm.get('isFeaturedHome')?.value) {
+              <div class="featured-order-input-wrap">
+                <label for="featuredOrder" class="order-label">Ordem de exibição na Home:</label>
+                <input
+                  id="featuredOrder"
+                  type="number"
+                  formControlName="featuredOrder"
+                  class="form-control order-input"
+                  min="1"
+                  max="99"
+                  placeholder="1"
+                />
+              </div>
+            }
+          </div>
+          <label class="custom-toggle" for="switchFeatured">
+            <input
+              id="switchFeatured"
+              type="checkbox"
+              formControlName="isFeaturedHome"
+            />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- SWITCH STATUS ATIVO -->
+        <div class="switch-card" [class.is-active]="modelForm.get('isActive')?.value">
+          <div class="switch-card-info">
+            <div class="switch-title-wrap">
+              <h4 class="switch-title">Catálogo Ativo</h4>
+            </div>
+            <p class="switch-desc">
+              Quando desativado, o modelo fica oculto nas consultas públicas de bookers e clientes no site oficial.
+            </p>
+          </div>
+          <label class="custom-toggle" for="switchActive">
+            <input
+              id="switchActive"
+              type="checkbox"
+              formControlName="isActive"
+            />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEÇÃO 3: Acervo Visual: Book & Polaroids (Drag & Drop) -->
+    <section class="form-section card-editorial">
+      <div class="section-header">
+        <span class="section-number">03</span>
+        <div>
+          <h3 class="section-title font-serif">Acervo Visual: Book & Polaroids</h3>
+          <p class="section-desc">Módulo drag-and-drop para ordenação manual de fotografias, classificação entre Book/Polaroids e definição da capa oficial.</p>
+        </div>
+      </div>
+
+      <app-photo-uploader-grid
+        [photos]="galleryPhotos()"
+        (photosChange)="onPhotosChanged($event)"
+        (fileUploaded)="onFilesUploaded($event)"
+        (validationError)="showToast($event, 'error')"
+      ></app-photo-uploader-grid>
+    </section>
+
+    <!-- SEÇÃO 4: Composite Único (Digital Sedcard) -->
+    <section class="form-section card-editorial">
+      <div class="section-header">
+        <span class="section-number">04</span>
+        <div>
+          <h3 class="section-title font-serif">Composite Único (Digital Sedcard)</h3>
+          <p class="section-desc">Documento oficial consolidado do modelo em alta resolução para download de clientes e agências internacionais.</p>
+        </div>
+      </div>
+
+      @if (modelId()) {
+        <app-model-composite-manager [modelId]="modelId()!"></app-model-composite-manager>
+      } @else {
+        <div class="empty-composite-notice">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-[#4B584E] mb-2 stroke-[1.2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+          </svg>
+          <p class="text-xs uppercase tracking-[0.15em] font-sans text-[#222624] font-medium">Disponível após o primeiro salvamento</p>
+          <p class="text-[11px] text-[#5F6661] mt-0.5">O upload e gestão do Composite Oficial (PDF ou imagem de alta resolução até 25MB) estará habilitado imediatamente após cadastrar o modelo.</p>
+        </div>
+      }
+    </section>
+
+    <!-- SEÇÃO 5: Dados Biométricos de Alta Precisão (Medidas Técnicas) -->
+    <section class="form-section card-editorial">
+      <div class="section-header">
+        <span class="section-number">05</span>
+        <div>
+          <h3 class="section-title font-serif">Dados Biométricos & Medidas Físicas</h3>
+          <p class="section-desc">Parâmetros indispensáveis para a ficha técnica e composite de alta moda.</p>
+        </div>
+      </div>
+
+      <div class="form-grid grid-4">
+        <!-- Altura -->
+        <div class="form-group">
+          <label for="heightCm" class="form-label">Altura (cm)</label>
+          <div class="input-unit-group">
+            <input
+              id="heightCm"
+              type="number"
+              formControlName="heightCm"
+              class="form-control"
+              placeholder="Ex: 179"
+              min="50"
+              max="250"
+            />
+            <span class="input-unit">cm</span>
+          </div>
+          @if (modelForm.get('heightCm')?.invalid && modelForm.get('heightCm')?.touched) {
+            <span class="error-feedback">Altura entre 50 e 250 cm.</span>
+          }
+        </div>
+
+        <!-- Busto / Tórax -->
+        <div class="form-group">
+          <label for="bustChestCm" class="form-label">
+            {{ modelForm.get('gender')?.value === 'MALE' ? 'Tórax (cm)' : 'Busto (cm)' }}
+          </label>
+          <div class="input-unit-group">
+            <input
+              id="bustChestCm"
+              type="number"
+              step="0.5"
+              formControlName="bustChestCm"
+              class="form-control"
+              placeholder="Ex: 86"
+              min="20"
+              max="200"
+            />
+            <span class="input-unit">cm</span>
+          </div>
+        </div>
+
+        <!-- Cintura -->
+        <div class="form-group">
+          <label for="waistCm" class="form-label">Cintura (cm)</label>
+          <div class="input-unit-group">
+            <input
+              id="waistCm"
+              type="number"
+              step="0.5"
+              formControlName="waistCm"
+              class="form-control"
+              placeholder="Ex: 61"
+              min="20"
+              max="200"
+            />
+            <span class="input-unit">cm</span>
+          </div>
+        </div>
+
+        <!-- Quadril -->
+        <div class="form-group">
+          <label for="hipsCm" class="form-label">Quadril (cm)</label>
+          <div class="input-unit-group">
+            <input
+              id="hipsCm"
+              type="number"
+              step="0.5"
+              formControlName="hipsCm"
+              class="form-control"
+              placeholder="Ex: 90"
+              min="20"
+              max="200"
+            />
+            <span class="input-unit">cm</span>
+          </div>
+        </div>
+
+        <!-- Manequim -->
+        <div class="form-group">
+          <label for="dressSize" class="form-label">Manequim / Vestuário</label>
+          <input
+            id="dressSize"
+            type="text"
+            formControlName="dressSize"
+            class="form-control"
+            placeholder="Ex: 36 ou S"
+          />
+        </div>
+
+        <!-- Calçado -->
+        <div class="form-group">
+          <label for="shoeSize" class="form-label">Calçado / Sapato</label>
+          <input
+            id="shoeSize"
+            type="text"
+            formControlName="shoeSize"
+            class="form-control"
+            placeholder="Ex: 38"
+          />
+        </div>
+
+        <!-- Cor dos Cabelos -->
+        <div class="form-group">
+          <label for="hairColor" class="form-label">Cor dos Cabelos</label>
+          <input
+            id="hairColor"
+            type="text"
+            formControlName="hairColor"
+            class="form-control"
+            placeholder="Ex: Castanho Claro"
+          />
+        </div>
+
+        <!-- Cor dos Olhos -->
+        <div class="form-group">
+          <label for="eyesColor" class="form-label">Cor dos Olhos</label>
+          <input
+            id="eyesColor"
+            type="text"
+            formControlName="eyesColor"
+            class="form-control"
+            placeholder="Ex: Verdes"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- SEÇÃO 6: Dados Pessoais & Localização -->
+    <section class="form-section card-editorial">
+      <div class="section-header">
+        <span class="section-number">06</span>
+        <div>
+          <h3 class="section-title font-serif">Dados Pessoais & Localização</h3>
+          <p class="section-desc">Origem e informações demográficas do modelo.</p>
+        </div>
+      </div>
+
+      <div class="form-grid grid-3">
+        <!-- Data de Nascimento -->
+        <div class="form-group">
+          <label for="birthDate" class="form-label">
+            Data de Nascimento
+            @if (computedAge()) {
+              <span class="age-inline-badge">({{ computedAge() }} anos)</span>
+            }
+          </label>
+          <input
+            id="birthDate"
+            type="date"
+            formControlName="birthDate"
+            class="form-control"
+          />
+        </div>
+
+        <!-- Cidade / Base -->
+        <div class="form-group">
+          <label for="city" class="form-label">Cidade / Base Operacional</label>
+          <input
+            id="city"
+            type="text"
+            formControlName="city"
+            class="form-control"
+            placeholder="Ex: São Paulo, SP"
+          />
+        </div>
+
+        <!-- Nacionalidade -->
+        <div class="form-group">
+          <label for="nationality" class="form-label">Nacionalidade</label>
+          <input
+            id="nationality"
+            type="text"
+            formControlName="nationality"
+            class="form-control"
+            placeholder="Ex: Brasileira"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- Barra de Rodapé com Ações -->
+    <div class="form-footer-bar">
+      <button type="button" class="btn btn-outline" (click)="onCancel()">
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        class="btn btn-gold"
+        [disabled]="modelForm.invalid || isSaving()"
+      >
+        @if (isSaving()) {
+          <span class="spinner-inline"></span> Salvando...
+        } @else {
+          {{ isEditMode() ? 'Salvar Alterações' : 'Cadastrar Modelo no Elenco' }}
+        }
+      </button>
+    </div>
+  </form>
+</div>

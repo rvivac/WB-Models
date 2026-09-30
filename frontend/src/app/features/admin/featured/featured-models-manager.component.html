@@ -1,0 +1,141 @@
+<div class="space-y-8 bg-[#FBFBF9] min-h-[calc(100vh-4rem)] p-6 md:p-10 selection:bg-[#4B584E] selection:text-white featured-manager-container">
+  
+  <!-- Cabeçalho Institucional -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-[#E8EBE8] pb-6 gap-4">
+    <div>
+      <h1 class="text-xl font-serif uppercase tracking-wider text-[#222624]">Curadoria da Página Inicial</h1>
+      <p class="text-xs text-[#5F6661] tracking-wide mt-1">
+        Defina a sequência e os perfis em destaque na vitrine nobre da Home da WB Agency.
+      </p>
+    </div>
+
+    <!-- Ações Globais -->
+    <div class="flex items-center gap-4">
+      <span class="text-xs font-sans tracking-[0.15em] uppercase font-medium" [class.text-red-600]="featuredList.length < 4" [class.text-[#4B584E]]="featuredList.length >= 4">
+        {{ featuredList.length }} de 8 Selecionados
+      </span>
+      <button 
+        type="button" 
+        (click)="saveChanges()"
+        [disabled]="isSubmitting || featuredList.length < 4 || featuredList.length > 8"
+        class="px-6 py-3 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-[0.2em] font-sans disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-sm rounded-none btn-publish"
+      >
+        <span *ngIf="!isSubmitting">Publicar na Home</span>
+        <span *ngIf="isSubmitting">Salvando Vitrine...</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Layout em 2 Colunas -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    
+    <!-- Coluna 1: Vitrine Ativa da Home (Ordenação CDK) -->
+    <div class="lg:col-span-7 bg-white border border-[#E8EBE8] p-6 shadow-sm showcase-column">
+      <div class="flex items-center justify-between border-b border-[#E8EBE8] pb-4 mb-4">
+        <h2 class="text-sm font-serif uppercase tracking-wider text-[#222624]">Ordem de Exibição na Vitrine</h2>
+        <span class="text-[11px] text-[#5F6661] uppercase tracking-wider">Arraste para reordenar</span>
+      </div>
+
+      <!-- Alerta de Quantidade Mínima -->
+      <div *ngIf="featuredList.length < 4" class="p-3 bg-amber-50 border-l-2 border-amber-500 text-amber-800 text-xs mb-4 min-alert">
+        É necessário ter no mínimo 4 modelos para compor a vitrine da Home.
+      </div>
+
+      <div 
+        cdkDropList 
+        (cdkDropListDropped)="onDrop($event)" 
+        class="space-y-3 min-h-[300px] drop-list-container"
+      >
+        <div 
+          *ngFor="let item of featuredList; let i = index" 
+          cdkDrag
+          class="flex items-center justify-between p-3 bg-[#FBFBF9] border border-[#E8EBE8] hover:border-[#4B584E] transition-all cursor-grab active:cursor-grabbing group select-none featured-card"
+        >
+          <!-- Placeholder de arraste CDK -->
+          <div *cdkDragPlaceholder class="drag-placeholder border-2 border-dashed border-[#4B584E] bg-[#F4F5F4] p-6"></div>
+
+          <div class="flex items-center gap-4">
+            <!-- Posição Numérica -->
+            <span class="text-sm font-mono text-[#5F6661] w-6 font-semibold">#0{{ i + 1 }}</span>
+            
+            <!-- Foto de Capa -->
+            <img [src]="item.coverPhotoUrl" [alt]="item.artisticName" class="w-12 h-16 object-cover border border-[#E8EBE8] shrink-0">
+            
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-sans font-medium text-[#222624] tracking-wide">{{ item.artisticName }}</h3>
+                <span *ngIf="item.isStar" class="text-[9px] bg-[#C2A87E]/20 text-[#8C6D3F] border border-[#C2A87E]/40 px-1.5 py-0.5 uppercase tracking-widest star-badge">
+                  ★ Star
+                </span>
+              </div>
+              <p class="text-[11px] text-[#5F6661] uppercase tracking-wider mt-0.5">{{ item.category }} • {{ item.height }}cm</p>
+            </div>
+          </div>
+
+          <!-- Ação de Remoção -->
+          <button 
+            type="button" 
+            (click)="removeFromFeatured(item.id)"
+            class="text-[#5F6661] hover:text-red-700 p-2 text-xs uppercase tracking-wider transition-colors btn-remove"
+            title="Remover da Home"
+          >
+            Remover
+          </button>
+        </div>
+
+        <div *ngIf="featuredList.length === 0" class="p-12 text-center text-xs text-[#5F6661] uppercase tracking-wider empty-state">
+          Nenhum modelo selecionado para a Home. Escolha perfis no catálogo lateral.
+        </div>
+      </div>
+    </div>
+
+    <!-- Coluna 2: Modelos Disponíveis para Inclusão -->
+    <div class="lg:col-span-5 bg-white border border-[#E8EBE8] p-6 shadow-sm space-y-4 catalog-column">
+      <div class="border-b border-[#E8EBE8] pb-4">
+        <h2 class="text-sm font-serif uppercase tracking-wider text-[#222624]">Adicionar à Home</h2>
+        <p class="text-xs text-[#5F6661] tracking-wide mt-0.5">Modelos ativos disponíveis no casting.</p>
+      </div>
+
+      <!-- Barra de Pesquisa Rápida -->
+      <div>
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          placeholder="Buscar por nome artístico..."
+          class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] focus:bg-white rounded-none search-input"
+        />
+      </div>
+
+      <!-- Lista de Modelos Selecionáveis -->
+      <div class="space-y-2 max-h-[500px] overflow-y-auto pr-1 available-list">
+        <div 
+          *ngFor="let model of filteredAvailableModels" 
+          class="flex items-center justify-between p-2.5 border border-[#E8EBE8] bg-[#FBFBF9] hover:bg-white transition-colors available-item"
+        >
+          <div class="flex items-center gap-3">
+            <img [src]="model.coverPhotoUrl" [alt]="model.artisticName" class="w-9 h-12 object-cover border border-[#E8EBE8] shrink-0">
+            <div>
+              <p class="text-xs font-sans font-medium text-[#222624]">{{ model.artisticName }}</p>
+              <p class="text-[10px] text-[#5F6661] uppercase">{{ model.category }}</p>
+            </div>
+          </div>
+
+          <button 
+            type="button" 
+            (click)="addToFeatured(model)"
+            [disabled]="featuredList.length >= 8"
+            class="px-2.5 py-1.5 border border-[#4B584E] text-[#4B584E] hover:bg-[#4B584E] hover:text-white text-[10px] uppercase tracking-wider transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer rounded-none btn-add"
+          >
+            + Inserir
+          </button>
+        </div>
+
+        <div *ngIf="filteredAvailableModels.length === 0" class="p-6 text-center text-xs text-[#5F6661]">
+          Nenhum modelo disponível encontrado.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

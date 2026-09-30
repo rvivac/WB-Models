@@ -71,11 +71,14 @@
   --shadow-gold: 0 6px 25px rgba(194, 168, 126, 0.22);
   --shadow-sage: 0 6px 25px rgba(75, 88, 78, 0.25);
 
-  /* Raios de Borda */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 14px;
-  --radius-full: 9999px;
+  /* Raios de Borda (Padrão Editorial Strict Rounded-None: Zero Border-Radius) */
+  --radius-none: 0px;
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-full: 0px;
 
   /* Transições Fluidas */
   --transition-fast: 0.15s ease;
@@ -86,6 +89,27 @@
   --header-height: 80px;
   --container-max-width: 1320px;
 }
+
+// ==============================================================================
+// DESIGN TOKENS — WB AGENCY (PADRÃO EDITORIAL STRICT ROUNDED-NONE)
+// ==============================================================================
+
+// Purga de Border Radius: Todos os raios são forçados a 0
+$border-radius-none: 0px !default;
+$border-radius-xs:   0px !default;
+$border-radius-sm:   0px !default;
+$border-radius-md:   0px !default;
+$border-radius-lg:   0px !default;
+$border-radius-xl:   0px !default;
+$border-radius-pill: 0px !default;
+
+// Alias de compatibilidade para tokens legados
+$radius-xs: 0px !default;
+$radius-sm: 0px !default;
+$radius-md: 0px !default;
+$radius-lg: 0px !default;
+$radius-xl: 0px !default;
+
 
 // SCSS Breakpoint Mixins
 $breakpoint-sm: 640px;

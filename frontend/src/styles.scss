@@ -2,6 +2,37 @@
 @import './styles/reset';
 @import './styles/typography';
 
+// ==============================================================================
+// RESET EDITORIAL GLOBAL: IMPOSIÇÃO DE CANTOS VIVOS (ZERO BORDER-RADIUS)
+// ==============================================================================
+
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+}
+
+// Aplicação estrita sobre elementos estruturais e formulários
+button,
+input,
+select,
+textarea,
+table,
+th,
+td,
+img,
+dialog,
+.modal,
+.card,
+.badge,
+.dropdown-menu,
+.tooltip {
+  border-radius: 0 !important;
+  -webkit-border-radius: 0 !important;
+  -moz-border-radius: 0 !important;
+}
+
+
 // Container Responsivo
 .container {
   width: 100%;
@@ -29,7 +60,7 @@
   letter-spacing: 0.15em;
   text-transform: uppercase;
   padding: 0.875rem 1.75rem;
-  border-radius: 2px;
+  border-radius: 0;
   transition: all var(--transition-normal);
   cursor: pointer;
   white-space: nowrap;
@@ -130,7 +161,7 @@
   font-weight: 600;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  border-radius: 2px;
+  border-radius: 0;
   transition: all var(--transition-normal);
   cursor: pointer;
   white-space: nowrap;
@@ -164,7 +195,7 @@
   font-weight: 600;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  border-radius: 2px;
+  border-radius: 0;
   transition: all var(--transition-normal);
   cursor: pointer;
   white-space: nowrap;
@@ -211,7 +242,7 @@
 .card-editorial {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle); // #E8EBE8
-  border-radius: 2px;
+  border-radius: 0;
   overflow: hidden;
   transition: border-color var(--transition-normal), transform var(--transition-normal), box-shadow var(--transition-normal);
 
@@ -247,7 +278,7 @@
     width: 100%;
     background: #ffffff;
     border: 1px solid var(--border-subtle); // #E8EBE8
-    border-radius: 2px;
+    border-radius: 0;
     padding: 0.75rem 1rem;
     font-size: 0.9375rem;
     color: var(--text-primary); // #222624

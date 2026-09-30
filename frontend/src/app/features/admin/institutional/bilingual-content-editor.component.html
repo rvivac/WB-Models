@@ -1,0 +1,309 @@
+<div class="mgmt-page selection:bg-[#4B584E] selection:text-white">
+  <div class="mgmt-inner space-y-8">
+
+    <!-- CABEÇALHO DO MENU INSTITUCIONAL (Padronizado com Triagem e Modelos) -->
+    <header class="scouting-header">
+      <div>
+        <h1 class="scouting-title">Conteúdos Bilíngues (PT / EN)</h1>
+        <p class="scouting-subtitle">
+          Gestão de manifestos, diretrizes e termos com caixas editoriais coloridas e suporte multilíngue.
+        </p>
+      </div>
+
+      <!-- Seletor de Seção e Ação -->
+      <div class="header-actions">
+        <span class="text-[10px] uppercase font-sans tracking-widest text-[#5F6661]">Seção:</span>
+        <select 
+          [(ngModel)]="activeSection" 
+          (change)="loadSection(activeSection)"
+          class="px-3 py-2 bg-white border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none cursor-pointer"
+        >
+          <option value="MANIFESTO">Manifesto Institucional (Sobre Nós)</option>
+          <option value="SCOUTING">Diretrizes de Scouting (Seja Modelo)</option>
+          <option value="TERMS">Termos & Privacidade (Jurídico)</option>
+        </select>
+
+        <a routerLink="/admin" class="btn-outline-admin">
+          <span>← Painel Geral</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Feedback Toast -->
+    <div *ngIf="successBlock" class="max-w-full p-3 text-xs bg-emerald-50 border border-emerald-200 text-emerald-800 transition-opacity">
+      Bloco atualizado com sucesso no servidor e sincronizado em PT/EN.
+    </div>
+
+    <div class="bg-white border border-[#E8EBE8] p-6 md:p-8 shadow-sm space-y-6">
+      <div class="card-editorial-header flex items-center justify-between">
+        <div>
+          <h2 class="card-editorial-title">{{ currentSectionTitle }}</h2>
+          <p class="card-editorial-subtitle">Edição modular por blocos de conteúdo sincronizados em Português e Inglês.</p>
+        </div>
+        <span class="text-[10px] uppercase font-mono tracking-widest text-[#4B584E] bg-[#F4F8F5] px-2.5 py-1 border border-[#E8EBE8]">
+          Ativo: {{ activeSection }}
+        </span>
+      </div>
+
+      <!-- Bloco 1: Título / Headline Bilíngue -->
+      <div class="editorial-field-box" [ngClass]="getBlockStatusClass('headline')">
+        <div class="field-header">
+          <div class="flex items-center gap-2.5">
+            <span class="field-label">Título Principal (Headline)</span>
+            <span class="field-badge">{{ getBlockStatusLabel('headline') }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button 
+              type="button" 
+              (click)="startEditBlock('headline')"
+              [class.btn-active]="editingBlock === 'headline'"
+              class="btn-field-edit"
+              title="Habilitar edição deste bloco"
+            >
+              ✎ Editar Par
+            </button>
+            <button 
+              type="button" 
+              (click)="saveBlock('headline')" 
+              [disabled]="isSaving" 
+              class="btn-field-save"
+              title="Salvar alterações deste bloco"
+            >
+              ✓ {{ isSaving && editingBlock === 'headline' ? 'Salvando...' : 'Salvar Título' }}
+            </button>
+            <button 
+              *ngIf="editingBlock === 'headline'" 
+              type="button" 
+              (click)="cancelEditBlock()" 
+              class="btn-field-cancel"
+              title="Cancelar e reverter"
+            >
+              ✕ Cancelar
+            </button>
+          </div>
+        </div>
+
+        <!-- Caixas de Texto Coloridas Delimitadas PT/EN -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+          <!-- Português -->
+          <div class="space-y-1.5">
+            <label class="block text-[10px] uppercase font-mono font-semibold text-[#4B584E]">Português (PT-BR)</label>
+            <input 
+              *ngIf="editingBlock !== 'headline'"
+              type="text" 
+              [value]="currentContent.pt.headline || ''"
+              readonly
+              (click)="startEditBlock('headline')"
+              placeholder="Headline em Português..."
+              class="colored-text-input font-serif text-sm md:text-base font-medium"
+            />
+            <input 
+              *ngIf="editingBlock === 'headline'"
+              id="field-pt-headline"
+              type="text" 
+              [(ngModel)]="tempPt.headline" 
+              placeholder="Headline em Português..."
+              class="colored-text-input font-serif text-sm md:text-base font-medium"
+            />
+          </div>
+
+          <!-- Inglês -->
+          <div class="space-y-1.5">
+            <label class="block text-[10px] uppercase font-mono font-semibold text-[#C2A87E]">Inglês (EN-US)</label>
+            <input 
+              *ngIf="editingBlock !== 'headline'"
+              type="text" 
+              [value]="currentContent.en.headline || ''"
+              readonly
+              (click)="startEditBlock('headline')"
+              placeholder="Headline em Inglês..."
+              class="colored-text-input font-serif text-sm md:text-base font-medium"
+            />
+            <input 
+              *ngIf="editingBlock === 'headline'"
+              id="field-en-headline"
+              type="text" 
+              [(ngModel)]="tempEn.headline" 
+              placeholder="Headline em Inglês..."
+              class="colored-text-input font-serif text-sm md:text-base font-medium"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Bloco 2: Citação / Frase de Impacto -->
+      <div class="editorial-field-box" [ngClass]="getBlockStatusClass('quote')">
+        <div class="field-header">
+          <div class="flex items-center gap-2.5">
+            <span class="field-label">Citação / Frase de Destaque</span>
+            <span class="field-badge">{{ getBlockStatusLabel('quote') }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button 
+              type="button" 
+              (click)="startEditBlock('quote')"
+              [class.btn-active]="editingBlock === 'quote'"
+              class="btn-field-edit"
+              title="Habilitar edição deste bloco"
+            >
+              ✎ Editar Par
+            </button>
+            <button 
+              type="button" 
+              (click)="saveBlock('quote')" 
+              [disabled]="isSaving" 
+              class="btn-field-save"
+              title="Salvar alterações deste bloco"
+            >
+              ✓ {{ isSaving && editingBlock === 'quote' ? 'Salvando...' : 'Salvar Citação' }}
+            </button>
+            <button 
+              *ngIf="editingBlock === 'quote'" 
+              type="button" 
+              (click)="cancelEditBlock()" 
+              class="btn-field-cancel"
+              title="Cancelar e reverter"
+            >
+              ✕ Cancelar
+            </button>
+          </div>
+        </div>
+
+        <!-- Caixas de Texto Coloridas Delimitadas PT/EN -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+          <!-- Português -->
+          <div class="space-y-1.5">
+            <label class="block text-[10px] uppercase font-mono font-semibold text-[#4B584E]">Português (PT-BR)</label>
+            <textarea 
+              *ngIf="editingBlock !== 'quote'"
+              rows="2"
+              [value]="currentContent.pt.quote || ''"
+              readonly
+              (click)="startEditBlock('quote')"
+              placeholder="Frase ou citação em Português..."
+              class="colored-text-input font-serif italic text-xs leading-relaxed resize-y"
+            ></textarea>
+            <textarea 
+              *ngIf="editingBlock === 'quote'"
+              id="field-pt-quote"
+              rows="2"
+              [(ngModel)]="tempPt.quote" 
+              placeholder="Frase ou citação em Português..."
+              class="colored-text-input font-serif italic text-xs leading-relaxed resize-y"
+            ></textarea>
+          </div>
+
+          <!-- Inglês -->
+          <div class="space-y-1.5">
+            <label class="block text-[10px] uppercase font-mono font-semibold text-[#C2A87E]">Inglês (EN-US)</label>
+            <textarea 
+              *ngIf="editingBlock !== 'quote'"
+              rows="2"
+              [value]="currentContent.en.quote || ''"
+              readonly
+              (click)="startEditBlock('quote')"
+              placeholder="Frase ou citação em Inglês..."
+              class="colored-text-input font-serif italic text-xs leading-relaxed resize-y"
+            ></textarea>
+            <textarea 
+              *ngIf="editingBlock === 'quote'"
+              id="field-en-quote"
+              rows="2"
+              [(ngModel)]="tempEn.quote" 
+              placeholder="Frase ou citação em Inglês..."
+              class="colored-text-input font-serif italic text-xs leading-relaxed resize-y"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bloco 3: Corpo Principal / Manifesto -->
+      <div class="editorial-field-box" [ngClass]="getBlockStatusClass('body')">
+        <div class="field-header">
+          <div class="flex items-center gap-2.5">
+            <span class="field-label">Corpo Editorial (Texto Completo)</span>
+            <span class="field-badge">{{ getBlockStatusLabel('body') }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button 
+              type="button" 
+              (click)="startEditBlock('body')"
+              [class.btn-active]="editingBlock === 'body'"
+              class="btn-field-edit"
+              title="Habilitar edição deste bloco"
+            >
+              ✎ Editar Par
+            </button>
+            <button 
+              type="button" 
+              (click)="saveBlock('body')" 
+              [disabled]="isSaving" 
+              class="btn-field-save"
+              title="Salvar alterações deste bloco"
+            >
+              ✓ {{ isSaving && editingBlock === 'body' ? 'Salvando...' : 'Salvar Texto' }}
+            </button>
+            <button 
+              *ngIf="editingBlock === 'body'" 
+              type="button" 
+              (click)="cancelEditBlock()" 
+              class="btn-field-cancel"
+              title="Cancelar e reverter"
+            >
+              ✕ Cancelar
+            </button>
+          </div>
+        </div>
+
+        <!-- Caixas de Texto Coloridas Delimitadas PT/EN -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+          <!-- Português -->
+          <div class="space-y-1.5">
+            <label class="block text-[10px] uppercase font-mono font-semibold text-[#4B584E]">Português (PT-BR)</label>
+            <textarea 
+              *ngIf="editingBlock !== 'body'"
+              rows="6"
+              [value]="currentContent.pt.body || ''"
+              readonly
+              (click)="startEditBlock('body')"
+              placeholder="Texto completo em Português..."
+              class="colored-text-input font-sans text-xs leading-relaxed resize-y"
+            ></textarea>
+            <textarea 
+              *ngIf="editingBlock === 'body'"
+              id="field-pt-body"
+              rows="6"
+              [(ngModel)]="tempPt.body" 
+              placeholder="Texto completo em Português..."
+              class="colored-text-input font-sans text-xs leading-relaxed resize-y"
+            ></textarea>
+          </div>
+
+          <!-- Inglês -->
+          <div class="space-y-1.5">
+            <label class="block text-[10px] uppercase font-mono font-semibold text-[#C2A87E]">Inglês (EN-US)</label>
+            <textarea 
+              *ngIf="editingBlock !== 'body'"
+              rows="6"
+              [value]="currentContent.en.body || ''"
+              readonly
+              (click)="startEditBlock('body')"
+              placeholder="Texto completo em Inglês..."
+              class="colored-text-input font-sans text-xs leading-relaxed resize-y"
+            ></textarea>
+            <textarea 
+              *ngIf="editingBlock === 'body'"
+              id="field-en-body"
+              rows="6"
+              [(ngModel)]="tempEn.body" 
+              placeholder="Texto completo em Inglês..."
+              class="colored-text-input font-sans text-xs leading-relaxed resize-y"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>

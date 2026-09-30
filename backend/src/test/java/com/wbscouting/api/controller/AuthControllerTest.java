@@ -85,7 +85,7 @@ class AuthControllerTest {
         LoginRequestDto request = new LoginRequestDto("admin@wbscouting.com", "senha-errada");
 
         when(authService.login(any(LoginRequestDto.class)))
-                .thenThrow(new BadCredentialsException("Email ou senha inválidos."));
+                .thenThrow(new BadCredentialsException("Credenciais inválidas. Verifique seu e-mail e senha."));
 
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -103,7 +103,7 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Wenn die E-Mail im System registriert ist, wurde ein Wiederherstellungslink gesendet."));
+                .andExpect(jsonPath("$.message").value("Se o e-mail informado estiver cadastrado em nosso sistema, as instruções para redefinição de senha serão enviadas em instantes."));
     }
 
     @Test
@@ -115,7 +115,7 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Passwort erfolgreich zurückgesetzt."));
+                .andExpect(jsonPath("$.message").value("Senha redefinida com sucesso."));
     }
 
     @Test

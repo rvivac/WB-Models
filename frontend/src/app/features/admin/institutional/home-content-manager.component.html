@@ -1,0 +1,506 @@
+<div class="mgmt-page selection:bg-[#4B584E] selection:text-white">
+  <div class="mgmt-inner space-y-8">
+
+    <!-- CABEÇALHO DO MENU INSTITUCIONAL (Padronizado com Triagem e Modelos) -->
+    <header class="scouting-header">
+      <div>
+        <h1 class="scouting-title">Gestão da Página Inicial</h1>
+        <p class="scouting-subtitle">
+          Configuração do vídeo hero, capa de contingência e textos editoriais da vitrine principal.
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <a 
+          href="/" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          class="btn-outline-admin"
+          title="Abrir vitrine em nova guia"
+        >
+          <span>Ver Home Pública ↗</span>
+        </a>
+        <button 
+          type="button" 
+          (click)="saveTextContent()" 
+          [disabled]="form.invalid || isSaving"
+          class="btn-primary-admin"
+          title="Salvar todas as alterações da página"
+        >
+          <span *ngIf="!isSaving">Salvar Tudo</span>
+          <span *ngIf="isSaving">Publicando...</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Feedback Toast / Alerta -->
+    <div *ngIf="feedbackMessage" class="max-w-full p-3 text-xs bg-emerald-50 border border-emerald-200 text-emerald-800 transition-opacity">
+      {{ feedbackMessage }}
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+      <!-- Coluna Esquerda: Gestão de Mídias (Vídeo e Capa / Logo com Proporções Otimizadas) - 5 Colunas -->
+      <div class="lg:col-span-5 space-y-6">
+
+        <!-- Bloco de Vídeo Hero -->
+        <div class="bg-white border border-[#E8EBE8] p-6 shadow-sm space-y-4">
+          <div class="card-editorial-header">
+            <div class="flex items-center justify-between">
+              <h2 class="card-editorial-title">Vídeo de Fundo (Hero Video)</h2>
+              <span class="text-[10px] font-mono text-[#5F6661] bg-[#FBFBF9] px-2 py-0.5 border border-[#E8EBE8]">MP4 / WEBM · Até 50MB</span>
+            </div>
+            <p class="card-editorial-subtitle">Vídeo principal em loop contínuo exibido na vitrine da Home pública.</p>
+          </div>
+
+          <!-- Janela de Apresentação do Vídeo (Apenas Preview) -->
+          <div class="video-preview-wrapper">
+            <div class="video-frame">
+              <video 
+                *ngIf="currentVideoUrl" 
+                [src]="currentVideoUrl" 
+                controls 
+                controlsList="nodownload"
+                muted 
+                class="w-full h-full object-cover"
+              ></video>
+              <div *ngIf="!currentVideoUrl" class="w-full h-full flex flex-col items-center justify-center text-xs text-[#5F6661] p-6 font-mono bg-[#111312]">
+                <svg class="w-8 h-8 text-[#5F6661] mb-2 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span>Nenhum vídeo ativo</span>
+              </div>
+            </div>
+            <input 
+              #videoInput 
+              type="file" 
+              accept="video/mp4,video/webm" 
+              class="hidden" 
+              (change)="onVideoSelected($event)"
+            />
+          </div>
+
+          <!-- Botão de Ação Único e Status Abaixo do Vídeo -->
+          <div class="media-bottom-bar">
+            <button 
+              type="button" 
+              (click)="videoInput.click()" 
+              [disabled]="isVideoUploading"
+              class="btn-media-action"
+              title="Carregar ou substituir o arquivo de vídeo hero"
+            >
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              <span>{{ isVideoUploading ? 'Enviando (' + videoUploadProgress + '%)...' : 'Substituir Vídeo Hero' }}</span>
+            </button>
+
+            <span class="media-status-pill">
+              <span class="w-2 h-2 rounded-full" [ngClass]="currentVideoUrl ? 'bg-emerald-600' : 'bg-amber-500'"></span>
+              {{ currentVideoUrl ? 'Vídeo Ativo' : 'Aguardando Vídeo' }}
+            </span>
+          </div>
+
+          <!-- Progresso de Upload Discreto -->
+          <div *ngIf="isVideoUploading" class="space-y-1.5 pt-1">
+            <div class="flex justify-between text-[11px] text-[#4B584E] font-medium font-mono">
+              <span>Transmitindo arquivo de vídeo...</span>
+              <span>{{ videoUploadProgress }}%</span>
+            </div>
+            <div class="w-full bg-[#E8EBE8] h-1.5 overflow-hidden rounded-full">
+              <div class="bg-[#4B584E] h-full transition-all duration-300" [style.width.%]="videoUploadProgress"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bloco de Capa / Poster de Contingência / Apresentação do Logo -->
+        <div class="bg-white border border-[#E8EBE8] p-6 shadow-sm space-y-4">
+          <div class="card-editorial-header">
+            <div class="flex items-center justify-between">
+              <h2 class="card-editorial-title">Logo &amp; Capa de Contingência</h2>
+              <span class="text-[10px] font-mono text-[#5F6661] bg-[#FBFBF9] px-2 py-0.5 border border-[#E8EBE8]">JPEG / WEBP · Até 10MB</span>
+            </div>
+            <p class="card-editorial-subtitle">Exibida em conexões lentas ou dispositivos com restrição de reprodução.</p>
+          </div>
+
+          <!-- Janela de Apresentação do Logo (Apenas Preview) -->
+          <div class="logo-preview-wrapper">
+            <div class="logo-frame">
+              <img 
+                [src]="currentPosterUrl || 'assets/images/logo-wb-agency.jpeg'" 
+                alt="Logo WB Agency" 
+              />
+            </div>
+            <input #posterInput type="file" accept="image/jpeg,image/webp,image/png" class="hidden" (change)="onPosterSelected($event)">
+          </div>
+
+          <!-- Botão de Ação Único e Status Abaixo do Logo -->
+          <div class="media-bottom-bar">
+            <button 
+              type="button" 
+              (click)="posterInput.click()" 
+              class="btn-media-action"
+              title="Carregar ou substituir o arquivo de logo/capa"
+            >
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span>Substituir Logo / Capa</span>
+            </button>
+
+            <span class="media-status-pill">
+              <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+              Ativo como Fallback
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Coluna Direita: Textos Institucionais & Metadados SEO - 7 Colunas -->
+      <div class="lg:col-span-7 space-y-6">
+        
+        <form [formGroup]="form" class="bg-white border border-[#E8EBE8] p-6 md:p-8 shadow-sm space-y-6">
+          <div class="card-editorial-header">
+            <h2 class="card-editorial-title">Textos Editoriais da Home</h2>
+            <p class="card-editorial-subtitle">Edição modular dos slogans, manifestos e meta-tags SEO da vitrine pública.</p>
+          </div>
+
+          <!-- Hero Title -->
+          <div class="editorial-field-box" [ngClass]="getFieldStatusClass('heroTitle')">
+            <div class="field-header">
+              <div class="flex items-center gap-2.5">
+                <span class="field-label">Título de Abertura</span>
+                <span class="field-badge">{{ getFieldStatusLabel('heroTitle') }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button 
+                  type="button" 
+                  (click)="startEdit('heroTitle')" 
+                  [class.btn-active]="editingField === 'heroTitle'"
+                  class="btn-field-edit"
+                  title="Habilitar edição deste campo"
+                >
+                  ✎ Editar
+                </button>
+                <button 
+                  type="button" 
+                  (click)="saveField('heroTitle')" 
+                  [disabled]="form.get('heroTitle')?.invalid || isSaving"
+                  class="btn-field-save"
+                  title="Salvar alterações deste campo"
+                >
+                  ✓ Salvar
+                </button>
+                <button 
+                  *ngIf="editingField === 'heroTitle'" 
+                  type="button" 
+                  (click)="cancelEdit()" 
+                  class="btn-field-cancel"
+                  title="Cancelar e reverter"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <!-- Caixa de Texto Colorida Delimitada -->
+            <div class="w-full">
+              <input 
+                id="heroTitle"
+                type="text" 
+                formControlName="heroTitle" 
+                [readonly]="editingField !== 'heroTitle'"
+                (click)="editingField !== 'heroTitle' && startEdit('heroTitle')"
+                placeholder="Preencha o título de abertura da Home..."
+                class="colored-text-input font-serif text-base md:text-lg"
+              />
+            </div>
+          </div>
+
+          <!-- Hero Subtitle -->
+          <div class="editorial-field-box" [ngClass]="getFieldStatusClass('heroSubtitle')">
+            <div class="field-header">
+              <div class="flex items-center gap-2.5">
+                <span class="field-label">Subtítulo Editorial</span>
+                <span class="field-badge">{{ getFieldStatusLabel('heroSubtitle') }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button 
+                  type="button" 
+                  (click)="startEdit('heroSubtitle')" 
+                  [class.btn-active]="editingField === 'heroSubtitle'"
+                  class="btn-field-edit"
+                  title="Habilitar edição deste campo"
+                >
+                  ✎ Editar
+                </button>
+                <button 
+                  type="button" 
+                  (click)="saveField('heroSubtitle')" 
+                  [disabled]="form.get('heroSubtitle')?.invalid || isSaving"
+                  class="btn-field-save"
+                  title="Salvar alterações deste campo"
+                >
+                  ✓ Salvar
+                </button>
+                <button 
+                  *ngIf="editingField === 'heroSubtitle'" 
+                  type="button" 
+                  (click)="cancelEdit()" 
+                  class="btn-field-cancel"
+                  title="Cancelar e reverter"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <!-- Caixa de Texto Colorida Delimitada -->
+            <div class="w-full">
+              <input 
+                id="heroSubtitle"
+                type="text" 
+                formControlName="heroSubtitle" 
+                [readonly]="editingField !== 'heroSubtitle'"
+                (click)="editingField !== 'heroSubtitle' && startEdit('heroSubtitle')"
+                placeholder="Preencha o subtítulo editorial..."
+                class="colored-text-input font-mono text-xs uppercase"
+              />
+            </div>
+          </div>
+
+          <!-- Hero Description / Manifesto -->
+          <div class="editorial-field-box" [ngClass]="getFieldStatusClass('heroDescription')">
+            <div class="field-header">
+              <div class="flex items-center gap-2.5">
+                <span class="field-label">Manifesto Curto / Descrição</span>
+                <span class="field-badge">{{ getFieldStatusLabel('heroDescription') }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button 
+                  type="button" 
+                  (click)="startEdit('heroDescription')" 
+                  [class.btn-active]="editingField === 'heroDescription'"
+                  class="btn-field-edit"
+                  title="Habilitar edição deste campo"
+                >
+                  ✎ Editar
+                </button>
+                <button 
+                  type="button" 
+                  (click)="saveField('heroDescription')" 
+                  [disabled]="form.get('heroDescription')?.invalid || isSaving"
+                  class="btn-field-save"
+                  title="Salvar alterações deste campo"
+                >
+                  ✓ Salvar
+                </button>
+                <button 
+                  *ngIf="editingField === 'heroDescription'" 
+                  type="button" 
+                  (click)="cancelEdit()" 
+                  class="btn-field-cancel"
+                  title="Cancelar e reverter"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <!-- Caixa de Texto Colorida Delimitada (Textarea) -->
+            <div class="w-full">
+              <textarea 
+                id="heroDescription"
+                rows="3" 
+                formControlName="heroDescription" 
+                [readonly]="editingField !== 'heroDescription'"
+                (click)="editingField !== 'heroDescription' && startEdit('heroDescription')"
+                placeholder="Descreva o manifesto de abertura da vitrine..."
+                class="colored-text-input font-sans text-xs leading-relaxed resize-y"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Rótulo do Scroll -->
+          <div class="editorial-field-box" [ngClass]="getFieldStatusClass('scrollLabel')">
+            <div class="field-header">
+              <div class="flex items-center gap-2.5">
+                <span class="field-label">Rótulo de Rolagem</span>
+                <span class="field-badge">{{ getFieldStatusLabel('scrollLabel') }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button 
+                  type="button" 
+                  (click)="startEdit('scrollLabel')" 
+                  [class.btn-active]="editingField === 'scrollLabel'"
+                  class="btn-field-edit"
+                  title="Habilitar edição deste campo"
+                >
+                  ✎ Editar
+                </button>
+                <button 
+                  type="button" 
+                  (click)="saveField('scrollLabel')" 
+                  [disabled]="form.get('scrollLabel')?.invalid || isSaving"
+                  class="btn-field-save"
+                  title="Salvar alterações deste campo"
+                >
+                  ✓ Salvar
+                </button>
+                <button 
+                  *ngIf="editingField === 'scrollLabel'" 
+                  type="button" 
+                  (click)="cancelEdit()" 
+                  class="btn-field-cancel"
+                  title="Cancelar e reverter"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <!-- Caixa de Texto Colorida Delimitada -->
+            <div class="w-full">
+              <input 
+                id="scrollLabel"
+                type="text" 
+                formControlName="scrollLabel" 
+                [readonly]="editingField !== 'scrollLabel'"
+                (click)="editingField !== 'scrollLabel' && startEdit('scrollLabel')"
+                placeholder="Ex: SCROLL..."
+                class="colored-text-input font-mono text-xs uppercase"
+              />
+            </div>
+          </div>
+
+          <div class="border-t border-[#E8EBE8] pt-6 space-y-4">
+            <h3 class="text-sm font-serif uppercase tracking-wider text-[#222624]">Metadados Globais (SEO)</h3>
+
+            <!-- Meta Title -->
+            <div class="editorial-field-box" [ngClass]="getFieldStatusClass('metaTitle')">
+              <div class="field-header">
+                <div class="flex items-center gap-2.5">
+                  <span class="field-label">Título da Aba (Meta Title)</span>
+                  <span class="field-badge">{{ getFieldStatusLabel('metaTitle') }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button 
+                    type="button" 
+                    (click)="startEdit('metaTitle')" 
+                    [class.btn-active]="editingField === 'metaTitle'"
+                    class="btn-field-edit"
+                    title="Habilitar edição deste campo"
+                  >
+                    ✎ Editar
+                  </button>
+                  <button 
+                    type="button" 
+                    (click)="saveField('metaTitle')" 
+                    [disabled]="form.get('metaTitle')?.invalid || isSaving"
+                    class="btn-field-save"
+                    title="Salvar alterações deste campo"
+                  >
+                    ✓ Salvar
+                  </button>
+                  <button 
+                    *ngIf="editingField === 'metaTitle'" 
+                    type="button" 
+                    (click)="cancelEdit()" 
+                    class="btn-field-cancel"
+                    title="Cancelar e reverter"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              <!-- Caixa de Texto Colorida Delimitada -->
+              <div class="w-full">
+                <input 
+                  id="metaTitle"
+                  type="text" 
+                  formControlName="metaTitle" 
+                  [readonly]="editingField !== 'metaTitle'"
+                  (click)="editingField !== 'metaTitle' && startEdit('metaTitle')"
+                  placeholder="Título para motores de busca e aba do navegador..."
+                  class="colored-text-input font-sans text-xs"
+                />
+              </div>
+            </div>
+
+            <!-- Meta Description -->
+            <div class="editorial-field-box" [ngClass]="getFieldStatusClass('metaDescription')">
+              <div class="field-header">
+                <div class="flex items-center gap-2.5">
+                  <span class="field-label">Descrição Google (Meta Description)</span>
+                  <span class="field-badge">{{ getFieldStatusLabel('metaDescription') }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button 
+                    type="button" 
+                    (click)="startEdit('metaDescription')" 
+                    [class.btn-active]="editingField === 'metaDescription'"
+                    class="btn-field-edit"
+                    title="Habilitar edição deste campo"
+                  >
+                    ✎ Editar
+                  </button>
+                  <button 
+                    type="button" 
+                    (click)="saveField('metaDescription')" 
+                    [disabled]="form.get('metaDescription')?.invalid || isSaving"
+                    class="btn-field-save"
+                    title="Salvar alterações deste campo"
+                  >
+                    ✓ Salvar
+                  </button>
+                  <button 
+                    *ngIf="editingField === 'metaDescription'" 
+                    type="button" 
+                    (click)="cancelEdit()" 
+                    class="btn-field-cancel"
+                    title="Cancelar e reverter"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              <!-- Caixa de Texto Colorida Delimitada (Textarea) -->
+              <div class="w-full">
+                <textarea 
+                  id="metaDescription"
+                  rows="2" 
+                  formControlName="metaDescription" 
+                  [readonly]="editingField !== 'metaDescription'"
+                  (click)="editingField !== 'metaDescription' && startEdit('metaDescription')"
+                  placeholder="Resumo sucinto de 150-160 caracteres para o Google..."
+                  class="colored-text-input font-sans text-xs leading-relaxed resize-y"
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- Pré-visualização Google SERP -->
+            <div class="bg-[#FBFBF9] border border-[#E8EBE8] p-4 text-xs space-y-1.5">
+              <span class="text-[9px] uppercase tracking-widest text-[#5F6661] block font-mono">Pré-visualização no Google:</span>
+              <div class="text-blue-800 text-sm font-medium hover:underline cursor-pointer truncate">
+                {{ form.get('metaTitle')?.value || 'WB Agency | Scouting Internacional e Alta Moda' }}
+              </div>
+              <div class="text-emerald-800 text-[11px] font-mono">
+                https://wbagency.com.br
+              </div>
+              <div class="text-[#5F6661] text-xs line-clamp-2">
+                {{ form.get('metaDescription')?.value || 'Agência de scouting e modelos com foco editorial...' }}
+              </div>
+            </div>
+          </div>
+
+        </form>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>

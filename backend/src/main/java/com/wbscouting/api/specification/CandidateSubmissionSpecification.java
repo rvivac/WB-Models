@@ -26,6 +26,19 @@ public class CandidateSubmissionSpecification {
             LocalDate startDate,
             LocalDate endDate
     ) {
+        return filter(search, status, gender, null, minHeight, maxHeight, startDate, endDate);
+    }
+
+    public static Specification<CandidateSubmission> filter(
+            String search,
+            SubmissionStatus status,
+            SubmissionGender gender,
+            Boolean isMinor,
+            BigDecimal minHeight,
+            BigDecimal maxHeight,
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -48,7 +61,16 @@ public class CandidateSubmissionSpecification {
                 predicates.add(cb.equal(root.get("gender"), gender));
             }
 
-            // 4. Filtro por altura mínima e máxima
+            // 4. Filtro por menoridade
+            if (isMinor != null) {
+                if (isMinor) {
+                    predicates.add(cb.lessThan(root.get("age"), 18));
+                } else {
+                    predicates.add(cb.greaterThanOrEqualTo(root.get("age"), 18));
+                }
+            }
+
+            // 5. Filtro por altura mínima e máxima
             if (minHeight != null) {
                 predicates.add(cb.greaterThanOrEqualTo(root.get("height"), minHeight));
             }
@@ -56,7 +78,7 @@ public class CandidateSubmissionSpecification {
                 predicates.add(cb.lessThanOrEqualTo(root.get("height"), maxHeight));
             }
 
-            // 5. Filtro por intervalo de datas de criação (createdAt)
+            // 6. Filtro por intervalo de datas de criação (createdAt)
             if (startDate != null) {
                 OffsetDateTime startDateTime = startDate.atStartOfDay().atOffset(ZoneOffset.UTC);
                 predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), startDateTime));

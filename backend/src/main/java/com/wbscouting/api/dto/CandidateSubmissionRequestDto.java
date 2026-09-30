@@ -79,6 +79,9 @@ public class CandidateSubmissionRequestDto {
     @Size(max = 120, message = "Nome do responsável não pode exceder 120 caracteres")
     private String guardianName;
 
+    @Size(max = 20, message = "CPF do responsável não pode exceder 20 caracteres")
+    private String guardianCpf;
+
     @Size(max = 25, message = "Telefone do responsável não pode exceder 25 caracteres")
     private String guardianPhone;
 

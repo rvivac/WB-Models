@@ -69,8 +69,12 @@ public class AdminModelController {
             @RequestParam(required = false) GenderType gender,
             @RequestParam(required = false) Boolean isStar,
             @RequestParam(required = false) Boolean isActive,
+            @RequestParam(required = false) String status,
             @RequestParam(required = false) String search,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        if (isActive == null && status != null) {
+            isActive = "ACTIVE".equalsIgnoreCase(status) || "true".equalsIgnoreCase(status);
+        }
         return ResponseEntity.ok(modelService.listAdminModels(gender, isStar, isActive, search, pageable));
     }
 

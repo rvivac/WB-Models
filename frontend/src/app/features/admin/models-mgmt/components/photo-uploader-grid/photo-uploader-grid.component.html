@@ -1,0 +1,178 @@
+<div class="photo-uploader-container space-y-6">
+  
+  <!-- Cabeçalho do Bloco -->
+  <div class="uploader-header flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E8EBE8] pb-4">
+    <div>
+      <h3 class="text-xs uppercase tracking-[0.2em] font-sans text-[#222624] font-semibold header-title">
+        Acervo Visual: Book & Polaroids
+      </h3>
+      <p class="text-[11px] text-[#5F6661] mt-1 header-desc">
+        Arraste os cards para reorganizar a ordem de exibição no catálogo. A primeira imagem sempre será a capa oficial.
+      </p>
+    </div>
+    
+    <!-- Filtro Rápido de Visualização -->
+    <div class="filter-tabs flex items-center gap-1 border border-[#E8EBE8] p-0.5 bg-[#FBFBF9]">
+      <button 
+        type="button" 
+        (click)="selectedCategoryFilter = 'ALL'"
+        [class.active]="selectedCategoryFilter === 'ALL'"
+        [class.bg-white]="selectedCategoryFilter === 'ALL'"
+        [class.text-[#4B584E]]="selectedCategoryFilter === 'ALL'"
+        class="filter-tab-btn px-2.5 py-1 text-[10px] uppercase tracking-wider text-[#5F6661] transition-all cursor-pointer"
+      >
+        Todas ({{ photos.length }})
+      </button>
+      <button 
+        type="button" 
+        (click)="selectedCategoryFilter = 'BOOK'"
+        [class.active]="selectedCategoryFilter === 'BOOK'"
+        [class.bg-white]="selectedCategoryFilter === 'BOOK'"
+        [class.text-[#4B584E]]="selectedCategoryFilter === 'BOOK'"
+        class="filter-tab-btn px-2.5 py-1 text-[10px] uppercase tracking-wider text-[#5F6661] transition-all cursor-pointer"
+      >
+        Book
+      </button>
+      <button 
+        type="button" 
+        (click)="selectedCategoryFilter = 'POLAROID'"
+        [class.active]="selectedCategoryFilter === 'POLAROID'"
+        [class.bg-white]="selectedCategoryFilter === 'POLAROID'"
+        [class.text-[#4B584E]]="selectedCategoryFilter === 'POLAROID'"
+        class="filter-tab-btn px-2.5 py-1 text-[10px] uppercase tracking-wider text-[#5F6661] transition-all cursor-pointer"
+      >
+        Polaroids
+      </button>
+    </div>
+  </div>
+
+  <!-- Zona de Drag & Drop de Arquivos do Computador -->
+  <div
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDropFiles($event)"
+    [class.border-[#4B584E]]="isDraggingOverZone"
+    [class.bg-[#F4F5F4]]="isDraggingOverZone"
+    [class.is-dragover]="isDraggingOverZone"
+    class="dropzone-area border-2 border-dashed border-[#E8EBE8] bg-[#FBFBF9] hover:bg-[#F8F9F8] transition-all p-8 text-center cursor-pointer relative"
+  >
+    <input
+      type="file"
+      multiple
+      accept="image/jpeg,image/png,image/webp"
+      (change)="onFileInputChange($event)"
+      class="file-input-hidden absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+      title="Selecione arquivos de imagem"
+    />
+    <div class="dropzone-content flex flex-col items-center pointer-events-none">
+      <svg class="dropzone-icon w-8 h-8 text-[#4B584E] mb-3 stroke-[1.2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+      </svg>
+      <p class="dropzone-main-text text-xs uppercase tracking-[0.15em] text-[#222624] font-medium">
+        Arraste fotografias aqui ou clique para selecionar
+      </p>
+      <p class="dropzone-sub-text text-[10px] text-[#5F6661] tracking-wider mt-1">
+        JPG, PNG ou WebP até 10 MB por foto. Alta definição recomendada (máx. {{ maxPhotos }} imagens).
+      </p>
+    </div>
+  </div>
+
+  <!-- Grid Ordenável (CDK Drop List) -->
+  <div 
+    cdkDropList 
+    cdkDropListOrientation="mixed"
+    (cdkDropListDropped)="onReorder($event)"
+    class="photo-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
+  >
+    <div
+      *ngFor="let photo of photos; let i = index"
+      cdkDrag
+      [hidden]="selectedCategoryFilter !== 'ALL' && photo.category !== selectedCategoryFilter"
+      class="photo-card group relative bg-white border border-[#E8EBE8] shadow-sm overflow-hidden flex flex-col transition-all cursor-move select-none"
+    >
+      <!-- Placeholder de Arraste CDK -->
+      <div *cdkDragPlaceholder class="cdk-placeholder-box opacity-20 border-2 border-dashed border-[#4B584E] w-full aspect-[3/4]"></div>
+
+      <!-- Preview da Imagem com Proporção 3:4 -->
+      <div class="photo-media-wrapper relative w-full aspect-[3/4] bg-neutral-100 overflow-hidden">
+        <img 
+          [src]="photo.url" 
+          [alt]="'Foto ' + (i + 1)" 
+          class="photo-img w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+
+        <!-- Overlay com Ações Rápidas no Hover -->
+        <div class="card-overlay absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2 pointer-events-auto">
+          
+          <!-- Topo do Card: Badge de Posição e Botão Remover -->
+          <div class="overlay-top flex justify-between items-center">
+            <span class="order-badge text-[10px] font-mono font-bold bg-black/60 text-white px-2 py-0.5 rounded-none backdrop-blur-sm">
+              #{{ i + 1 }}
+            </span>
+            <button
+              type="button"
+              (click)="removePhoto(i)"
+              class="btn-remove-photo w-6 h-6 flex items-center justify-center bg-red-600/80 hover:bg-red-600 text-white transition-colors cursor-pointer"
+              title="Excluir fotografia"
+            >
+              ✕
+            </button>
+          </div>
+
+          <!-- Base do Card: Ações de Categoria e Capa -->
+          <div class="overlay-bottom flex flex-col gap-1.5">
+            <button
+              *ngIf="i !== 0"
+              type="button"
+              (click)="setAsCover(i)"
+              class="btn-cover w-full py-1 bg-[#4B584E] text-white text-[9px] uppercase tracking-wider hover:bg-[#38433B] transition-colors cursor-pointer"
+            >
+              Definir como Capa
+            </button>
+            <button
+              type="button"
+              (click)="toggleCategory(photo)"
+              class="btn-category w-full py-1 bg-white/90 text-[#222624] text-[9px] uppercase tracking-wider hover:bg-white transition-colors cursor-pointer"
+            >
+              Mudar p/ {{ photo.category === 'BOOK' ? 'Polaroid' : 'Book' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Badge de Capa Oficial Fixa -->
+        <span 
+          *ngIf="i === 0" 
+          class="cover-badge absolute top-2 left-2 bg-[#4B584E] text-white text-[9px] uppercase tracking-[0.2em] px-2 py-0.5 font-sans shadow-sm"
+        >
+          Capa Principal
+        </span>
+
+        <!-- Badge de Categoria Fixa -->
+        <span 
+          [class.bg-[#C2A87E]]="photo.category === 'POLAROID'"
+          [class.bg-[#222624]]="photo.category === 'BOOK'"
+          [class.badge-polaroid]="photo.category === 'POLAROID'"
+          [class.badge-book]="photo.category === 'BOOK'"
+          class="category-badge absolute bottom-2 left-2 text-white text-[8px] uppercase tracking-widest px-1.5 py-0.5 font-sans opacity-90"
+        >
+          {{ photo.category }}
+        </span>
+
+        <!-- Barra de Progresso de Upload Ativo -->
+        <div *ngIf="photo.isUploading" class="upload-progress-overlay absolute inset-0 bg-white/80 flex flex-col items-center justify-center p-4">
+          <div class="progress-bar-track w-full bg-[#E8EBE8] h-1.5 mb-2 overflow-hidden">
+            <div class="progress-bar-fill bg-[#4B584E] h-full transition-all duration-150" [style.width.%]="photo.uploadProgress || 0"></div>
+          </div>
+          <span class="progress-text text-[10px] text-[#222624] font-mono tracking-wider">{{ photo.uploadProgress || 0 }}%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (photos.length === 0) {
+    <div class="empty-gallery-state text-center py-6 text-[#5F6661] text-xs">
+      Nenhuma fotografia cadastrada no acervo. Arraste imagens acima ou selecione arquivos para iniciar.
+    </div>
+  }
+
+</div>

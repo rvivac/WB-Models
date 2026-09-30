@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ProblemDetail handleBadCredentialsException(BadCredentialsException ex) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Email ou senha inválidos.");
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Credenciais inválidas. Verifique seu e-mail e senha.");
         problemDetail.setTitle("Credenciais Inválidas");
         problemDetail.setType(URI.create("https://wbscouting.com/errors/unauthorized"));
         problemDetail.setProperty("timestamp", Instant.now());
@@ -131,7 +131,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidTokenException.class)
     public ProblemDetail handleInvalidTokenException(InvalidTokenException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        problemDetail.setTitle("Ungültiges oder abgelaufenes Token");
+        problemDetail.setTitle("Link ou Token Inválido ou Expirado");
         problemDetail.setType(URI.create("https://wbscouting.com/errors/invalid-token"));
         problemDetail.setProperty("timestamp", Instant.now());
         return problemDetail;

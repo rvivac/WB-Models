@@ -1,0 +1,755 @@
+// Design System Editorial - WB Agency
+$gold: #c5a059;
+$gold-light: #dfba73;
+$gold-dark: #9e7d3b;
+$bg-dark: #0d0d0f;
+$bg-card: #151518;
+$bg-card-elevated: #1c1c20;
+$border-color: rgba(255, 255, 255, 0.08);
+$border-gold: rgba(197, 160, 89, 0.35);
+$text-main: #f5f5f7;
+$text-secondary: #9a9aa2;
+$text-muted: #66666e;
+$danger: #e05252;
+$success: #4ec985;
+
+.model-form-container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 4rem 1.5rem;
+  color: $text-main;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Toast de Notificação
+.toast-alert {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.5rem;
+  border-radius: 8px;
+  background: $bg-card-elevated;
+  border: 1px solid $border-color;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.toast-success {
+    border-color: rgba($success, 0.5);
+    .toast-icon { color: $success; }
+  }
+
+  &.toast-error {
+    border-color: rgba($danger, 0.5);
+    .toast-icon { color: $danger; }
+  }
+
+  .toast-icon {
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  .toast-message {
+    font-size: 0.95rem;
+  }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+// Cabeçalho da Página
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid $border-color;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+    color: $text-muted;
+
+    .breadcrumb-link {
+      cursor: pointer;
+      color: $text-secondary;
+      transition: color 0.2s;
+      &:hover { color: $gold-light; }
+    }
+
+    .breadcrumb-current {
+      color: $gold;
+    }
+  }
+
+  .form-title {
+    font-size: 2rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    color: #fff;
+    margin: 0 0 0.4rem 0;
+  }
+
+  .form-subtitle {
+    font-size: 0.95rem;
+    color: $text-secondary;
+    margin: 0;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+}
+
+// Botões Padronizados
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.4rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &.btn-gold {
+    background: linear-gradient(135deg, $gold 0%, $gold-light 50%, $gold-dark 100%);
+    color: #0b0b0d;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba($gold, 0.2);
+
+    &:hover:not(:disabled) {
+      filter: brightness(1.1);
+      box-shadow: 0 6px 20px rgba($gold, 0.35);
+      transform: translateY(-1px);
+    }
+  }
+
+  &.btn-outline {
+    background: transparent;
+    border-color: $border-color;
+    color: $text-main;
+
+    &:hover:not(:disabled) {
+      border-color: rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.04);
+    }
+  }
+}
+
+.spinner-inline {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// Card de Pré-visualização Dinâmica Editorial
+.editorial-preview-card {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 10px;
+  background: $bg-card;
+  border: 1px solid $border-color;
+  margin-bottom: 2rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+
+  &.preview-star {
+    border-color: $border-gold;
+    box-shadow: 0 0 25px rgba($gold, 0.08);
+  }
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .preview-avatar-wrapper {
+    position: relative;
+    width: 80px;
+    height: 100px;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1px solid $border-color;
+    background: #000;
+
+    .preview-avatar {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .preview-avatar-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: $gold;
+      background: $bg-card-elevated;
+    }
+
+    .star-glow-badge {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(135deg, $gold 0%, $gold-dark 100%);
+      color: #000;
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-align: center;
+      padding: 2px 0;
+      letter-spacing: 0.05em;
+    }
+  }
+
+  .preview-info {
+    flex: 1;
+
+    .preview-name {
+      font-size: 1.35rem;
+      font-weight: 500;
+      color: #fff;
+      margin: 0 0 0.35rem 0;
+    }
+
+    .preview-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.65rem;
+
+      @media (max-width: 640px) {
+        justify-content: center;
+      }
+
+      span {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.6rem;
+        border-radius: 4px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .tag-gender {
+        background: rgba(220, 100, 180, 0.15);
+        color: #f7a8dc;
+        border: 1px solid rgba(220, 100, 180, 0.3);
+
+        &.tag-male {
+          background: rgba(80, 150, 240, 0.15);
+          color: #9ac4f8;
+          border-color: rgba(80, 150, 240, 0.3);
+        }
+      }
+
+      .tag-age {
+        background: rgba(255, 255, 255, 0.06);
+        color: $text-secondary;
+      }
+
+      .tag-active {
+        background: rgba($success, 0.15);
+        color: #7eedae;
+        border: 1px solid rgba($success, 0.3);
+      }
+
+      .tag-inactive {
+        background: rgba($danger, 0.15);
+        color: #f59696;
+        border: 1px solid rgba($danger, 0.3);
+      }
+
+      .tag-featured {
+        background: rgba($gold, 0.15);
+        color: $gold-light;
+        border: 1px solid $border-gold;
+      }
+    }
+
+    .preview-measurements {
+      font-size: 0.88rem;
+      color: $text-secondary;
+
+      .measurements-label {
+        color: $text-muted;
+        margin-right: 0.4rem;
+      }
+
+      .measurements-value {
+        color: $text-main;
+        font-weight: 500;
+      }
+
+      .measurements-city {
+        color: $gold;
+        margin-left: 0.4rem;
+      }
+    }
+  }
+}
+
+// Seções do Formulário
+.form-section {
+  background: $bg-card;
+  border: 1px solid $border-color;
+  border-radius: 10px;
+  padding: 1.75rem 2rem;
+  margin-bottom: 1.75rem;
+
+  @media (max-width: 768px) {
+    padding: 1.25rem;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    margin-bottom: 1.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+    .section-number {
+      font-size: 1.2rem;
+      font-family: serif;
+      color: $gold;
+      opacity: 0.8;
+      border: 1px solid $border-gold;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      color: #fff;
+      margin: 0 0 0.25rem 0;
+      font-weight: 500;
+    }
+
+    .section-desc {
+      font-size: 0.88rem;
+      color: $text-secondary;
+      margin: 0;
+    }
+  }
+}
+
+// Grids Responsivos
+.form-grid {
+  display: grid;
+  gap: 1.25rem 1.5rem;
+
+  &.grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+    @media (max-width: 768px) { grid-template-columns: 1fr; }
+  }
+
+  &.grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+    @media (max-width: 860px) { grid-template-columns: 1fr; }
+  }
+
+  &.grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+    @media (max-width: 992px) { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 540px) { grid-template-columns: 1fr; }
+  }
+}
+
+// Grupos de Input
+.form-group {
+  display: flex;
+  flex-direction: column;
+
+  .form-label {
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: $text-secondary;
+    margin-bottom: 0.45rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+
+    .required-mark {
+      color: $gold;
+    }
+
+    .age-inline-badge {
+      color: $gold-light;
+      font-size: 0.8rem;
+    }
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    background: $bg-dark;
+    border: 1px solid $border-color;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 0.92rem;
+    transition: all 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: $gold;
+      box-shadow: 0 0 0 3px rgba($gold, 0.15);
+      background: #111114;
+    }
+
+    &::placeholder {
+      color: $text-muted;
+    }
+
+    &.is-invalid {
+      border-color: $danger;
+      &:focus {
+        box-shadow: 0 0 0 3px rgba($danger, 0.15);
+      }
+    }
+  }
+
+  .error-feedback {
+    color: $danger;
+    font-size: 0.78rem;
+    margin-top: 0.35rem;
+  }
+
+  .field-hint {
+    color: $text-muted;
+    font-size: 0.75rem;
+    margin-top: 0.3rem;
+  }
+}
+
+// Prefixos e Unidades em Inputs
+.input-prefix-group,
+.input-unit-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .input-prefix {
+    position: absolute;
+    left: 0.85rem;
+    color: $text-muted;
+    font-size: 0.9rem;
+    pointer-events: none;
+  }
+
+  .input-unit {
+    position: absolute;
+    right: 0.85rem;
+    color: $text-muted;
+    font-size: 0.85rem;
+    pointer-events: none;
+  }
+
+  .form-control.with-prefix {
+    padding-left: 1.85rem;
+  }
+}
+
+// Botões de Gênero
+.gender-toggle-group {
+  display: flex;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid $border-color;
+  background: $bg-dark;
+
+  .gender-btn {
+    flex: 1;
+    padding: 0.65rem 1rem;
+    background: transparent;
+    border: none;
+    color: $text-secondary;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &.active {
+      background: linear-gradient(135deg, $gold 0%, $gold-dark 100%);
+      color: #000;
+      font-weight: 600;
+    }
+
+    &:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.04);
+      color: #fff;
+    }
+  }
+}
+
+// Miniaturas de Fotos de Amostra
+.sample-photos-row {
+  margin-top: 0.5rem;
+
+  .sample-label {
+    font-size: 0.75rem;
+    color: $text-muted;
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+
+  .sample-thumbnails {
+    display: flex;
+    gap: 0.45rem;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+
+    .sample-thumb-btn {
+      width: 38px;
+      height: 48px;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid $border-color;
+      background: #000;
+      padding: 0;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.2s;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      &:hover {
+        border-color: $gold;
+        transform: scale(1.08);
+      }
+    }
+  }
+}
+
+// Container de Switches de Destaque & Stars
+.switches-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  .switch-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.25rem 1.5rem;
+    background: $bg-dark;
+    border: 1px solid $border-color;
+    border-radius: 8px;
+    transition: all 0.25s ease;
+
+    &.is-active {
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    // Estilo Nobre para o SWITCH STARS
+    &.switch-card-star {
+      background: linear-gradient(135deg, #181612 0%, #151410 100%);
+      border-color: rgba($gold, 0.25);
+
+      &.is-active {
+        border-color: $gold;
+        box-shadow: 0 0 20px rgba($gold, 0.15);
+      }
+
+      .star-icon {
+        color: $gold-light;
+        font-size: 1.15rem;
+      }
+    }
+
+    .switch-card-info {
+      flex: 1;
+
+      .switch-title-wrap {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin-bottom: 0.25rem;
+
+        .switch-title {
+          font-size: 1.05rem;
+          color: #fff;
+          margin: 0;
+          font-weight: 500;
+        }
+
+        .badge-gold {
+          background: rgba($gold, 0.2);
+          color: $gold-light;
+          border: 1px solid $border-gold;
+          font-size: 0.68rem;
+          font-weight: 700;
+          padding: 2px 6px;
+          border-radius: 4px;
+          text-transform: uppercase;
+        }
+      }
+
+      .switch-desc {
+        font-size: 0.85rem;
+        color: $text-secondary;
+        margin: 0;
+        line-height: 1.4;
+      }
+
+      .featured-order-input-wrap {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+
+        .order-label {
+          font-size: 0.82rem;
+          color: $text-secondary;
+        }
+
+        .order-input {
+          width: 70px;
+          padding: 0.35rem 0.5rem;
+          font-size: 0.88rem;
+          text-align: center;
+        }
+      }
+    }
+  }
+}
+
+// Toggle Switch Customizado (Slider)
+.custom-toggle {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 28px;
+  flex-shrink: 0;
+  cursor: pointer;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+
+    &:checked + .toggle-slider {
+      background: linear-gradient(135deg, $gold 0%, $gold-dark 100%);
+
+      &:before {
+        transform: translateX(24px);
+        background: #000;
+      }
+    }
+
+    &:focus + .toggle-slider {
+      box-shadow: 0 0 1px $gold;
+    }
+  }
+
+  .toggle-slider {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #28282c;
+    border: 1px solid $border-color;
+    transition: 0.3s ease;
+    border-radius: 28px;
+
+    &:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #f0f0f0;
+      transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      border-radius: 50%;
+    }
+  }
+}
+
+// Barra de Rodapé Fixa / Final de Ação
+.form-footer-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $border-color;
+}
+
+.empty-composite-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.5rem;
+  background-color: #fbfbf9;
+  border: 1px dashed #e8ebe8;
+  text-align: center;
+  border-radius: 0;
+
+  svg {
+    width: 2rem;
+    height: 2rem;
+    color: #4b584e;
+    margin-bottom: 0.5rem;
+  }
+}
+

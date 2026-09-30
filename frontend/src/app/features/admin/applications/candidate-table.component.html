@@ -1,0 +1,204 @@
+<div class="min-h-[calc(100vh-5rem)] bg-[#FBFBF9] p-6 md:p-10 selection:bg-[#4B584E] selection:text-white">
+  <div class="max-w-7xl mx-auto space-y-8">
+
+    <!-- CABEÇALHO EDITORIAL DO SCOUTING DESK -->
+    <div class="flex flex-col sm:flex-row sm:items-start justify-between border-b border-[#E8EBE8] pb-6 gap-4">
+      <div>
+        <h1 class="scouting-title">Scouting Desk</h1>
+        <p class="scouting-subtitle">Triagem, biometria e avaliação de novos talentos submetidos.</p>
+      </div>
+
+      <!-- Abas de Segmentação no mesmo estilo dos filtros de /admin/models -->
+      <div class="flex items-center gap-1 border border-[#E8EBE8] bg-white p-1">
+        <button 
+          type="button" 
+          (click)="setStatusFilter('PENDING')"
+          [class.bg-[#F4F5F4]]="selectedStatus === 'PENDING'"
+          [class.text-[#4B584E]]="selectedStatus === 'PENDING'"
+          class="px-3.5 py-1.5 text-xs font-sans uppercase tracking-[0.15em] text-[#5F6661] transition-all flex items-center gap-2 cursor-pointer"
+        >
+          <span>Pendentes</span>
+          <span class="bg-[#4B584E] text-white text-[10px] px-1.5 py-0.2 rounded-full font-mono">{{ pendingCount }}</span>
+        </button>
+
+        <button 
+          type="button" 
+          (click)="setStatusFilter('APPROVED')"
+          [class.bg-[#F4F5F4]]="selectedStatus === 'APPROVED'"
+          [class.text-[#4B584E]]="selectedStatus === 'APPROVED'"
+          class="px-3.5 py-1.5 text-xs font-sans uppercase tracking-[0.15em] text-[#5F6661] transition-all cursor-pointer"
+        >
+          Aprovadas
+        </button>
+
+        <button 
+          type="button" 
+          (click)="setStatusFilter('REJECTED')"
+          [class.bg-[#F4F5F4]]="selectedStatus === 'REJECTED'"
+          [class.text-[#4B584E]]="selectedStatus === 'REJECTED'"
+          class="px-3.5 py-1.5 text-xs font-sans uppercase tracking-[0.15em] text-[#5F6661] transition-all cursor-pointer"
+        >
+          Declinadas
+        </button>
+
+        <button 
+          type="button" 
+          (click)="setStatusFilter('')"
+          [class.bg-[#F4F5F4]]="selectedStatus === ''"
+          [class.text-[#4B584E]]="selectedStatus === ''"
+          class="px-3.5 py-1.5 text-xs font-sans uppercase tracking-[0.15em] text-[#5F6661] transition-all cursor-pointer"
+        >
+          Todas
+        </button>
+      </div>
+    </div>
+
+    <!-- BARRA DE PESQUISA & CONTADORES (ESPELHO DE /admin/models) -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="relative w-full sm:w-80">
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          (ngModelChange)="onSearchChange($event)"
+          placeholder="Buscar por nome, cidade ou contato..."
+          class="w-full pl-9 pr-3 py-2 bg-white border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none"
+        />
+        <svg class="w-4 h-4 absolute left-3 top-2.5 text-[#5F6661]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+        </svg>
+      </div>
+
+      <div class="text-xs text-[#5F6661] uppercase tracking-wider font-sans">
+        <span>Exibindo <strong class="font-semibold text-[#222624] font-sans">{{ applications.length }}</strong> de <strong class="font-semibold text-[#222624] font-sans">{{ totalElements }}</strong> registros</span>
+      </div>
+    </div>
+
+    <!-- GRID DE CARDS — SCOUTING DESK COM DADOS CLAROS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      
+      <div 
+        *ngFor="let candidate of applications" 
+        class="candidate-card group bg-white border border-[#E8EBE8] hover:border-[#4B584E] transition-all duration-200 flex flex-col justify-between shadow-xs"
+      >
+        <div>
+          <!-- Moldura da Foto Vertical (3:4) -->
+          <div class="relative aspect-[3/4] bg-[#F4F5F4] overflow-hidden">
+            <img 
+              [src]="candidate.coverPhoto || candidate.photos?.[0]?.url || 'assets/images/placeholder-polaroid.jpg'" 
+              [alt]="candidate.fullName" 
+              class="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
+            />
+
+            <!-- Badges no topo -->
+            <div class="absolute top-2.5 inset-x-2.5 flex items-center justify-between pointer-events-none z-10">
+              <span *ngIf="candidate.isMinor" class="bg-amber-100/95 backdrop-blur-xs text-amber-900 border border-amber-300/60 text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5">
+                Menor
+              </span>
+              
+              <span 
+                [ngClass]="{
+                  'bg-[#4B584E] text-white': candidate.status === 'PENDING',
+                  'bg-emerald-700 text-white': candidate.status === 'APPROVED',
+                  'bg-neutral-600 text-white': candidate.status === 'REJECTED'
+                }"
+                class="ml-auto text-[10px] uppercase font-medium tracking-[0.14em] px-2.5 py-0.5"
+              >
+                {{ candidate.status === 'PENDING' ? 'Pendente' : (candidate.status === 'APPROVED' ? 'Aprovada' : 'Declinada') }}
+              </span>
+            </div>
+
+            <!-- Contador de Polaroids -->
+            <div class="absolute bottom-2.5 right-2.5 bg-black/65 backdrop-blur-xs text-white text-[10px] font-sans tracking-wide px-2 py-0.5">
+              {{ candidate.polaroidsCount || candidate.photos?.length || 4 }} Polaroids
+            </div>
+          </div>
+
+          <!-- Informações Tipográficas & Medidas com Visualização Clara -->
+          <div class="p-4 space-y-3">
+            <div>
+              <h3 class="candidate-card-name">{{ candidate.fullName }}</h3>
+              <p class="candidate-card-location">{{ candidate.city }} • {{ candidate.state }}</p>
+            </div>
+
+            <!-- Tags Rápidas de Perfil -->
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span *ngIf="candidate.age" class="meta-tag">
+                {{ candidate.age }} anos
+              </span>
+              <span *ngIf="candidate.shoes" class="meta-tag">
+                Calçado {{ candidate.shoes }}
+              </span>
+            </div>
+
+            <!-- Régua Métrica Clara com Unidades e Visualização Precisa -->
+            <div class="metrics-grid">
+              <div class="metric-cell">
+                <span class="metric-label">Altura</span>
+                <span class="metric-val">{{ candidate.height ? candidate.height + ' cm' : '—' }}</span>
+              </div>
+              <div class="metric-cell">
+                <span class="metric-label">Busto</span>
+                <span class="metric-val">{{ candidate.bust ? candidate.bust + ' cm' : '—' }}</span>
+              </div>
+              <div class="metric-cell">
+                <span class="metric-label">Cintura</span>
+                <span class="metric-val">{{ candidate.waist ? candidate.waist + ' cm' : '—' }}</span>
+              </div>
+              <div class="metric-cell">
+                <span class="metric-label">Quadril</span>
+                <span class="metric-val">{{ candidate.hips ? candidate.hips + ' cm' : '—' }}</span>
+              </div>
+            </div>
+
+            <!-- Data de Submissão -->
+            <div class="text-[11px] font-sans text-[#5F6661] flex justify-between items-center pt-1 border-t border-[#E8EBE8]">
+              <span>Inscrição:</span>
+              <span class="font-medium text-[#222624]">{{ candidate.createdAt | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botão de Ação Inferior -->
+        <div class="p-4 pt-0">
+          <a 
+            [routerLink]="['/admin/candidaturas', candidate.id]"
+            class="btn-evaluate block w-full py-2.5 text-center bg-[#4B584E] hover:bg-[#38433B] text-white text-[11px] uppercase tracking-[0.16em] font-sans font-medium transition-colors cursor-pointer rounded-none"
+          >
+            Avaliar Dossiê &rarr;
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- PAGINAÇÃO EDITORIAL -->
+    <div *ngIf="totalPages > 1" class="flex items-center justify-between border-t border-[#E8EBE8] pt-6 text-xs font-sans uppercase tracking-wider text-[#5F6661]">
+      <span>Página {{ pageIndex + 1 }} de {{ totalPages }}</span>
+      <div class="flex items-center gap-2">
+        <button 
+          type="button" 
+          [disabled]="pageIndex === 0" 
+          (click)="goToPage(pageIndex - 1)"
+          class="px-3 py-1.5 border border-[#E8EBE8] bg-white hover:border-[#4B584E] hover:text-[#4B584E] disabled:opacity-40 disabled:pointer-events-none cursor-pointer rounded-none transition-all"
+        >
+          Anterior
+        </button>
+        <button 
+          type="button" 
+          [disabled]="pageIndex >= totalPages - 1" 
+          (click)="goToPage(pageIndex + 1)"
+          class="px-3 py-1.5 border border-[#E8EBE8] bg-white hover:border-[#4B584E] hover:text-[#4B584E] disabled:opacity-40 disabled:pointer-events-none cursor-pointer rounded-none transition-all"
+        >
+          Próxima
+        </button>
+      </div>
+    </div>
+
+    <!-- ESTADO VAZIO -->
+    <div *ngIf="applications.length === 0 && !isLoading" class="p-16 text-center bg-white border border-[#E8EBE8]">
+      <p class="text-xs uppercase tracking-widest text-[#5F6661]">Nenhuma candidatura encontrada nesta categoria.</p>
+    </div>
+
+  </div>
+</div>

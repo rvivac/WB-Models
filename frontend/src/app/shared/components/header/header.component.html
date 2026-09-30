@@ -1,15 +1,17 @@
 <header class="site-header" [class.scrolled]="isScrolled()">
   <div class="container header-inner">
-    <!-- Brand Logo -->
-    <a routerLink="/" class="brand-logo flex items-center" (click)="closeMenu()" aria-label="WB Agency Home">
-      <img 
-        src="assets/images/logo-wb-agency.png" 
-        alt="WB Agency" 
-        class="brand-logo-img h-8 md:h-10 w-auto object-contain"
-      >
-    </a>
+    <!-- Brand Logo (Zona Esquerda) -->
+    <div class="header-brand">
+      <a routerLink="/" class="brand-logo flex items-center" (click)="closeMenu()" aria-label="WB Agency Home">
+        <img 
+          src="assets/images/logo-wb-agency.png" 
+          alt="WB Agency" 
+          class="brand-logo-img h-8 md:h-10 w-auto object-contain"
+        >
+      </a>
+    </div>
 
-    <!-- Desktop Navigation -->
+    <!-- Desktop Navigation (Zona Central: Centralizado como no Admin) -->
     <nav class="desktop-nav">
       <a routerLink="/models/female" routerLinkActive="active" class="nav-link">
         {{ 'nav.female' | translate }}
@@ -20,30 +22,37 @@
       <a routerLink="/models/stars" routerLinkActive="active" class="nav-link">
         {{ 'nav.stars' | translate }}
       </a>
+      <a routerLink="/sobre" routerLinkActive="active" class="nav-link">
+        {{ 'nav.about' | translate }}
+      </a>
       <a routerLink="/contact" routerLinkActive="active" class="nav-link">
         {{ 'nav.contact' | translate }}
       </a>
-      
-      <div class="nav-divider"></div>
-
-      <app-language-selector></app-language-selector>
-
-      <a routerLink="/apply" class="btn btn-apply">
-        {{ 'nav.apply' | translate }}
-      </a>
     </nav>
 
-    <!-- Mobile Header Actions -->
-    <div class="mobile-header-actions">
-      <app-language-selector class="mobile-lang-top"></app-language-selector>
-      <button 
-        class="mobile-toggle" 
-        (click)="toggleMenu()" 
-        [attr.aria-expanded]="themeService.isMobileMenuOpen()"
-        aria-label="Menu principal">
-        <span class="bar" [class.open]="themeService.isMobileMenuOpen()"></span>
-        <span class="bar" [class.open]="themeService.isMobileMenuOpen()"></span>
-      </button>
+    <!-- Header Actions (Zona Direita) -->
+    <div class="header-actions">
+      <!-- Desktop Actions -->
+      <div class="desktop-actions">
+        <app-language-selector></app-language-selector>
+
+        <a routerLink="/apply" class="btn btn-apply">
+          {{ 'nav.apply' | translate }}
+        </a>
+      </div>
+
+      <!-- Mobile Header Actions -->
+      <div class="mobile-header-actions">
+        <app-language-selector class="mobile-lang-top"></app-language-selector>
+        <button 
+          class="mobile-toggle" 
+          (click)="toggleMenu()" 
+          [attr.aria-expanded]="themeService.isMobileMenuOpen()"
+          aria-label="Menu principal">
+          <span class="bar" [class.open]="themeService.isMobileMenuOpen()"></span>
+          <span class="bar" [class.open]="themeService.isMobileMenuOpen()"></span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -59,6 +68,9 @@
         </a>
         <a routerLink="/models/stars" routerLinkActive="active" (click)="closeMenu()" class="mobile-link">
           {{ 'nav.stars' | translate }}
+        </a>
+        <a routerLink="/sobre" routerLinkActive="active" (click)="closeMenu()" class="mobile-link">
+          {{ 'nav.about' | translate }}
         </a>
         <a routerLink="/contact" routerLinkActive="active" (click)="closeMenu()" class="mobile-link">
           {{ 'nav.contact' | translate }}

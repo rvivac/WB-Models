@@ -1,4 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { AdminHeaderComponent } from './admin-header.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { signal } from '@angular/core';
@@ -19,7 +22,12 @@ describe('AdminHeaderComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [AdminHeaderComponent],
-      providers: [{ provide: AuthService, useValue: authServiceSpy }]
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: AuthService, useValue: authServiceSpy }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(AdminHeaderComponent);
@@ -27,17 +35,34 @@ describe('AdminHeaderComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create and display the authenticated admin email', () => {
+  it('should create and display the authenticated admin email and editorial brand label', () => {
     expect(component).toBeTruthy();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('gestao@wbscouting.com');
-    expect(compiled.textContent).toContain('Painel Administrativo');
-    expect(compiled.textContent).toContain('Sair com Segurança');
+    expect(compiled.textContent).toContain('Admin');
+    expect(compiled.textContent).toContain('Triagem');
+    expect(compiled.textContent).toContain('Scouting Desk');
+    expect(compiled.textContent).toContain('Casting & Stars');
+    expect(compiled.textContent).toContain('Institucional');
+    expect(compiled.textContent).toContain('Sair');
   });
 
-  it('should open confirmation modal when clicking logout button', () => {
+  it('should enforce 32px rigid height containment on the brand logo img', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    const logoImg = compiled.querySelector('.brand-logo-img') as HTMLImageElement;
+    expect(logoImg).toBeTruthy();
+
+    const logoAnchor = compiled.querySelector('.brand-logo') as HTMLAnchorElement;
+    expect(logoAnchor.getAttribute('routerLink')).toBe('/admin/dashboard');
+
+    // Inline style defensivo
+    expect(logoImg.style.height).toBe('32px');
+    expect(logoImg.style.maxHeight).toBe('32px');
+  });
+
+  it('should open confirmation modal when onSecureLogout or logout button is triggered', () => {
     expect(component.showConfirmModal()).toBeFalse();
-    component.confirmLogout();
+    component.onSecureLogout();
     expect(component.showConfirmModal()).toBeTrue();
 
     fixture.detectChanges();
@@ -46,7 +71,7 @@ describe('AdminHeaderComponent', () => {
     expect(compiled.textContent).toContain('Deseja realmente sair do painel?');
   });
 
-  it('should dismiss modal when cancel is clicked', () => {
+  it('should dismiss modal when cancelLogout is called', () => {
     component.confirmLogout();
     expect(component.showConfirmModal()).toBeTrue();
 
@@ -61,5 +86,20 @@ describe('AdminHeaderComponent', () => {
 
     expect(component.showConfirmModal()).toBeFalse();
     expect(authServiceSpy.secureLogout).toHaveBeenCalledTimes(1);
+  });
+
+  it('should toggle and close mobile menu state', () => {
+    expect(component.isMobileMenuOpen()).toBeFalse();
+    component.toggleMobileMenu();
+    expect(component.isMobileMenuOpen()).toBeTrue();
+    component.closeMobileMenu();
+    expect(component.isMobileMenuOpen()).toBeFalse();
+  });
+
+  it('should display pending candidates counter when greater than 0', () => {
+    component.pendingCandidatesCount = 7;
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('7');
   });
 });

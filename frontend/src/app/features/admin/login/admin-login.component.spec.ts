@@ -88,6 +88,30 @@ describe('AdminLoginComponent', () => {
     expect(router.navigateByUrl).toHaveBeenCalledWith('/admin/candidatos');
   });
 
+  it('should navigate to /admin/dashboard on login success when returnUrl is not provided', () => {
+    // Reset route queryParams to empty
+    (component as unknown as { route: { snapshot: { queryParams: Record<string, string> } } }).route = {
+      snapshot: { queryParams: {} }
+    };
+
+    authServiceSpy.login.and.returnValue(
+      of({
+        token: 'test-token',
+        user: { name: 'Admin', email: 'admin@wbscouting.com', role: 'ADMIN' }
+      })
+    );
+
+    component.loginForm.setValue({
+      email: 'admin@wbscouting.com',
+      password: 'password123',
+      rememberMe: false
+    });
+
+    component.onSubmit();
+
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/admin/dashboard');
+  });
+
   it('should save email to localStorage when rememberMe is true', () => {
     localStorage.clear();
     authServiceSpy.login.and.returnValue(

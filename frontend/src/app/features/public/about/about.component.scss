@@ -1,0 +1,193 @@
+.about-page {
+  background-color: var(--bg-primary, #FFFFFF);
+  min-height: calc(100vh - var(--header-height, 80px));
+  color: var(--text-primary, #222624);
+}
+
+.about-hero-header {
+  padding-top: calc(var(--header-height, 80px) + 3.5rem);
+  padding-bottom: 3.5rem;
+  background-color: var(--bg-secondary, #FBFBF9);
+  border-bottom: 1px solid var(--border-subtle, #E8EBE8);
+
+  .header-content {
+    max-width: 54rem;
+  }
+
+  .section-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold-light, #C5A880);
+    margin-bottom: 1.25rem;
+  }
+
+  .about-headline {
+    font-size: clamp(2.25rem, 4.5vw, 3.75rem);
+    font-weight: 400;
+    line-height: 1.12;
+    color: var(--text-primary, #222624);
+    letter-spacing: -0.02em;
+    margin: 0 0 1.75rem 0;
+  }
+
+  .about-quote {
+    margin: 0;
+    padding-left: 1.5rem;
+    border-left: 2px solid var(--gold-light, #C5A880);
+    font-style: italic;
+    font-size: clamp(1.125rem, 2vw, 1.35rem);
+    line-height: 1.6;
+    color: var(--text-secondary, #5F6661);
+  }
+}
+
+.about-content-section {
+  padding: 5rem 0;
+
+  .content-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3.5rem;
+
+    @media (min-width: 992px) {
+      grid-template-columns: 1.25fr 1fr;
+      gap: 5rem;
+      align-items: start;
+    }
+  }
+
+  .text-column {
+    .about-body-text {
+      font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, sans-serif);
+      font-size: 1.125rem;
+      line-height: 1.9;
+      color: var(--text-secondary, #444B46);
+      white-space: pre-line;
+      margin: 0;
+    }
+  }
+
+  .pillars-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+
+    .pillar-card {
+      display: flex;
+      gap: 1.25rem;
+      align-items: flex-start;
+      padding: 1.5rem;
+      background-color: var(--bg-secondary, #FBFBF9);
+      border: 1px solid var(--border-subtle, #E8EBE8);
+      border-radius: 4px;
+      transition: all 0.25s ease;
+
+      &:hover {
+        border-color: var(--gold-light, #C5A880);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+      }
+
+      .pillar-number {
+        font-family: var(--font-serif, "Cormorant Garamond", Georgia, serif);
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--gold-light, #C5A880);
+        line-height: 1;
+        padding-top: 0.15rem;
+      }
+
+      .pillar-details {
+        .pillar-heading {
+          font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, sans-serif);
+          font-size: 0.95rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: var(--text-primary, #222624);
+          margin: 0 0 0.4rem 0;
+        }
+
+        .pillar-desc {
+          font-size: 0.875rem;
+          color: var(--text-secondary, #5F6661);
+          line-height: 1.55;
+          margin: 0;
+        }
+      }
+    }
+  }
+}
+
+.about-cta-section {
+  padding: 4rem 0 6rem 0;
+
+  .cta-box {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 3rem;
+    background-color: var(--bg-secondary, #FBFBF9);
+    border: 1px solid var(--border-subtle, #E8EBE8);
+    border-radius: 4px;
+
+    @media (min-width: 768px) {
+      flex-direction: row;
+      align-items: center;
+    }
+  }
+
+  .cta-info {
+    max-width: 38rem;
+
+    .cta-title {
+      font-size: clamp(1.75rem, 3vw, 2.35rem);
+      color: var(--text-primary, #222624);
+      margin: 0 0 0.5rem 0;
+    }
+
+    .cta-description {
+      color: var(--text-secondary, #5F6661);
+      font-size: 1rem;
+      line-height: 1.6;
+      margin: 0;
+    }
+  }
+
+  .cta-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+
+    .btn-about-cta {
+      padding: 0.85rem 1.75rem;
+    }
+
+    .btn-outline-about {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.85rem 1.5rem;
+      border: 1px solid var(--border-subtle, #E8EBE8);
+      background-color: transparent;
+      color: var(--text-primary, #222624);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: var(--text-primary, #222624);
+        background-color: var(--text-primary, #222624);
+        color: #FFFFFF;
+      }
+    }
+  }
+}

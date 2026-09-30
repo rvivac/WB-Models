@@ -50,4 +50,12 @@ describe('FooterComponent', () => {
     const url = component.getInstagramUrl();
     expect(url).toBe('https://instagram.com/wbscouting');
   });
+
+  it('should render credits link to rvivac guild', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    const creditsLink = compiled.querySelector('.credits-link');
+    expect(creditsLink).toBeTruthy();
+    expect(creditsLink?.getAttribute('href')).toBe('https://www.rvivacguild.com.br');
+    expect(creditsLink?.getAttribute('target')).toBe('_blank');
+  });
 });

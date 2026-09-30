@@ -1,17 +1,17 @@
-<div class="scouting-desk-container">
+<div class="scouting-desk-container min-h-[calc(100vh-4rem)] bg-[#FBFBF9] p-6 md:p-10 selection:bg-[#4B584E] selection:text-white">
   
-  <!-- TOAST FEEDBACK FLUTUANTE -->
-  @if (toast(); as t) {
-    <div class="toast-notification" [class.toast-success]="t.type === 'success'" [class.toast-error]="t.type === 'error'" [class.toast-info]="t.type === 'info'">
-      <span>{{ t.message }}</span>
-      <button type="button" class="btn-toast-close" (click)="toast.set(null)">&times;</button>
-    </div>
-  }
+  <div class="scouting-desk-inner max-w-7xl mx-auto space-y-8">
+    <!-- TOAST FEEDBACK FLUTUANTE -->
+    @if (toast(); as t) {
+      <div class="toast-notification" [class.toast-success]="t.type === 'success'" [class.toast-error]="t.type === 'error'" [class.toast-info]="t.type === 'info'">
+        <span>{{ t.message }}</span>
+        <button type="button" class="btn-toast-close" (click)="toast.set(null)">&times;</button>
+      </div>
+    }
 
-  <!-- CABEÇALHO EDITORIAL DO SCOUTING DESK -->
-  <header class="scouting-header">
+    <!-- CABEÇALHO EDITORIAL DO SCOUTING DESK -->
+    <header class="scouting-header">
     <div class="header-titles">
-      <span class="eyebrow-tag">SCOUTING DESK &bull; EAP 4.2.1</span>
       <h1 class="scouting-title">Triagem de Candidaturas</h1>
       <p class="scouting-subtitle">
         Curadoria editorial, biometria e avaliação de novos talentos submetidos pelo portal.
@@ -225,6 +225,7 @@
     }
 
   </main>
+  </div>
 
   <!-- MODAL / DRAWER LATERAL DE AVALIAÇÃO DETALHADA -->
   @if (selectedCandidate(); as candidate) {
@@ -240,7 +241,7 @@
               <span class="status-pill" [ngClass]="getStatusBadgeClass(candidate.status)">
                 {{ getStatusLabel(candidate.status) }}
               </span>
-              <span class="drawer-date">Enviado em {{ candidate.createdAt | date:'dd/MM/yyyy às HH:mm' }}</span>
+              <span class="drawer-date">Enviado em {{ candidate.createdAt | date:'dd/MM/yyyy' }} às {{ candidate.createdAt | date:'HH:mm' }}</span>
             </div>
           </div>
           

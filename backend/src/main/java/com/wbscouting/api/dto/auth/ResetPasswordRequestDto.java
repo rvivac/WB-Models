@@ -14,14 +14,14 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ResetPasswordRequestDto {
 
-    @NotBlank(message = "Token ist erforderlich.")
+    @NotBlank(message = "O token é obrigatório.")
     private String token;
 
-    @NotBlank(message = "Das neue Passwort ist erforderlich.")
-    @Size(min = 8, message = "Das Passwort muss mindestens 8 Zeichen lang sein.")
+    @NotBlank(message = "A nova senha é obrigatória.")
+    @Size(min = 8, message = "A senha deve ter no mínimo 8 caracteres.")
     @Pattern(
             regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9\\W]).+$",
-            message = "Das Passwort muss mindestens einen Großbuchstaben, einen Kleinbuchstaben und eine Ziffer oder ein Sonderzeichen enthalten."
+            message = "A senha deve conter pelo menos uma letra maiúscula, uma minúscula e um número ou caractere especial."
     )
     private String newPassword;
 

@@ -35,6 +35,14 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION public.fn_set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 -- 4. TABELAS DO SCHEMA
 
 -- ------------------------------------------------------------------------------
@@ -170,6 +178,12 @@ CREATE TABLE IF NOT EXISTS public.candidates (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+DROP TRIGGER IF EXISTS trg_candidates_updated_at ON public.candidates;
+CREATE TRIGGER trg_candidates_updated_at
+    BEFORE UPDATE ON public.candidates
+    FOR EACH ROW
+    EXECUTE FUNCTION public.fn_set_updated_at();
 
 -- ------------------------------------------------------------------------------
 -- 4.5. TABELA: candidate_photos

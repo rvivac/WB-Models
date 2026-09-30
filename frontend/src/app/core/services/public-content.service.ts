@@ -18,6 +18,12 @@ export interface HomeHeroPayload {
   ctaLink?: string;
 }
 
+export interface AboutManifestoPayload {
+  headline: string;
+  quote: string;
+  body: string;
+}
+
 export interface ContactChannelsPublicDto {
   email: string;
   whatsappNumber: string;
@@ -88,6 +94,36 @@ export class PublicContentService {
         console.warn(`Falha ao carregar seção ${sectionKey}:`, err);
         return of(null);
       })
+    );
+  }
+
+  private readonly defaultAboutManifestoPt: AboutManifestoPayload = {
+    headline: 'A Nova Estética do Scouting Global',
+    quote: 'A beleza contemporânea nasce da singularidade e precisão.',
+    body: 'A WB Agency consolidou-se como um núcleo editorial focado no desenvolvimento integral de modelos para os principais mercados da moda internacional. Nossa metodologia rejeita a padronização e prioriza a identidade visual autêntica, conectando talentos a marcas com relevância estética global.'
+  };
+
+  private readonly defaultAboutManifestoEn: AboutManifestoPayload = {
+    headline: 'The New Aesthetic of Global Scouting',
+    quote: 'Contemporary beauty stems from uniqueness and precision.',
+    body: 'WB Agency has established itself as an editorial powerhouse dedicated to the comprehensive development of models for premier global fashion markets. Our scouting methodology moves beyond mass standards to foster authentic personal identity, positioning talents at the intersection of high fashion and international relevance.'
+  };
+
+  getAboutManifestoContent(lang: string = 'pt'): Observable<AboutManifestoPayload> {
+    const isEn = lang?.toLowerCase().startsWith('en');
+    const fallback = isEn ? this.defaultAboutManifestoEn : this.defaultAboutManifestoPt;
+
+    return this.getContent('ABOUT_MANIFESTO', lang).pipe(
+      map(res => {
+        const payload = res?.payload;
+        if (!payload) return fallback;
+        return {
+          headline: payload['headline'] || fallback.headline,
+          quote: payload['quote'] || fallback.quote,
+          body: payload['body'] || fallback.body
+        };
+      }),
+      catchError(() => of(fallback))
     );
   }
 }

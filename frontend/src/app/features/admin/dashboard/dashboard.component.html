@@ -1,38 +1,63 @@
 <div class="admin-layout">
-  <!-- Topbar Administrativa -->
-  <header class="admin-topbar glass-panel">
-    <div class="container topbar-inner">
-      <div class="admin-brand">
-        <span class="brand-text">WB AGENCY</span>
-        <span class="badge-role">Backoffice CMS</span>
-      </div>
-
-      <div class="admin-user-nav">
-        <span class="user-greeting">
-          Olá, <strong>{{ authService.currentUser()?.name || 'Administrador' }}</strong>
-        </span>
-        <button class="btn btn-outline btn-sm" (click)="logout()">
-          Encerrar Sessão
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <!-- Navegação de Abas do Admin -->
-  <div class="admin-nav-bar">
-    <div class="container admin-tabs">
-      <a routerLink="/admin/dashboard" routerLinkActive="active" class="tab-link">Visão Geral</a>
-      <a routerLink="/admin/models" routerLinkActive="active" class="tab-link">Gestão de Casting</a>
-      <a routerLink="/admin/candidates" routerLinkActive="active" class="tab-link">Candidaturas</a>
-      <a routerLink="/admin/content" routerLinkActive="active" class="tab-link">Conteúdos &amp; Vídeo Home</a>
-      <a routerLink="/" target="_blank" class="tab-link link-preview">Ver Site &nearr;</a>
-    </div>
-  </div>
 
   <main class="container admin-main">
     <div class="page-title-area">
       <h1 class="font-serif page-title">Painel de Controle</h1>
       <p class="text-secondary">Visão geral do sistema de inteligência e prospecção de casting.</p>
+    </div>
+
+    <!-- Grid de Módulos no Painel Geral (/admin) -->
+    <div class="modules-section mb-8">
+      <div class="flex items-center justify-between mb-4 border-b border-[#E8EBE8] pb-2">
+        <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">Módulos de Gestão &amp; Conteúdo</h2>
+        <span class="text-[10px] text-[#5F6661] uppercase tracking-wider font-mono">Hub Administrativo</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- Card: Candidaturas -->
+        <a routerLink="/admin/candidaturas" class="p-6 bg-white border border-[#E8EBE8] hover:border-[#4B584E] transition-all group block shadow-sm">
+          <span class="text-[10px] uppercase tracking-[0.2em] text-[#4B584E] font-mono">Scouting</span>
+          <h3 class="text-base font-serif uppercase tracking-wider text-[#222624] mt-1 group-hover:text-[#4B584E]">Candidaturas</h3>
+          <p class="text-xs text-[#5F6661] mt-2">Triagem de novos talentos e inspeção técnica de polaroids.</p>
+        </a>
+
+        <!-- Card: Gestão de Modelos -->
+        <a routerLink="/admin/modelos" class="p-6 bg-white border border-[#E8EBE8] hover:border-[#4B584E] transition-all group block shadow-sm">
+          <span class="text-[10px] uppercase tracking-[0.2em] text-[#4B584E] font-mono">Casting</span>
+          <h3 class="text-base font-serif uppercase tracking-wider text-[#222624] mt-1 group-hover:text-[#4B584E]">Elenco &amp; Stars</h3>
+          <p class="text-xs text-[#5F6661] mt-2">Cadastro de biometria, composites e destaques da vitrine.</p>
+        </a>
+
+        <!-- Card: Canais de Contato (Novo Destaque) -->
+        <a routerLink="/admin/institucional/contatos" class="p-6 bg-white border border-[#E8EBE8] hover:border-[#4B584E] transition-all group block shadow-sm">
+          <span class="text-[10px] uppercase tracking-[0.2em] text-[#4B584E] font-mono">Institucional</span>
+          <h3 class="text-base font-serif uppercase tracking-wider text-[#222624] mt-1 group-hover:text-[#4B584E]">Canais de Contato</h3>
+          <p class="text-xs text-[#5F6661] mt-2">Atualização granular de WhatsApp, e-mails corporativos e redes sociais.</p>
+        </a>
+
+        <!-- Card: Conteúdos Bilíngues (Novo Destaque) -->
+        <a routerLink="/admin/institucional/idiomas" class="p-6 bg-white border border-[#E8EBE8] hover:border-[#4B584E] transition-all group block shadow-sm">
+          <span class="text-[10px] uppercase tracking-[0.2em] text-[#4B584E] font-mono">Internacional</span>
+          <h3 class="text-base font-serif uppercase tracking-wider text-[#222624] mt-1 group-hover:text-[#4B584E]">Idiomas (PT / EN)</h3>
+          <p class="text-xs text-[#5F6661] mt-2">Edição modular e sincronizada de manifestos e diretrizes.</p>
+        </a>
+
+        <!-- Card: Gestão da Home -->
+        <a routerLink="/admin/institucional/home" class="p-6 bg-white border border-[#E8EBE8] hover:border-[#4B584E] transition-all group block shadow-sm">
+          <span class="text-[10px] uppercase tracking-[0.2em] text-[#4B584E] font-mono">Hero Media</span>
+          <h3 class="text-base font-serif uppercase tracking-wider text-[#222624] mt-1 group-hover:text-[#4B584E]">Página Inicial</h3>
+          <p class="text-xs text-[#5F6661] mt-2">Substituição do vídeo de abertura e imagem de capa de contingência.</p>
+        </a>
+
+        <!-- Card: Curadoria Home -->
+        <a routerLink="/admin/destaques-home" class="p-6 bg-white border border-[#E8EBE8] hover:border-[#4B584E] transition-all group block shadow-sm">
+          <span class="text-[10px] uppercase tracking-[0.2em] text-[#4B584E] font-mono">Curadoria</span>
+          <h3 class="text-base font-serif uppercase tracking-wider text-[#222624] mt-1 group-hover:text-[#4B584E]">Destaques da Vitrine</h3>
+          <p class="text-xs text-[#5F6661] mt-2">Ordenação e promoção dos modelos em destaque na Home.</p>
+        </a>
+
+      </div>
     </div>
 
     <!-- Cards de Métricas -->

@@ -42,12 +42,12 @@ public class AuthServiceImpl implements AuthService {
         Admin admin = adminRepository.findByEmailAndIsActiveTrue(email)
                 .orElseThrow(() -> {
                     log.warn("Tentativa de login com e-mail não encontrado ou inativo: {}", email);
-                    return new BadCredentialsException("Email ou senha inválidos.");
+                    return new BadCredentialsException("Credenciais inválidas. Verifique seu e-mail e senha.");
                 });
 
         if (!passwordEncoder.matches(request.getPassword(), admin.getPasswordHash())) {
             log.warn("Tentativa de login com senha incorreta para: {}", email);
-            throw new BadCredentialsException("Email ou senha inválidos.");
+            throw new BadCredentialsException("Credenciais inválidas. Verifique seu e-mail e senha.");
         }
 
         String token = jwtService.generateToken(admin);
@@ -78,7 +78,7 @@ public class AuthServiceImpl implements AuthService {
             Admin admin = optionalAdmin.get();
             String resetToken = UUID.randomUUID().toString();
             admin.setPasswordResetToken(resetToken);
-            admin.setPasswordResetExpiresAt(OffsetDateTime.now().plusMinutes(30)); // 30 Minuten Gültigkeit
+            admin.setPasswordResetExpiresAt(OffsetDateTime.now().plusMinutes(30)); // 30 minutos de validade
             adminRepository.save(admin);
 
             emailService.sendPasswordResetEmail(admin.getEmail(), admin.getName(), resetToken);
@@ -92,16 +92,16 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public void resetPassword(ResetPasswordRequestDto request) {
         Admin admin = adminRepository.findByPasswordResetToken(request.getToken())
-                .orElseThrow(() -> new InvalidTokenException("Ungültiges oder abgelaufenes Token."));
+                .orElseThrow(() -> new InvalidTokenException("O link de redefinição de senha é inválido ou expirou."));
 
         if (!Boolean.TRUE.equals(admin.getIsActive())) {
             log.warn("Tentativa de redefinição de senha para administrador inativo: {}", admin.getEmail());
-            throw new InvalidTokenException("Ungültiges oder abgelaufenes Token.");
+            throw new InvalidTokenException("O link de redefinição de senha é inválido ou expirou.");
         }
 
         if (admin.getPasswordResetExpiresAt() == null || admin.getPasswordResetExpiresAt().isBefore(OffsetDateTime.now())) {
             log.warn("Tentativa de redefinição com token expirado para admin ID: {}", admin.getId());
-            throw new InvalidTokenException("Ungültiges oder abgelaufenes Token.");
+            throw new InvalidTokenException("O link de redefinição de senha é inválido ou expirou.");
         }
 
         if (request.getConfirmPassword() != null && !request.getConfirmPassword().isBlank()) {
@@ -122,7 +122,7 @@ public class AuthServiceImpl implements AuthService {
 
     private void validatePasswordComplexity(String password) {
         if (password == null || password.length() < 8) {
-            throw new IllegalArgumentException("Das Passwort muss mindestens 8 Zeichen lang sein.");
+            throw new IllegalArgumentException("A senha deve ter no mínimo 8 caracteres.");
         }
         boolean hasUpper = false;
         boolean hasLower = false;
@@ -135,7 +135,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         if (!hasUpper || !hasLower || !hasSpecialOrDigit) {
-            throw new IllegalArgumentException("Das Passwort muss Groß- und Kleinbuchstaben sowie mindestens eine Ziffer oder ein Sonderzeichen enthalten.");
+            throw new IllegalArgumentException("A senha deve conter letras maiúsculas, minúsculas e pelo menos um dígito ou caractere especial.");
         }
     }
 
@@ -144,7 +144,7 @@ public class AuthServiceImpl implements AuthService {
     public AuthDTO.MessageResponse forgotPassword(AuthDTO.ForgotPasswordRequest request) {
         processForgotPassword(new ForgotPasswordRequestDto(request.getEmail()));
         return new AuthDTO.MessageResponse(
-                "Wenn die E-Mail im System registriert ist, wurde ein Wiederherstellungslink gesendet."
+                "Se o e-mail informado estiver cadastrado em nosso sistema, as instruções para redefinição de senha serão enviadas em instantes."
         );
     }
 
@@ -152,7 +152,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public AuthDTO.MessageResponse resetPassword(AuthDTO.ResetPasswordRequest request) {
         resetPassword(new ResetPasswordRequestDto(request.getToken(), request.getNewPassword()));
-        return new AuthDTO.MessageResponse("Passwort erfolgreich zurückgesetzt.");
+        return new AuthDTO.MessageResponse("Senha redefinida com sucesso.");
     }
 
     @Override

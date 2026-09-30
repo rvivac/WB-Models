@@ -2,6 +2,7 @@ package com.wbscouting.api.service.submission;
 
 import com.wbscouting.api.dto.CandidateSubmissionResponseDto;
 import com.wbscouting.api.dto.UpdateSubmissionStatusDto;
+import com.wbscouting.api.dto.model.ModelResponseDto;
 import com.wbscouting.api.dto.submission.CandidateStatusUpdateDto;
 import com.wbscouting.api.entity.CandidateSubmission;
 import com.wbscouting.api.entity.Model;
@@ -97,13 +98,19 @@ public class CandidateSubmissionAdminServiceImpl implements CandidateSubmissionA
 
     @Override
     @Transactional
-    public CandidateSubmissionResponseDto promoteToModel(UUID submissionId, String reviewer, Boolean activateImmediately) {
+    public ModelResponseDto promoteCandidateToModel(UUID submissionId) {
+        return promoteCandidateToModel(submissionId, "Scouting Desk / Admin", true);
+    }
+
+    @Override
+    @Transactional
+    public ModelResponseDto promoteCandidateToModel(UUID submissionId, String reviewer, Boolean activateImmediately) {
         log.info("Iniciando promoção da candidatura ID: {} para Modelo Oficial por {}", submissionId, reviewer);
 
         CandidateSubmission submission = repository.findById(submissionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Candidatura não encontrada com ID: " + submissionId));
 
-        if (submission.getConvertedToModelId() != null) {
+        if (submission.getConvertedToModelId() != null || (submission.getStatus() == SubmissionStatus.APPROVED && submission.getConvertedToModelId() != null)) {
             throw new DuplicatePromotionException("Esta candidatura já foi promovida ao elenco oficial de modelos (Modelo ID: " + submission.getConvertedToModelId() + ").");
         }
 
@@ -125,7 +132,7 @@ public class CandidateSubmissionAdminServiceImpl implements CandidateSubmissionA
                 .gender(gender)
                 .isStar(false)
                 .isFeaturedHome(false)
-                .isActive(Boolean.TRUE.equals(activateImmediately))
+                .isActive(activateImmediately == null || Boolean.TRUE.equals(activateImmediately))
                 .primaryPhotoUrl(submission.getFacePhotoUrl())
                 .instagramUrl(submission.getInstagramHandle())
                 .birthDate(submission.getBirthDate())
@@ -198,6 +205,15 @@ public class CandidateSubmissionAdminServiceImpl implements CandidateSubmissionA
         log.info("Candidatura ID: {} promovida com sucesso ao modelo ID: {} ({})",
                 submissionId, savedModel.getId(), savedModel.getStageName());
 
-        return CandidateSubmissionResponseDto.fromEntity(savedSubmission);
+        return ModelResponseDto.fromEntity(savedModel);
+    }
+
+    @Override
+    @Transactional
+    public CandidateSubmissionResponseDto promoteToModel(UUID submissionId, String reviewer, Boolean activateImmediately) {
+        promoteCandidateToModel(submissionId, reviewer, activateImmediately);
+        CandidateSubmission updated = repository.findById(submissionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Candidatura não encontrada com ID: " + submissionId));
+        return CandidateSubmissionResponseDto.fromEntity(updated);
     }
 }

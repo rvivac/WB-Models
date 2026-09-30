@@ -19,4 +19,10 @@ public interface ModelMediaService {
     void setCoverMedia(UUID modelId, UUID mediaId);
 
     List<MediaUploadResponseDto> listModelMedia(UUID modelId);
+
+    com.wbscouting.api.dto.media.ModelCompositeResponseDto getComposite(UUID modelId);
+
+    com.wbscouting.api.dto.media.ModelCompositeResponseDto uploadOrReplaceComposite(UUID modelId, MultipartFile file);
+
+    void deleteComposite(UUID modelId);
 }

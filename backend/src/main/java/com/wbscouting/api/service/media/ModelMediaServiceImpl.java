@@ -234,6 +234,113 @@ public class ModelMediaServiceImpl implements ModelMediaService {
         return sanitized.isEmpty() ? "image.jpg" : sanitized;
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public com.wbscouting.api.dto.media.ModelCompositeResponseDto getComposite(UUID modelId) {
+        if (!modelRepository.existsById(modelId)) {
+            throw new ResourceNotFoundException("Modelo", "id", modelId);
+        }
+
+        return modelMediaRepository.findByModelIdAndMediaTypeAndIsActiveTrue(modelId, MediaType.COMPOSITE)
+                .map(comp -> toCompositeDto(comp, null, null))
+                .orElse(null);
+    }
+
+    @Override
+    @Transactional
+    public com.wbscouting.api.dto.media.ModelCompositeResponseDto uploadOrReplaceComposite(UUID modelId, MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("O arquivo do composite não pode estar vazio.");
+        }
+        if (file.getSize() > 25 * 1024 * 1024) {
+            throw new IllegalArgumentException("O arquivo do composite excede o limite máximo permitido de 25 MB.");
+        }
+
+        String contentType = file.getContentType();
+        String originalFilename = file.getOriginalFilename() != null ? file.getOriginalFilename().toLowerCase() : "";
+        boolean isPdf = (contentType != null && contentType.equalsIgnoreCase("application/pdf")) || originalFilename.endsWith(".pdf");
+        boolean isImage = (contentType != null && (contentType.equalsIgnoreCase("image/jpeg") || contentType.equalsIgnoreCase("image/png") || contentType.equalsIgnoreCase("image/webp")))
+                || originalFilename.endsWith(".jpg") || originalFilename.endsWith(".jpeg") || originalFilename.endsWith(".png") || originalFilename.endsWith(".webp");
+
+        if (!isPdf && !isImage) {
+            throw new IllegalArgumentException("Formato inválido. Os formatos permitidos para o composite são: PDF, JPG, PNG e WEBP.");
+        }
+
+        Model model = modelRepository.findById(modelId)
+                .orElseThrow(() -> new ResourceNotFoundException("Modelo", "id", modelId));
+
+        String bucket = supabaseProperties.getBuckets().getModelsMedia();
+
+        // Substituição atômica: remove composite anterior do storage e banco se houver
+        Optional<ModelMedia> existingComposite = modelMediaRepository.findByModelIdAndMediaTypeAndIsActiveTrue(modelId, MediaType.COMPOSITE);
+        if (existingComposite.isPresent()) {
+            ModelMedia oldComp = existingComposite.get();
+            try {
+                storageService.deleteFile(bucket, oldComp.getStoragePath());
+            } catch (Exception e) {
+                log.warn("Falha ao remover arquivo do composite anterior do storage: {}", e.getMessage());
+            }
+            modelMediaRepository.delete(oldComp);
+            modelMediaRepository.flush();
+        }
+
+        String originalName = sanitizeFilename(file.getOriginalFilename());
+        String filename = "models/" + modelId + "/composite/" + UUID.randomUUID() + "-" + originalName;
+        String publicUrl = storageService.uploadFile(bucket, filename, file);
+
+        ModelMedia media = ModelMedia.builder()
+                .model(model)
+                .mediaType(MediaType.COMPOSITE)
+                .fileUrl(publicUrl)
+                .storagePath(filename)
+                .displayOrder(1)
+                .isCover(false)
+                .isActive(true)
+                .build();
+
+        ModelMedia saved = modelMediaRepository.save(media);
+        return toCompositeDto(saved, originalName, file.getSize());
+    }
+
+    @Override
+    @Transactional
+    public void deleteComposite(UUID modelId) {
+        if (!modelRepository.existsById(modelId)) {
+            throw new ResourceNotFoundException("Modelo", "id", modelId);
+        }
+
+        modelMediaRepository.findByModelIdAndMediaTypeAndIsActiveTrue(modelId, MediaType.COMPOSITE)
+                .ifPresent(comp -> {
+                    try {
+                        storageService.deleteFile(supabaseProperties.getBuckets().getModelsMedia(), comp.getStoragePath());
+                    } catch (Exception e) {
+                        log.warn("Falha ao remover arquivo do composite do storage: {}", e.getMessage());
+                    }
+                    modelMediaRepository.delete(comp);
+                });
+    }
+
+    private com.wbscouting.api.dto.media.ModelCompositeResponseDto toCompositeDto(ModelMedia media, String originalFilename, Long sizeBytes) {
+        String name = originalFilename;
+        if (name == null || name.isBlank()) {
+            name = media.getStoragePath() != null
+                    ? media.getStoragePath().substring(media.getStoragePath().lastIndexOf('/') + 1)
+                    : "composite";
+            if (name.matches("^[0-9a-fA-F\\-]{36}-.+")) {
+                name = name.substring(37);
+            }
+        }
+        String type = name.toLowerCase().endsWith(".pdf") ? "PDF" : "IMAGE";
+        return com.wbscouting.api.dto.media.ModelCompositeResponseDto.builder()
+                .id(media.getId())
+                .fileUrl(media.getFileUrl())
+                .fileName(name)
+                .fileType(type)
+                .fileSizeBytes(sizeBytes != null ? sizeBytes : 0L)
+                .updatedAt(media.getUpdatedAt() != null ? media.getUpdatedAt() : media.getCreatedAt())
+                .build();
+    }
+
     private MediaUploadResponseDto toDto(ModelMedia media) {
         return MediaUploadResponseDto.builder()
                 .id(media.getId())

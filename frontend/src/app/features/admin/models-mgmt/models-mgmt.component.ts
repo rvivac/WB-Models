@@ -1,38 +1,131 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { ButtonComponent } from '../../../shared/components/button/button.component';
-
-interface AdminModelRecord {
-  id: string;
-  name: string;
-  category: string;
-  heightCm: number;
-  status: 'ATIVO' | 'INATIVO';
-  photosCount: number;
-  compositeReady: boolean;
-}
+import { FormsModule } from '@angular/forms';
+import { AdminModelService } from '../../../core/services/admin-model.service';
+import {
+  AdminModelFilterParams,
+  ModelAdminItem,
+  ModelGender
+} from '../../../shared/models/admin-model.interface';
+import { ModelFormComponent } from './model-form/model-form.component';
 
 @Component({
   selector: 'app-models-mgmt',
   standalone: true,
-  imports: [CommonModule, RouterModule, ButtonComponent],
+  imports: [CommonModule, RouterModule, FormsModule, ModelFormComponent],
   templateUrl: './models-mgmt.component.html',
   styleUrls: ['./models-mgmt.component.scss']
 })
-export class ModelsMgmtComponent {
-  readonly models = signal<AdminModelRecord[]>([
-    { id: '1', name: 'Isabella Martins', category: 'FASHION', heightCm: 179, status: 'ATIVO', photosCount: 14, compositeReady: true },
-    { id: '2', name: 'Gabriel Alencar', category: 'FASHION', heightCm: 188, status: 'ATIVO', photosCount: 18, compositeReady: true },
-    { id: '3', name: 'Helena Vasconcelos', category: 'NEW_FACE', heightCm: 177, status: 'ATIVO', photosCount: 8, compositeReady: true },
-    { id: '4', name: 'Lucas Mendes', category: 'COMMERCIAL', heightCm: 185, status: 'ATIVO', photosCount: 12, compositeReady: false },
-    { id: '5', name: 'Camila Rocha', category: 'SPECIAL', heightCm: 180, status: 'ATIVO', photosCount: 16, compositeReady: true },
-    { id: '6', name: 'Sophia Benitez', category: 'COMMERCIAL', heightCm: 175, status: 'INATIVO', photosCount: 6, compositeReady: false }
-  ]);
+export class ModelsMgmtComponent implements OnInit {
+  private readonly adminModelService = inject(AdminModelService);
 
-  toggleStatus(model: AdminModelRecord): void {
-    this.models.update(list =>
-      list.map(m => m.id === model.id ? { ...m, status: m.status === 'ATIVO' ? 'INATIVO' : 'ATIVO' } : m)
-    );
+  readonly models = signal<ModelAdminItem[]>([]);
+  readonly isLoading = signal<boolean>(false);
+  readonly isFormOpen = signal<boolean>(false);
+  readonly editingModelId = signal<string | null>(null);
+
+  // Filtros
+  readonly filterGender = signal<ModelGender | 'ALL'>('ALL');
+  readonly filterStar = signal<boolean | null>(null);
+  readonly filterStatus = signal<boolean | null>(null);
+  readonly searchTerm = signal<string>('');
+
+  // Toast
+  readonly toast = signal<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  ngOnInit(): void {
+    this.loadModels();
+  }
+
+  loadModels(): void {
+    this.isLoading.set(true);
+    const params: AdminModelFilterParams = {
+      gender: this.filterGender(),
+      isStar: this.filterStar(),
+      isActive: this.filterStatus(),
+      search: this.searchTerm()
+    };
+
+    this.adminModelService.getModels(params).subscribe({
+      next: (res) => {
+        this.models.set(res.content);
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.isLoading.set(false);
+        this.showToast('Erro ao carregar catálogo de modelos.', 'error');
+      }
+    });
+  }
+
+  openCreateForm(): void {
+    this.editingModelId.set(null);
+    this.isFormOpen.set(true);
+  }
+
+  openEditForm(model: ModelAdminItem): void {
+    this.editingModelId.set(model.id);
+    this.isFormOpen.set(true);
+  }
+
+  closeForm(): void {
+    this.isFormOpen.set(false);
+    this.editingModelId.set(null);
+  }
+
+  onModelSaved(savedModel: ModelAdminItem): void {
+    this.closeForm();
+    this.loadModels();
+    this.showToast(`Modelo "${savedModel.stageName}" salvo com sucesso!`, 'success');
+  }
+
+  toggleStatus(model: ModelAdminItem): void {
+    const nextStatus = !model.isActive;
+    this.adminModelService.updateStatus(model.id, nextStatus).subscribe({
+      next: (updated) => {
+        this.models.update((list) =>
+          list.map((m) => (m.id === model.id ? { ...m, isActive: updated.isActive } : m))
+        );
+        this.showToast(
+          `Status de "${model.stageName}" alterado para ${nextStatus ? 'Ativo' : 'Inativo'}.`,
+          'success'
+        );
+      },
+      error: () => this.showToast('Erro ao atualizar status do modelo.', 'error')
+    });
+  }
+
+  toggleStar(model: ModelAdminItem): void {
+    const nextStar = !model.isStar;
+    this.adminModelService.updateStar(model.id, nextStar).subscribe({
+      next: (updated) => {
+        this.models.update((list) =>
+          list.map((m) => (m.id === model.id ? { ...m, isStar: updated.isStar } : m))
+        );
+        this.showToast(
+          `Modelo "${model.stageName}" ${nextStar ? 'adicionado às Stars ★' : 'removido das Stars'}.`,
+          'success'
+        );
+      },
+      error: () => this.showToast('Erro ao atualizar classificação Star.', 'error')
+    });
+  }
+
+  setGenderFilter(gender: ModelGender | 'ALL'): void {
+    this.filterGender.set(gender);
+    this.loadModels();
+  }
+
+  setStarFilter(val: boolean | null): void {
+    this.filterStar.set(val);
+    this.loadModels();
+  }
+
+  showToast(message: string, type: 'success' | 'error'): void {
+    this.toast.set({ message, type });
+    setTimeout(() => {
+      this.toast.set(null);
+    }, 4000);
   }
 }

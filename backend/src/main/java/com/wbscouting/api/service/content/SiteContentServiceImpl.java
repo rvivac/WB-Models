@@ -51,7 +51,12 @@ public class SiteContentServiceImpl implements SiteContentService {
         log.info("Consultando conteúdo público para sectionKey='{}', lang='{}'", sectionKey, lang);
 
         SiteContent content = siteContentRepository.findBySectionKey(sectionKey)
-                .orElseThrow(() -> new ResourceNotFoundException("Conteúdo da seção não encontrado: " + sectionKey));
+                .orElseGet(() -> {
+                    if ("ABOUT_MANIFESTO".equalsIgnoreCase(sectionKey)) {
+                        return createDefaultAboutManifesto();
+                    }
+                    throw new ResourceNotFoundException("Conteúdo da seção não encontrado: " + sectionKey);
+                });
 
         String resolvedLang = resolveLanguage(lang);
         Map<String, Object> resolvedPayload = resolvePayloadByLanguage(content, resolvedLang);
@@ -220,5 +225,23 @@ public class SiteContentServiceImpl implements SiteContentService {
             return supabaseProperties.getBuckets().getSiteAssets();
         }
         return DEFAULT_BUCKET_SITE_ASSETS;
+    }
+
+    private SiteContent createDefaultAboutManifesto() {
+        Map<String, Object> pt = new HashMap<>();
+        pt.put("headline", "A Nova Estética do Scouting Global");
+        pt.put("quote", "A beleza contemporânea nasce da singularidade e precisão.");
+        pt.put("body", "A WB Agency consolidou-se como um núcleo editorial focado no desenvolvimento integral de modelos para os principais mercados da moda internacional. Nossa metodologia rejeita a padronização e prioriza a identidade visual autêntica, conectando talentos a marcas com relevância estética global.");
+
+        Map<String, Object> en = new HashMap<>();
+        en.put("headline", "The New Aesthetic of Global Scouting");
+        en.put("quote", "Contemporary beauty stems from uniqueness and precision.");
+        en.put("body", "WB Agency has established itself as an editorial powerhouse dedicated to the comprehensive development of models for premier global fashion markets. Our scouting methodology moves beyond mass standards to foster authentic personal identity, positioning talents at the intersection of high fashion and international relevance.");
+
+        return SiteContent.builder()
+                .sectionKey("ABOUT_MANIFESTO")
+                .payloadPt(pt)
+                .payloadEn(en)
+                .build();
     }
 }

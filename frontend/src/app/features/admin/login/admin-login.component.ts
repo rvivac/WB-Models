@@ -99,7 +99,7 @@ export class AdminLoginComponent implements OnInit {
   }
 
   private redirectToTarget(): void {
-    const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/admin/candidatos';
+    const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/admin/dashboard';
     this.router.navigateByUrl(returnUrl);
   }
 }

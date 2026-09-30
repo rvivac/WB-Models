@@ -29,6 +29,14 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  height: 100%;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  flex: 1 0 0;
+  justify-content: flex-start;
 }
 
 .brand-logo {
@@ -59,7 +67,31 @@
 .desktop-nav {
   display: none;
   align-items: center;
+  justify-content: center;
   gap: 1.75rem;
+  flex: 0 0 auto;
+  white-space: nowrap;
+
+  @media (min-width: 900px) {
+    display: flex;
+  }
+
+  @media (min-width: 1200px) {
+    gap: 2.25rem;
+  }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1 0 0;
+}
+
+.desktop-actions {
+  display: none;
+  align-items: center;
+  gap: 1.25rem;
 
   @media (min-width: 900px) {
     display: flex;
@@ -111,7 +143,7 @@
   letter-spacing: 0.15em;
   background: #4b584e;
   border: 1px solid #4b584e;
-  border-radius: 2px;
+  border-radius: 0;
   color: #ffffff;
   font-weight: 600;
   text-transform: uppercase;

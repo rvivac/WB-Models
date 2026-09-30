@@ -1,0 +1,83 @@
+<!-- Página Sobre Nós (Sem Vídeo - Foco Editorial & Manifesto) -->
+<article class="about-page">
+  <!-- Topo Editorial com Espaçamento Harmonizado -->
+  <header class="about-hero-header">
+    <div class="container">
+      <div class="header-content">
+        <span class="section-tag tracking-editorial">{{ 'nav.about' | translate }}</span>
+        <h1 class="font-serif about-headline">{{ aboutContent().headline }}</h1>
+        
+        @if (aboutContent().quote) {
+          <blockquote class="about-quote font-serif">
+            &ldquo;{{ aboutContent().quote }}&rdquo;
+          </blockquote>
+        }
+      </div>
+    </div>
+  </header>
+
+  <!-- Conteúdo Principal do Manifesto -->
+  <section class="about-content-section">
+    <div class="container">
+      <div class="content-grid">
+        <!-- Coluna de Texto Principal (CMS) -->
+        <div class="text-column">
+          <p class="about-body-text">{{ aboutContent().body }}</p>
+        </div>
+
+        <!-- Coluna de Pilares Estratégicos -->
+        <div class="pillars-column">
+          <div class="pillar-card">
+            <span class="pillar-number">01</span>
+            <div class="pillar-details">
+              <h3 class="pillar-heading">Scouting Singular</h3>
+              <p class="pillar-desc">
+                Descoberta de perfis autênticos com potencial para as principais passarelas e campanhas editoriais globais.
+              </p>
+            </div>
+          </div>
+
+          <div class="pillar-card">
+            <span class="pillar-number">02</span>
+            <div class="pillar-details">
+              <h3 class="pillar-heading">Desenvolvimento Editorial</h3>
+              <p class="pillar-desc">
+                Direção artística, construção de portfólio de alta moda e posicionamento internacional de imagem.
+              </p>
+            </div>
+          </div>
+
+          <div class="pillar-card">
+            <span class="pillar-number">03</span>
+            <div class="pillar-details">
+              <h3 class="pillar-heading">Mercados Globais</h3>
+              <p class="pillar-desc">
+                Conexão com agências parceiras nos principais centros: Paris, Milão, Nova York, Londres e Tóquio.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Seção de Chamada para Ação (Casting & Booking) -->
+  <section class="about-cta-section">
+    <div class="container">
+      <div class="cta-box">
+        <div class="cta-info">
+          <h2 class="font-serif cta-title">{{ 'home.cta_banner_title' | translate }}</h2>
+          <p class="cta-description">{{ 'home.cta_banner_desc' | translate }}</p>
+        </div>
+        <div class="cta-actions">
+          <a routerLink="/apply" class="btn btn-primary btn-about-cta">
+            {{ 'home.cta_banner_button' | translate }} &rarr;
+          </a>
+          <a routerLink="/contact" class="btn btn-outline-about">
+            {{ 'nav.contact' | translate }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</article>

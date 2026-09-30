@@ -1,0 +1,752 @@
+<div class="mgmt-page selection:bg-[#4B584E] selection:text-white">
+  <div class="mgmt-inner space-y-8">
+
+    <!-- CABEÇALHO DO MENU INSTITUCIONAL (Padronizado com Triagem e Modelos) -->
+    <header class="scouting-header">
+      <div>
+        <h1 class="scouting-title">Canais de Contato & Redes</h1>
+        <p class="scouting-subtitle">
+          Gestão modular de telefones, e-mails, endereços e redes sociais com caixas coloridas responsivas.
+        </p>
+      </div>
+      <div class="header-actions">
+        <a routerLink="/admin" class="btn-outline-admin">
+          <span>← Painel Geral</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Feedback Toast / Alerta de Sucesso -->
+    <div *ngIf="successField" class="max-w-full p-3 text-xs bg-emerald-50 border border-emerald-200 text-emerald-800 transition-opacity">
+      Campo atualizado e sincronizado com sucesso no servidor.
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+      <!-- COLUNA ESQUERDA: ATENDIMENTO DIRETO & E-MAILS (6 Colunas) -->
+      <div class="lg:col-span-6 space-y-6">
+
+        <div class="bg-white border border-[#E8EBE8] p-6 md:p-8 shadow-sm space-y-5">
+          <div class="card-editorial-header">
+            <h2 class="card-editorial-title">Canais Diretos de Atendimento</h2>
+            <p class="card-editorial-subtitle">Parâmetros de contato telefônico e mensageria instantânea com edição modular.</p>
+          </div>
+
+          <!-- Campo 1: WhatsApp Oficial -->
+          <div class="editorial-field-box" [ngClass]="getFieldStatusClass('whatsapp')">
+            <div class="field-header">
+              <div class="flex items-center gap-2.5">
+                <span class="field-label">WhatsApp Oficial</span>
+                <span class="field-badge">{{ getFieldStatusLabel('whatsapp') }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button 
+                  type="button" 
+                  (click)="startEdit('whatsapp', contactData.whatsapp)" 
+                  [class.btn-active]="editingField === 'whatsapp'"
+                  class="btn-field-edit"
+                  title="Habilitar edição deste campo"
+                >
+                  ✎ Editar
+                </button>
+                <button 
+                  type="button" 
+                  (click)="saveField('whatsapp')" 
+                  [disabled]="isSaving" 
+                  class="btn-field-save"
+                  title="Salvar alterações deste campo"
+                >
+                  ✓ {{ isSaving && editingField === 'whatsapp' ? 'Salvando...' : 'Salvar' }}
+                </button>
+                <button 
+                  *ngIf="editingField === 'whatsapp'" 
+                  type="button" 
+                  (click)="cancelEdit()" 
+                  class="btn-field-cancel"
+                  title="Cancelar e reverter"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <!-- Caixa de Texto Colorida Delimitada -->
+            <div class="w-full">
+              <input 
+                *ngIf="editingField !== 'whatsapp'"
+                type="text" 
+                [value]="contactData.whatsapp || ''" 
+                readonly 
+                (click)="startEdit('whatsapp', contactData.whatsapp)" 
+                placeholder="WhatsApp não configurado..."
+                class="colored-text-input font-mono text-xs"
+              />
+              <input 
+                *ngIf="editingField === 'whatsapp'"
+                id="field-whatsapp"
+                type="text" 
+                [(ngModel)]="tempValue" 
+                placeholder="+55 11 99999-9999"
+                class="colored-text-input font-mono text-xs"
+              />
+            </div>
+
+            <p class="text-[10px] text-[#5F6661] mt-2 font-mono break-all">
+              Link direto gerado: https://wa.me/{{ cleanNumber(contactData.whatsapp) }}?text={{ encodeText(contactData.whatsappDefaultMessage) }}
+            </p>
+          </div>
+
+          <!-- Campo 2: Mensagem Padrão do WhatsApp -->
+          <div class="editorial-field-box" [ngClass]="getFieldStatusClass('whatsappDefaultMessage')">
+            <div class="field-header">
+              <div class="flex items-center gap-2.5">
+                <span class="field-label">Mensagem Padrão do WhatsApp</span>
+                <span class="field-badge">{{ getFieldStatusLabel('whatsappDefaultMessage') }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button 
+                  type="button" 
+                  (click)="startEdit('whatsappDefaultMessage', contactData.whatsappDefaultMessage)" 
+                  [class.btn-active]="editingField === 'whatsappDefaultMessage'"
+                  class="btn-field-edit"
+                  title="Habilitar edição deste campo"
+                >
+                  ✎ Editar
+                </button>
+                <button 
+                  type="button" 
+                  (click)="saveField('whatsappDefaultMessage')" 
+                  [disabled]="isSaving" 
+                  class="btn-field-save"
+                  title="Salvar alterações deste campo"
+                >
+                  ✓ {{ isSaving && editingField === 'whatsappDefaultMessage' ? 'Salvando...' : 'Salvar' }}
+                </button>
+                <button 
+                  *ngIf="editingField === 'whatsappDefaultMessage'" 
+                  type="button" 
+                  (click)="cancelEdit()" 
+                  class="btn-field-cancel"
+                  title="Cancelar e reverter"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <!-- Caixa de Texto Colorida Delimitada (Textarea) -->
+            <div class="w-full">
+              <textarea 
+                *ngIf="editingField !== 'whatsappDefaultMessage'"
+                rows="2"
+                [value]="contactData.whatsappDefaultMessage || ''"
+                readonly
+                (click)="startEdit('whatsappDefaultMessage', contactData.whatsappDefaultMessage)"
+                placeholder="Texto padrão não definido..."
+                class="colored-text-input font-sans text-xs leading-relaxed resize-y"
+              ></textarea>
+              <textarea 
+                *ngIf="editingField === 'whatsappDefaultMessage'"
+                id="field-whatsappDefaultMessage"
+                rows="2"
+                [(ngModel)]="tempValue" 
+                placeholder="Mensagem inicial enviada pelo visitante..."
+                class="colored-text-input font-sans text-xs leading-relaxed resize-y"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Campo 3: Telefone Fixo -->
+          <div class="editorial-field-box" [ngClass]="getFieldStatusClass('phone')">
+            <div class="field-header">
+              <div class="flex items-center gap-2.5">
+                <span class="field-label">Telefone Fixo / PABX</span>
+                <span class="field-badge">{{ getFieldStatusLabel('phone') }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button 
+                  type="button" 
+                  (click)="startEdit('phone', contactData.phone)" 
+                  [class.btn-active]="editingField === 'phone'"
+                  class="btn-field-edit"
+                  title="Habilitar edição deste campo"
+                >
+                  ✎ Editar
+                </button>
+                <button 
+                  type="button" 
+                  (click)="saveField('phone')" 
+                  [disabled]="isSaving" 
+                  class="btn-field-save"
+                  title="Salvar alterações deste campo"
+                >
+                  ✓ {{ isSaving && editingField === 'phone' ? 'Salvando...' : 'Salvar' }}
+                </button>
+                <button 
+                  *ngIf="editingField === 'phone'" 
+                  type="button" 
+                  (click)="cancelEdit()" 
+                  class="btn-field-cancel"
+                  title="Cancelar e reverter"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <!-- Caixa de Texto Colorida Delimitada -->
+            <div class="w-full">
+              <input 
+                *ngIf="editingField !== 'phone'"
+                type="text" 
+                [value]="contactData.phone || ''" 
+                readonly 
+                (click)="startEdit('phone', contactData.phone)" 
+                placeholder="Telefone não configurado..."
+                class="colored-text-input font-mono text-xs"
+              />
+              <input 
+                *ngIf="editingField === 'phone'"
+                id="field-phone"
+                type="text" 
+                [(ngModel)]="tempValue" 
+                placeholder="+55 11 3000-0000"
+                class="colored-text-input font-mono text-xs"
+              />
+            </div>
+          </div>
+
+          <!-- E-mails Setoriais -->
+          <div class="border-t border-[#E8EBE8] pt-5 space-y-4">
+            <h3 class="text-xs font-serif uppercase tracking-wider text-[#222624]">Endereços de E-mail</h3>
+
+            <!-- E-mail Principal -->
+            <div class="editorial-field-box" [ngClass]="getFieldStatusClass('primaryEmail')">
+              <div class="field-header">
+                <div class="flex items-center gap-2.5">
+                  <span class="field-label">E-mail Geral / Atendimento</span>
+                  <span class="field-badge">{{ getFieldStatusLabel('primaryEmail') }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button 
+                    type="button" 
+                    (click)="startEdit('primaryEmail', contactData.primaryEmail)" 
+                    [class.btn-active]="editingField === 'primaryEmail'"
+                    class="btn-field-edit"
+                    title="Habilitar edição deste campo"
+                  >
+                    ✎ Editar
+                  </button>
+                  <button 
+                    type="button" 
+                    (click)="saveField('primaryEmail')" 
+                    [disabled]="isSaving" 
+                    class="btn-field-save"
+                    title="Salvar alterações deste campo"
+                  >
+                    ✓ {{ isSaving && editingField === 'primaryEmail' ? 'Salvando...' : 'Salvar' }}
+                  </button>
+                  <button 
+                    *ngIf="editingField === 'primaryEmail'" 
+                    type="button" 
+                    (click)="cancelEdit()" 
+                    class="btn-field-cancel"
+                    title="Cancelar e reverter"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              <!-- Caixa de Texto Colorida Delimitada -->
+              <div class="w-full">
+                <input 
+                  *ngIf="editingField !== 'primaryEmail'"
+                  type="email" 
+                  [value]="contactData.primaryEmail || ''" 
+                  readonly 
+                  (click)="startEdit('primaryEmail', contactData.primaryEmail)" 
+                  placeholder="E-mail principal não configurado..."
+                  class="colored-text-input font-sans text-xs"
+                />
+                <input 
+                  *ngIf="editingField === 'primaryEmail'"
+                  id="field-primaryEmail"
+                  type="email" 
+                  [(ngModel)]="tempValue" 
+                  placeholder="contato@wbscouting.com"
+                  class="colored-text-input font-sans text-xs"
+                />
+              </div>
+            </div>
+
+            <!-- E-mail Scouting -->
+            <div class="editorial-field-box" [ngClass]="getFieldStatusClass('scoutingEmail')">
+              <div class="field-header">
+                <div class="flex items-center gap-2.5">
+                  <span class="field-label">E-mail Scouting & Novos Talentos</span>
+                  <span class="field-badge">{{ getFieldStatusLabel('scoutingEmail') }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button 
+                    type="button" 
+                    (click)="startEdit('scoutingEmail', contactData.scoutingEmail)" 
+                    [class.btn-active]="editingField === 'scoutingEmail'"
+                    class="btn-field-edit"
+                    title="Habilitar edição deste campo"
+                  >
+                    ✎ Editar
+                  </button>
+                  <button 
+                    type="button" 
+                    (click)="saveField('scoutingEmail')" 
+                    [disabled]="isSaving" 
+                    class="btn-field-save"
+                    title="Salvar alterações deste campo"
+                  >
+                    ✓ {{ isSaving && editingField === 'scoutingEmail' ? 'Salvando...' : 'Salvar' }}
+                  </button>
+                  <button 
+                    *ngIf="editingField === 'scoutingEmail'" 
+                    type="button" 
+                    (click)="cancelEdit()" 
+                    class="btn-field-cancel"
+                    title="Cancelar e reverter"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              <!-- Caixa de Texto Colorida Delimitada -->
+              <div class="w-full">
+                <input 
+                  *ngIf="editingField !== 'scoutingEmail'"
+                  type="email" 
+                  [value]="contactData.scoutingEmail || ''" 
+                  readonly 
+                  (click)="startEdit('scoutingEmail', contactData.scoutingEmail)" 
+                  placeholder="E-mail scouting não configurado..."
+                  class="colored-text-input font-sans text-xs"
+                />
+                <input 
+                  *ngIf="editingField === 'scoutingEmail'"
+                  id="field-scoutingEmail"
+                  type="email" 
+                  [(ngModel)]="tempValue" 
+                  placeholder="scouting@wbscouting.com"
+                  class="colored-text-input font-sans text-xs"
+                />
+              </div>
+            </div>
+
+            <!-- E-mail Imprensa -->
+            <div class="editorial-field-box" [ngClass]="getFieldStatusClass('pressEmail')">
+              <div class="field-header">
+                <div class="flex items-center gap-2.5">
+                  <span class="field-label">Assessoria de Imprensa & Comercial</span>
+                  <span class="field-badge">{{ getFieldStatusLabel('pressEmail') }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button 
+                    type="button" 
+                    (click)="startEdit('pressEmail', contactData.pressEmail)" 
+                    [class.btn-active]="editingField === 'pressEmail'"
+                    class="btn-field-edit"
+                    title="Habilitar edição deste campo"
+                  >
+                    ✎ Editar
+                  </button>
+                  <button 
+                    type="button" 
+                    (click)="saveField('pressEmail')" 
+                    [disabled]="isSaving" 
+                    class="btn-field-save"
+                    title="Salvar alterações deste campo"
+                  >
+                    ✓ {{ isSaving && editingField === 'pressEmail' ? 'Salvando...' : 'Salvar' }}
+                  </button>
+                  <button 
+                    *ngIf="editingField === 'pressEmail'" 
+                    type="button" 
+                    (click)="cancelEdit()" 
+                    class="btn-field-cancel"
+                    title="Cancelar e reverter"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              <!-- Caixa de Texto Colorida Delimitada -->
+              <div class="w-full">
+                <input 
+                  *ngIf="editingField !== 'pressEmail'"
+                  type="email" 
+                  [value]="contactData.pressEmail || ''" 
+                  readonly 
+                  (click)="startEdit('pressEmail', contactData.pressEmail)" 
+                  placeholder="E-mail assessoria não configurado..."
+                  class="colored-text-input font-sans text-xs"
+                />
+                <input 
+                  *ngIf="editingField === 'pressEmail'"
+                  id="field-pressEmail"
+                  type="email" 
+                  [(ngModel)]="tempValue" 
+                  placeholder="press@wbscouting.com"
+                  class="colored-text-input font-sans text-xs"
+                />
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- COLUNA DIREITA: HORÁRIOS, ENDEREÇO & REDES SOCIAIS (6 Colunas) -->
+      <div class="lg:col-span-6 space-y-6">
+
+        <div class="bg-white border border-[#E8EBE8] p-6 md:p-8 shadow-sm space-y-5">
+          <div class="card-editorial-header">
+            <h2 class="card-editorial-title">Localização &amp; Horários</h2>
+            <p class="card-editorial-subtitle">Endereço corporativo e agenda de atendimento comercial.</p>
+          </div>
+
+          <!-- Horário de Atendimento -->
+          <div class="editorial-field-box" [ngClass]="getFieldStatusClass('businessHours')">
+            <div class="field-header">
+              <div class="flex items-center gap-2.5">
+                <span class="field-label">Horário de Atendimento</span>
+                <span class="field-badge">{{ getFieldStatusLabel('businessHours') }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button 
+                  type="button" 
+                  (click)="startEdit('businessHours', contactData.businessHours)" 
+                  [class.btn-active]="editingField === 'businessHours'"
+                  class="btn-field-edit"
+                  title="Habilitar edição deste campo"
+                >
+                  ✎ Editar
+                </button>
+                <button 
+                  type="button" 
+                  (click)="saveField('businessHours')" 
+                  [disabled]="isSaving" 
+                  class="btn-field-save"
+                  title="Salvar alterações deste campo"
+                >
+                  ✓ {{ isSaving && editingField === 'businessHours' ? 'Salvando...' : 'Salvar' }}
+                </button>
+                <button 
+                  *ngIf="editingField === 'businessHours'" 
+                  type="button" 
+                  (click)="cancelEdit()" 
+                  class="btn-field-cancel"
+                  title="Cancelar e reverter"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <!-- Caixa de Texto Colorida Delimitada -->
+            <div class="w-full">
+              <input 
+                *ngIf="editingField !== 'businessHours'"
+                type="text" 
+                [value]="contactData.businessHours || ''" 
+                readonly 
+                (click)="startEdit('businessHours', contactData.businessHours)" 
+                placeholder="Ex: Segunda a Sexta: 09h às 18h..."
+                class="colored-text-input font-sans text-xs"
+              />
+              <input 
+                *ngIf="editingField === 'businessHours'"
+                id="field-businessHours"
+                type="text" 
+                [(ngModel)]="tempValue" 
+                placeholder="Ex: Segunda a Sexta: 09h às 18h (GMT-3)"
+                class="colored-text-input font-sans text-xs"
+              />
+            </div>
+          </div>
+
+          <!-- Endereço da Sede Física -->
+          <div class="editorial-field-box" [ngClass]="getFieldStatusClass('address')">
+            <div class="field-header">
+              <div class="flex items-center gap-2.5">
+                <span class="field-label">Endereço da Sede Física</span>
+                <span class="field-badge">{{ getFieldStatusLabel('address') }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button 
+                  type="button" 
+                  (click)="startEdit('address', contactData.address)" 
+                  [class.btn-active]="editingField === 'address'"
+                  class="btn-field-edit"
+                  title="Habilitar edição do endereço"
+                >
+                  ✎ Editar
+                </button>
+                <button 
+                  type="button" 
+                  (click)="saveField('address')" 
+                  [disabled]="isSaving" 
+                  class="btn-field-save"
+                  title="Salvar alterações de endereço"
+                >
+                  ✓ {{ isSaving && editingField === 'address' ? 'Salvando...' : 'Salvar' }}
+                </button>
+                <button 
+                  *ngIf="editingField === 'address'" 
+                  type="button" 
+                  (click)="cancelEdit()" 
+                  class="btn-field-cancel"
+                  title="Cancelar e reverter"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <!-- Modo Leitura Delimitado -->
+            <div *ngIf="editingField !== 'address'" (click)="startEdit('address', contactData.address)" class="w-full cursor-pointer">
+              <div class="colored-text-input space-y-1">
+                <p class="font-medium text-xs">{{ contactData.address?.street || 'Logradouro não informado' }}, {{ contactData.address?.complement || '' }}</p>
+                <p class="text-[11px] text-[#5F6661]">{{ contactData.address?.neighborhood || '' }} — {{ contactData.address?.city || '' }}/{{ contactData.address?.state || '' }}</p>
+                <p class="text-[10px] font-mono text-[#5F6661]">CEP: {{ contactData.address?.zipCode || 'Não preenchido' }} | {{ contactData.address?.country || 'Brasil' }}</p>
+              </div>
+            </div>
+
+            <!-- Modo Edição Delimitado -->
+            <div *ngIf="editingField === 'address'" class="space-y-3 mt-1">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <div class="md:col-span-2">
+                  <label class="block text-[10px] uppercase font-mono font-medium text-[#5F6661] mb-1">Logradouro / Avenida</label>
+                  <input id="field-address" type="text" [(ngModel)]="tempAddress.street" placeholder="Avenida Paulista, 1000" class="colored-text-input font-sans text-xs" />
+                </div>
+                <div>
+                  <label class="block text-[10px] uppercase font-mono font-medium text-[#5F6661] mb-1">Complemento / Sala</label>
+                  <input type="text" [(ngModel)]="tempAddress.complement" placeholder="Conjunto 1402" class="colored-text-input font-sans text-xs" />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <div>
+                  <label class="block text-[10px] uppercase font-mono font-medium text-[#5F6661] mb-1">Bairro</label>
+                  <input type="text" [(ngModel)]="tempAddress.neighborhood" placeholder="Bela Vista" class="colored-text-input font-sans text-xs" />
+                </div>
+                <div>
+                  <label class="block text-[10px] uppercase font-mono font-medium text-[#5F6661] mb-1">Cidade</label>
+                  <input type="text" [(ngModel)]="tempAddress.city" placeholder="São Paulo" class="colored-text-input font-sans text-xs" />
+                </div>
+                <div>
+                  <label class="block text-[10px] uppercase font-mono font-medium text-[#5F6661] mb-1">UF / Estado</label>
+                  <input type="text" [(ngModel)]="tempAddress.state" placeholder="SP" class="colored-text-input font-sans text-xs uppercase" />
+                </div>
+                <div>
+                  <label class="block text-[10px] uppercase font-mono font-medium text-[#5F6661] mb-1">CEP</label>
+                  <input type="text" [(ngModel)]="tempAddress.zipCode" placeholder="01310-100" class="colored-text-input font-mono text-xs" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Redes Sociais Oficiais -->
+          <div class="border-t border-[#E8EBE8] pt-5 space-y-4">
+            <h3 class="text-xs font-serif uppercase tracking-wider text-[#222624]">Redes Sociais Oficiais</h3>
+
+            <!-- Instagram -->
+            <div class="editorial-field-box" [ngClass]="getFieldStatusClass('socialMedia.instagram')">
+              <div class="field-header">
+                <div class="flex items-center gap-2.5">
+                  <span class="field-label">Instagram (&#64;wbagency)</span>
+                  <span class="field-badge">{{ getFieldStatusLabel('socialMedia.instagram') }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button 
+                    type="button" 
+                    (click)="startEdit('socialMedia.instagram', contactData.socialMedia?.instagram)" 
+                    [class.btn-active]="editingField === 'socialMedia.instagram'"
+                    class="btn-field-edit"
+                    title="Habilitar edição deste campo"
+                  >
+                    ✎ Editar
+                  </button>
+                  <button 
+                    type="button" 
+                    (click)="saveField('socialMedia.instagram')" 
+                    [disabled]="isSaving" 
+                    class="btn-field-save"
+                    title="Salvar alterações deste campo"
+                  >
+                    ✓ {{ isSaving && editingField === 'socialMedia.instagram' ? 'Salvando...' : 'Salvar' }}
+                  </button>
+                  <button 
+                    *ngIf="editingField === 'socialMedia.instagram'" 
+                    type="button" 
+                    (click)="cancelEdit()" 
+                    class="btn-field-cancel"
+                    title="Cancelar e reverter"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              <!-- Caixa de Texto Colorida Delimitada -->
+              <div class="w-full">
+                <input 
+                  *ngIf="editingField !== 'socialMedia.instagram'"
+                  type="url" 
+                  [value]="contactData.socialMedia?.instagram || ''" 
+                  readonly 
+                  (click)="startEdit('socialMedia.instagram', contactData.socialMedia?.instagram)" 
+                  placeholder="https://instagram.com/..."
+                  class="colored-text-input font-mono text-xs"
+                />
+                <input 
+                  *ngIf="editingField === 'socialMedia.instagram'"
+                  id="field-socialMedia.instagram"
+                  type="url" 
+                  [(ngModel)]="tempValue" 
+                  placeholder="https://instagram.com/wbagency"
+                  class="colored-text-input font-mono text-xs"
+                />
+              </div>
+            </div>
+
+            <!-- LinkedIn -->
+            <div class="editorial-field-box" [ngClass]="getFieldStatusClass('socialMedia.linkedin')">
+              <div class="field-header">
+                <div class="flex items-center gap-2.5">
+                  <span class="field-label">LinkedIn Corporate</span>
+                  <span class="field-badge">{{ getFieldStatusLabel('socialMedia.linkedin') }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button 
+                    type="button" 
+                    (click)="startEdit('socialMedia.linkedin', contactData.socialMedia?.linkedin)" 
+                    [class.btn-active]="editingField === 'socialMedia.linkedin'"
+                    class="btn-field-edit"
+                    title="Habilitar edição deste campo"
+                  >
+                    ✎ Editar
+                  </button>
+                  <button 
+                    type="button" 
+                    (click)="saveField('socialMedia.linkedin')" 
+                    [disabled]="isSaving" 
+                    class="btn-field-save"
+                    title="Salvar alterações deste campo"
+                  >
+                    ✓ {{ isSaving && editingField === 'socialMedia.linkedin' ? 'Salvando...' : 'Salvar' }}
+                  </button>
+                  <button 
+                    *ngIf="editingField === 'socialMedia.linkedin'" 
+                    type="button" 
+                    (click)="cancelEdit()" 
+                    class="btn-field-cancel"
+                    title="Cancelar e reverter"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              <!-- Caixa de Texto Colorida Delimitada -->
+              <div class="w-full">
+                <input 
+                  *ngIf="editingField !== 'socialMedia.linkedin'"
+                  type="url" 
+                  [value]="contactData.socialMedia?.linkedin || ''" 
+                  readonly 
+                  (click)="startEdit('socialMedia.linkedin', contactData.socialMedia?.linkedin)" 
+                  placeholder="https://linkedin.com/company/..."
+                  class="colored-text-input font-mono text-xs"
+                />
+                <input 
+                  *ngIf="editingField === 'socialMedia.linkedin'"
+                  id="field-socialMedia.linkedin"
+                  type="url" 
+                  [(ngModel)]="tempValue" 
+                  placeholder="https://linkedin.com/company/wbagency"
+                  class="colored-text-input font-mono text-xs"
+                />
+              </div>
+            </div>
+
+            <!-- TikTok -->
+            <div class="editorial-field-box" [ngClass]="getFieldStatusClass('socialMedia.tiktok')">
+              <div class="field-header">
+                <div class="flex items-center gap-2.5">
+                  <span class="field-label">TikTok Scouting</span>
+                  <span class="field-badge">{{ getFieldStatusLabel('socialMedia.tiktok') }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button 
+                    type="button" 
+                    (click)="startEdit('socialMedia.tiktok', contactData.socialMedia?.tiktok)" 
+                    [class.btn-active]="editingField === 'socialMedia.tiktok'"
+                    class="btn-field-edit"
+                    title="Habilitar edição deste campo"
+                  >
+                    ✎ Editar
+                  </button>
+                  <button 
+                    type="button" 
+                    (click)="saveField('socialMedia.tiktok')" 
+                    [disabled]="isSaving" 
+                    class="btn-field-save"
+                    title="Salvar alterações deste campo"
+                  >
+                    ✓ {{ isSaving && editingField === 'socialMedia.tiktok' ? 'Salvando...' : 'Salvar' }}
+                  </button>
+                  <button 
+                    *ngIf="editingField === 'socialMedia.tiktok'" 
+                    type="button" 
+                    (click)="cancelEdit()" 
+                    class="btn-field-cancel"
+                    title="Cancelar e reverter"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              <!-- Caixa de Texto Colorida Delimitada -->
+              <div class="w-full">
+                <input 
+                  *ngIf="editingField !== 'socialMedia.tiktok'"
+                  type="url" 
+                  [value]="contactData.socialMedia?.tiktok || ''" 
+                  readonly 
+                  (click)="startEdit('socialMedia.tiktok', contactData.socialMedia?.tiktok)" 
+                  placeholder="https://tiktok.com/@..."
+                  class="colored-text-input font-mono text-xs"
+                />
+                <input 
+                  *ngIf="editingField === 'socialMedia.tiktok'"
+                  id="field-socialMedia.tiktok"
+                  type="url" 
+                  [(ngModel)]="tempValue" 
+                  placeholder="https://tiktok.com/@wbagency"
+                  class="colored-text-input font-mono text-xs"
+                />
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>

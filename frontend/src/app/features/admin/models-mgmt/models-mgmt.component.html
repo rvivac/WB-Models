@@ -1,53 +1,220 @@
-<div class="mgmt-page container">
+<div class="mgmt-page">
+  <div class="mgmt-inner space-y-8">
+  <!-- Toast de Notificação -->
+  @if (toast()) {
+    <div class="toast-alert" [class.toast-success]="toast()?.type === 'success'" [class.toast-error]="toast()?.type === 'error'">
+      <span class="toast-icon">&check;</span>
+      <span>{{ toast()?.message }}</span>
+    </div>
+  }
+
+  <!-- Cabeçalho de Gestão (Harmonizado com a diagramação editorial da Triagem) -->
   <div class="mgmt-top">
     <div>
-      <h1 class="font-serif mgmt-title">Gestão de Modelos</h1>
-      <p class="text-secondary">Cadastro, edição de medidas, books e composites dos modelos da agência.</p>
+      <h1 class="font-serif mgmt-title">Casting & Stars</h1>
+      <p class="text-secondary">Cadastro, edição de medidas biométricas, classificação Stars e status dos modelos da WB Agency.</p>
     </div>
-    <button class="btn btn-gold">+ Novo Modelo</button>
+    <div class="flex items-center gap-3">
+      <a routerLink="/admin/destaques-home" class="btn btn-outline">
+        ★ Curadoria Home
+      </a>
+      <button class="btn btn-gold" (click)="openCreateForm()">
+        + Novo Modelo
+      </button>
+    </div>
   </div>
 
-  <div class="mgmt-card card-editorial">
-    <div class="table-responsive">
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Categoria</th>
-            <th>Altura</th>
-            <th>Mídias</th>
-            <th>Composite</th>
-            <th>Status</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (model of models(); track model.id) {
-            <tr>
-              <td><strong>{{ model.name }}</strong></td>
-              <td><span class="badge-cat">{{ model.category }}</span></td>
-              <td>{{ model.heightCm }} cm</td>
-              <td>{{ model.photosCount }} arquivos</td>
-              <td>
-                <span [class.text-gold]="model.compositeReady" [class.text-muted]="!model.compositeReady">
-                  {{ model.compositeReady ? 'Gerado &check;' : 'Pendente' }}
-                </span>
-              </td>
-              <td>
-                <span class="status-pill" [class.status-active]="model.status === 'ATIVO'">
-                  {{ model.status }}
-                </span>
-              </td>
-              <td class="action-cell">
-                <button class="action-btn" (click)="toggleStatus(model)">
-                  {{ model.status === 'ATIVO' ? 'Desativar' : 'Ativar' }}
-                </button>
-                <button class="action-btn text-gold">Editar</button>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+  <!-- Barra de Filtros e Busca -->
+  <div class="filters-bar card-editorial">
+    <div class="filter-group">
+      <span class="filter-label">Gênero:</span>
+      <div class="pill-group">
+        <button
+          type="button"
+          class="pill-btn"
+          [class.active]="filterGender() === 'ALL'"
+          (click)="setGenderFilter('ALL')"
+        >
+          Todos
+        </button>
+        <button
+          type="button"
+          class="pill-btn"
+          [class.active]="filterGender() === 'FEMALE'"
+          (click)="setGenderFilter('FEMALE')"
+        >
+          Feminino
+        </button>
+        <button
+          type="button"
+          class="pill-btn"
+          [class.active]="filterGender() === 'MALE'"
+          (click)="setGenderFilter('MALE')"
+        >
+          Masculino
+        </button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <span class="filter-label">Classificação:</span>
+      <div class="pill-group">
+        <button
+          type="button"
+          class="pill-btn"
+          [class.active]="filterStar() === null"
+          (click)="setStarFilter(null)"
+        >
+          Todos
+        </button>
+        <button
+          type="button"
+          class="pill-btn pill-gold"
+          [class.active]="filterStar() === true"
+          (click)="setStarFilter(true)"
+        >
+          &starf; Apenas Stars
+        </button>
+      </div>
+    </div>
+
+    <div class="search-input-wrapper">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (keyup.enter)="loadModels()"
+        placeholder="Buscar por nome ou cidade..."
+        class="form-control search-input"
+      />
+      <button type="button" class="search-btn" (click)="loadModels()">
+        Buscar
+      </button>
     </div>
   </div>
+
+  <!-- Tabela de Modelos -->
+  <div class="mgmt-card card-editorial">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Carregando elenco de modelos...</p>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Modelo</th>
+              <th>Gênero</th>
+              <th>Stars</th>
+              <th>Altura / Medidas</th>
+              <th>Localização</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (model of models(); track model.id) {
+              <tr>
+                <!-- Coluna: Modelo (Foto + Nome) -->
+                <td class="model-profile-cell">
+                  <div class="model-thumb">
+                    @if (model.primaryPhotoUrl) {
+                      <img [src]="model.primaryPhotoUrl" [alt]="model.stageName" />
+                    } @else {
+                      <div class="thumb-fallback">WB</div>
+                    }
+                  </div>
+                  <div>
+                    <strong class="model-name">{{ model.stageName }}</strong>
+                    @if (model.instagramUrl) {
+                      <span class="instagram-sub">{{ model.instagramUrl }}</span>
+                    }
+                  </div>
+                </td>
+
+                <!-- Coluna: Gênero -->
+                <td>
+                  <span class="badge-cat" [class.badge-male]="model.gender === 'MALE'">
+                    {{ model.gender === 'MALE' ? 'Masculino' : 'Feminino' }}
+                  </span>
+                </td>
+
+                <!-- Coluna: Switch / Tag Stars -->
+                <td>
+                  <button
+                    type="button"
+                    class="star-toggle-btn"
+                    [class.is-star]="model.isStar"
+                    (click)="toggleStar(model)"
+                    [title]="model.isStar ? 'Remover de Stars' : 'Classificar como Star'"
+                  >
+                    <span class="star-glyph">&starf;</span>
+                    {{ model.isStar ? 'STAR' : 'Normal' }}
+                  </button>
+                </td>
+
+                <!-- Coluna: Medidas -->
+                <td>
+                  <div class="measurements-cell">
+                    <span class="height-highlight">{{ model.heightCm ? model.heightCm + ' cm' : '--' }}</span>
+                    @if (model.bustChestCm || model.waistCm || model.hipsCm) {
+                      <span class="bwh-line">
+                        {{ model.bustChestCm || '--' }} / {{ model.waistCm || '--' }} / {{ model.hipsCm || '--' }}
+                      </span>
+                    }
+                  </div>
+                </td>
+
+                <!-- Coluna: Localização -->
+                <td>
+                  <span class="city-text">{{ model.city || model.nationality || '--' }}</span>
+                </td>
+
+                <!-- Coluna: Status Ativo/Inativo -->
+                <td>
+                  <span class="status-pill" [class.status-active]="model.isActive">
+                    {{ model.isActive ? 'Ativo' : 'Inativo' }}
+                  </span>
+                </td>
+
+                <!-- Coluna: Ações -->
+                <td class="action-cell">
+                  <button class="action-btn text-gold" (click)="openEditForm(model)">
+                    Editar
+                  </button>
+                  <button class="action-btn" (click)="toggleStatus(model)">
+                    {{ model.isActive ? 'Desativar' : 'Ativar' }}
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="empty-state">
+                  Nenhum modelo encontrado com os filtros selecionados.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+  </div>
+
+  <!-- Drawer Lateral / Modal do Formulário de Modelo (4.2.2) -->
+  @if (isFormOpen()) {
+    <div class="drawer-backdrop" (click)="closeForm()">
+      <div class="drawer-panel" (click)="$event.stopPropagation()">
+        <button type="button" class="drawer-close-btn" (click)="closeForm()" title="Fechar">
+          &times;
+        </button>
+        <app-model-form
+          [modelIdInput]="editingModelId()"
+          (saved)="onModelSaved($event)"
+          (cancelled)="closeForm()"
+        ></app-model-form>
+      </div>
+    </div>
+  }
 </div>

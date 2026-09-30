@@ -9,6 +9,16 @@ export const routes: Routes = [
     title: 'WB Agency | Model Management & Editorial Casting'
   },
   {
+    path: 'sobre',
+    loadComponent: () => import('./features/public/about/about.component').then(m => m.AboutComponent),
+    title: 'Sobre Nós | WB Agency'
+  },
+  {
+    path: 'about',
+    redirectTo: 'sobre',
+    pathMatch: 'full'
+  },
+  {
     path: 'models',
     redirectTo: 'models/female',
     pathMatch: 'full'
@@ -48,8 +58,13 @@ export const routes: Routes = [
   },
   {
     path: 'apply',
-    loadComponent: () => import('./features/candidate-submission/candidate-submission-form.component').then(m => m.CandidateSubmissionFormComponent),
+    loadComponent: () => import('./features/public/become-model/become-model.component').then(m => m.BecomeModelComponent),
     title: 'Quero Ser Modelo | Inscrição de Novos Talentos'
+  },
+  {
+    path: 'become-model',
+    redirectTo: 'apply',
+    pathMatch: 'full'
   },
   {
     path: 'seja-modelo',
@@ -101,13 +116,37 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'candidatos',
+        redirectTo: 'dashboard',
         pathMatch: 'full'
+      },
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./features/admin/dashboard/dashboard.component').then(m => m.DashboardComponent),
+        title: 'Painel de Controle — Dashboard | WB Agency'
       },
       {
         path: 'candidatos',
         loadComponent: () => import('./features/admin/candidates/candidate-list.component').then(m => m.CandidateListComponent),
         title: 'Triagem de Candidaturas | WB Agency'
+      },
+      {
+        path: 'candidaturas',
+        loadComponent: () => import('./features/admin/applications/candidate-table.component').then(m => m.CandidateTableComponent),
+        title: 'Tabela de Candidaturas | WB Agency'
+      },
+      {
+        path: 'candidaturas/:id',
+        loadComponent: () => import('./features/admin/applications/candidate-detail.component').then(m => m.CandidateDetailComponent),
+        title: 'Avaliação de Candidatura | WB Agency'
+      },
+      {
+        path: 'applications',
+        redirectTo: 'candidaturas',
+        pathMatch: 'full'
+      },
+      {
+        path: 'applications/:id',
+        redirectTo: 'candidaturas/:id',
       },
       {
         path: 'candidates',
@@ -120,19 +159,94 @@ export const routes: Routes = [
         pathMatch: 'full'
       },
       {
-        path: 'dashboard',
-        loadComponent: () => import('./features/admin/dashboard/dashboard.component').then(m => m.DashboardComponent),
-        title: 'Painel de Controle | WB Agency'
-      },
-      {
         path: 'models',
         loadComponent: () => import('./features/admin/models-mgmt/models-mgmt.component').then(m => m.ModelsMgmtComponent),
         title: 'Gestão de Modelos | WB Agency'
       },
       {
+        path: 'modelos',
+        redirectTo: 'models',
+        pathMatch: 'full'
+      },
+      {
+        path: 'models/new',
+        loadComponent: () => import('./features/admin/models-mgmt/model-form/model-form.component').then(m => m.ModelFormComponent),
+        title: 'Novo Modelo | WB Agency'
+      },
+      {
+        path: 'models/:id/edit',
+        loadComponent: () => import('./features/admin/models-mgmt/model-form/model-form.component').then(m => m.ModelFormComponent),
+        title: 'Editar Modelo | WB Agency'
+      },
+      {
         path: 'content',
         loadComponent: () => import('./features/admin/content-mgmt/content-mgmt.component').then(m => m.ContentMgmtComponent),
         title: 'Gestão de Conteúdo & Vídeo | WB Agency'
+      },
+      {
+        path: 'destaques-home',
+        loadComponent: () => import('./features/admin/featured/featured-models-manager.component').then(m => m.FeaturedModelsManagerComponent),
+        title: 'Curadoria da Home | WB Agency'
+      },
+      {
+        path: 'institucional/home',
+        loadComponent: () => import('./features/admin/institutional/home-content-manager.component').then(m => m.HomeContentManagerComponent),
+        title: 'Gestão da Home | WB Agency'
+      },
+      {
+        path: 'institutional/home',
+        redirectTo: 'institucional/home',
+        pathMatch: 'full'
+      },
+      {
+        path: 'home-content',
+        redirectTo: 'institucional/home',
+        pathMatch: 'full'
+      },
+      {
+        path: 'institucional/contatos',
+        loadComponent: () => import('./features/admin/institutional/contact-settings.component').then(m => m.ContactSettingsComponent),
+        title: 'Canais de Contato | WB Agency'
+      },
+      {
+        path: 'institutional/contact',
+        redirectTo: 'institucional/contatos',
+        pathMatch: 'full'
+      },
+      {
+        path: 'contact-settings',
+        redirectTo: 'institucional/contatos',
+        pathMatch: 'full'
+      },
+      {
+        path: 'institucional/idiomas',
+        loadComponent: () => import('./features/admin/institutional/bilingual-content-editor.component').then(m => m.BilingualContentEditorComponent),
+        title: 'Conteúdos Bilíngues (PT/EN) | WB Agency'
+      },
+      {
+        path: 'institutional/translations',
+        redirectTo: 'institucional/idiomas',
+        pathMatch: 'full'
+      },
+      {
+        path: 'translations',
+        redirectTo: 'institucional/idiomas',
+        pathMatch: 'full'
+      },
+      {
+        path: 'bilingual-editor',
+        redirectTo: 'institucional/idiomas',
+        pathMatch: 'full'
+      },
+      {
+        path: 'featured',
+        redirectTo: 'destaques-home',
+        pathMatch: 'full'
+      },
+      {
+        path: 'featured-models',
+        redirectTo: 'destaques-home',
+        pathMatch: 'full'
       }
     ]
   },

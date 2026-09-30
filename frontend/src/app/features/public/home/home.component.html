@@ -1,32 +1,9 @@
-<!-- Seção Hero Institucional Fullscreen com Vídeo e Fallback -->
-<app-home-hero></app-home-hero>
+<main class="min-h-screen bg-[#FBFBF9] selection:bg-[#4B584E] selection:text-white">
+  <!-- 1. Primeira Dobra: Vídeo Hero e Tipografia de Abertura -->
+  <app-home-hero></app-home-hero>
 
-<!-- Seção de Destaques de Modelos (Consumindo API Pública com Skeletons, Stars e CTA) -->
-<app-home-featured-models></app-home-featured-models>
-
-<!-- Manifesto / Sobre a Agência -->
-<section class="manifesto-section" id="manifesto">
-  <div class="container manifesto-inner">
-    <div class="manifesto-header">
-      <span class="section-tag tracking-editorial">{{ 'home.manifesto_tag' | translate }}</span>
-      <h2 class="font-serif section-heading">{{ 'home.manifesto_title' | translate }}</h2>
-    </div>
-    <div class="manifesto-body">
-      <p>{{ 'home.manifesto_text1' | translate }}</p>
-      <p>{{ 'home.manifesto_text2' | translate }}</p>
-    </div>
-  </div>
-</section>
-
-<!-- Banner CTA Inscrição ("Quero ser Modelo") -->
-<section class="cta-banner">
-  <div class="container cta-inner">
-    <div class="cta-text">
-      <h2 class="font-serif">{{ 'home.cta_banner_title' | translate }}</h2>
-      <p>{{ 'home.cta_banner_desc' | translate }}</p>
-    </div>
-    <a routerLink="/apply" class="btn btn-primary btn-cta">
-      {{ 'home.cta_banner_button' | translate }} &rarr;
-    </a>
-  </div>
-</section>
+  <!-- 2. Vitrine Comercial Nobre: Stars / Modelos em Destaque da Home -->
+  <section id="stars-showcase" class="w-full border-b border-[#E8EBE8]">
+    <app-home-featured-models></app-home-featured-models>
+  </section>
+</main>

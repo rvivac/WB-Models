@@ -1,0 +1,253 @@
+<div class="min-h-screen bg-[#FBFBF9] py-12 px-4 sm:px-6 lg:px-8 selection:bg-[#4B584E] selection:text-white">
+  <div class="max-w-4xl mx-auto space-y-10">
+
+    <!-- Cabeçalho Editorial -->
+    <div class="text-center space-y-2 border-b border-[#E8EBE8] pb-8">
+      <span class="text-[10px] uppercase tracking-[0.3em] font-sans text-[#4B584E] font-semibold">WB Scouting Desk</span>
+      <h1 class="text-2xl sm:text-3xl font-serif uppercase tracking-wider text-[#222624]">Seja um Modelo</h1>
+      <p class="text-xs text-[#5F6661] max-w-xl mx-auto tracking-wide">
+        Envie suas medidas e polaroids naturais para avaliação da nossa diretoria de casting internacional.
+      </p>
+    </div>
+
+    <!-- Alerta de Sucesso -->
+    <div *ngIf="submitSuccess" class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-6 space-y-2 rounded-none">
+      <h3 class="font-serif text-sm uppercase tracking-wider font-semibold">Candidatura Enviada com Sucesso!</h3>
+      <p class="text-xs leading-relaxed">
+        Seu material foi recebido pela equipe de scouting da WB Agency. Entraremos em contato caso haja compatibilidade de perfil para agenciamento.
+      </p>
+    </div>
+
+    <!-- Alerta de Erro de Envio -->
+    <div *ngIf="submitError" class="bg-red-50 border border-red-200 text-red-800 p-4 space-y-1 rounded-none">
+      <h3 class="font-serif text-xs uppercase tracking-wider font-semibold">Não foi possível enviar sua candidatura</h3>
+      <p class="text-xs leading-relaxed">{{ submitError }}</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-8" *ngIf="!submitSuccess">
+
+      <!-- Bloco 1: Dados Pessoais & Menoridade -->
+      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 space-y-6 shadow-xs">
+        <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624] border-b border-[#E8EBE8] pb-3">1. Dados Pessoais</h2>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-[11px] font-sans uppercase tracking-[0.15em] text-[#222624] mb-1.5">Nome Completo *</label>
+            <input type="text" formControlName="fullName" class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none">
+            <span *ngIf="form.get('fullName')?.touched && form.get('fullName')?.invalid" class="text-[10px] text-red-600 block mt-1">
+              Nome completo obrigatório (mínimo 3 caracteres).
+            </span>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-sans uppercase tracking-[0.15em] text-[#222624] mb-1.5">E-mail *</label>
+            <input type="email" formControlName="email" class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none">
+            <span *ngIf="form.get('email')?.touched && form.get('email')?.invalid" class="text-[10px] text-red-600 block mt-1">
+              E-mail válido obrigatório.
+            </span>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-sans uppercase tracking-[0.15em] text-[#222624] mb-1.5">Telefone / WhatsApp *</label>
+            <input type="tel" formControlName="phone" placeholder="+55 (11) 99999-9999" class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none font-mono">
+            <span *ngIf="form.get('phone')?.touched && form.get('phone')?.invalid" class="text-[10px] text-red-600 block mt-1">
+              Telefone para contato obrigatório.
+            </span>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-sans uppercase tracking-[0.15em] text-[#222624] mb-1.5">Data de Nascimento *</label>
+            <input type="date" formControlName="birthDate" class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none">
+            <span *ngIf="form.get('birthDate')?.touched && form.get('birthDate')?.invalid" class="text-[10px] text-red-600 block mt-1">
+              Data de nascimento obrigatória.
+            </span>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-sans uppercase tracking-[0.15em] text-[#222624] mb-1.5">Cidade *</label>
+            <input type="text" formControlName="city" class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none">
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-sans uppercase tracking-[0.15em] text-[#222624] mb-1.5">Estado (UF) *</label>
+            <input type="text" formControlName="state" placeholder="SP" maxlength="2" class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none uppercase">
+          </div>
+        </div>
+
+        <!-- Alerta e Campos Exclusivos para Menores de Idade (ECA / LGPD) -->
+        <div *ngIf="isMinor" class="bg-[#FBFBF9] border-l-2 border-[#4B584E] p-5 space-y-4 mt-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-serif uppercase tracking-wider text-[#222624] font-semibold">Autorização Legal — Candidato Menor de Idade ({{ calculatedAge }} anos)</span>
+            <span class="bg-amber-100 text-amber-900 border border-amber-200 text-[9px] uppercase tracking-widest px-2 py-0.5">Obrigatório</span>
+          </div>
+          <p class="text-[11px] text-[#5F6661] leading-relaxed">
+            Em conformidade com a LGPD e o ECA, candidaturas de menores de 18 anos exigem a identificação com validação de CPF do responsável legal.
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+            <div>
+              <label class="block text-[10px] font-sans uppercase tracking-widest text-[#222624] mb-1">Nome do Responsável *</label>
+              <input type="text" formControlName="guardianName" class="w-full px-3 py-2 bg-white border border-[#E8EBE8] text-xs focus:outline-none focus:border-[#4B584E] rounded-none">
+              <span *ngIf="form.get('guardianName')?.touched && form.get('guardianName')?.invalid" class="text-[10px] text-red-600 block mt-1">
+                Nome do responsável é obrigatório.
+              </span>
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-sans uppercase tracking-widest text-[#222624] mb-1">CPF do Responsável *</label>
+              <input type="text" formControlName="guardianCpf" placeholder="000.000.000-00" class="w-full px-3 py-2 bg-white border border-[#E8EBE8] text-xs focus:outline-none focus:border-[#4B584E] rounded-none font-mono" [class.border-red-400]="form.get('guardianCpf')?.invalid && form.get('guardianCpf')?.touched">
+              <span *ngIf="form.get('guardianCpf')?.hasError('required') && form.get('guardianCpf')?.touched" class="text-[10px] text-red-600 block mt-1">
+                CPF do responsável é obrigatório para menores.
+              </span>
+              <span *ngIf="form.get('guardianCpf')?.hasError('invalidCpf') && form.get('guardianCpf')?.touched" class="text-[10px] text-red-600 block mt-1">
+                CPF inválido. Verifique os dígitos digitados.
+              </span>
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-sans uppercase tracking-widest text-[#222624] mb-1">Telefone do Responsável *</label>
+              <input type="tel" formControlName="guardianPhone" class="w-full px-3 py-2 bg-white border border-[#E8EBE8] text-xs focus:outline-none focus:border-[#4B584E] rounded-none font-mono">
+              <span *ngIf="form.get('guardianPhone')?.touched && form.get('guardianPhone')?.invalid" class="text-[10px] text-red-600 block mt-1">
+                Telefone do responsável é obrigatório.
+              </span>
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-sans uppercase tracking-widest text-[#222624] mb-1">E-mail do Responsável *</label>
+              <input type="email" formControlName="guardianEmail" class="w-full px-3 py-2 bg-white border border-[#E8EBE8] text-xs focus:outline-none focus:border-[#4B584E] rounded-none">
+              <span *ngIf="form.get('guardianEmail')?.touched && form.get('guardianEmail')?.invalid" class="text-[10px] text-red-600 block mt-1">
+                E-mail válido do responsável é obrigatório.
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bloco 2: Biometria Editorial -->
+      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 space-y-6 shadow-xs">
+        <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624] border-b border-[#E8EBE8] pb-3">2. Ficha Métrica (Centímetros)</h2>
+        
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] mb-1">Altura (cm) *</label>
+            <input type="number" formControlName="height" placeholder="178" class="w-full px-3 py-2 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none font-mono">
+          </div>
+          <div>
+            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] mb-1">Busto / Tórax *</label>
+            <input type="number" formControlName="bust" placeholder="84" class="w-full px-3 py-2 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none font-mono">
+          </div>
+          <div>
+            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] mb-1">Cintura *</label>
+            <input type="number" formControlName="waist" placeholder="60" class="w-full px-3 py-2 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none font-mono">
+          </div>
+          <div>
+            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] mb-1">Quadril *</label>
+            <input type="number" formControlName="hips" placeholder="90" class="w-full px-3 py-2 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none font-mono">
+          </div>
+          <div>
+            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] mb-1">Calçado *</label>
+            <input type="text" formControlName="shoes" placeholder="38" class="w-full px-3 py-2 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none font-mono">
+          </div>
+          <div>
+            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] mb-1">Olhos *</label>
+            <input type="text" formControlName="eyes" placeholder="Castanhos" class="w-full px-3 py-2 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none">
+          </div>
+          <div class="col-span-2">
+            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] mb-1">Cabelo *</label>
+            <input type="text" formControlName="hair" placeholder="Castanho Escuro" class="w-full px-3 py-2 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none">
+          </div>
+        </div>
+      </div>
+
+      <!-- Bloco 3: Grade Dinâmica de Fotos (Mínimo 3, até 8 Fotos) -->
+      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 space-y-6 shadow-xs">
+        <div class="flex items-center justify-between border-b border-[#E8EBE8] pb-3">
+          <div>
+            <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">3. Polaroids e Fotos de Apresentação</h2>
+            <p class="text-[11px] text-[#5F6661] mt-0.5">Envie no mínimo 3 fotos obrigatórias e até 8 fotos no total (sem maquiagem ou filtros).</p>
+          </div>
+          <span class="text-xs font-mono text-[#4B584E] font-medium bg-[#F4F5F4] border border-[#E8EBE8] px-2 py-1">
+            {{ totalUploadedPhotos }}/8 Carregadas
+          </span>
+        </div>
+
+        <!-- Grade 4 Colunas (Proporção Editorial 3:4) -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div *ngFor="let slot of photoSlots; let i = index" class="space-y-1.5 photo-slot-item">
+            <div 
+              class="relative aspect-[3/4] bg-[#FBFBF9] border border-dashed border-[#E8EBE8] hover:border-[#4B584E] transition-colors flex flex-col items-center justify-center p-2 text-center group overflow-hidden"
+              [class.border-solid]="slot.previewUrl"
+              [class.border-[#4B584E]]="slot.previewUrl"
+            >
+              <!-- Preview se foto carregada -->
+              <img *ngIf="slot.previewUrl" [src]="slot.previewUrl" class="absolute inset-0 w-full h-full object-cover" [alt]="slot.label">
+
+              <!-- Botão Remover -->
+              <button 
+                *ngIf="slot.previewUrl" 
+                type="button" 
+                (click)="removePhoto(i)" 
+                class="absolute top-1.5 right-1.5 bg-black/70 hover:bg-black text-white w-5 h-5 flex items-center justify-center text-xs transition-colors rounded-none cursor-pointer z-10 btn-remove-photo"
+                title="Remover foto"
+              >
+                ✕
+              </button>
+
+              <!-- Conteúdo vazio para Upload -->
+              <div *ngIf="!slot.previewUrl" class="space-y-1 cursor-pointer w-full h-full flex flex-col items-center justify-center" (click)="fileInput.click()">
+                <svg class="w-6 h-6 mx-auto text-[#5F6661] group-hover:text-[#4B584E] transition-colors stroke-[1.2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                <span class="text-[9px] uppercase tracking-wider text-[#5F6661] block px-1">
+                  {{ slot.required ? 'Obrigatória *' : 'Opcional' }}
+                </span>
+              </div>
+
+              <input 
+                #fileInput 
+                type="file" 
+                accept="image/jpeg,image/png,image/webp" 
+                class="hidden" 
+                (change)="onFileSelected(i, $event)"
+              >
+            </div>
+
+            <!-- Legenda da Polaroid -->
+            <p class="text-[9px] uppercase tracking-wider text-center text-[#5F6661] font-sans truncate" [title]="slot.label">
+              {{ slot.label }}
+            </p>
+          </div>
+        </div>
+
+        <div *ngIf="!hasRequiredPhotos" class="text-[11px] text-amber-700 bg-amber-50 p-2.5 border border-amber-200">
+          ⚠️ As três primeiras fotos (Rosto Frontal, Perfil 3/4 e Corpo Inteiro) são itens obrigatórios para submissão.
+        </div>
+      </div>
+
+      <!-- Bloco 4: Termo de Consentimento LGPD -->
+      <div class="bg-white border border-[#E8EBE8] p-6 shadow-xs space-y-4">
+        <label class="flex items-start gap-3 cursor-pointer">
+          <input type="checkbox" formControlName="lgpdConsent" class="mt-0.5 accent-[#4B584E] rounded-none">
+          <span class="text-xs text-[#5F6661] leading-relaxed">
+            Declaro que as informações e fotografias enviadas são verídicas e autorizo a <strong>WB Agency</strong> a processar meus dados e mídias exclusivamente para fins de avaliação de casting e representação artística, em conformidade com a LGPD (Lei nº 13.709/2018).
+          </span>
+        </label>
+      </div>
+
+      <!-- Botão de Envio -->
+      <div class="text-center pt-4">
+        <button 
+          type="submit" 
+          [disabled]="form.invalid || !hasRequiredPhotos || isSubmitting"
+          class="w-full sm:w-auto px-10 py-3.5 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-[0.2em] font-sans disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-sm rounded-none"
+        >
+          <span *ngIf="!isSubmitting">Submeter Candidatura</span>
+          <span *ngIf="isSubmitting">Enviando Material...</span>
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</div>

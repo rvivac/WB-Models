@@ -9,6 +9,7 @@ import com.wbscouting.api.entity.Admin;
 import com.wbscouting.api.exception.InvalidTokenException;
 import com.wbscouting.api.repository.AdminRepository;
 import com.wbscouting.api.security.JwtService;
+import com.wbscouting.api.security.TokenHashUtils;
 import com.wbscouting.api.service.email.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -76,13 +77,18 @@ public class AuthServiceImpl implements AuthService {
 
         if (optionalAdmin.isPresent()) {
             Admin admin = optionalAdmin.get();
-            String resetToken = UUID.randomUUID().toString();
-            admin.setPasswordResetToken(resetToken);
+            // Gera token criptográfico seguro de 32 bytes (64 caracteres hex)
+            String rawResetToken = TokenHashUtils.generateSecureToken();
+            // Persiste exclusivamente o hash SHA-256 no banco de dados (Item 14 da EAP-SEG-002)
+            String hashedToken = TokenHashUtils.hashToken(rawResetToken);
+
+            admin.setPasswordResetToken(hashedToken);
             admin.setPasswordResetExpiresAt(OffsetDateTime.now().plusMinutes(30)); // 30 minutos de validade
             adminRepository.save(admin);
 
-            emailService.sendPasswordResetEmail(admin.getEmail(), admin.getName(), resetToken);
-            log.info("Token de recuperação de senha gerado para admin ID: {}", admin.getId());
+            // O usuário recebe exclusivamente o token puro via e-mail
+            emailService.sendPasswordResetEmail(admin.getEmail(), admin.getName(), rawResetToken);
+            log.info("Token de recuperação de senha gerado e enviado para admin ID: {}", admin.getId());
         } else {
             log.info("Solicitação de recuperação de senha para e-mail não cadastrado ou inativo: {}", email);
         }
@@ -91,8 +97,16 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void resetPassword(ResetPasswordRequestDto request) {
-        Admin admin = adminRepository.findByPasswordResetToken(request.getToken())
+        String rawToken = request.getToken() != null ? request.getToken().trim() : "";
+        String hashedToken = TokenHashUtils.hashToken(rawToken);
+
+        Admin admin = adminRepository.findByPasswordResetToken(hashedToken)
                 .orElseThrow(() -> new InvalidTokenException("O link de redefinição de senha é inválido ou expirou."));
+
+        if (!TokenHashUtils.constantTimeVerify(rawToken, admin.getPasswordResetToken())) {
+            log.warn("Falha na validação constante de tempo do token de reset para admin ID: {}", admin.getId());
+            throw new InvalidTokenException("O link de redefinição de senha é inválido ou expirou.");
+        }
 
         if (!Boolean.TRUE.equals(admin.getIsActive())) {
             log.warn("Tentativa de redefinição de senha para administrador inativo: {}", admin.getEmail());

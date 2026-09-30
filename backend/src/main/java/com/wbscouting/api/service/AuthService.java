@@ -5,6 +5,7 @@ import com.wbscouting.api.entity.Admin;
 import com.wbscouting.api.exception.ResourceNotFoundException;
 import com.wbscouting.api.repository.AdminRepository;
 import com.wbscouting.api.security.JwtTokenProvider;
+import com.wbscouting.api.security.TokenHashUtils;
 import com.wbscouting.api.service.email.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,12 +60,14 @@ public class AuthService {
         if (optionalAdmin.isPresent()) {
             Admin admin = optionalAdmin.get();
             if (Boolean.TRUE.equals(admin.getIsActive())) {
-                String resetToken = UUID.randomUUID().toString();
-                admin.setPasswordResetToken(resetToken);
+                String rawResetToken = TokenHashUtils.generateSecureToken();
+                String hashedToken = TokenHashUtils.hashToken(rawResetToken);
+
+                admin.setPasswordResetToken(hashedToken);
                 admin.setPasswordResetExpiresAt(OffsetDateTime.now().plusHours(1));
                 adminRepository.save(admin);
 
-                emailService.sendPasswordResetEmail(admin.getEmail(), admin.getName(), resetToken);
+                emailService.sendPasswordResetEmail(admin.getEmail(), admin.getName(), rawResetToken);
                 log.info("Token de recuperação de senha gerado para admin ID: {}", admin.getId());
             } else {
                 log.warn("Tentativa de recuperação de senha para admin inativo: {}", request.getEmail());
@@ -81,8 +84,15 @@ public class AuthService {
 
     @Transactional
     public AuthDTO.MessageResponse resetPassword(AuthDTO.ResetPasswordRequest request) {
-        Admin admin = adminRepository.findByPasswordResetToken(request.getToken())
+        String rawToken = request.getToken() != null ? request.getToken().trim() : "";
+        String hashedToken = TokenHashUtils.hashToken(rawToken);
+
+        Admin admin = adminRepository.findByPasswordResetToken(hashedToken)
                 .orElseThrow(() -> new IllegalArgumentException("Token de recuperação de senha inválido ou inexistente."));
+
+        if (!TokenHashUtils.constantTimeVerify(rawToken, admin.getPasswordResetToken())) {
+            throw new IllegalArgumentException("Token de recuperação de senha inválido ou inexistente.");
+        }
 
         if (admin.getPasswordResetExpiresAt() == null || admin.getPasswordResetExpiresAt().isBefore(OffsetDateTime.now())) {
             throw new IllegalArgumentException("O token de recuperação de senha expirou. Por favor, solicite um novo link.");

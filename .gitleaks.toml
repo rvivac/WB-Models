@@ -1,14 +1,28 @@
+# Configuração Gitleaks para detecção rigorosa de segredos (Item 15 e Item 19 - EAP-SEG-002)
+title = "WB Models Secret Scanning & Push Protection Rules"
+
 [extend]
 useDefault = true
 
-[allowlist]
-description = "Ignorar pastas de dependencias e cache"
-paths = [
-    '''(^|/)node_modules/''',
-    '''(^|/)\.angular/''',
-    '''(^|/)target/''',
-    '''(^|/)dist/''',
-    '''(^|/)\.git/''',
-    '''(^|/)\.env$''',
-    '''(^|/)\.env\..*'''
-]
+[[rules]]
+id = "supabase-service-role-key"
+description = "Detecta Supabase Service Role Key ou chaves JWT de serviço"
+regex = '''(?i)(service_role|supabase_service_role_key)["'\s:=]+(eyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+)'''
+secretGroup = 2
+severity = "CRITICAL"
+tags = ["supabase", "jwt", "service_role"]
+
+[[rules]]
+id = "supabase-secret-prefix"
+description = "Detecta chaves e segredos nativos do Supabase com prefixo sb_secret_"
+regex = '''sb_secret_[a-zA-Z0-9_-]{20,}'''
+severity = "CRITICAL"
+tags = ["supabase", "api_key"]
+
+[[rules]]
+id = "postgres-connection-password"
+description = "Detecta senhas hardcoded em connection strings JDBC ou PostgreSQL"
+regex = '''(?i)postgres(ql)?://[^:]+:([^@\s]{8,})@'''
+secretGroup = 2
+severity = "HIGH"
+tags = ["database", "postgres", "credentials"]

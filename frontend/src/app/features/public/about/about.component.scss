@@ -53,9 +53,32 @@
   }
 }
 
-.about-quote {
-  font-family: var(--font-serif, "Cormorant Garamond", Georgia, serif);
+.page-header {
+  margin-bottom: 0;
+  max-width: 800px;
+  text-align: left;
+
+  .page-title,
+  .about-headline {
+    font-family: var(--font-serif, 'Cormorant Garamond', Georgia, serif) !important;
+  }
+
+  .header-breadcrumbs {
+    font-family: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+  }
+
+  .page-subtitle,
+  .about-quote {
+    font-family: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+    font-style: italic;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--text-secondary, #5F6661);
+    max-width: 600px;
+    margin: 0;
+  }
 }
+
 
 .about-content-section {
   padding: 5rem 0;

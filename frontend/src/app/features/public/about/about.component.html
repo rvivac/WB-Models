@@ -4,24 +4,26 @@
   <section class="w-full bg-white border-b border-neutral-100">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-8 md:pt-14 md:pb-10">
       
-      <!-- Breadcrumb Padronizado -->
-      <nav class="header-breadcrumbs flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-neutral-400 mb-3">
-        <a routerLink="/" class="breadcrumb-link hover:text-neutral-900 transition-colors">{{ 'nav.home' | translate }}</a>
-        <span class="breadcrumb-separator">/</span>
-        <span class="breadcrumb-current text-neutral-700">{{ 'nav.about' | translate }}</span>
-      </nav>
+      <header class="page-header">
+        <!-- Breadcrumb Padronizado (Plus Jakarta Sans) -->
+        <nav class="header-breadcrumbs">
+          <a routerLink="/" class="breadcrumb-link">{{ 'nav.home' | translate }}</a>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">{{ 'nav.about' | translate }}</span>
+        </nav>
 
-      <!-- Título Principal Padronizado -->
-      <h1 class="page-title font-serif about-headline text-3xl md:text-5xl font-light tracking-tight text-neutral-900 leading-tight">
-        {{ aboutContent().headline }}
-      </h1>
+        <!-- Título Principal Padronizado (Cormorant Garamond) -->
+        <h1 class="page-title font-serif about-headline">
+          {{ aboutContent().headline }}
+        </h1>
 
-      <!-- Citação / Subtítulo Padronizado -->
-      @if (aboutContent().quote) {
-        <p class="about-quote mt-3 text-base md:text-lg text-neutral-500 font-light italic max-w-3xl">
-          &ldquo;{{ aboutContent().quote }}&rdquo;
-        </p>
-      }
+        <!-- Citação / Subtítulo Padronizado (Plus Jakarta Sans) -->
+        @if (aboutContent().quote) {
+          <p class="page-subtitle about-quote">
+            &ldquo;{{ aboutContent().quote }}&rdquo;
+          </p>
+        }
+      </header>
 
     </div>
   </section>

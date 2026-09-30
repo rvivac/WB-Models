@@ -79,6 +79,7 @@ input[type="file"].hidden {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    font-family: var(--font-sans);
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.15em;
@@ -87,6 +88,7 @@ input[type="file"].hidden {
     margin-bottom: 1rem;
 
     .breadcrumb-link {
+      font-family: var(--font-sans);
       color: var(--text-secondary);
       text-decoration: none;
       transition: color var(--transition-fast);
@@ -101,11 +103,13 @@ input[type="file"].hidden {
     }
 
     .breadcrumb-current {
+      font-family: var(--font-sans);
       color: var(--gold-primary);
     }
   }
 
   .page-title {
+    font-family: var(--font-serif);
     font-size: 2.5rem;
     font-weight: 300;
     line-height: 1.15;
@@ -120,6 +124,7 @@ input[type="file"].hidden {
   }
 
   .page-subtitle {
+    font-family: var(--font-sans);
     font-size: 1.05rem;
     line-height: 1.6;
     color: var(--text-secondary);
@@ -128,6 +133,20 @@ input[type="file"].hidden {
     text-align: left;
   }
 }
+
+// Standalone selectors para consistência em toda a aplicação
+.page-title {
+  font-family: var(--font-serif);
+}
+
+.page-subtitle {
+  font-family: var(--font-sans);
+}
+
+.header-breadcrumbs {
+  font-family: var(--font-sans);
+}
+
 
 // Container Responsivo
 .container {

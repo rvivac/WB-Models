@@ -142,6 +142,70 @@ nav a, nav button, nav span {
   }
 }
 
+// ----------------------------------------------------
+// NAVEGAÇÃO HORIZONTAL (MESMAS FONTES E ESTILO DO SITE PÚBLICO)
+// ----------------------------------------------------
+.nav-link {
+  font-family: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+  font-size: 0.775rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  color: #222624 !important; // Grafite mineral oficial
+  text-decoration: none;
+  transition: color var(--transition-fast, 0.15s ease);
+  position: relative;
+  padding: 0.5rem 0;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: #4b584e; // Oliva mineral oficial
+    transition: width var(--transition-normal, 0.3s cubic-bezier(0.16, 1, 0.3, 1));
+  }
+
+  &:hover, &.active {
+    color: #4b584e !important;
+
+    &::after {
+      width: 100% !important;
+    }
+  }
+}
+
+.nav-dropdown-btn {
+  font-family: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+  font-size: 0.775rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.18em !important;
+}
+
+.dropdown-item {
+  font-family: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+}
+
+.mobile-nav-link {
+  font-family: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #222624;
+  text-decoration: none;
+  display: block;
+  padding: 0.5rem 0;
+  transition: color var(--transition-fast, 0.15s ease);
+
+  &:hover, &.active {
+    color: #4b584e;
+  }
+}
+
+
 .header-actions {
   display: flex;
   align-items: center;

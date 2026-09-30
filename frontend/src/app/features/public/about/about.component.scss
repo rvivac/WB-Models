@@ -1,3 +1,5 @@
+@import '../../../../styles/variables';
+
 .about-page {
   background-color: var(--bg-primary, #FFFFFF);
   min-height: calc(100vh - var(--header-height, 80px));
@@ -5,32 +7,58 @@
 }
 
 .about-hero-header {
-  padding-top: calc(var(--header-height, 80px) + 3.5rem);
-  padding-bottom: 3.5rem;
+  padding-top: calc(var(--header-height, 80px) + 2.5rem);
+  padding-bottom: 2.5rem;
   background-color: var(--bg-secondary, #FBFBF9);
   border-bottom: 1px solid var(--border-subtle, #E8EBE8);
 
   .header-content {
-    max-width: 54rem;
+    max-width: 800px;
   }
 
-  .section-tag {
-    display: inline-block;
+  .header-breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: var(--gold-light, #C5A880);
-    margin-bottom: 1.25rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+
+    .breadcrumb-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color var(--transition-fast);
+
+      &:hover {
+        color: var(--gold-light);
+      }
+    }
+
+    .breadcrumb-separator {
+      color: var(--border-medium);
+    }
+
+    .breadcrumb-current {
+      color: var(--gold-primary);
+    }
   }
 
+  .page-title,
   .about-headline {
-    font-size: clamp(2.25rem, 4.5vw, 3.75rem);
-    font-weight: 400;
-    line-height: 1.12;
+    font-size: 2.5rem;
+    font-weight: 300;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
     color: var(--text-primary, #222624);
-    letter-spacing: -0.02em;
-    margin: 0 0 1.75rem 0;
+    text-transform: none; // Title Case estrito (Sobre Nós)
+    margin: 0 0 1.25rem 0;
+
+    @include md {
+      font-size: 3.5rem;
+    }
   }
 
   .about-quote {

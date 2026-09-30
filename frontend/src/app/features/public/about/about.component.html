@@ -1,11 +1,16 @@
 <!-- Página Sobre Nós (Sem Vídeo - Foco Editorial & Manifesto) -->
 <article class="about-page">
-  <!-- Topo Editorial com Espaçamento Harmonizado -->
-  <header class="about-hero-header">
+  <!-- Topo Editorial com Espaçamento Harmonizado e Breadcrumbs Canônicos -->
+  <header class="page-header about-hero-header">
     <div class="container">
       <div class="header-content">
-        <span class="section-tag tracking-editorial">{{ 'nav.about' | translate }}</span>
-        <h1 class="font-serif about-headline">{{ aboutContent().headline }}</h1>
+        <div class="header-breadcrumbs">
+          <a routerLink="/" class="breadcrumb-link">{{ 'nav.home' | translate }}</a>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">{{ 'nav.about' | translate }}</span>
+        </div>
+
+        <h1 class="page-title font-serif about-headline">{{ aboutContent().headline }}</h1>
         
         @if (aboutContent().quote) {
           <blockquote class="about-quote font-serif">

@@ -1,10 +1,15 @@
 <div class="contact-page">
   <div class="container">
-    <!-- Cabeçalho Editorial -->
-    <header class="contact-header text-center">
-      <span class="badge-editorial tracking-editorial">{{ 'contact_page.badge' | translate }}</span>
-      <h1 class="font-serif contact-title">{{ 'contact_page.title' | translate }}</h1>
-      <p class="contact-subtitle">
+    <!-- Cabeçalho Editorial Padronizado -->
+    <header class="page-header contact-header">
+      <div class="header-breadcrumbs">
+        <a routerLink="/" class="breadcrumb-link">{{ 'nav.home' | translate }}</a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">{{ 'nav.contact' | translate }}</span>
+      </div>
+
+      <h1 class="page-title font-serif contact-title">{{ 'contact_page.title' | translate }}</h1>
+      <p class="page-subtitle contact-subtitle">
         {{ 'contact_page.subtitle' | translate }}
       </p>
     </header>

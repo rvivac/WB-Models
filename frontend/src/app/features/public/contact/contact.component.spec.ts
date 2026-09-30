@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ContactComponent } from './contact.component';
 import { SecureContactService } from '../../../core/services/secure-contact.service';
+import { TranslationService } from '../../../core/services/translation.service';
 
 describe('ContactComponent (SITE-004 Anti-Scraping & CyberSecurity)', () => {
   let component: ContactComponent;
@@ -17,7 +18,22 @@ describe('ContactComponent (SITE-004 Anti-Scraping & CyberSecurity)', () => {
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
-        SecureContactService
+        SecureContactService,
+        {
+          provide: TranslationService,
+          useValue: {
+            currentLang: () => 'pt',
+            translate: (key: string) => {
+              const dict: Record<string, string> = {
+                'nav.home': 'Home',
+                'nav.contact': 'Contato',
+                'contact_page.title': 'Canais de Contato',
+                'contact_page.subtitle': 'Conecte-se com a WB Agency através de nossos canais institucionais seguros.'
+              };
+              return dict[key] || key;
+            }
+          }
+        }
       ]
     }).compileComponents();
 
@@ -29,6 +45,24 @@ describe('ContactComponent (SITE-004 Anti-Scraping & CyberSecurity)', () => {
 
   it('should create the contact component', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should render standardized breadcrumbs with Home link and Contato current item', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    const breadcrumb = compiled.querySelector('.header-breadcrumbs');
+    expect(breadcrumb).toBeTruthy();
+
+    const homeLink = compiled.querySelector('.breadcrumb-link') as HTMLAnchorElement;
+    expect(homeLink).toBeTruthy();
+    expect(homeLink.getAttribute('routerLink')).toBe('/');
+
+    const currentItem = compiled.querySelector('.breadcrumb-current');
+    expect(currentItem).toBeTruthy();
+    expect(currentItem?.textContent).toContain('Contato');
+
+    const title = compiled.querySelector('.contact-title');
+    expect(title).toBeTruthy();
+    expect(title?.textContent).toContain('Canais de Contato');
   });
 
   describe('Anti-Scraping / Defense-in-Depth Verification', () => {

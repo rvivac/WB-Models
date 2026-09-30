@@ -19,7 +19,19 @@ describe('AboutComponent', () => {
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
-        TranslationService,
+        {
+          provide: TranslationService,
+          useValue: {
+            currentLang: () => 'pt',
+            translate: (key: string) => {
+              const dict: Record<string, string> = {
+                'nav.home': 'Home',
+                'nav.about': 'Sobre Nós'
+              };
+              return dict[key] || key;
+            }
+          }
+        },
         PublicContentService
       ]
     }).compileComponents();
@@ -49,5 +61,19 @@ describe('AboutComponent', () => {
     expect(compiled.querySelector('.about-headline')?.textContent).toContain('A Nova Estética do Scouting Test');
     expect(compiled.querySelector('.about-quote')?.textContent).toContain('Citação editorial exclusiva para teste.');
     expect(compiled.querySelector('.about-body-text')?.textContent).toContain('Texto longo do manifesto sobre a WB Agency.');
+  });
+
+  it('should render standardized breadcrumbs with Home link and Sobre Nós current item', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    const breadcrumb = compiled.querySelector('.header-breadcrumbs');
+    expect(breadcrumb).toBeTruthy();
+    
+    const homeLink = compiled.querySelector('.breadcrumb-link') as HTMLAnchorElement;
+    expect(homeLink).toBeTruthy();
+    expect(homeLink.getAttribute('routerLink')).toBe('/');
+    
+    const currentItem = compiled.querySelector('.breadcrumb-current');
+    expect(currentItem).toBeTruthy();
+    expect(currentItem?.textContent).toContain('Sobre Nós');
   });
 });

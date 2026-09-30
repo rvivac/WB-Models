@@ -67,6 +67,68 @@ input[type="file"].hidden {
 }
 
 
+// ==============================================================================
+// PADRONIZAÇÃO CANÔNICA DE SUBHEADERS E BREADCRUMBS (LIGHT EDITORIAL)
+// ==============================================================================
+.page-header {
+  margin-bottom: 2.5rem;
+  max-width: 800px;
+  text-align: left;
+
+  .header-breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+
+    .breadcrumb-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color var(--transition-fast);
+
+      &:hover {
+        color: var(--gold-light);
+      }
+    }
+
+    .breadcrumb-separator {
+      color: var(--border-medium);
+    }
+
+    .breadcrumb-current {
+      color: var(--gold-primary);
+    }
+  }
+
+  .page-title {
+    font-size: 2.5rem;
+    font-weight: 300;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+    text-transform: none; // Title Case estrito (Canais de Contato / Sobre Nós)
+    margin-bottom: 0.75rem;
+
+    @include md {
+      font-size: 3.5rem;
+    }
+  }
+
+  .page-subtitle {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0;
+    text-align: left;
+  }
+}
+
 // Container Responsivo
 .container {
   width: 100%;

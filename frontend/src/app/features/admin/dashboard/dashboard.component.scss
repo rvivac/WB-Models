@@ -241,3 +241,29 @@
   padding: 0.4rem 0.8rem;
   font-size: 0.7rem;
 }
+
+// Tabela Editorial de Módulos de Gestão & Conteúdo
+.modules-section {
+  table {
+    border-collapse: separate;
+    border-spacing: 0;
+
+    th {
+      font-family: var(--font-sans);
+      font-size: 0.625rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    td {
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background-color var(--transition-fast);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+  }
+}

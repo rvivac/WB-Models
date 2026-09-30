@@ -2,6 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
   "trailingSlash": false,
+  "outputDirectory": "dist/frontend/browser",
   "rewrites": [
     {
       "source": "/(.*)",

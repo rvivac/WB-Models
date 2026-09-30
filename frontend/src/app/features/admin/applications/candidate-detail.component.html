@@ -23,8 +23,16 @@
       </span>
     </div>
 
-    <!-- Ações de Decisão e Exclusão -->
-    <div class="flex items-center gap-3">
+    <!-- Ações de Decisão, Promoção e Exclusão -->
+    <div class="flex items-center gap-3 flex-wrap">
+      <button 
+        type="button" 
+        (click)="openPromoteModal()" 
+        [disabled]="isProcessing || isPromoting"
+        class="px-4 py-2 bg-[#C2A87E] hover:bg-[#b0966c] text-white text-xs uppercase tracking-[0.15em] transition-all cursor-pointer shadow-sm rounded-none disabled:opacity-50"
+      >
+        Aprovar e Promover para Casting
+      </button>
       <button 
         type="button" 
         (click)="updateStatus('APPROVED')" 
@@ -74,7 +82,7 @@
           (click)="openLightbox(i)"
           class="group relative aspect-[3/4] bg-[#F4F5F4] border border-[#E8EBE8] overflow-hidden cursor-zoom-in"
         >
-          <img [src]="photo.url" [alt]="photo.type" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+          <img [src]="photo.url" [alt]="photo.type" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 polaroid-preview">
           <div class="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-xs p-1.5 text-center text-white text-[9px] uppercase tracking-widest">
             {{ formatPhotoType(photo.type) }}
           </div>
@@ -244,6 +252,30 @@
         >
           <span *ngIf="!isDeleting">Purgar Dados</span>
           <span *ngIf="isDeleting">Purgando...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIRMAÇÃO DE PROMOÇÃO PARA CASTING -->
+  <div *ngIf="isPromoteModalOpen" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white border border-[#E8EBE8] p-6 space-y-4 shadow-xl">
+      <h3 class="text-sm font-serif uppercase tracking-wider text-[#222624]">Confirmar Promoção para Casting</h3>
+      <p class="text-xs text-[#5F6661] leading-relaxed">
+        Deseja converter a candidatura de <strong>{{ candidate.fullName }}</strong> em um perfil oficial ativo no catálogo de modelos da WB Agency?
+      </p>
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" (click)="closePromoteModal()" class="px-4 py-2 border border-[#E8EBE8] text-xs uppercase tracking-wider hover:bg-[#FBFBF9] transition-colors cursor-pointer">
+          Cancelar
+        </button>
+        <button 
+          type="button" 
+          (click)="executePromote()" 
+          [disabled]="isPromoting"
+          class="px-4 py-2 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-wider disabled:opacity-40 cursor-pointer transition-colors shadow-sm"
+        >
+          <span *ngIf="!isPromoting">Confirmar Promoção</span>
+          <span *ngIf="isPromoting">Promovendo...</span>
         </button>
       </div>
     </div>

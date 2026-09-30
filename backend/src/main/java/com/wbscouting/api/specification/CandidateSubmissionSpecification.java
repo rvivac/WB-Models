@@ -42,13 +42,14 @@ public class CandidateSubmissionSpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // 1. Busca textual em fullName, email ou city
+            // 1. Busca textual em fullName, email, city ou protocol
             if (StringUtils.hasText(search)) {
                 String pattern = "%" + search.trim().toLowerCase() + "%";
                 Predicate nameMatch = cb.like(cb.lower(root.get("fullName")), pattern);
                 Predicate emailMatch = cb.like(cb.lower(root.get("email")), pattern);
                 Predicate cityMatch = cb.like(cb.lower(root.get("city")), pattern);
-                predicates.add(cb.or(nameMatch, emailMatch, cityMatch));
+                Predicate protocolMatch = cb.like(cb.lower(root.get("protocol")), pattern);
+                predicates.add(cb.or(nameMatch, emailMatch, cityMatch, protocolMatch));
             }
 
             // 2. Filtro por status

@@ -35,7 +35,7 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final RateLimitingFilter rateLimitingFilter;
 
-    @Value("${app.cors.allowed-origins:http://localhost:4200,https://wbmodels.agency}")
+    @Value("${app.cors.allowed-origins:http://localhost:4200,https://wbmodels.agency,https://wb-models.vercel.app}")
     private List<String> allowedOrigins;
 
     @Value("${app.cors.allowed-methods:GET,POST,PUT,PATCH,DELETE,OPTIONS}")

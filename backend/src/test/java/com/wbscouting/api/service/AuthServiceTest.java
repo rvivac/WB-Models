@@ -5,6 +5,7 @@ import com.wbscouting.api.entity.Admin;
 import com.wbscouting.api.enums.AdminRole;
 import com.wbscouting.api.repository.AdminRepository;
 import com.wbscouting.api.security.JwtTokenProvider;
+import com.wbscouting.api.security.TokenHashUtils;
 import com.wbscouting.api.service.email.EmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -94,10 +95,11 @@ class AuthServiceTest {
     @DisplayName("Deve redefinir senha com sucesso quando token for válido e não expirado")
     void shouldResetPasswordSuccessfullyWithValidToken() {
         String token = "valid-token-123";
-        admin.setPasswordResetToken(token);
+        String hashedToken = TokenHashUtils.hashToken(token);
+        admin.setPasswordResetToken(hashedToken);
         admin.setPasswordResetExpiresAt(OffsetDateTime.now().plusMinutes(30));
 
-        when(adminRepository.findByPasswordResetToken(token)).thenReturn(Optional.of(admin));
+        when(adminRepository.findByPasswordResetToken(hashedToken)).thenReturn(Optional.of(admin));
         when(passwordEncoder.encode("NovaSenha@2026")).thenReturn("new-bcrypt-hash");
 
         AuthDTO.ResetPasswordRequest request = new AuthDTO.ResetPasswordRequest(token, "NovaSenha@2026");
@@ -115,10 +117,11 @@ class AuthServiceTest {
     @DisplayName("Deve lançar exceção quando o token de recuperação estiver expirado")
     void shouldThrowExceptionWhenTokenIsExpired() {
         String token = "expired-token-123";
-        admin.setPasswordResetToken(token);
+        String hashedToken = TokenHashUtils.hashToken(token);
+        admin.setPasswordResetToken(hashedToken);
         admin.setPasswordResetExpiresAt(OffsetDateTime.now().minusMinutes(5));
 
-        when(adminRepository.findByPasswordResetToken(token)).thenReturn(Optional.of(admin));
+        when(adminRepository.findByPasswordResetToken(hashedToken)).thenReturn(Optional.of(admin));
 
         AuthDTO.ResetPasswordRequest request = new AuthDTO.ResetPasswordRequest(token, "NovaSenha@2026");
 
@@ -132,9 +135,11 @@ class AuthServiceTest {
     @Test
     @DisplayName("Deve lançar exceção quando o token não for encontrado")
     void shouldThrowExceptionWhenTokenNotFound() {
-        when(adminRepository.findByPasswordResetToken("token-inexistente")).thenReturn(Optional.empty());
+        String token = "token-inexistente";
+        String hashedToken = TokenHashUtils.hashToken(token);
+        when(adminRepository.findByPasswordResetToken(hashedToken)).thenReturn(Optional.empty());
 
-        AuthDTO.ResetPasswordRequest request = new AuthDTO.ResetPasswordRequest("token-inexistente", "NovaSenha@2026");
+        AuthDTO.ResetPasswordRequest request = new AuthDTO.ResetPasswordRequest(token, "NovaSenha@2026");
 
         assertThatThrownBy(() -> authService.resetPassword(request))
                 .isInstanceOf(IllegalArgumentException.class)

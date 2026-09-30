@@ -8,6 +8,7 @@ import com.wbscouting.api.entity.Admin;
 import com.wbscouting.api.enums.AdminRole;
 import com.wbscouting.api.repository.AdminRepository;
 import com.wbscouting.api.security.JwtService;
+import com.wbscouting.api.security.TokenHashUtils;
 import com.wbscouting.api.service.email.EmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -140,12 +141,15 @@ class AuthServiceImplTest {
     @Test
     @DisplayName("Deve redefinir a senha com sucesso quando o token for válido e não expirado")
     void shouldResetPasswordSuccessfully() {
-        admin.setPasswordResetToken("valid-token-xyz");
+        String rawToken = "valid-token-xyz";
+        String hashedToken = TokenHashUtils.hashToken(rawToken);
+
+        admin.setPasswordResetToken(hashedToken);
         admin.setPasswordResetExpiresAt(java.time.OffsetDateTime.now().plusMinutes(20));
 
-        ResetPasswordRequestDto request = new ResetPasswordRequestDto("valid-token-xyz", "NovaSenha@2026");
+        ResetPasswordRequestDto request = new ResetPasswordRequestDto(rawToken, "NovaSenha@2026");
 
-        when(adminRepository.findByPasswordResetToken("valid-token-xyz")).thenReturn(Optional.of(admin));
+        when(adminRepository.findByPasswordResetToken(hashedToken)).thenReturn(Optional.of(admin));
         when(passwordEncoder.encode("NovaSenha@2026")).thenReturn("new-bcrypt-hash");
 
         authService.resetPassword(request);
@@ -160,12 +164,15 @@ class AuthServiceImplTest {
     @Test
     @DisplayName("Deve lançar InvalidTokenException quando token de redefinição estiver expirado")
     void shouldThrowInvalidTokenExceptionWhenTokenExpired() {
-        admin.setPasswordResetToken("expired-token-xyz");
+        String rawToken = "expired-token-xyz";
+        String hashedToken = TokenHashUtils.hashToken(rawToken);
+
+        admin.setPasswordResetToken(hashedToken);
         admin.setPasswordResetExpiresAt(java.time.OffsetDateTime.now().minusMinutes(5));
 
-        ResetPasswordRequestDto request = new ResetPasswordRequestDto("expired-token-xyz", "NovaSenha@2026");
+        ResetPasswordRequestDto request = new ResetPasswordRequestDto(rawToken, "NovaSenha@2026");
 
-        when(adminRepository.findByPasswordResetToken("expired-token-xyz")).thenReturn(Optional.of(admin));
+        when(adminRepository.findByPasswordResetToken(hashedToken)).thenReturn(Optional.of(admin));
 
         assertThatThrownBy(() -> authService.resetPassword(request))
                 .isInstanceOf(com.wbscouting.api.exception.InvalidTokenException.class)
@@ -177,9 +184,12 @@ class AuthServiceImplTest {
     @Test
     @DisplayName("Deve lançar InvalidTokenException quando token não existir")
     void shouldThrowInvalidTokenExceptionWhenTokenNotFound() {
-        ResetPasswordRequestDto request = new ResetPasswordRequestDto("non-existent-token", "NovaSenha@2026");
+        String rawToken = "non-existent-token";
+        String hashedToken = TokenHashUtils.hashToken(rawToken);
 
-        when(adminRepository.findByPasswordResetToken("non-existent-token")).thenReturn(Optional.empty());
+        ResetPasswordRequestDto request = new ResetPasswordRequestDto(rawToken, "NovaSenha@2026");
+
+        when(adminRepository.findByPasswordResetToken(hashedToken)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> authService.resetPassword(request))
                 .isInstanceOf(com.wbscouting.api.exception.InvalidTokenException.class)

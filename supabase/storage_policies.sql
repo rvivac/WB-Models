@@ -12,10 +12,10 @@ CREATE OR REPLACE FUNCTION public.is_active_admin()
 RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, pg_temp
 AS $$
 BEGIN
-    -- 1. Permite acesso irrestrito para chamadas com a service_key (Backend Java / Spring Data)
+    -- 1. Permite acesso irrestrito para chamadas com a service_role (Backend Java / Spring Boot)
     IF auth.role() = 'service_role' THEN
         RETURN TRUE;
     END IF;
@@ -23,9 +23,9 @@ BEGIN
     -- 2. Verifica se o usuário autenticado no Supabase Auth está ativo em public.admins
     RETURN EXISTS (
         SELECT 1 
-        FROM public.admins 
-        WHERE (id = auth.uid() OR email = (auth.jwt() ->> 'email'))
-          AND is_active = TRUE
+        FROM public.admins a
+        WHERE a.email = (auth.jwt() ->> 'email')
+          AND a.is_active = TRUE
     );
 END;
 $$;
@@ -96,17 +96,18 @@ CREATE POLICY "Restricted Admin Read for Candidates Uploads"
 -- 4.2. POLÍTICAS DE UPLOAD (INSERT)
 -- ------------------------------------------------------------------------------
 
--- Política 2.1: Inscrição de Novos Talentos (Upload Anônimo em Quarentena)
--- Justificativa: Visitantes anônimos precisam enviar fotos no formulário "Quero ser modelo".
--- O upload é isolado no bucket privado 'candidates-uploads'.
+-- Política 2.1: Inscrição de Novos Talentos (Upload Restrito Mediado pelo Backend)
+-- Justificativa: Todo upload de candidatura é mediado estritamente pela API Spring Boot com credenciais service_role.
+-- O acesso direto via role anon é terminantemente bloqueado para mitigar uploads maliciosos e contaminação de storage.
 DROP POLICY IF EXISTS "Public Intake Insert for Candidates Uploads" ON storage.objects;
-CREATE POLICY "Public Intake Insert for Candidates Uploads"
+DROP POLICY IF EXISTS "Restricted Intake Insert for Candidates Uploads" ON storage.objects;
+CREATE POLICY "Restricted Intake Insert for Candidates Uploads"
     ON storage.objects
     FOR INSERT
-    TO anon, authenticated, service_role
+    TO service_role, authenticated
     WITH CHECK (
         bucket_id = 'candidates-uploads'
-        AND (storage.foldername(name))[1] IS NOT NULL -- Exige organização em pastas/prefixos
+        AND (auth.role() = 'service_role' OR public.is_active_admin())
     );
 
 -- Política 2.2: Upload de Mídias de Modelos e Assets do Site

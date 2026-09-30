@@ -40,11 +40,34 @@ describe('AdminHeaderComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('gestao@wbscouting.com');
     expect(compiled.textContent).toContain('Admin');
-    expect(compiled.textContent).toContain('Triagem');
+    expect(compiled.textContent).toContain('Dashboard');
     expect(compiled.textContent).toContain('Scouting Desk');
-    expect(compiled.textContent).toContain('Casting & Stars');
-    expect(compiled.textContent).toContain('Institucional');
+    expect(compiled.textContent).toContain('Modelos');
+    expect(compiled.textContent).toContain('Conteúdo');
+    expect(compiled.textContent).toContain('Ver Site');
     expect(compiled.textContent).toContain('Sair');
+  });
+
+  it('should render horizontal navigation bar with canonical admin routes', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    const nav = compiled.querySelector('nav.desktop-nav');
+    expect(nav).toBeTruthy();
+
+    const dashboardLink = nav?.querySelector('a[routerLink="/admin/dashboard"]');
+    expect(dashboardLink).toBeTruthy();
+
+    const scoutingLink = nav?.querySelector('a[routerLink="/admin/candidaturas"]');
+    expect(scoutingLink).toBeTruthy();
+
+    const modelsLink = nav?.querySelector('a[routerLink="/admin/models"]');
+    expect(modelsLink).toBeTruthy();
+
+    const contentLink = nav?.querySelector('a[routerLink="/admin/conteudo"]');
+    expect(contentLink).toBeTruthy();
+
+    const publicSiteLink = nav?.querySelector('a[routerLink="/"]');
+    expect(publicSiteLink).toBeTruthy();
+    expect(publicSiteLink?.getAttribute('target')).toBe('_blank');
   });
 
   it('should enforce 48px rigid height containment and brand-logo-header class on the brand logo img', () => {

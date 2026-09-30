@@ -184,6 +184,16 @@ export const routes: Routes = [
         title: 'Gestão de Conteúdo & Vídeo | WB Agency'
       },
       {
+        path: 'conteudo',
+        redirectTo: 'institucional/home',
+        pathMatch: 'full'
+      },
+      {
+        path: 'site-contents',
+        redirectTo: 'institucional/home',
+        pathMatch: 'full'
+      },
+      {
         path: 'destaques-home',
         loadComponent: () => import('./features/admin/featured/featured-models-manager.component').then(m => m.FeaturedModelsManagerComponent),
         title: 'Curadoria da Home | WB Agency'

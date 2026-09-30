@@ -76,7 +76,7 @@ app:
       password: ${INITIAL_ADMIN_PASSWORD:Admin@WbScouting2026!}
       name: ${INITIAL_ADMIN_NAME:Administrador WB Scouting}
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,https://wb-models.vercel.app}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,https://wbagency.com.br,https://www.wbagency.com.br,http://wbagency.com.br,http://www.wbagency.com.br}
     allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,PATCH,DELETE,OPTIONS}
     allowed-headers: ${CORS_ALLOWED_HEADERS:Authorization,Content-Type,X-Requested-With,Accept,Origin}
     allow-credentials: true

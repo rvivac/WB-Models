@@ -33,16 +33,12 @@ export class SiteAccessService {
       return false;
     }
 
-    // Em produção ou no domínio vercel.app, o gate fica ativo a menos que desbloqueado
-    const isVercelHost = typeof window !== 'undefined' && (
-      window.location.hostname.includes('vercel.app') ||
-      window.location.hostname.includes('wb-models')
-    );
+    // O gate só fica ativo se explicitamente habilitado nas variáveis de ambiente ou via ?gate=true
     const explicitlyEnabled = !!(environment as any).siteLockEnabled;
     const testParam = typeof window !== 'undefined' && window.location.search.includes('gate=true');
 
     // Se qualquer um dos gatilhos estiver ativo e ainda não estiver desbloqueado
-    return (isVercelHost || explicitlyEnabled || testParam) && !this.isUnlocked();
+    return (explicitlyEnabled || testParam) && !this.isUnlocked();
   });
 
   constructor() {

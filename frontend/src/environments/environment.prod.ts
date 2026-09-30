@@ -4,5 +4,7 @@ export const environment = {
   appName: 'WB Agency',
   agencyContactEmail: 'contato@wbagency.com',
   agencyPhone: '+55 11 99999-9999',
-  agencyInstagram: '@wbagency'
+  agencyInstagram: '@wbagency',
+  siteLockEnabled: true,
+  siteLockKey: 'WB@2026'
 };

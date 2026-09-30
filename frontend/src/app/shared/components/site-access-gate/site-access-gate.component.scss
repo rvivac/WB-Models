@@ -1,0 +1,276 @@
+// Portão de Acesso Exclusivo (Site Access Gate) - Estética de Alto Luxo Editorial
+:host {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 999999; // Fica sobre qualquer elemento ou overlay da aplicação
+}
+
+.site-gate-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: #070908;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  overflow-y: auto;
+  min-height: 100vh;
+}
+
+// Vinheta e brilho ambiente
+.ambient-glow {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 32rem;
+  height: 24rem;
+  background: radial-gradient(circle, rgba(75, 88, 78, 0.12) 0%, rgba(7, 9, 8, 0) 70%);
+  pointer-events: none;
+}
+
+// Container do Cartão de Bloqueio
+.site-gate-container {
+  position: relative;
+  width: 100%;
+  max-width: 27rem; // ~432px compacto e proporcional
+  background-color: #101311;
+  border: 1px solid #232A25;
+  border-radius: 0 !important;
+  padding: 2.25rem 2rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  z-index: 2;
+
+  @media (max-width: 480px) {
+    padding: 1.75rem 1.25rem;
+  }
+}
+
+// Animação de Tremor em Caso de Chave Incorreta
+.shake-animation {
+  animation: gateShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes gateShake {
+  10%, 90% { transform: translate3d(-2px, 0, 0); }
+  20%, 80% { transform: translate3d(3px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+// Topo do Gate
+.gate-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 2rem;
+
+  .gate-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background-color: #171B18;
+    border: 1px solid #2C352F;
+    border-radius: 0;
+    padding: 0.25rem 0.65rem;
+    margin-bottom: 1.5rem;
+
+    .badge-dot {
+      width: 5px;
+      height: 5px;
+      background-color: #D97706; // Amber alerta elegante
+      border-radius: 50% !important;
+      box-shadow: 0 0 6px rgba(217, 119, 6, 0.4);
+    }
+
+    .badge-text {
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-size: 0.5625rem; // 9px
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #9CA3AF;
+    }
+  }
+
+  .gate-brand-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1.25rem;
+
+    .brand-img {
+      height: 2.75rem;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(1.05);
+    }
+  }
+
+  .gate-title {
+    font-family: var(--font-serif, "Cinzel", "Playfair Display", Georgia, serif);
+    font-size: 1.25rem;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    color: #F3F4F6;
+    margin-bottom: 0.6rem;
+    text-transform: uppercase;
+  }
+
+  .gate-description {
+    font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, sans-serif);
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: #9CA3AF;
+    max-width: 21rem;
+    margin: 0 auto;
+  }
+}
+
+// Formulário
+.gate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  .input-wrapper {
+    position: relative;
+    width: 100%;
+
+    .input-field-group {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+
+      .gate-input {
+        width: 100%;
+        background-color: #0B0E0C;
+        border: 1px solid #28302A;
+        border-radius: 0 !important;
+        padding: 0.85rem 2.5rem 0.85rem 1rem;
+        font-family: ui-monospace, SFMono-Regular, monospace;
+        font-size: 0.8125rem;
+        color: #F9FAFB;
+        letter-spacing: 0.2em;
+        text-align: center;
+        transition: all 0.2s ease;
+
+        &::placeholder {
+          font-family: ui-monospace, SFMono-Regular, monospace;
+          font-size: 0.6875rem;
+          letter-spacing: 0.15em;
+          color: #4B5563;
+        }
+
+        &:focus {
+          outline: none;
+          border-color: #9CA3AF;
+          background-color: #0E120F;
+          box-shadow: 0 0 0 1px rgba(156, 163, 175, 0.2);
+        }
+
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+      }
+
+      .toggle-eye-btn {
+        position: absolute;
+        right: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        color: #6B7280;
+        cursor: pointer;
+        padding: 0.25rem;
+        transition: color 0.2s;
+
+        &:hover {
+          color: #D1D5DB;
+        }
+      }
+    }
+  }
+
+  .gate-error-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #241113;
+    border: 1px solid #4D1F23;
+    border-radius: 0 !important;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.6875rem;
+    color: #F87171;
+    font-family: var(--font-sans, system-ui, sans-serif);
+    animation: fadeIn 0.2s ease-in;
+  }
+
+  .gate-submit-btn {
+    width: 100%;
+    background-color: #38443B;
+    border: 1px solid #4B584E;
+    color: #FFFFFF;
+    font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, sans-serif);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    padding: 0.85rem 1.5rem;
+    border-radius: 0 !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 0.25rem;
+
+    &:hover:not(:disabled) {
+      background-color: #4B584E;
+      border-color: #5F6E63;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// Rodapé do Gate
+.gate-footer {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #1C221E;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  text-align: center;
+
+  .city-nodes {
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 0.5625rem;
+    color: #6B7280;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .footer-legal {
+    font-family: var(--font-sans, system-ui, sans-serif);
+    font-size: 0.625rem;
+    color: #4B5563;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}

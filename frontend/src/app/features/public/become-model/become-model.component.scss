@@ -1,6 +1,8 @@
 :host {
   display: block;
   width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 input[type="number"]::-webkit-inner-spin-button,

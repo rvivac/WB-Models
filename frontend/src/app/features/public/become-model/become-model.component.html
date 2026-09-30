@@ -1,5 +1,5 @@
-<div class="min-h-screen bg-[#FBFBF9] py-12 px-4 sm:px-6 lg:px-8 selection:bg-[#4B584E] selection:text-white">
-  <div class="max-w-4xl mx-auto space-y-10">
+<div class="min-h-screen bg-[#FBFBF9] py-12 px-4 sm:px-6 lg:px-8 selection:bg-[#4B584E] selection:text-white w-full max-w-full overflow-x-hidden">
+  <div class="max-w-4xl mx-auto space-y-10 w-full">
 
     <!-- Cabeçalho Editorial -->
     <div class="text-center space-y-2 border-b border-[#E8EBE8] pb-8">
@@ -24,10 +24,10 @@
       <p class="text-xs leading-relaxed">{{ submitError }}</p>
     </div>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-8" *ngIf="!submitSuccess">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-8 w-full" *ngIf="!submitSuccess">
 
       <!-- Bloco 1: Dados Pessoais & Menoridade -->
-      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 space-y-6 shadow-xs">
+      <div class="bg-white border border-[#E8EBE8] p-4 sm:p-8 space-y-6 shadow-xs w-full">
         <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624] border-b border-[#E8EBE8] pb-3">1. Dados Pessoais</h2>
         
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -125,7 +125,7 @@
       </div>
 
       <!-- Bloco 2: Biometria Editorial -->
-      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 space-y-6 shadow-xs">
+      <div class="bg-white border border-[#E8EBE8] p-4 sm:p-8 space-y-6 shadow-xs w-full">
         <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624] border-b border-[#E8EBE8] pb-3">2. Ficha Métrica (Centímetros)</h2>
         
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -161,13 +161,13 @@
       </div>
 
       <!-- Bloco 3: Grade Dinâmica de Fotos (Mínimo 3, até 8 Fotos) -->
-      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 space-y-6 shadow-xs">
-        <div class="flex items-center justify-between border-b border-[#E8EBE8] pb-3">
-          <div>
+      <div class="bg-white border border-[#E8EBE8] p-4 sm:p-8 space-y-6 shadow-xs w-full">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E8EBE8] pb-3 gap-2">
+          <div class="min-w-0">
             <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">3. Polaroids e Fotos de Apresentação</h2>
             <p class="text-[11px] text-[#5F6661] mt-0.5">Envie no mínimo 3 fotos obrigatórias e até 8 fotos no total (sem maquiagem ou filtros).</p>
           </div>
-          <span class="text-xs font-mono text-[#4B584E] font-medium bg-[#F4F5F4] border border-[#E8EBE8] px-2 py-1">
+          <span class="self-start sm:self-center text-xs font-mono text-[#4B584E] font-medium bg-[#F4F5F4] border border-[#E8EBE8] px-2 py-1 whitespace-nowrap">
             {{ totalUploadedPhotos }}/8 Carregadas
           </span>
         </div>
@@ -226,10 +226,10 @@
       </div>
 
       <!-- Bloco 4: Termo de Consentimento LGPD -->
-      <div class="bg-white border border-[#E8EBE8] p-6 shadow-xs space-y-4">
+      <div class="bg-white border border-[#E8EBE8] p-4 sm:p-6 shadow-xs space-y-4 w-full">
         <label class="flex items-start gap-3 cursor-pointer">
-          <input type="checkbox" formControlName="lgpdConsent" class="mt-0.5 accent-[#4B584E] rounded-none">
-          <span class="text-xs text-[#5F6661] leading-relaxed">
+          <input type="checkbox" formControlName="lgpdConsent" class="mt-0.5 accent-[#4B584E] rounded-none shrink-0">
+          <span class="text-xs text-[#5F6661] leading-relaxed break-words min-w-0">
             Declaro que as informações e fotografias enviadas são verídicas e autorizo a <strong>WB Agency</strong> a processar meus dados e mídias exclusivamente para fins de avaliação de casting e representação artística, em conformidade com a LGPD (Lei nº 13.709/2018).
           </span>
         </label>

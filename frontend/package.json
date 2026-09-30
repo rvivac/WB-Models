@@ -7,7 +7,10 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:responsive": "npx playwright test playwright/responsive",
+    "audit:perf:mobile": "lhci autorun --collect.settings.preset=mobile",
+    "audit:perf:desktop": "lhci autorun --collect.settings.preset=desktop"
   },
   "private": true,
   "dependencies": {

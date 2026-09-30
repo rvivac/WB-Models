@@ -1,54 +1,52 @@
-<header class="site-header w-full bg-white border-b border-[#E8EBE8] sticky top-0 z-50 select-none shadow-xs">
-  <div class="container header-inner flex items-center justify-between gap-4">
+<header class="site-header w-full bg-white border-b border-neutral-200 sticky top-0 z-50 select-none shadow-xs">
+  <div class="container header-inner flex items-center justify-between gap-4 h-16">
     
-    <!-- ZONA ESQUERDA: BRAND LOGO EXATAMENTE IDENTICO AO SITE PUBLICO -->
-    <div class="header-brand">
+    <!-- 1. LADO ESQUERDO: LOGO + SELO ADMIN -->
+    <div class="header-brand flex items-center gap-3">
       <a routerLink="/admin/dashboard" class="brand-logo flex items-center gap-3" aria-label="WB Agency Admin">
         <img 
           src="assets/images/logo-wb-agency.png" 
           alt="WB Agency" 
           width="765"
           height="507"
-          class="brand-logo-img brand-logo-header h-12 w-auto object-contain"
+          class="brand-logo-img brand-logo-header h-8 md:h-10 w-auto object-contain block rounded-none"
           style="height: 48px; max-height: 48px;"
         />
-        <span class="admin-label text-[10px] uppercase tracking-[0.15em] font-sans text-[#5F6661] border-l border-[#E8EBE8] pl-3 whitespace-nowrap hidden sm:inline-block">
-          Admin
+        <span class="admin-badge inline-block bg-neutral-900 text-white text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-none select-none">
+          ADMIN
         </span>
       </a>
     </div>
 
-    <!-- ZONA CENTRAL: NAVEGAÇÃO HORIZONTAL RESTAURADA E PADRONIZADA -->
-    <nav class="desktop-nav hidden md:flex items-center gap-6 lg:gap-8 text-xs uppercase font-sans tracking-widest text-[#222624] whitespace-nowrap">
+    <!-- 2. CENTRO: LINKS DE NAVEGAÇÃO DOS MÓDULOS (PADRÃO SITE PRINCIPAL) -->
+    <nav class="desktop-nav hidden md:flex items-center gap-6 lg:gap-8">
       
       <!-- Link: Dashboard -->
       <a 
         routerLink="/admin/dashboard" 
         [routerLinkActiveOptions]="{ exact: true }"
-        routerLinkActive="active text-neutral-900 border-b-2 border-neutral-900 font-medium"
-        class="nav-link py-2 text-xs uppercase tracking-widest text-neutral-500 hover:text-neutral-900 transition-colors whitespace-nowrap"
-      >
+        routerLinkActive="text-neutral-900 border-b-2 border-neutral-900 font-medium active" 
+        class="nav-link text-xs uppercase tracking-widest text-neutral-500 hover:text-neutral-900 transition-colors py-2 rounded-none whitespace-nowrap">
         Dashboard
       </a>
 
-      <!-- Link: Scouting Desk -->
+      <!-- Link: Candidaturas (Scouting Desk) -->
       <a 
         routerLink="/admin/candidaturas" 
-        routerLinkActive="active text-neutral-900 border-b-2 border-neutral-900 font-medium"
-        class="nav-link py-2 text-xs uppercase tracking-widest text-neutral-500 hover:text-neutral-900 transition-colors flex items-center gap-1.5 whitespace-nowrap"
-      >
-        <span>Scouting Desk</span>
+        routerLinkActive="text-neutral-900 border-b-2 border-neutral-900 font-medium active" 
+        class="nav-link text-xs uppercase tracking-widest text-neutral-500 hover:text-neutral-900 transition-colors py-2 flex items-center gap-1.5 rounded-none whitespace-nowrap">
+        <span>Candidaturas</span>
+        <span class="text-[10px] text-neutral-400 font-normal hidden lg:inline">(Scouting Desk)</span>
         <span *ngIf="pendingCandidatesCount > 0" class="badge-pending text-[9px] font-mono text-[#4B584E] bg-[#F4F5F4] border border-[#E8EBE8] px-1.5 py-0.2">
           {{ pendingCandidatesCount }}
         </span>
       </a>
 
-      <!-- Link: Modelos -->
+      <!-- Link: Modelos (Casting) -->
       <a 
         routerLink="/admin/models" 
-        routerLinkActive="active text-neutral-900 border-b-2 border-neutral-900 font-medium"
-        class="nav-link py-2 text-xs uppercase tracking-widest text-neutral-500 hover:text-neutral-900 transition-colors whitespace-nowrap"
-      >
+        routerLinkActive="text-neutral-900 border-b-2 border-neutral-900 font-medium active" 
+        class="nav-link text-xs uppercase tracking-widest text-neutral-500 hover:text-neutral-900 transition-colors py-2 rounded-none whitespace-nowrap">
         Modelos
       </a>
 
@@ -56,16 +54,15 @@
       <div class="relative group py-2">
         <a 
           routerLink="/admin/conteudo" 
-          routerLinkActive="active text-neutral-900 border-b-2 border-neutral-900 font-medium"
-          class="nav-link nav-dropdown-btn flex items-center gap-1 text-xs uppercase tracking-widest text-neutral-500 group-hover:text-neutral-900 transition-colors cursor-pointer whitespace-nowrap"
-        >
+          routerLinkActive="text-neutral-900 border-b-2 border-neutral-900 font-medium active" 
+          class="nav-link text-xs uppercase tracking-widest text-neutral-500 group-hover:text-neutral-900 transition-colors flex items-center gap-1 rounded-none cursor-pointer whitespace-nowrap">
           <span>Conteúdo</span>
           <svg class="w-3 h-3 text-[#5F6661] group-hover:text-[#4B584E] transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7" />
           </svg>
         </a>
 
-        <div class="dropdown-menu absolute left-0 top-full hidden group-hover:block w-56 bg-white border border-[#E8EBE8] shadow-lg py-1.5 z-50 rounded-none">
+        <div class="dropdown-menu absolute left-0 top-full hidden group-hover:block w-56 bg-white border border-neutral-200 shadow-lg py-1.5 z-50 rounded-none">
           <a 
             routerLink="/admin/institucional/home" 
             routerLinkActive="text-[#4B584E] font-semibold bg-[#FBFBF9]"
@@ -76,23 +73,23 @@
           <a 
             routerLink="/admin/institucional/contatos" 
             routerLinkActive="text-[#4B584E] font-semibold bg-[#FBFBF9]"
-            class="dropdown-item block px-4 py-2 text-[11px] uppercase tracking-[0.1em] text-[#222624] hover:bg-[#FBFBF9] hover:text-[#4B584E] transition-colors whitespace-nowrap border-t border-[#E8EBE8]"
+            class="dropdown-item block px-4 py-2 text-[11px] uppercase tracking-[0.1em] text-[#222624] hover:bg-[#FBFBF9] hover:text-[#4B584E] transition-colors whitespace-nowrap border-t border-neutral-200"
           >
             Canais de Contato
           </a>
           <a 
             routerLink="/admin/institucional/idiomas" 
             routerLinkActive="text-[#4B584E] font-semibold bg-[#FBFBF9]"
-            class="dropdown-item block px-4 py-2 text-[11px] uppercase tracking-[0.1em] text-[#222624] hover:bg-[#FBFBF9] hover:text-[#4B584E] transition-colors whitespace-nowrap border-t border-[#E8EBE8]"
+            class="dropdown-item block px-4 py-2 text-[11px] uppercase tracking-[0.1em] text-[#222624] hover:bg-[#FBFBF9] hover:text-[#4B584E] transition-colors whitespace-nowrap border-t border-neutral-200"
           >
             Conteúdos Bilíngues
           </a>
           <a 
             routerLink="/admin/content" 
             routerLinkActive="text-[#4B584E] font-semibold bg-[#FBFBF9]"
-            class="dropdown-item block px-4 py-2 text-[11px] uppercase tracking-[0.1em] text-[#222624] hover:bg-[#FBFBF9] hover:text-[#4B584E] transition-colors whitespace-nowrap border-t border-[#E8EBE8]"
+            class="dropdown-item block px-4 py-2 text-[11px] uppercase tracking-[0.1em] text-[#222624] hover:bg-[#FBFBF9] hover:text-[#4B584E] transition-colors whitespace-nowrap border-t border-neutral-200"
           >
-            Mídia & Vídeo
+            Mídia &amp; Vídeo
           </a>
         </div>
       </div>
@@ -101,28 +98,27 @@
       <a 
         routerLink="/" 
         target="_blank"
-        class="nav-link py-2 flex items-center gap-1.5 text-xs uppercase tracking-widest text-neutral-500 hover:text-neutral-900 transition-colors whitespace-nowrap"
-        title="Abrir o site público em nova aba"
-      >
+        class="nav-link text-xs uppercase tracking-widest text-neutral-400 hover:text-neutral-900 transition-colors py-2 flex items-center gap-1 rounded-none whitespace-nowrap"
+        title="Abrir o site público em nova aba">
         <span>Ver Site</span>
         <svg class="w-3 h-3 text-[#5F6661]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
         </svg>
       </a>
 
     </nav>
 
-    <!-- ZONA DIREITA: PERFIL & LOGOUT SEGURO -->
+    <!-- 3. LADO DIREITO: PERFIL E LOGOUT -->
     <div class="header-actions flex items-center gap-4 shrink-0 whitespace-nowrap">
-      <span class="user-email text-[10px] font-sans text-[#5F6661] hidden xl:inline-block">
-        {{ userEmail }}
-      </span>
+      <div class="hidden sm:flex flex-col text-right">
+        <span class="text-xs font-medium text-neutral-900 leading-tight">Administrador</span>
+        <span class="text-[10px] text-neutral-500 leading-tight font-sans">{{ userEmail }}</span>
+      </div>
 
-      <button
+      <button 
         type="button"
-        (click)="onSecureLogout()"
-        class="btn-logout text-[10px] uppercase font-sans tracking-[0.15em] text-[#222624] hover:text-white hover:bg-[#4B584E] border border-[#E8EBE8] hover:border-[#4B584E] px-3 py-1.5 transition-all cursor-pointer rounded-none whitespace-nowrap"
-      >
+        (click)="logout()" 
+        class="btn-logout text-xs uppercase tracking-wider text-neutral-600 hover:text-red-600 border border-neutral-300 hover:border-red-600 px-3 py-1.5 transition-colors cursor-pointer rounded-none whitespace-nowrap">
         Sair
       </button>
 
@@ -130,7 +126,7 @@
       <button 
         type="button" 
         (click)="toggleMobileMenu()" 
-        class="md:hidden p-1.5 border border-[#E8EBE8] text-[#222624] hover:text-[#4B584E] cursor-pointer"
+        class="md:hidden p-1.5 border border-neutral-200 text-neutral-700 hover:text-neutral-900 cursor-pointer rounded-none"
         aria-label="Menu administrativo"
       >
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -143,23 +139,23 @@
 
   <!-- Menu Mobile Desdobrável -->
   @if (isMobileMenuOpen()) {
-    <div class="mobile-dropdown md:hidden border-t border-[#E8EBE8] bg-white px-6 py-4 space-y-3">
+    <div class="mobile-dropdown md:hidden border-t border-neutral-200 bg-white px-6 py-4 space-y-3">
       <a routerLink="/admin/dashboard" (click)="closeMobileMenu()" class="mobile-nav-link" routerLinkActive="active">Dashboard</a>
-      <a routerLink="/admin/candidaturas" (click)="closeMobileMenu()" class="mobile-nav-link" routerLinkActive="active">Scouting Desk</a>
+      <a routerLink="/admin/candidaturas" (click)="closeMobileMenu()" class="mobile-nav-link" routerLinkActive="active">Candidaturas (Scouting Desk)</a>
       <a routerLink="/admin/candidatos" (click)="closeMobileMenu()" class="mobile-nav-link" routerLinkActive="active">Triagem</a>
       <a routerLink="/admin/models" (click)="closeMobileMenu()" class="mobile-nav-link" routerLinkActive="active">Modelos</a>
       <a routerLink="/admin/conteudo" (click)="closeMobileMenu()" class="mobile-nav-link" routerLinkActive="active">Conteúdo</a>
-      <div class="border-t border-[#E8EBE8] pt-2">
-        <span class="text-[10px] text-[#5F6661] font-mono block mb-1">Módulos Institucionais:</span>
+      <div class="border-t border-neutral-200 pt-2">
+        <span class="text-[10px] text-neutral-500 font-mono block mb-1">Módulos Institucionais:</span>
         <a routerLink="/admin/institucional/home" (click)="closeMobileMenu()" class="mobile-nav-link" routerLinkActive="active">Página Inicial (Hero)</a>
         <a routerLink="/admin/institucional/contatos" (click)="closeMobileMenu()" class="mobile-nav-link" routerLinkActive="active">Canais de Contato</a>
         <a routerLink="/admin/institucional/idiomas" (click)="closeMobileMenu()" class="mobile-nav-link" routerLinkActive="active">Conteúdos Bilíngues</a>
-        <a routerLink="/admin/content" (click)="closeMobileMenu()" class="mobile-nav-link" routerLinkActive="active">Mídia & Vídeo</a>
+        <a routerLink="/admin/content" (click)="closeMobileMenu()" class="mobile-nav-link" routerLinkActive="active">Mídia &amp; Vídeo</a>
       </div>
-      <div class="border-t border-[#E8EBE8] pt-2">
+      <div class="border-t border-neutral-200 pt-2">
         <a routerLink="/" target="_blank" (click)="closeMobileMenu()" class="mobile-nav-link flex items-center justify-between">
           <span>Ver Site Público</span>
-          <svg class="w-3.5 h-3.5 text-[#5F6661]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="w-3.5 h-3.5 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
           </svg>
         </a>
@@ -171,7 +167,7 @@
 <!-- Modal de Confirmação Rápida de Saída Segura -->
 @if (showConfirmModal()) {
   <div class="modal-backdrop fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-    <div class="modal-card bg-white border border-[#E8EBE8] p-6 max-w-sm w-full shadow-lg rounded-none">
+    <div class="modal-card bg-white border border-neutral-200 p-6 max-w-sm w-full shadow-lg rounded-none">
       <div class="flex items-center gap-3 mb-4 text-[#222624]">
         <div class="p-2 bg-red-50 border border-red-200 text-red-700">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -190,7 +186,7 @@
         <button
           type="button"
           (click)="cancelLogout()"
-          class="px-4 py-2 border border-[#E8EBE8] text-[#5F6661] hover:bg-[#FBFBF9] transition-all cursor-pointer rounded-none"
+          class="px-4 py-2 border border-neutral-200 text-[#5F6661] hover:bg-[#FBFBF9] transition-all cursor-pointer rounded-none"
         >
           Cancelar
         </button>

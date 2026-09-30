@@ -60,6 +60,83 @@ nav a, nav button, nav span {
   }
 }
 
+.admin-badge {
+  display: inline-block;
+  background-color: #171717 !important;
+  color: #ffffff !important;
+  font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, sans-serif);
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.15em !important;
+  padding: 0.125rem 0.5rem !important;
+  border-radius: 0 !important;
+  user-select: none;
+  line-height: 1.4 !important;
+}
+
+.bg-neutral-900 {
+  background-color: #171717 !important;
+}
+
+.text-neutral-900 {
+  color: #171717 !important;
+}
+
+.text-neutral-700 {
+  color: #404040 !important;
+}
+
+.text-neutral-600 {
+  color: #525252 !important;
+}
+
+.text-neutral-500 {
+  color: #737373 !important;
+}
+
+.text-neutral-400 {
+  color: #a3a3a3 !important;
+}
+
+.border-neutral-200 {
+  border-color: #e5e5e5 !important;
+}
+
+.border-neutral-300 {
+  border-color: #d4d4d4 !important;
+}
+
+.border-neutral-900 {
+  border-color: #171717 !important;
+}
+
+.hover\:border-red-600:hover {
+  border-color: #dc2626 !important;
+}
+
+.hover\:text-red-600:hover {
+  color: #dc2626 !important;
+}
+
+.hover\:text-neutral-900:hover {
+  color: #171717 !important;
+}
+
+.px-2 {
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
+}
+
+.py-0\.5 {
+  padding-top: 0.125rem !important;
+  padding-bottom: 0.125rem !important;
+}
+
+.tracking-widest {
+  letter-spacing: 0.15em !important;
+}
+
 .w-auto {
   width: auto !important;
 }

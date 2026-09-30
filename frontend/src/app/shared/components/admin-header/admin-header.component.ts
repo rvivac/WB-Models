@@ -52,6 +52,10 @@ export class AdminHeaderComponent implements OnInit {
     this.isMobileMenuOpen.set(false);
   }
 
+  logout(): void {
+    this.confirmLogout();
+  }
+
   onSecureLogout(): void {
     this.confirmLogout();
   }

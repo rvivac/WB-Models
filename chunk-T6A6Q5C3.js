@@ -1,0 +1,1 @@
+var e={production:!0,apiUrl:"/api/v1",appName:"WB Agency",agencyContactEmail:"contato@wbagency.com",agencyPhone:"+55 11 99999-9999",agencyInstagram:"@wbagency",siteLockEnabled:!0,siteLockKey:"WB@2026"};export{e as a};

@@ -2,8 +2,7 @@
 
 .contact-page {
   min-height: calc(100vh - var(--header-height, 80px));
-  padding-top: calc(var(--header-height, 80px) + 2.5rem);
-  padding-bottom: 6rem;
+  padding-top: var(--header-height, 80px);
   position: relative;
   background-color: var(--wb-background); // #FBFBF9
   color: var(--text-primary);
@@ -12,8 +11,9 @@
 .page-header,
 .contact-header {
   max-width: 800px;
-  margin: 0 0 2.5rem 0;
+  margin: 0;
   text-align: left;
+
 
   .header-breadcrumbs {
     display: flex;
@@ -106,7 +106,7 @@
 .channel-card {
   position: relative;
   padding: 2.25rem;
-  border-radius: 2px;
+  border-radius: 0;
   background: #ffffff;
   border: 1px solid var(--border-subtle); // #E8EBE8
   display: flex;

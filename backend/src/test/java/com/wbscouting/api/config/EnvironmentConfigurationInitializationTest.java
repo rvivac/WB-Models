@@ -179,4 +179,48 @@ class EnvironmentConfigurationInitializationTest {
                     assertThat(context).hasBean("supabaseStorageRestClient");
                 });
     }
+
+    @Test
+    @DisplayName("4.3. Deve verificar que .gitignore ignora arquivos .env e preserva .env.example")
+    void shouldVerifyGitignoreRulesIgnoreDotEnvFiles() throws Exception {
+        java.nio.file.Path rootGitignore = java.nio.file.Paths.get("..", ".gitignore");
+        if (!java.nio.file.Files.exists(rootGitignore)) {
+            rootGitignore = java.nio.file.Paths.get(".gitignore");
+        }
+        assertThat(java.nio.file.Files.exists(rootGitignore)).isTrue();
+
+        List<String> lines = java.nio.file.Files.readAllLines(rootGitignore, StandardCharsets.UTF_8);
+        assertThat(lines).anyMatch(l -> l.trim().equals(".env"));
+        assertThat(lines).anyMatch(l -> l.trim().equals(".env.*") || l.trim().equals("**/.env.*"));
+        assertThat(lines).anyMatch(l -> l.trim().equals("!.env.example") || l.trim().equals("!**/.env.example"));
+    }
+
+    @Test
+    @DisplayName("4.3. Deve verificar que .env.example não contém valores reais ou credenciais ativas")
+    void shouldVerifyDotEnvExampleContainsNoRealValuesOrActiveSecrets() throws Exception {
+        java.nio.file.Path envExamplePath = java.nio.file.Paths.get(".env.example");
+        if (!java.nio.file.Files.exists(envExamplePath)) {
+            envExamplePath = java.nio.file.Paths.get("backend", ".env.example");
+        }
+        assertThat(java.nio.file.Files.exists(envExamplePath)).isTrue();
+
+        String content = java.nio.file.Files.readString(envExamplePath, StandardCharsets.UTF_8);
+
+        // Não deve conter senhas ou chaves reais
+        assertThat(content)
+                .doesNotContain("U7MevYDCOEjBOBS3")
+                .doesNotContain("ptyC15gru")
+                .doesNotContain("Admin@123")
+                .doesNotContain("Admin@WbScouting2026!")
+                .doesNotContain("sb_secret_JTi2OnYNgP0K7_rKM9ZRXQ_QdjxMg0j")
+                .doesNotContain("sb_publishable_YIExzbXgaVtJPVh1X9A7nQ_oECtRKFM")
+                .doesNotContain("404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970");
+
+        // Deve conter placeholders explícitos para todas as credenciais sensíveis
+        assertThat(content).contains("DB_PASSWORD=sua_senha_do_banco_aqui");
+        assertThat(content).contains("JWT_SECRET=sua_chave_secreta_jwt_minimo_256_bits_base64_aqui");
+        assertThat(content).contains("SUPABASE_KEY=sua_chave_supabase_aqui");
+        assertThat(content).contains("SUPABASE_SERVICE_ROLE_KEY=sua_service_role_key_aqui");
+        assertThat(content).contains("SUPABASE_ANON_KEY=sua_anon_key_aqui");
+    }
 }

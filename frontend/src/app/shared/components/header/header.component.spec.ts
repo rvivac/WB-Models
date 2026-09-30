@@ -25,10 +25,16 @@ describe('HeaderComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create header component with navigation links', () => {
+  it('should create header component with navigation links and locked brand logo dimensions', () => {
     expect(component).toBeTruthy();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.brand-logo')).toBeTruthy();
+    const logoImg = compiled.querySelector('.brand-logo-img') as HTMLImageElement;
+    expect(logoImg).toBeTruthy();
+    expect(logoImg.classList.contains('brand-logo-header')).toBeTrue();
+    expect(logoImg.style.height).toBe('48px');
+    expect(logoImg.style.maxHeight).toBe('48px');
+    expect(logoImg.getAttribute('width')).toBe('765');
+    expect(logoImg.getAttribute('height')).toBe('507');
     expect(compiled.querySelector('.desktop-nav')).toBeTruthy();
   });
 

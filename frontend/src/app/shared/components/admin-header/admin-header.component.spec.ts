@@ -47,17 +47,20 @@ describe('AdminHeaderComponent', () => {
     expect(compiled.textContent).toContain('Sair');
   });
 
-  it('should enforce 32px rigid height containment on the brand logo img', () => {
+  it('should enforce 48px rigid height containment and brand-logo-header class on the brand logo img', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const logoImg = compiled.querySelector('.brand-logo-img') as HTMLImageElement;
     expect(logoImg).toBeTruthy();
+    expect(logoImg.classList.contains('brand-logo-header')).toBeTrue();
 
     const logoAnchor = compiled.querySelector('.brand-logo') as HTMLAnchorElement;
     expect(logoAnchor.getAttribute('routerLink')).toBe('/admin/dashboard');
 
-    // Inline style defensivo
-    expect(logoImg.style.height).toBe('32px');
-    expect(logoImg.style.maxHeight).toBe('32px');
+    // Inline style defensivo e dimensões intrínsecas
+    expect(logoImg.style.height).toBe('48px');
+    expect(logoImg.style.maxHeight).toBe('48px');
+    expect(logoImg.getAttribute('width')).toBe('765');
+    expect(logoImg.getAttribute('height')).toBe('507');
   });
 
   it('should open confirmation modal when onSecureLogout or logout button is triggered', () => {

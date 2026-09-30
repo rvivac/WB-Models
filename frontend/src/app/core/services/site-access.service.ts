@@ -28,6 +28,11 @@ export class SiteAccessService {
   });
 
   readonly isGateActive = computed(() => {
+    // Rotas administrativas (/admin, /admin/login, etc.) possuem autenticação própria e não são bloqueadas pelo gate
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+      return false;
+    }
+
     // Em produção ou no domínio vercel.app, o gate fica ativo a menos que desbloqueado
     const isVercelHost = typeof window !== 'undefined' && (
       window.location.hostname.includes('vercel.app') ||

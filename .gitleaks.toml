@@ -1,0 +1,14 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Ignorar pastas de dependencias e cache"
+paths = [
+    '''(^|/)node_modules/''',
+    '''(^|/)\.angular/''',
+    '''(^|/)target/''',
+    '''(^|/)dist/''',
+    '''(^|/)\.git/''',
+    '''(^|/)\.env$''',
+    '''(^|/)\.env\..*'''
+]

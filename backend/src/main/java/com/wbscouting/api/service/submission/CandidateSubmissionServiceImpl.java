@@ -80,60 +80,78 @@ public class CandidateSubmissionServiceImpl implements CandidateSubmissionServic
         String protocol = generateProtocol();
         String bucket = StringUtils.hasText(candidatesBucket) ? candidatesBucket : DEFAULT_BUCKET;
 
-        // 5. Upload dos Arquivos para o Storage
-        String facePath = String.format("submissions/%s/face_%s", submissionId, cleanFileName(facePhoto.getOriginalFilename()));
-        String profilePath = String.format("submissions/%s/profile_%s", submissionId, cleanFileName(profilePhoto.getOriginalFilename()));
-        String fullBodyPath = String.format("submissions/%s/fullbody_%s", submissionId, cleanFileName(fullBodyPhoto.getOriginalFilename()));
+        // 5. Upload dos Arquivos para o Storage com Transação Compensatória Defensiva
+        java.util.List<String> uploadedPaths = new java.util.ArrayList<>();
+        try {
+            String facePath = String.format("submissions/%s/face_%s", submissionId, cleanFileName(facePhoto.getOriginalFilename()));
+            String profilePath = String.format("submissions/%s/profile_%s", submissionId, cleanFileName(profilePhoto.getOriginalFilename()));
+            String fullBodyPath = String.format("submissions/%s/fullbody_%s", submissionId, cleanFileName(fullBodyPhoto.getOriginalFilename()));
 
-        storageService.uploadFile(bucket, facePath, facePhoto);
-        storageService.uploadFile(bucket, profilePath, profilePhoto);
-        storageService.uploadFile(bucket, fullBodyPath, fullBodyPhoto);
+            storageService.uploadFile(bucket, facePath, facePhoto);
+            uploadedPaths.add(facePath);
+            storageService.uploadFile(bucket, profilePath, profilePhoto);
+            uploadedPaths.add(profilePath);
+            storageService.uploadFile(bucket, fullBodyPath, fullBodyPhoto);
+            uploadedPaths.add(fullBodyPath);
 
-        String faceUrl = storageService.getPublicUrl(bucket, facePath);
-        String profileUrl = storageService.getPublicUrl(bucket, profilePath);
-        String fullBodyUrl = storageService.getPublicUrl(bucket, fullBodyPath);
+            String faceUrl = storageService.getPublicUrl(bucket, facePath);
+            String profileUrl = storageService.getPublicUrl(bucket, profilePath);
+            String fullBodyUrl = storageService.getPublicUrl(bucket, fullBodyPath);
 
-        // 6. Construção e Persistência da Entidade
-        CandidateSubmission submission = CandidateSubmission.builder()
-                .id(submissionId)
-                .protocol(protocol)
-                .fullName(sanitizedFullName)
-                .email(request.getEmail().trim().toLowerCase())
-                .phone(request.getPhone().trim())
-                .birthDate(request.getBirthDate())
-                .age(age)
-                .gender(request.getGender())
-                .city(sanitizedCity)
-                .state(sanitizedState)
-                .height(request.getHeight())
-                .bust(request.getBust())
-                .waist(request.getWaist())
-                .hips(request.getHips())
-                .shoeSize(request.getShoeSize())
-                .eyeColor(sanitizedEyeColor)
-                .hairColor(sanitizedHairColor)
-                .instagramHandle(sanitizedInstagram)
-                .guardianName(sanitizedGuardianName)
-                .guardianPhone(StringUtils.hasText(request.getGuardianPhone()) ? request.getGuardianPhone().trim() : null)
-                .guardianEmail(StringUtils.hasText(request.getGuardianEmail()) ? request.getGuardianEmail().trim().toLowerCase() : null)
-                .lgpdConsent(Boolean.TRUE.equals(request.getLgpdConsent()))
-                .lgpdConsentAt(OffsetDateTime.now())
-                .status(SubmissionStatus.PENDING)
-                .facePhotoUrl(faceUrl)
-                .profilePhotoUrl(profileUrl)
-                .fullBodyPhotoUrl(fullBodyUrl)
-                .build();
+            // 6. Construção e Persistência da Entidade
+            CandidateSubmission submission = CandidateSubmission.builder()
+                    .id(submissionId)
+                    .protocol(protocol)
+                    .fullName(sanitizedFullName)
+                    .email(request.getEmail().trim().toLowerCase())
+                    .phone(request.getPhone().trim())
+                    .birthDate(request.getBirthDate())
+                    .age(age)
+                    .gender(request.getGender())
+                    .city(sanitizedCity)
+                    .state(sanitizedState)
+                    .height(request.getHeight())
+                    .bust(request.getBust())
+                    .waist(request.getWaist())
+                    .hips(request.getHips())
+                    .shoeSize(request.getShoeSize())
+                    .eyeColor(sanitizedEyeColor)
+                    .hairColor(sanitizedHairColor)
+                    .instagramHandle(sanitizedInstagram)
+                    .guardianName(sanitizedGuardianName)
+                    .guardianPhone(StringUtils.hasText(request.getGuardianPhone()) ? request.getGuardianPhone().trim() : null)
+                    .guardianEmail(StringUtils.hasText(request.getGuardianEmail()) ? request.getGuardianEmail().trim().toLowerCase() : null)
+                    .lgpdConsent(Boolean.TRUE.equals(request.getLgpdConsent()))
+                    .lgpdConsentAt(OffsetDateTime.now())
+                    .status(SubmissionStatus.PENDING)
+                    .facePhotoUrl(faceUrl)
+                    .profilePhotoUrl(profileUrl)
+                    .fullBodyPhotoUrl(fullBodyUrl)
+                    .build();
 
-        CandidateSubmission saved = repository.save(submission);
-        log.info("Candidatura gravada com sucesso. ID: {}, Protocolo: {}", saved.getId(), saved.getProtocol());
+            CandidateSubmission saved = repository.save(submission);
+            log.info("Candidatura gravada com sucesso. ID: {}, Protocolo: {}", saved.getId(), saved.getProtocol());
 
-        return CandidateSubmissionResponseDto.builder()
-                .id(saved.getId())
-                .protocol(saved.getProtocol())
-                .message("Candidatura enviada com sucesso! Nossa equipe de scouting analisará seu material.")
-                .status(saved.getStatus())
-                .createdAt(saved.getCreatedAt() != null ? saved.getCreatedAt() : OffsetDateTime.now())
-                .build();
+            return CandidateSubmissionResponseDto.builder()
+                    .id(saved.getId())
+                    .protocol(saved.getProtocol())
+                    .message("Candidatura enviada com sucesso! Nossa equipe de scouting analisará seu material.")
+                    .status(saved.getStatus())
+                    .createdAt(saved.getCreatedAt() != null ? saved.getCreatedAt() : OffsetDateTime.now())
+                    .build();
+        } catch (Exception ex) {
+            log.error("Erro detectado durante submissão da candidatura (ID={}). Executando rollback compensatório no bucket '{}'...",
+                    submissionId, bucket, ex);
+            for (String uploadedPath : uploadedPaths) {
+                try {
+                    storageService.deleteFile(bucket, uploadedPath);
+                    log.info("Arquivo órfão purgado via rollback compensatório: {}/{}", bucket, uploadedPath);
+                } catch (Exception delEx) {
+                    log.warn("Falha ao purgar arquivo órfão no storage: {}/{} - {}", bucket, uploadedPath, delEx.getMessage());
+                }
+            }
+            throw ex;
+        }
     }
 
     private int calculateAndValidateAge(LocalDate birthDate) {

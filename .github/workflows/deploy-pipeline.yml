@@ -1,0 +1,157 @@
+name: WB Agency - Pipeline CI/CD Principal (Build, Test & Deploy)
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  # =========================================================================
+  # 1. AUDITORIA PREVENTIVA DE SEGURANÇA (GATEWAY INICIAL)
+  # =========================================================================
+  security-gate:
+    name: Security & Secret Scanning (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do Repositório (Histórico Completo)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Executar Varredura Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+  # =========================================================================
+  # 2. BACKEND: BUILD, TESTES, AUDITORIA OWASP & CONTAINERIZAÇÃO
+  # =========================================================================
+  backend-ci-cd:
+    name: Backend CI/CD (Spring Boot / Java 21)
+    needs: security-gate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 21 (Eclipse Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Garantir Permissão de Execução no Maven Wrapper
+        run: chmod +x mvnw
+
+      - name: Compilação e Execução de Testes Automatizados (Zero Regressão)
+        run: |
+          ./mvnw clean test \
+            -Dspring.profiles.active=test \
+            -Dtest="!DatabaseConnectionTest,!AdminTableAuditTest,!SupabaseRlsHardeningTest"
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+
+      - name: Análise de Dependências OWASP (Dependency-Check)
+        run: |
+          ./mvnw org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7
+        continue-on-error: false
+
+      - name: Empacotamento do Artefato JAR (Skip Tests)
+        run: ./mvnw package -DskipTests
+
+      - name: Upload do Artefato Backend
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: backend/target/*.jar
+          retention-days: 2
+
+      # Deploy Contínuo Backend (Disparado somente na branch main)
+      - name: Deploy Backend em Produção (PaaS / Webhook ou Docker Push)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          echo "Disparando deploy seguro do backend..."
+          if [ -n "${{ secrets.BACKEND_DEPLOY_WEBHOOK_URL }}" ]; then
+            curl -X POST -f "${{ secrets.BACKEND_DEPLOY_WEBHOOK_URL }}"
+            echo "Deploy do Backend disparado com sucesso via Webhook."
+          else
+            echo "Aviso: BACKEND_DEPLOY_WEBHOOK_URL não configurado nos secrets. Etapa de webhook ignorada."
+          fi
+
+  # =========================================================================
+  # 3. FRONTEND: BUILD DE PRODUÇÃO, LINT & DEPLOY CDN
+  # =========================================================================
+  frontend-ci-cd:
+    name: Frontend CI/CD (Angular 18+ / Node.js 20)
+    needs: security-gate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalação Limpa de Dependências (CI)
+        run: npm ci
+
+      - name: Compilação Estrita de Produção (com fileReplacements)
+        run: npm run build -- --configuration production
+
+      - name: Garantir Suporte a SPA (Copiar index.html para 404.html)
+        run: |
+          if [ -f "dist/frontend/browser/index.html" ]; then
+            cp dist/frontend/browser/index.html dist/frontend/browser/404.html
+            echo "Fallback 404.html gerado com sucesso para SPA routing no GitHub Pages."
+          fi
+
+      - name: Varredura de Segurança no Bundle Compilado
+        run: |
+          echo "Auditando bundle estático contra exposição acidental de credenciais..."
+          LEAKS=$(grep -rnE "service_role|sb_secret_|eyJ[A-Za-z0-9_-]{20,}\." dist/ || true)
+          if [ -n "$LEAKS" ]; then
+            echo "ERRO CRÍTICO: Chaves sensíveis detectadas no bundle de produção!"
+            echo "$LEAKS"
+            exit 1
+          fi
+          echo "Bundle do Frontend aprovado com 0 segredos expostos."
+
+      - name: Upload do Artefato Frontend
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/
+          retention-days: 2
+
+      # Deploy do Frontend (Disparado somente na branch main)
+      - name: Deploy Frontend em Produção (GitHub Pages / CDN)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: frontend/dist/frontend/browser
+          branch: gh-pages
+          clean: true

@@ -1,36 +1,30 @@
 <!-- Página Sobre Nós (Sem Vídeo - Foco Editorial & Manifesto) -->
 <article class="about-page">
-  <!-- Topo Editorial com Espaçamento Harmonizado e Breadcrumbs Canônicos -->
-  <section class="w-full bg-white border-b border-neutral-100">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-8 md:pt-14 md:pb-10">
-      
-      <header class="page-header">
-        <!-- Breadcrumb Padronizado (Plus Jakarta Sans) -->
-        <nav class="header-breadcrumbs">
-          <a routerLink="/" class="breadcrumb-link">{{ 'nav.home' | translate }}</a>
-          <span class="breadcrumb-separator">/</span>
-          <span class="breadcrumb-current">{{ 'nav.about' | translate }}</span>
-        </nav>
+  <div class="container">
+    <!-- Topo Editorial com Espaçamento Harmonizado e Breadcrumbs Canônicos -->
+    <header class="page-header">
+      <!-- Breadcrumb Padronizado (Plus Jakarta Sans) -->
+      <nav class="header-breadcrumbs">
+        <a routerLink="/" class="breadcrumb-link">{{ 'nav.home' | translate }}</a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">{{ 'nav.about' | translate }}</span>
+      </nav>
 
-        <!-- Título Principal Padronizado (Cormorant Garamond) -->
-        <h1 class="page-title font-serif about-headline">
-          {{ aboutContent().headline }}
-        </h1>
+      <!-- Título Principal Padronizado (Cormorant Garamond) -->
+      <h1 class="page-title font-serif about-headline">
+        {{ aboutContent().headline }}
+      </h1>
 
-        <!-- Citação / Subtítulo Padronizado (Plus Jakarta Sans) -->
-        @if (aboutContent().quote) {
-          <p class="page-subtitle about-quote">
-            &ldquo;{{ aboutContent().quote }}&rdquo;
-          </p>
-        }
-      </header>
+      <!-- Citação / Subtítulo Padronizado (Plus Jakarta Sans) -->
+      @if (aboutContent().quote) {
+        <p class="page-subtitle about-quote">
+          &ldquo;{{ aboutContent().quote }}&rdquo;
+        </p>
+      }
+    </header>
 
-    </div>
-  </section>
-
-  <!-- Conteúdo Principal do Manifesto -->
-  <section class="about-content-section">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Conteúdo Principal do Manifesto -->
+    <section class="about-content-section">
       <div class="content-grid">
         <!-- Coluna de Texto Principal (CMS) -->
         <div class="text-column">
@@ -70,12 +64,10 @@
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Seção de Chamada para Ação (Casting & Booking) -->
-  <section class="about-cta-section">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Seção de Chamada para Ação (Casting & Booking) -->
+    <section class="about-cta-section">
       <div class="cta-box">
         <div class="cta-info">
           <h2 class="font-serif cta-title">{{ 'home.cta_banner_title' | translate }}</h2>
@@ -90,6 +82,6 @@
           </a>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </div>
 </article>

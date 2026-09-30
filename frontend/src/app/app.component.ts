@@ -5,21 +5,18 @@ import { filter, map } from 'rxjs/operators';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { AdminHeaderComponent } from './shared/components/admin-header/admin-header.component';
-import { SiteAccessGateComponent } from './shared/components/site-access-gate/site-access-gate.component';
 import { AuthService } from './core/services/auth.service';
-import { SiteAccessService } from './core/services/site-access.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterModule, HeaderComponent, FooterComponent, AdminHeaderComponent, SiteAccessGateComponent],
+  imports: [RouterModule, HeaderComponent, FooterComponent, AdminHeaderComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
   private readonly router = inject(Router);
   readonly authService = inject(AuthService);
-  readonly siteAccessService = inject(SiteAccessService);
 
   private readonly currentUrl$ = this.router.events.pipe(
     filter((e): e is NavigationEnd => e instanceof NavigationEnd),

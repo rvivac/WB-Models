@@ -1,7 +1,3 @@
-@if (siteAccessService.isGateActive()) {
-  <app-site-access-gate></app-site-access-gate>
-}
-
 @if (!isAdminRoute()) {
   <app-header></app-header>
 } @else if (showAdminHeader()) {

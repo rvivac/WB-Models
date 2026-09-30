@@ -47,8 +47,8 @@ export class AuthService {
         this.setSession(res);
       }),
       catchError((err) => {
-        // Fallback em mock para testes locais caso o backend esteja temporariamente offline
-        if ((err.status === 0 || err.status === 404) && this.isValidMockCredentials(credentials)) {
+        // Fallback em mock para testes locais caso o backend esteja temporariamente offline (bloqueado em produção)
+        if (!environment.production && (err.status === 0 || err.status === 404) && this.isValidMockCredentials(credentials)) {
           const mockResponse = this.generateMockAuthResponse(credentials.email);
           this.setSession(mockResponse);
           return of(mockResponse);
@@ -59,15 +59,15 @@ export class AuthService {
   }
 
   /**
-   * Executa login simulado diretamente para testes locais offline.
+   * Executa login simulado diretamente para testes locais offline (bloqueado em produção).
    */
   loginMock(credentials: LoginRequest): Observable<AuthResponse> {
-    if (this.isValidMockCredentials(credentials)) {
+    if (!environment.production && this.isValidMockCredentials(credentials)) {
       const mockResponse = this.generateMockAuthResponse(credentials.email);
       this.setSession(mockResponse);
       return of(mockResponse);
     }
-    return throwError(() => new Error('Credenciais de teste inválidas.'));
+    return throwError(() => new Error('Credenciais de teste inválidas ou ambiente de produção.'));
   }
 
   /**
@@ -315,6 +315,9 @@ export class AuthService {
   }
 
   private isValidMockCredentials(credentials: LoginRequest): boolean {
+    if (environment.production) {
+      return false;
+    }
     return (
       credentials.email === 'admin@wbscouting.com' &&
       credentials.password === 'admin123'

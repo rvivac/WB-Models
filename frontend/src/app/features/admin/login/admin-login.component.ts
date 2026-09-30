@@ -70,24 +70,6 @@ export class AdminLoginComponent implements OnInit {
         this.redirectToTarget();
       },
       error: (err) => {
-        // Fallback para testes locais offline: se credenciais forem admin@wbscouting.com / admin123
-        if (
-          credentials.email === 'admin@wbscouting.com' &&
-          credentials.password === 'admin123'
-        ) {
-          this.authService.loginMock(credentials).subscribe({
-            next: () => {
-              this.isLoading.set(false);
-              this.redirectToTarget();
-            },
-            error: () => {
-              this.isLoading.set(false);
-              this.errorMessage.set('Falha na autenticação simulada local.');
-            }
-          });
-          return;
-        }
-
         this.isLoading.set(false);
         const detail =
           err?.error?.detail ||

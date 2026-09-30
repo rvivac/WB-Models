@@ -32,6 +32,12 @@ spring:
       connection-test-query: SELECT 1
       auto-commit: true
 
+  data:
+    web:
+      pageable:
+        max-page-size: 50
+        default-page-size: 20
+
   jpa:
     open-in-view: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -70,8 +76,11 @@ app:
       password: ${INITIAL_ADMIN_PASSWORD:Admin@WbScouting2026!}
       name: ${INITIAL_ADMIN_NAME:Administrador WB Scouting}
   cors:
-    # Adicionado http://localhost:4200 para permitir requisições do frontend Angular
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://localhost:3000,https://wbscouting.com}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,https://wbmodels.agency}
+    allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,PATCH,DELETE,OPTIONS}
+    allowed-headers: ${CORS_ALLOWED_HEADERS:Authorization,Content-Type,X-Requested-With,Accept,Origin}
+    allow-credentials: true
+    max-age: 3600
 
 # Configurações do Supabase Storage e API
 supabase:

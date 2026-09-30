@@ -164,6 +164,16 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    @ExceptionHandler(InvalidSortPropertyException.class)
+    public ProblemDetail handleInvalidSortPropertyException(InvalidSortPropertyException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problemDetail.setTitle("Propriedade de Ordenação Inválida");
+        problemDetail.setType(URI.create("https://wbscouting.com/errors/invalid-sort"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        problemDetail.setProperty("invalidProperty", ex.getProperty());
+        return problemDetail;
+    }
+
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleGenericException(Exception ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Ocorreu um erro interno no servidor.");

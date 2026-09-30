@@ -17,7 +17,8 @@ import java.time.LocalDate;
 public class CandidateApplyRequestDto {
 
     @NotBlank(message = "O nome completo é obrigatório.")
-    @Size(min = 3, max = 200, message = "O nome completo deve conter no mínimo 3 caracteres.")
+    @Size(min = 3, max = 120, message = "O nome completo deve possuir entre 3 e 120 caracteres.")
+    @Pattern(regexp = "^[\\p{L} .'-]+$", message = "O nome contém caracteres inválidos.")
     private String fullName;
 
     @NotBlank(message = "O e-mail é obrigatório.")

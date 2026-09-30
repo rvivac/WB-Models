@@ -68,7 +68,8 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("currentYear", Year.now().getValue());
 
             String htmlBody = templateEngine.process("email/candidate-application", context);
-            String subject = "WB Agency - Nova Candidatura Recebida: " + candidateData.getFullName();
+            String sanitizedFullName = sanitizeHeader(candidateData.getFullName());
+            String subject = sanitizeHeader("WB Agency - Nova Candidatura Recebida: " + sanitizedFullName);
 
             sendHtmlEmail(recipientEmail, subject, htmlBody);
             log.info("[{}] E-mail de candidatura enviado com sucesso para: {}", threadName, recipientEmail);
@@ -87,16 +88,26 @@ public class EmailServiceImpl implements EmailService {
         );
 
         InternetAddress fromAddress = new InternetAddress(
-                mailProperties.getFromAddress(),
-                mailProperties.getFromName(),
+                sanitizeHeader(mailProperties.getFromAddress()),
+                sanitizeHeader(mailProperties.getFromName()),
                 StandardCharsets.UTF_8.name()
         );
 
         helper.setFrom(fromAddress);
-        helper.setTo(recipientEmail);
-        helper.setSubject(subject);
+        helper.setTo(sanitizeHeader(recipientEmail));
+        helper.setSubject(sanitizeHeader(subject));
         helper.setText(htmlBody, true);
 
         mailSender.send(mimeMessage);
+    }
+
+    /**
+     * Expurgador rigoroso de caracteres de quebra de linha e injeção de cabeçalhos SMTP/CRLF (Item 9 - EAP-SEG-002).
+     */
+    private String sanitizeHeader(String input) {
+        if (input == null) {
+            return "";
+        }
+        return input.replaceAll("(?i)[\\r\\n]|%0d|%0a", " ").trim().replaceAll("\\s{2,}", " ");
     }
 }

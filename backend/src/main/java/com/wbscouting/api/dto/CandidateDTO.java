@@ -18,8 +18,9 @@ public class CandidateDTO {
     @AllArgsConstructor
     @Builder
     public static class ApplicationRequest {
-        @NotBlank(message = "Nome completo é obrigatório")
-        @Size(max = 200)
+        @NotBlank(message = "O nome completo é obrigatório.")
+        @Size(min = 3, max = 120, message = "O nome completo deve possuir entre 3 e 120 caracteres.")
+        @Pattern(regexp = "^[\\p{L} .'-]+$", message = "O nome contém caracteres inválidos.")
         private String fullName;
 
         @NotBlank(message = "Email é obrigatório")

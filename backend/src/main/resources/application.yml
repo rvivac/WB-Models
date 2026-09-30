@@ -76,9 +76,9 @@ app:
 # Configurações do Supabase Storage e API
 supabase:
   url: ${SUPABASE_URL:https://stmytwsdlonpnirqiufq.supabase.co}
-  key: ${SUPABASE_KEY}
-  service-role-key: ${SUPABASE_SERVICE_ROLE_KEY}
-  anon-key: ${SUPABASE_ANON_KEY}
+  key: ${SUPABASE_KEY:}
+  service-role-key: ${SUPABASE_SERVICE_ROLE_KEY:}
+  anon-key: ${SUPABASE_ANON_KEY:}
   storage:
     local-fallback: false
     local-dir: uploads

@@ -43,13 +43,16 @@
       <!-- Coluna Esquerda: Gestão de Mídias (Vídeo e Capa / Logo com Proporções Otimizadas) - 5 Colunas -->
       <div class="lg:col-span-5 space-y-6">
 
-        <!-- Bloco de Vídeo Hero -->
-        <div class="bg-white border border-[#E8EBE8] p-6 shadow-sm space-y-4">
+        <!-- Bloco 1: Vídeo de Fundo (Hero Video) -->
+        <div class="bg-white border border-[#E8EBE8] p-5 sm:p-6 shadow-xs space-y-4">
           <div class="card-editorial-header">
-            <div class="flex items-center justify-between">
-              <h2 class="card-editorial-title">Vídeo de Fundo (Hero Video)</h2>
-              <span class="text-[10px] font-mono text-[#5F6661] bg-[#FBFBF9] px-2 py-0.5 border border-[#E8EBE8]">MP4 / WEBM · Até 50MB</span>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[9px] uppercase tracking-[0.2em] font-mono text-[#4B584E] bg-[#F4F5F4] px-2 py-0.5 border border-[#E8EBE8]">
+                Mídia Principal · Hero Video
+              </span>
+              <span class="text-[9px] font-mono text-[#78807A]">MP4 / WEBM · Máx 50MB</span>
             </div>
+            <h2 class="card-editorial-title">Vídeo de Fundo (Hero Video)</h2>
             <p class="card-editorial-subtitle">Vídeo principal em loop contínuo exibido na vitrine da Home pública.</p>
           </div>
 
@@ -71,55 +74,60 @@
                 <span>Nenhum vídeo ativo</span>
               </div>
             </div>
+            <!-- Input File 100% Oculto Sem Browse Visível -->
             <input 
               #videoInput 
               type="file" 
               accept="video/mp4,video/webm" 
-              class="hidden" 
+              class="hidden input-file-hidden" 
+              style="display: none !important;"
               (change)="onVideoSelected($event)"
             />
           </div>
 
-          <!-- Botão de Ação Único e Status Abaixo do Vídeo -->
+          <!-- Barra de Ação Reduzida e Status Editorial -->
           <div class="media-bottom-bar">
+            <div class="media-status-pill">
+              <span class="status-dot" [ngClass]="currentVideoUrl ? 'active' : 'idle'"></span>
+              <span>{{ currentVideoUrl ? 'Vídeo Ativo na Home' : 'Aguardando Vídeo' }}</span>
+            </div>
+
             <button 
               type="button" 
               (click)="videoInput.click()" 
               [disabled]="isVideoUploading"
-              class="btn-media-action"
+              class="btn-media-upload"
               title="Carregar ou substituir o arquivo de vídeo hero"
             >
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
-              <span>{{ isVideoUploading ? 'Enviando (' + videoUploadProgress + '%)...' : 'Substituir Vídeo Hero' }}</span>
+              <span>{{ isVideoUploading ? 'Enviando (' + videoUploadProgress + '%)...' : 'Substituir Vídeo' }}</span>
             </button>
-
-            <span class="media-status-pill">
-              <span class="w-2 h-2 rounded-full" [ngClass]="currentVideoUrl ? 'bg-emerald-600' : 'bg-amber-500'"></span>
-              {{ currentVideoUrl ? 'Vídeo Ativo' : 'Aguardando Vídeo' }}
-            </span>
           </div>
 
           <!-- Progresso de Upload Discreto -->
           <div *ngIf="isVideoUploading" class="space-y-1.5 pt-1">
-            <div class="flex justify-between text-[11px] text-[#4B584E] font-medium font-mono">
+            <div class="flex justify-between text-[10px] text-[#4B584E] font-medium font-mono">
               <span>Transmitindo arquivo de vídeo...</span>
               <span>{{ videoUploadProgress }}%</span>
             </div>
-            <div class="w-full bg-[#E8EBE8] h-1.5 overflow-hidden rounded-full">
+            <div class="w-full bg-[#E8EBE8] h-1 overflow-hidden">
               <div class="bg-[#4B584E] h-full transition-all duration-300" [style.width.%]="videoUploadProgress"></div>
             </div>
           </div>
         </div>
 
-        <!-- Bloco de Capa / Poster de Contingência / Apresentação do Logo -->
-        <div class="bg-white border border-[#E8EBE8] p-6 shadow-sm space-y-4">
+        <!-- Bloco 2: Capa / Poster de Contingência / Apresentação do Logo -->
+        <div class="bg-white border border-[#E8EBE8] p-5 sm:p-6 shadow-xs space-y-4">
           <div class="card-editorial-header">
-            <div class="flex items-center justify-between">
-              <h2 class="card-editorial-title">Logo &amp; Capa de Contingência</h2>
-              <span class="text-[10px] font-mono text-[#5F6661] bg-[#FBFBF9] px-2 py-0.5 border border-[#E8EBE8]">JPEG / WEBP · Até 10MB</span>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[9px] uppercase tracking-[0.2em] font-mono text-[#4B584E] bg-[#F4F5F4] px-2 py-0.5 border border-[#E8EBE8]">
+                Contingência · Identidade
+              </span>
+              <span class="text-[9px] font-mono text-[#78807A]">JPG / WEBP / PNG · Máx 10MB</span>
             </div>
+            <h2 class="card-editorial-title">Logo &amp; Capa de Contingência</h2>
             <p class="card-editorial-subtitle">Exibida em conexões lentas ou dispositivos com restrição de reprodução.</p>
           </div>
 
@@ -131,27 +139,35 @@
                 alt="Logo WB Agency" 
               />
             </div>
-            <input #posterInput type="file" accept="image/jpeg,image/webp,image/png" class="hidden" (change)="onPosterSelected($event)">
+            <!-- Input File 100% Oculto Sem Browse Visível -->
+            <input 
+              #posterInput 
+              type="file" 
+              accept="image/jpeg,image/webp,image/png" 
+              class="hidden input-file-hidden" 
+              style="display: none !important;"
+              (change)="onPosterSelected($event)"
+            />
           </div>
 
-          <!-- Botão de Ação Único e Status Abaixo do Logo -->
+          <!-- Barra de Ação Reduzida e Status Abaixo do Logo -->
           <div class="media-bottom-bar">
+            <div class="media-status-pill">
+              <span class="status-dot active"></span>
+              <span>Capa Fallback Ativa</span>
+            </div>
+
             <button 
               type="button" 
               (click)="posterInput.click()" 
-              class="btn-media-action"
+              class="btn-media-upload"
               title="Carregar ou substituir o arquivo de logo/capa"
             >
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <span>Substituir Logo / Capa</span>
+              <span>Substituir Imagem</span>
             </button>
-
-            <span class="media-status-pill">
-              <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
-              Ativo como Fallback
-            </span>
           </div>
         </div>
 

@@ -3,166 +3,166 @@
   <main class="container admin-main">
     <div class="page-title-area">
       <h1 class="font-serif page-title">Painel de Controle</h1>
-      <p class="text-secondary">Visão geral do sistema de inteligência e prospecção de casting.</p>
+      <p class="text-secondary page-subtitle">Visão geral do sistema de inteligência e prospecção de casting.</p>
     </div>
 
     <!-- Tabela Editorial de Módulos de Gestão & Conteúdo -->
     <div class="modules-section mb-10 card-editorial p-6 sm:p-8 bg-white border border-[#E8EBE8] shadow-xs">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-6 border-b border-[#E8EBE8] gap-2">
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between pb-4 mb-6 border-b border-[#E8EBE8] gap-3">
         <div>
-          <span class="text-[10px] uppercase tracking-[0.25em] font-sans text-[#4B584E] font-semibold block mb-1">Hub Administrativo</span>
-          <h2 class="text-base sm:text-lg font-serif uppercase tracking-wider text-[#222624]">Módulos de Gestão &amp; Conteúdo</h2>
+          <span class="modules-section-badge">Hub Administrativo</span>
+          <h2 class="modules-section-title">Módulos de Gestão &amp; Conteúdo</h2>
         </div>
-        <p class="text-xs text-[#5F6661] max-w-md">
+        <p class="modules-section-desc max-w-md">
           Acesso centralizado aos subsistemas editoriais, scouting e curadoria de casting da WB Agency.
         </p>
       </div>
 
       <div class="table-responsive">
-        <table class="w-full text-left border-collapse">
+        <table class="modules-table">
           <thead>
-            <tr class="border-b border-[#E8EBE8] text-[10px] uppercase font-sans tracking-[0.18em] text-[#5F6661]">
-              <th class="py-3 px-4 w-1/3 font-semibold">Módulo &amp; Setor</th>
-              <th class="py-3 px-4 w-1/2 font-semibold">Escopo Operacional &amp; Curadoria</th>
-              <th class="py-3 px-4 text-right w-1/6 font-semibold">Ação</th>
+            <tr>
+              <th class="w-1/3">Módulo &amp; Setor</th>
+              <th class="w-1/2">Escopo Operacional &amp; Curadoria</th>
+              <th class="text-right w-1/6">Ação</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-[#E8EBE8]">
+          <tbody>
             
-            <!-- Linha 1: Página Inicial (Hero Media) -->
+            <!-- 1. Scouting: Candidaturas -->
             <tr class="hover:bg-[#FBFBF9] transition-colors group">
-              <td class="py-4 px-4 align-top">
-                <span class="inline-block text-[9px] uppercase tracking-[0.2em] font-mono text-[#4B584E] bg-[#F4F5F4] px-2 py-0.5 mb-1.5 border border-[#E8EBE8]">
-                  Hero Media
-                </span>
-                <div class="text-sm font-serif uppercase tracking-wider text-[#222624] font-medium group-hover:text-[#4B584E] transition-colors">
-                  <a routerLink="/admin/institucional/home" class="hover:underline">Página Inicial</a>
-                </div>
-              </td>
-              <td class="py-4 px-4 align-middle">
-                <p class="text-xs text-[#5F6661] leading-relaxed">
-                  Substituição do vídeo de abertura e imagem de capa de contingência.
-                </p>
-              </td>
-              <td class="py-4 px-4 align-middle text-right">
-                <a routerLink="/admin/institucional/home" class="inline-flex items-center gap-1.5 text-xs font-sans uppercase tracking-[0.12em] text-[#4B584E] hover:text-[#222624] hover:translate-x-0.5 transition-all font-medium">
-                  <span>Acessar</span>
-                  <span class="text-sm">&rarr;</span>
-                </a>
-              </td>
-            </tr>
-
-            <!-- Linha 2: Candidaturas (Scouting) -->
-            <tr class="hover:bg-[#FBFBF9] transition-colors group">
-              <td class="py-4 px-4 align-top">
-                <span class="inline-block text-[9px] uppercase tracking-[0.2em] font-mono text-[#4B584E] bg-[#F4F5F4] px-2 py-0.5 mb-1.5 border border-[#E8EBE8]">
+              <td class="align-top">
+                <span class="sector-badge">
                   Scouting
                 </span>
-                <div class="text-sm font-serif uppercase tracking-wider text-[#222624] font-medium group-hover:text-[#4B584E] transition-colors">
+                <div class="module-name group-hover:text-[#4B584E] transition-colors">
                   <a routerLink="/admin/candidaturas" class="hover:underline">Candidaturas</a>
                 </div>
               </td>
-              <td class="py-4 px-4 align-middle">
-                <p class="text-xs text-[#5F6661] leading-relaxed">
+              <td class="align-middle">
+                <p class="module-desc">
                   Triagem de novos talentos e inspeção técnica de polaroids.
                 </p>
               </td>
-              <td class="py-4 px-4 align-middle text-right">
-                <a routerLink="/admin/candidaturas" class="inline-flex items-center gap-1.5 text-xs font-sans uppercase tracking-[0.12em] text-[#4B584E] hover:text-[#222624] hover:translate-x-0.5 transition-all font-medium">
+              <td class="align-middle text-right">
+                <a routerLink="/admin/candidaturas" class="module-action">
                   <span>Acessar</span>
-                  <span class="text-sm">&rarr;</span>
+                  <span class="arrow">&rarr;</span>
                 </a>
               </td>
             </tr>
 
-            <!-- Linha 3: Elenco & Stars (Casting) -->
+            <!-- 2. Casting: Elenco & Stars -->
             <tr class="hover:bg-[#FBFBF9] transition-colors group">
-              <td class="py-4 px-4 align-top">
-                <span class="inline-block text-[9px] uppercase tracking-[0.2em] font-mono text-[#4B584E] bg-[#F4F5F4] px-2 py-0.5 mb-1.5 border border-[#E8EBE8]">
+              <td class="align-top">
+                <span class="sector-badge">
                   Casting
                 </span>
-                <div class="text-sm font-serif uppercase tracking-wider text-[#222624] font-medium group-hover:text-[#4B584E] transition-colors">
+                <div class="module-name group-hover:text-[#4B584E] transition-colors">
                   <a routerLink="/admin/modelos" class="hover:underline">Elenco &amp; Stars</a>
                 </div>
               </td>
-              <td class="py-4 px-4 align-middle">
-                <p class="text-xs text-[#5F6661] leading-relaxed">
+              <td class="align-middle">
+                <p class="module-desc">
                   Cadastro de biometria, composites e destaques da vitrine.
                 </p>
               </td>
-              <td class="py-4 px-4 align-middle text-right">
-                <a routerLink="/admin/modelos" class="inline-flex items-center gap-1.5 text-xs font-sans uppercase tracking-[0.12em] text-[#4B584E] hover:text-[#222624] hover:translate-x-0.5 transition-all font-medium">
+              <td class="align-middle text-right">
+                <a routerLink="/admin/modelos" class="module-action">
                   <span>Acessar</span>
-                  <span class="text-sm">&rarr;</span>
+                  <span class="arrow">&rarr;</span>
                 </a>
               </td>
             </tr>
 
-            <!-- Linha 4: Destaques da Vitrine (Curadoria) -->
+            <!-- 3. Institucional: Canais de Contato -->
             <tr class="hover:bg-[#FBFBF9] transition-colors group">
-              <td class="py-4 px-4 align-top">
-                <span class="inline-block text-[9px] uppercase tracking-[0.2em] font-mono text-[#4B584E] bg-[#F4F5F4] px-2 py-0.5 mb-1.5 border border-[#E8EBE8]">
-                  Curadoria
-                </span>
-                <div class="text-sm font-serif uppercase tracking-wider text-[#222624] font-medium group-hover:text-[#4B584E] transition-colors">
-                  <a routerLink="/admin/destaques-home" class="hover:underline">Destaques da Vitrine</a>
-                </div>
-              </td>
-              <td class="py-4 px-4 align-middle">
-                <p class="text-xs text-[#5F6661] leading-relaxed">
-                  Ordenação e promoção dos modelos em destaque na Home.
-                </p>
-              </td>
-              <td class="py-4 px-4 align-middle text-right">
-                <a routerLink="/admin/destaques-home" class="inline-flex items-center gap-1.5 text-xs font-sans uppercase tracking-[0.12em] text-[#4B584E] hover:text-[#222624] hover:translate-x-0.5 transition-all font-medium">
-                  <span>Acessar</span>
-                  <span class="text-sm">&rarr;</span>
-                </a>
-              </td>
-            </tr>
-
-            <!-- Linha 5: Canais de Contato (Institucional) -->
-            <tr class="hover:bg-[#FBFBF9] transition-colors group">
-              <td class="py-4 px-4 align-top">
-                <span class="inline-block text-[9px] uppercase tracking-[0.2em] font-mono text-[#4B584E] bg-[#F4F5F4] px-2 py-0.5 mb-1.5 border border-[#E8EBE8]">
+              <td class="align-top">
+                <span class="sector-badge">
                   Institucional
                 </span>
-                <div class="text-sm font-serif uppercase tracking-wider text-[#222624] font-medium group-hover:text-[#4B584E] transition-colors">
+                <div class="module-name group-hover:text-[#4B584E] transition-colors">
                   <a routerLink="/admin/institucional/contatos" class="hover:underline">Canais de Contato</a>
                 </div>
               </td>
-              <td class="py-4 px-4 align-middle">
-                <p class="text-xs text-[#5F6661] leading-relaxed">
+              <td class="align-middle">
+                <p class="module-desc">
                   Atualização granular de WhatsApp, e-mails corporativos e redes sociais.
                 </p>
               </td>
-              <td class="py-4 px-4 align-middle text-right">
-                <a routerLink="/admin/institucional/contatos" class="inline-flex items-center gap-1.5 text-xs font-sans uppercase tracking-[0.12em] text-[#4B584E] hover:text-[#222624] hover:translate-x-0.5 transition-all font-medium">
+              <td class="align-middle text-right">
+                <a routerLink="/admin/institucional/contatos" class="module-action">
                   <span>Acessar</span>
-                  <span class="text-sm">&rarr;</span>
+                  <span class="arrow">&rarr;</span>
                 </a>
               </td>
             </tr>
 
-            <!-- Linha 6: Idiomas PT/EN (Internacional) -->
+            <!-- 4. Internacional: Idiomas (PT / EN) -->
             <tr class="hover:bg-[#FBFBF9] transition-colors group">
-              <td class="py-4 px-4 align-top">
-                <span class="inline-block text-[9px] uppercase tracking-[0.2em] font-mono text-[#4B584E] bg-[#F4F5F4] px-2 py-0.5 mb-1.5 border border-[#E8EBE8]">
+              <td class="align-top">
+                <span class="sector-badge">
                   Internacional
                 </span>
-                <div class="text-sm font-serif uppercase tracking-wider text-[#222624] font-medium group-hover:text-[#4B584E] transition-colors">
+                <div class="module-name group-hover:text-[#4B584E] transition-colors">
                   <a routerLink="/admin/institucional/idiomas" class="hover:underline">Idiomas (PT / EN)</a>
                 </div>
               </td>
-              <td class="py-4 px-4 align-middle">
-                <p class="text-xs text-[#5F6661] leading-relaxed">
+              <td class="align-middle">
+                <p class="module-desc">
                   Edição modular e sincronizada de manifestos e diretrizes.
                 </p>
               </td>
-              <td class="py-4 px-4 align-middle text-right">
-                <a routerLink="/admin/institucional/idiomas" class="inline-flex items-center gap-1.5 text-xs font-sans uppercase tracking-[0.12em] text-[#4B584E] hover:text-[#222624] hover:translate-x-0.5 transition-all font-medium">
+              <td class="align-middle text-right">
+                <a routerLink="/admin/institucional/idiomas" class="module-action">
                   <span>Acessar</span>
-                  <span class="text-sm">&rarr;</span>
+                  <span class="arrow">&rarr;</span>
+                </a>
+              </td>
+            </tr>
+
+            <!-- 5. Hero Media: Página Inicial -->
+            <tr class="hover:bg-[#FBFBF9] transition-colors group">
+              <td class="align-top">
+                <span class="sector-badge">
+                  Hero Media
+                </span>
+                <div class="module-name group-hover:text-[#4B584E] transition-colors">
+                  <a routerLink="/admin/institucional/home" class="hover:underline">Página Inicial</a>
+                </div>
+              </td>
+              <td class="align-middle">
+                <p class="module-desc">
+                  Substituição do vídeo de abertura e imagem de capa de contingência.
+                </p>
+              </td>
+              <td class="align-middle text-right">
+                <a routerLink="/admin/institucional/home" class="module-action">
+                  <span>Acessar</span>
+                  <span class="arrow">&rarr;</span>
+                </a>
+              </td>
+            </tr>
+
+            <!-- 6. Curadoria: Destaques da Vitrine -->
+            <tr class="hover:bg-[#FBFBF9] transition-colors group">
+              <td class="align-top">
+                <span class="sector-badge">
+                  Curadoria
+                </span>
+                <div class="module-name group-hover:text-[#4B584E] transition-colors">
+                  <a routerLink="/admin/destaques-home" class="hover:underline">Destaques da Vitrine</a>
+                </div>
+              </td>
+              <td class="align-middle">
+                <p class="module-desc">
+                  Ordenação e promoção dos modelos em destaque na Home.
+                </p>
+              </td>
+              <td class="align-middle text-right">
+                <a routerLink="/admin/destaques-home" class="module-action">
+                  <span>Acessar</span>
+                  <span class="arrow">&rarr;</span>
                 </a>
               </td>
             </tr>

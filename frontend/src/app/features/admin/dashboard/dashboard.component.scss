@@ -121,6 +121,12 @@
     color: var(--text-primary);
     margin-bottom: 0.25rem;
   }
+
+  .page-subtitle {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
 }
 
 .stats-grid {
@@ -244,7 +250,35 @@
 
 // Tabela Editorial de Módulos de Gestão & Conteúdo
 .modules-section {
-  table {
+  .modules-section-badge {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 0.9375rem; // Exatamente do mesmo tamanho que o subtítulo da página
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #4B584E;
+    margin-bottom: 0.25rem;
+  }
+
+  .modules-section-title {
+    font-family: var(--font-serif);
+    font-size: 1.875rem; // 1 ponto menor que o Painel de Controle (2.25rem)
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  .modules-section-desc {
+    font-family: var(--font-sans);
+    font-size: 0.9375rem; // Exatamente do mesmo tamanho que o subtítulo da página
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .modules-table {
+    width: 100%;
     border-collapse: separate;
     border-spacing: 0;
 
@@ -253,17 +287,80 @@
       font-size: 0.625rem;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: var(--text-muted);
+      font-weight: 600;
+      color: #78827B;
+      padding: 0.75rem 1rem;
       border-bottom: 1px solid var(--border-subtle);
     }
 
     td {
+      padding: 0.875rem 1rem;
       border-bottom: 1px solid var(--border-subtle);
       transition: background-color var(--transition-fast);
+      vertical-align: middle;
     }
 
     tbody tr:last-child td {
       border-bottom: none;
+    }
+
+    .sector-badge {
+      display: inline-block;
+      font-family: var(--font-mono, monospace);
+      font-size: 0.5625rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: #4B584E;
+      background: #F4F5F4;
+      padding: 0.15rem 0.5rem;
+      border: 1px solid #E8EBE8;
+      margin-bottom: 0.25rem;
+    }
+
+    .module-name {
+      font-family: var(--font-serif);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #222624;
+      transition: color var(--transition-fast);
+
+      a:hover {
+        color: #4B584E;
+      }
+    }
+
+    .module-desc {
+      font-family: var(--font-sans);
+      font-size: 0.75rem;
+      color: #5F6661;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .module-action {
+      font-family: var(--font-sans);
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #4B584E;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      transition: all var(--transition-fast);
+
+      &:hover {
+        color: #222624;
+        transform: translateX(2px);
+      }
+
+      .arrow {
+        font-size: 0.8125rem;
+        line-height: 1;
+      }
     }
   }
 }

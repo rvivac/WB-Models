@@ -2,24 +2,24 @@
   <div class="container">
     <!-- Cabeçalho Editorial -->
     <header class="contact-header text-center">
-      <span class="badge-editorial tracking-editorial">Atendimento Oficial &bull; Proteção Anti-Spam</span>
-      <h1 class="font-serif contact-title">Canais de Contato</h1>
+      <span class="badge-editorial tracking-editorial">{{ 'contact_page.badge' | translate }}</span>
+      <h1 class="font-serif contact-title">{{ 'contact_page.title' | translate }}</h1>
       <p class="contact-subtitle">
-        Conecte-se com a WB Agency através de nossos canais institucionais seguros ou solicite um orçamento de casting diretamente com nossos bookers.
+        {{ 'contact_page.subtitle' | translate }}
       </p>
     </header>
 
     <!-- Grid de Canais de Atendimento Seguro -->
-    <section class="channels-grid" aria-label="Canais Oficiais de Atendimento">
+    <section class="channels-grid" [attr.aria-label]="'contact_page.channels_aria' | translate">
       <!-- 1. Casting & Representação (Novos Modelos) -->
       <article class="channel-card card-editorial" id="card-casting">
         <div class="card-glow"></div>
         <div class="card-content">
           <div class="channel-badge-wrap">
-            <span class="channel-badge tracking-editorial">Novos Talentos</span>
+            <span class="channel-badge tracking-editorial">{{ 'contact_page.card_casting.tag' | translate }}</span>
             <div class="status-indicator">
               <span class="status-dot"></span>
-              <span>Scouting Ativo</span>
+              <span>{{ 'contact_page.card_casting.status' | translate }}</span>
             </div>
           </div>
 
@@ -30,21 +30,21 @@
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
             </div>
-            <h2 class="channel-title font-serif">Casting &amp; Representação</h2>
+            <h2 class="channel-title font-serif">{{ 'contact_page.card_casting.title' | translate }}</h2>
           </div>
 
           <p class="channel-desc text-secondary">
-            Deseja fazer parte do elenco exclusivo da WB Agency? As inscrições e triagens para novas modelos e talentos masculinos acontecem exclusivamente pelo nosso portal de scouting digital.
+            {{ 'contact_page.card_casting.desc' | translate }}
           </p>
 
           <ul class="channel-guidelines">
             <li>
               <span class="check-bullet">&bull;</span>
-              <span>Avaliação de fotos naturais e sem maquiagem (polaroids).</span>
+              <span>{{ 'contact_page.card_casting.guideline1' | translate }}</span>
             </li>
             <li>
               <span class="check-bullet">&bull;</span>
-              <span>Perfil nacional e internacional com suporte de carreira.</span>
+              <span>{{ 'contact_page.card_casting.guideline2' | translate }}</span>
             </li>
           </ul>
 
@@ -53,7 +53,7 @@
               routerLink="/seja-modelo" 
               class="btn-channel btn-channel-gold"
               id="btn-apply-casting">
-              <span>Quero Ser Modelo</span>
+              <span>{{ 'contact_page.card_casting.cta' | translate }}</span>
               <span class="action-arrow">&rarr;</span>
             </a>
           </div>
@@ -65,10 +65,10 @@
         <div class="card-glow gold"></div>
         <div class="card-content">
           <div class="channel-badge-wrap">
-            <span class="channel-badge gold tracking-editorial">Comercial &bull; Direto</span>
+            <span class="channel-badge gold tracking-editorial">{{ 'contact_page.card_bookers.tag' | translate }}</span>
             <div class="status-indicator online">
               <span class="status-dot pulse"></span>
-              <span>Bookers Online</span>
+              <span>{{ 'contact_page.card_bookers.status' | translate }}</span>
             </div>
           </div>
 
@@ -80,11 +80,11 @@
                 <line x1="12" y1="17" x2="12" y2="21"></line>
               </svg>
             </div>
-            <h2 class="channel-title font-serif">Bookers &amp; Comercial</h2>
+            <h2 class="channel-title font-serif">{{ 'contact_page.card_bookers.title' | translate }}</h2>
           </div>
 
           <p class="channel-desc text-secondary">
-            Atendimento prioritário a agências de publicidade, fotógrafos, diretores de cinema, e-commerces e marcas de moda para cotações e contratações de casting.
+            {{ 'contact_page.card_bookers.desc' | translate }}
           </p>
 
           <!-- Ações Protegidas Anti-Scraping acionadas via clique do usuário -->
@@ -95,7 +95,7 @@
               (click)="onWhatsAppClick()" 
               class="btn-protected btn-whatsapp" 
               id="btn-secure-whatsapp"
-              aria-label="Iniciar conversa com a equipe de bookers via WhatsApp">
+              [attr.aria-label]="'contact_page.card_bookers.whatsapp_aria' | translate">
               <div class="btn-protected-icon">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                   <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.694.062-1.121-.077-.282-.092-.647-.215-1.116-.421-1.996-.879-3.298-2.906-3.398-3.041-.099-.136-.811-1.081-.811-2.062 0-.981.513-1.464.697-1.664.183-.2.401-.25.535-.25.134 0 .268.001.385.007.123.006.288-.047.45.343.167.405.571 1.393.621 1.495.05.101.084.221.017.354-.067.133-.101.216-.201.332-.1.117-.21.261-.3.35-.1.101-.205.211-.088.411.117.2 1.521 2.476 1.705 2.678.183.201.288.167.421.034.133-.134.571-.667.724-.897.152-.23.305-.192.513-.115.209.077 1.328.626 1.558.741.23.115.385.172.441.269.057.098.057.568-.087.973z"/>
@@ -103,10 +103,10 @@
                 </svg>
               </div>
               <div class="btn-protected-text">
-                <span class="btn-action-label">WhatsApp Bookers</span>
+                <span class="btn-action-label">{{ 'contact_page.card_bookers.whatsapp_label' | translate }}</span>
                 <span class="btn-action-val">{{ secureContact.phoneDisplay }}</span>
               </div>
-              <span class="btn-click-hint">Chamar &rarr;</span>
+              <span class="btn-click-hint">{{ 'contact_page.card_bookers.whatsapp_action' | translate }}</span>
             </button>
 
             <!-- Botão Seguro E-mail -->
@@ -115,7 +115,7 @@
               (click)="onMailClick()" 
               class="btn-protected btn-email" 
               id="btn-secure-email"
-              aria-label="Enviar e-mail para o departamento comercial da WB Agency">
+              [attr.aria-label]="'contact_page.card_bookers.email_aria' | translate">
               <div class="btn-protected-icon">
                 <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.75" fill="none" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
@@ -123,10 +123,10 @@
                 </svg>
               </div>
               <div class="btn-protected-text">
-                <span class="btn-action-label">E-mail Comercial</span>
+                <span class="btn-action-label">{{ 'contact_page.card_bookers.email_label' | translate }}</span>
                 <span class="btn-action-val">{{ secureContact.emailDisplay }}</span>
               </div>
-              <span class="btn-click-hint">Escrever &rarr;</span>
+              <span class="btn-click-hint">{{ 'contact_page.card_bookers.email_action' | translate }}</span>
             </button>
           </div>
         </div>
@@ -137,10 +137,10 @@
         <div class="card-glow"></div>
         <div class="card-content">
           <div class="channel-badge-wrap">
-            <span class="channel-badge tracking-editorial">Social Verificado</span>
+            <span class="channel-badge tracking-editorial">{{ 'contact_page.card_social.tag' | translate }}</span>
             <div class="status-indicator">
               <span class="status-dot"></span>
-              <span>Oficial</span>
+              <span>{{ 'contact_page.card_social.status' | translate }}</span>
             </div>
           </div>
 
@@ -150,11 +150,11 @@
                 <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
               </svg>
             </div>
-            <h2 class="channel-title font-serif">Canal Social Oficial</h2>
+            <h2 class="channel-title font-serif">{{ 'contact_page.card_social.title' | translate }}</h2>
           </div>
 
           <p class="channel-desc text-secondary">
-            Acompanhe editoriais de moda exclusivos, estreias de novos rostos, bastidores de castings internacionais e publicações oficiais da agência.
+            {{ 'contact_page.card_social.desc' | translate }}
           </p>
 
           <div class="channel-guidelines">
@@ -162,7 +162,7 @@
               <svg viewBox="0 0 24 24" width="16" height="16" fill="var(--wb-primary)">
                 <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
               </svg>
-              <span>Canal Institucional Verificado</span>
+              <span>{{ 'contact_page.card_social.verified' | translate }}</span>
             </div>
           </div>
 
@@ -172,7 +172,7 @@
               (click)="onInstagramClick()" 
               class="btn-channel btn-channel-instagram"
               id="btn-secure-instagram"
-              aria-label="Abrir Instagram oficial da WB Agency">
+              [attr.aria-label]="'contact_page.card_social.instagram_aria' | translate">
               <span>{{ secureContact.instagramDisplay }}</span>
               <span class="action-arrow">&nearr;</span>
             </button>
@@ -182,13 +182,13 @@
     </section>
 
     <!-- Seção Secundária: Formulário Estruturado de Orçamento Comercial -->
-    <section class="booking-form-section" aria-label="Solicitação de Casting e Orçamento">
+    <section class="booking-form-section" [attr.aria-label]="'contact_page.form.section_aria' | translate">
       <div class="booking-form-card card-editorial">
         <div class="form-header-wrap">
-          <span class="badge-editorial tracking-editorial">Atendimento a Produtoras e Marcas</span>
-          <h2 class="font-serif form-heading">Solicitar Orçamento de Casting</h2>
+          <span class="badge-editorial tracking-editorial">{{ 'contact_page.form.badge' | translate }}</span>
+          <h2 class="font-serif form-heading">{{ 'contact_page.form.heading' | translate }}</h2>
           <p class="form-subtext text-secondary">
-            Preencha os detalhes da sua campanha publicitária, catálogo ou desfile para receber um casting personalizado e estimativa de honorários.
+            {{ 'contact_page.form.subtext' | translate }}
           </p>
         </div>
 
@@ -199,93 +199,93 @@
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
             </div>
-            <h3 class="font-serif success-title">Solicitação Enviada com Sucesso</h3>
+            <h3 class="font-serif success-title">{{ 'contact_page.form.success_title' | translate }}</h3>
             <p class="text-secondary success-desc">
-              Obrigado pelo contato. Um de nossos bookers especializados analisará o briefing e retornará sua solicitação em breve.
+              {{ 'contact_page.form.success_desc' | translate }}
             </p>
             <button type="button" class="btn btn-outline btn-new-message" (click)="isSubmitted.set(false)">
-              Enviar Outra Solicitação
+              {{ 'contact_page.form.btn_new' | translate }}
             </button>
           </div>
         } @else {
           <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="editorial-form">
             <div class="form-group">
-              <label for="c-name">Nome Completo do Solicitante *</label>
+              <label for="c-name">{{ 'contact_page.form.name_label' | translate }}</label>
               <input 
                 id="c-name" 
                 type="text" 
                 formControlName="name" 
                 class="form-control" 
-                placeholder="Ex.: Lucas Mendes" 
+                [placeholder]="'contact_page.form.name_placeholder' | translate" 
                 autocomplete="name" />
               @if (contactForm.get('name')?.touched && contactForm.get('name')?.invalid) {
-                <span class="form-error">O nome é obrigatório.</span>
+                <span class="form-error">{{ 'contact_page.form.name_error' | translate }}</span>
               }
             </div>
 
             <div class="form-row">
               <div class="form-group">
-                <label for="c-company">Marca / Produtora / Agência</label>
+                <label for="c-company">{{ 'contact_page.form.company_label' | translate }}</label>
                 <input 
                   id="c-company" 
                   type="text" 
                   formControlName="company" 
                   class="form-control" 
-                  placeholder="Ex.: Vogue Brasil, Osklen, etc." 
+                  [placeholder]="'contact_page.form.company_placeholder' | translate" 
                   autocomplete="organization" />
               </div>
 
               <div class="form-group">
-                <label for="c-interest">Finalidade do Projeto *</label>
+                <label for="c-interest">{{ 'contact_page.form.interest_label' | translate }}</label>
                 <select id="c-interest" formControlName="interestType" class="form-control">
-                  <option value="BOOKING">Contratação Direta de Modelo</option>
-                  <option value="CAMPAIGN">Campanha Publicitária / Lookbook</option>
-                  <option value="EDITORIAL">Editorial de Moda / Capa</option>
-                  <option value="OTHER">Parcerias e Outros Assuntos</option>
+                  <option value="BOOKING">{{ 'contact_page.form.interest_booking' | translate }}</option>
+                  <option value="CAMPAIGN">{{ 'contact_page.form.interest_campaign' | translate }}</option>
+                  <option value="EDITORIAL">{{ 'contact_page.form.interest_editorial' | translate }}</option>
+                  <option value="OTHER">{{ 'contact_page.form.interest_other' | translate }}</option>
                 </select>
               </div>
             </div>
 
             <div class="form-row">
               <div class="form-group">
-                <label for="c-email">E-mail Corporativo *</label>
+                <label for="c-email">{{ 'contact_page.form.email_label' | translate }}</label>
                 <input 
                   id="c-email" 
                   type="email" 
                   formControlName="email" 
                   class="form-control" 
-                  placeholder="contato@suaempresa.com" 
+                  [placeholder]="'contact_page.form.email_placeholder' | translate" 
                   autocomplete="email" />
                 @if (contactForm.get('email')?.touched && contactForm.get('email')?.invalid) {
-                  <span class="form-error">Informe um e-mail corporativo válido.</span>
+                  <span class="form-error">{{ 'contact_page.form.email_error' | translate }}</span>
                 }
               </div>
 
               <div class="form-group">
-                <label for="c-phone">Telefone / WhatsApp Comercial *</label>
+                <label for="c-phone">{{ 'contact_page.form.phone_label' | translate }}</label>
                 <input 
                   id="c-phone" 
                   type="tel" 
                   formControlName="phone" 
                   class="form-control" 
-                  placeholder="(11) 99999-9999" 
+                  [placeholder]="'contact_page.form.phone_placeholder' | translate" 
                   autocomplete="tel" />
                 @if (contactForm.get('phone')?.touched && contactForm.get('phone')?.invalid) {
-                  <span class="form-error">O telefone de contato é obrigatório.</span>
+                  <span class="form-error">{{ 'contact_page.form.phone_error' | translate }}</span>
                 }
               </div>
             </div>
 
             <div class="form-group">
-              <label for="c-message">Briefing do Casting ou Projeto *</label>
+              <label for="c-message">{{ 'contact_page.form.message_label' | translate }}</label>
               <textarea 
                 id="c-message" 
                 rows="4" 
                 formControlName="message" 
                 class="form-control" 
-                placeholder="Descreva o perfil do modelo desejado, datas previstas de captação, praça de veiculação e mídias..."></textarea>
+                [placeholder]="'contact_page.form.message_placeholder' | translate"></textarea>
               @if (contactForm.get('message')?.touched && contactForm.get('message')?.invalid) {
-                <span class="form-error">Descreva os detalhes do projeto (mínimo de 10 caracteres).</span>
+                <span class="form-error">{{ 'contact_page.form.message_error' | translate }}</span>
               }
             </div>
 
@@ -295,7 +295,7 @@
                 variant="gold"
                 size="lg"
                 [loading]="isSending()">
-                Solicitar Casting
+                {{ 'contact_page.form.submit_btn' | translate }}
               </app-button>
             </div>
           </form>

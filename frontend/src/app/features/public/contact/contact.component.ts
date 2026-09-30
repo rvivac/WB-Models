@@ -4,11 +4,12 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { RouterModule, Router } from '@angular/router';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { SecureContactService } from '../../../core/services/secure-contact.service';
+import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 
 @Component({
   selector: 'app-contact',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, ButtonComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, ButtonComponent, TranslatePipe],
   templateUrl: './contact.component.html',
   styleUrls: ['./contact.component.scss']
 })

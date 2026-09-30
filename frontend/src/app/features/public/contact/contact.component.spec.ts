@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ContactComponent } from './contact.component';
 import { SecureContactService } from '../../../core/services/secure-contact.service';
 
@@ -13,6 +15,8 @@ describe('ContactComponent (SITE-004 Anti-Scraping & CyberSecurity)', () => {
       imports: [ContactComponent],
       providers: [
         provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
         SecureContactService
       ]
     }).compileComponents();

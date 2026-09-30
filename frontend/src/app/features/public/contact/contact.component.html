@@ -1,27 +1,19 @@
 <div class="contact-page">
-  <!-- Topo Editorial com Espaçamento Harmonizado e Breadcrumbs Canônicos -->
-  <section class="w-full bg-white border-b border-neutral-100">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-8 md:pt-14 md:pb-10">
-      
-      <!-- Cabeçalho Editorial Padronizado -->
-      <header class="page-header contact-header">
-        <nav class="header-breadcrumbs">
-          <a routerLink="/" class="breadcrumb-link">{{ 'nav.home' | translate }}</a>
-          <span class="breadcrumb-separator">/</span>
-          <span class="breadcrumb-current">{{ 'nav.contact' | translate }}</span>
-        </nav>
+  <div class="container">
+    <!-- Cabeçalho Editorial Padronizado -->
+    <header class="page-header contact-header">
+      <nav class="header-breadcrumbs">
+        <a routerLink="/" class="breadcrumb-link">{{ 'nav.home' | translate }}</a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">{{ 'nav.contact' | translate }}</span>
+      </nav>
 
-        <h1 class="page-title font-serif contact-title">{{ 'contact_page.title' | translate }}</h1>
-        <p class="page-subtitle contact-subtitle">
-          {{ 'contact_page.subtitle' | translate }}
-        </p>
-      </header>
+      <h1 class="page-title font-serif contact-title">{{ 'contact_page.title' | translate }}</h1>
+      <p class="page-subtitle contact-subtitle">
+        {{ 'contact_page.subtitle' | translate }}
+      </p>
+    </header>
 
-    </div>
-  </section>
-
-  <!-- Área de Conteúdo Principal Padronizada com max-w-7xl -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
     <!-- Grid de Canais de Atendimento Seguro -->
     <section class="channels-grid" [attr.aria-label]="'contact_page.channels_aria' | translate">
       <!-- 1. Casting & Representação (Novos Modelos) -->

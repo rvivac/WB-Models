@@ -2,16 +2,17 @@
 
 .contact-page {
   min-height: calc(100vh - var(--header-height, 80px));
-  padding-top: var(--header-height, 80px);
+  padding-top: calc(var(--header-height, 80px) + 2.5rem);
+  padding-bottom: 6rem;
   position: relative;
-  background-color: var(--wb-background); // #FBFBF9
+  background-color: var(--bg-primary, #FBFBF9);
   color: var(--text-primary);
 }
 
 .page-header,
 .contact-header {
   max-width: 800px;
-  margin: 0;
+  margin: 0 0 3.5rem 0;
   text-align: left;
 
 
@@ -25,6 +26,7 @@
     text-transform: uppercase;
     color: var(--text-muted);
     margin-bottom: 1rem;
+    font-family: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
 
     .breadcrumb-link {
       color: var(--text-secondary);
@@ -47,6 +49,7 @@
 
   .page-title,
   .contact-title {
+    font-family: var(--font-serif, 'Cormorant Garamond', Georgia, serif) !important;
     font-size: 2.5rem;
     font-weight: 300;
     line-height: 1.15;
@@ -62,6 +65,7 @@
 
   .page-subtitle,
   .contact-subtitle {
+    font-family: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
     font-size: 1.05rem;
     line-height: 1.6;
     color: var(--text-secondary);

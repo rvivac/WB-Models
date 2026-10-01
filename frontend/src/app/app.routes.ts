@@ -229,6 +229,21 @@ export const routes: Routes = [
         pathMatch: 'full'
       },
       {
+        path: 'institucional/quero-ser-modelo',
+        loadComponent: () => import('./features/admin/institutional/apply-faq-manager.component').then(m => m.ApplyFaqManagerComponent),
+        title: 'Gestão Quero Ser Modelo & FAQ | WB Agency'
+      },
+      {
+        path: 'institucional/faq',
+        redirectTo: 'institucional/quero-ser-modelo',
+        pathMatch: 'full'
+      },
+      {
+        path: 'conteudo/faq',
+        redirectTo: 'institucional/quero-ser-modelo',
+        pathMatch: 'full'
+      },
+      {
         path: 'institucional/idiomas',
         loadComponent: () => import('./features/admin/institutional/bilingual-content-editor.component').then(m => m.BilingualContentEditorComponent),
         title: 'Conteúdos Bilíngues (PT/EN) | WB Agency'

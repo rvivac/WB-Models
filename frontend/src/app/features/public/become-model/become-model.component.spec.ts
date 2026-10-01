@@ -4,17 +4,38 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { BecomeModelComponent } from './become-model.component';
 import { environment } from '../../../../environments/environment';
 
+import { of } from 'rxjs';
+import { ApplyFaqService } from '../../../core/services/apply-faq.service';
+
 describe('BecomeModelComponent', () => {
   let component: BecomeModelComponent;
   let fixture: ComponentFixture<BecomeModelComponent>;
   let httpTesting: HttpTestingController;
+
+  const mockFaqService = {
+    getPublicApplyHeader: () => of({
+      title: 'QUERO SER MODELO',
+      subtitle: 'WB SCOUTING DESK',
+      description: 'Preencha o formulário e envie suas fotos.'
+    }),
+    getPublicFaqs: () => of([
+      {
+        id: '00000000-0000-0000-0000-000000000001',
+        question: 'Existe algum custo para inscrição?',
+        answer: 'Não, 100% gratuito.',
+        displayOrder: 0,
+        isActive: true
+      }
+    ])
+  };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [BecomeModelComponent],
       providers: [
         provideHttpClient(),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        { provide: ApplyFaqService, useValue: mockFaqService }
       ]
     }).compileComponents();
 

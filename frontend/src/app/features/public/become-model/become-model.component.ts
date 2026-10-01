@@ -6,6 +6,9 @@ import { RouterModule } from '@angular/router';
 import { cpfValidator } from '../../../core/validators/cpf.validator';
 import { environment } from '../../../../environments/environment';
 
+import { ApplyFaqService } from '../../../core/services/apply-faq.service';
+import { ApplyFaq } from '../../../shared/models/apply-faq.interface';
+
 export interface PhotoSlot {
   file: File | null;
   previewUrl: string | null;
@@ -24,6 +27,7 @@ export interface PhotoSlot {
 export class BecomeModelComponent implements OnInit {
   private fb = inject(FormBuilder);
   private http = inject(HttpClient);
+  private faqService = inject(ApplyFaqService);
 
   form!: FormGroup;
   isSubmitting = false;
@@ -32,6 +36,23 @@ export class BecomeModelComponent implements OnInit {
   submitSuccess = false;
   submitError: string | null = null;
   submissionProtocol: string | null = null;
+
+  // Cabeçalho Editorial Dinâmico
+  headerTitle = 'QUERO SER MODELO';
+  headerSubtitle = 'WB SCOUTING DESK';
+  headerDescription = 'Se você deseja fazer parte do casting da WB Agency, atenção para as informações abaixo: preencha o formulário e envie suas fotos para realizarmos a avaliação digital.';
+
+  // FAQs e Orientações
+  faqs: ApplyFaq[] = [];
+  openFaqId: string | null = null;
+
+  toggleFaq(id: string): void {
+    this.openFaqId = this.openFaqId === id ? null : id;
+  }
+
+  isFaqOpen(id: string): boolean {
+    return this.openFaqId === id;
+  }
 
   get applyForm(): FormGroup {
     return this.form;
@@ -87,6 +108,23 @@ export class BecomeModelComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.watchBirthDate();
+    this.loadEditorialContent();
+  }
+
+  private loadEditorialContent(): void {
+    this.faqService.getPublicApplyHeader().subscribe(header => {
+      if (header) {
+        this.headerTitle = header.title || this.headerTitle;
+        this.headerSubtitle = header.subtitle || this.headerSubtitle;
+        this.headerDescription = header.description || this.headerDescription;
+      }
+    });
+
+    this.faqService.getPublicFaqs().subscribe(faqs => {
+      if (faqs && faqs.length > 0) {
+        this.faqs = faqs;
+      }
+    });
   }
 
   private initForm(): void {

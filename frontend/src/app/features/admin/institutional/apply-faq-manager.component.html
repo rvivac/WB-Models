@@ -1,0 +1,370 @@
+<div class="mgmt-page selection:bg-[#4B584E] selection:text-white bg-[#FBFBF9] min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-6xl mx-auto space-y-8">
+
+    <!-- CABEÇALHO DO MÓDULO INSTITUCIONAL -->
+    <header class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-[#E8EBE8] gap-4">
+      <div>
+        <div class="inline-flex items-center gap-2 bg-[#F4F5F4] border border-[#E8EBE8] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.2em] font-sans text-[#4B584E] font-semibold mb-1">
+          Conteúdo Institucional
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-serif uppercase tracking-wider text-[#222624]">
+          Quero Ser Modelo &amp; FAQ
+        </h1>
+        <p class="text-xs text-[#5F6661] mt-1 max-w-xl">
+          Gerenciamento dinâmico do cabeçalho da página pública de candidatura e das perguntas frequentes sanfonadas.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <a 
+          routerLink="/apply" 
+          target="_blank" 
+          class="px-4 py-2 bg-white border border-[#E8EBE8] hover:border-[#4B584E] text-xs font-sans uppercase tracking-widest text-[#222624] transition-all rounded-none"
+        >
+          Ver Página Pública ↗
+        </a>
+      </div>
+    </header>
+
+    <!-- SUB-NAVEGAÇÃO INSTITUCIONAL EM ABAS -->
+    <div class="flex items-center gap-2 border-b border-[#E8EBE8] pb-1 overflow-x-auto text-xs uppercase tracking-wider font-sans">
+      <a 
+        routerLink="/admin/institucional/home" 
+        class="px-4 py-2 text-[#5F6661] hover:text-[#222624] hover:bg-white transition-all rounded-none"
+      >
+        Home
+      </a>
+      <a 
+        routerLink="/admin/institucional/contatos" 
+        class="px-4 py-2 text-[#5F6661] hover:text-[#222624] hover:bg-white transition-all rounded-none"
+      >
+        Contatos &amp; Redes
+      </a>
+      <a 
+        routerLink="/admin/institucional/quero-ser-modelo" 
+        class="px-4 py-2 bg-white border-b-2 border-[#4B584E] text-[#4B584E] font-semibold rounded-none"
+      >
+        Quero Ser Modelo (FAQ)
+      </a>
+      <a 
+        routerLink="/admin/institucional/idiomas" 
+        class="px-4 py-2 text-[#5F6661] hover:text-[#222624] hover:bg-white transition-all rounded-none"
+      >
+        Idiomas (PT/EN)
+      </a>
+    </div>
+
+    <!-- FEEDBACK ALERT / TOAST -->
+    <div 
+      *ngIf="feedbackMessage" 
+      class="p-4 text-xs flex items-center justify-between rounded-none transition-all shadow-xs"
+      [ngClass]="feedbackType === 'success' ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' : 'bg-red-50 border border-red-200 text-red-800'"
+    >
+      <span>{{ feedbackMessage }}</span>
+      <button type="button" (click)="feedbackMessage = ''" class="cursor-pointer text-sm font-bold ml-4">✕</button>
+    </div>
+
+    <!-- SEÇÃO 1: CABEÇALHO EDITORIAL DA PÁGINA /APPLY -->
+    <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 shadow-xs rounded-none space-y-6">
+      <div class="border-b border-[#E8EBE8] pb-3 flex items-center justify-between">
+        <div>
+          <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">1. Texto de Introdução do Cabeçalho (/apply)</h2>
+          <p class="text-[11px] text-[#5F6661] mt-0.5">Altere os títulos e parágrafos de apresentação exibidos no topo da tela pública.</p>
+        </div>
+        <span class="text-[9px] uppercase tracking-widest font-mono text-[#4B584E] bg-[#F4F5F4] px-2 py-0.5 border border-[#E8EBE8]">
+          Tempo Real
+        </span>
+      </div>
+
+      <form [formGroup]="headerForm" (ngSubmit)="saveHeader()" class="space-y-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          
+          <div>
+            <label class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
+              Subtítulo / Tag Superior *
+            </label>
+            <input 
+              type="text" 
+              formControlName="subtitle" 
+              placeholder="Ex: WB SCOUTING DESK"
+              class="w-full px-3.5 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none uppercase"
+            />
+            <span *ngIf="headerForm.get('subtitle')?.touched && headerForm.get('subtitle')?.invalid" class="text-[10px] text-red-600 block mt-1">
+              Subtítulo é obrigatório.
+            </span>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
+              Título Principal *
+            </label>
+            <input 
+              type="text" 
+              formControlName="title" 
+              placeholder="Ex: QUERO SER MODELO"
+              class="w-full px-3.5 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none uppercase font-serif"
+            />
+            <span *ngIf="headerForm.get('title')?.touched && headerForm.get('title')?.invalid" class="text-[10px] text-red-600 block mt-1">
+              Título é obrigatório.
+            </span>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
+              Texto Introdutório / Descrição *
+            </label>
+            <textarea 
+              rows="3" 
+              formControlName="description" 
+              placeholder="Descreva o propósito da página e orientações para o candidato..."
+              class="w-full px-3.5 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+            ></textarea>
+            <span *ngIf="headerForm.get('description')?.touched && headerForm.get('description')?.invalid" class="text-[10px] text-red-600 block mt-1">
+              Descrição é obrigatória.
+            </span>
+          </div>
+
+        </div>
+
+        <div class="flex justify-end pt-2">
+          <button 
+            type="submit" 
+            [disabled]="headerForm.invalid || isSavingHeader"
+            class="px-8 py-3 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-[0.2em] font-sans disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer rounded-none shadow-xs"
+          >
+            <span *ngIf="!isSavingHeader">Salvar Textos</span>
+            <span *ngIf="isSavingHeader">Gravando...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- SEÇÃO 2: GERENCIADOR DE PERGUNTAS E RESPOSTAS (FAQ SANFONADO) -->
+    <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 shadow-xs rounded-none space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E8EBE8] pb-3 gap-3">
+        <div>
+          <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">2. Gerenciador de Perguntas &amp; Respostas (FAQ)</h2>
+          <p class="text-[11px] text-[#5F6661] mt-0.5">Cadastre, edite, ative/desative e reordene as perguntas sanfonadas da página /apply.</p>
+        </div>
+
+        <button 
+          type="button" 
+          (click)="openCreateModal()"
+          class="px-5 py-2.5 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-wider font-sans transition-all cursor-pointer rounded-none shadow-xs self-start sm:self-auto flex items-center gap-1.5"
+        >
+          <span>+ Nova Pergunta &amp; Resposta</span>
+        </button>
+      </div>
+
+      <!-- LISTAGEM VERTICAL DE ITENS DE FAQ -->
+      <div *ngIf="faqs.length === 0 && !isLoading" class="text-center py-12 border border-dashed border-[#D1D5D1] bg-[#FBFBF9]">
+        <p class="text-xs text-[#5F6661] uppercase tracking-wider font-sans">Nenhuma pergunta cadastrada.</p>
+        <button 
+          type="button" 
+          (click)="openCreateModal()" 
+          class="mt-3 text-xs text-[#4B584E] underline uppercase tracking-wider font-semibold cursor-pointer"
+        >
+          Cadastrar Primeira Pergunta
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <div 
+          *ngFor="let faq of faqs; let i = index" 
+          class="border border-[#E8EBE8] bg-[#FBFBF9] p-4 sm:p-5 flex flex-col md:flex-row md:items-start justify-between gap-4 rounded-none transition-all hover:border-[#D1D5D1]"
+          [class.opacity-60]="!faq.isActive"
+        >
+          <!-- CONTEÚDO DA PERGUNTA -->
+          <div class="flex items-start gap-3.5 flex-1 min-w-0">
+            <span class="font-mono text-xs font-semibold text-[#4B584E] bg-white border border-[#E8EBE8] px-2 py-1 shrink-0 rounded-none">
+              #{{ (i + 1) < 10 ? '0' + (i + 1) : (i + 1) }}
+            </span>
+
+            <div class="space-y-1.5 min-w-0 flex-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h3 class="text-xs sm:text-sm font-sans uppercase tracking-wider text-[#222624] font-semibold break-words">
+                  {{ faq.question }}
+                </h3>
+                <span 
+                  class="text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-none font-semibold border"
+                  [ngClass]="faq.isActive ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-neutral-100 text-neutral-600 border-neutral-200'"
+                >
+                  {{ faq.isActive ? 'Ativo' : 'Inativo' }}
+                </span>
+              </div>
+
+              <p class="text-xs text-[#5F6661] leading-relaxed line-clamp-2">
+                {{ faq.answer }}
+              </p>
+            </div>
+          </div>
+
+          <!-- AÇÕES E REORDENAÇÃO -->
+          <div class="flex items-center gap-2 shrink-0 self-end md:self-center pt-2 md:pt-0 border-t md:border-t-0 border-[#E8EBE8] w-full md:w-auto justify-end">
+            <!-- Botões de Ordenação -->
+            <button 
+              type="button" 
+              (click)="moveUp(i)" 
+              [disabled]="i === 0"
+              class="p-1.5 bg-white border border-[#E8EBE8] text-[#5F6661] hover:text-[#222624] hover:border-[#4B584E] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer rounded-none"
+              title="Mover para cima"
+            >
+              ↑
+            </button>
+            <button 
+              type="button" 
+              (click)="moveDown(i)" 
+              [disabled]="i === faqs.length - 1"
+              class="p-1.5 bg-white border border-[#E8EBE8] text-[#5F6661] hover:text-[#222624] hover:border-[#4B584E] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer rounded-none"
+              title="Mover para baixo"
+            >
+              ↓
+            </button>
+
+            <!-- Switch Status -->
+            <button 
+              type="button" 
+              (click)="toggleStatus(faq)" 
+              class="px-2.5 py-1.5 bg-white border border-[#E8EBE8] text-[10px] uppercase tracking-wider text-[#222624] hover:border-[#4B584E] cursor-pointer rounded-none"
+              [title]="faq.isActive ? 'Desativar pergunta' : 'Ativar pergunta'"
+            >
+              {{ faq.isActive ? 'Pausar' : 'Ativar' }}
+            </button>
+
+            <!-- Editar -->
+            <button 
+              type="button" 
+              (click)="openEditModal(faq)" 
+              class="px-3 py-1.5 bg-white border border-[#E8EBE8] text-xs uppercase tracking-wider text-[#222624] hover:border-[#4B584E] hover:text-[#4B584E] cursor-pointer rounded-none font-medium"
+            >
+              Editar
+            </button>
+
+            <!-- Excluir -->
+            <button 
+              type="button" 
+              (click)="openDeleteModal(faq)" 
+              class="px-3 py-1.5 bg-white border border-red-200 text-xs uppercase tracking-wider text-red-700 hover:bg-red-50 cursor-pointer rounded-none font-medium"
+            >
+              Excluir
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL RETANGULAR ROUNDED-NONE: CRIAR / EDITAR PERGUNTA -->
+<div *ngIf="isModalOpen" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+  <div class="bg-white border border-[#E8EBE8] max-w-xl w-full p-6 sm:p-8 space-y-6 shadow-xl rounded-none">
+    <div class="flex items-center justify-between border-b border-[#E8EBE8] pb-3">
+      <h3 class="text-xs font-serif uppercase tracking-wider text-[#222624]">
+        {{ editingFaqId ? 'Editar Pergunta & Resposta' : 'Nova Pergunta & Resposta' }}
+      </h3>
+      <button type="button" (click)="closeModal()" class="text-[#5F6661] hover:text-[#222624] text-sm cursor-pointer">
+        ✕
+      </button>
+    </div>
+
+    <form [formGroup]="faqModalForm" (ngSubmit)="saveFaqModal()" class="space-y-4">
+      <div>
+        <label class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
+          Pergunta *
+        </label>
+        <input 
+          type="text" 
+          formControlName="question" 
+          placeholder="Ex: Menores de 18 anos podem se candidatar?"
+          class="w-full px-3.5 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+        />
+        <span *ngIf="faqModalForm.get('question')?.touched && faqModalForm.get('question')?.invalid" class="text-[10px] text-red-600 block mt-1">
+          Pergunta é obrigatória.
+        </span>
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
+          Resposta *
+        </label>
+        <textarea 
+          rows="5" 
+          formControlName="answer" 
+          placeholder="Digite a resposta completa. Parágrafos e quebras de linha serão preservados no site."
+          class="w-full px-3.5 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+        ></textarea>
+        <span *ngIf="faqModalForm.get('answer')?.touched && faqModalForm.get('answer')?.invalid" class="text-[10px] text-red-600 block mt-1">
+          Resposta é obrigatória.
+        </span>
+      </div>
+
+      <div class="pt-2">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input 
+            type="checkbox" 
+            formControlName="isActive" 
+            class="h-4 w-4 accent-[#4B584E] rounded-none cursor-pointer"
+          />
+          <span class="text-xs text-[#222624]">Publicar no site (Ativo)</span>
+        </label>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-4 border-t border-[#E8EBE8]">
+        <button 
+          type="button" 
+          (click)="closeModal()" 
+          class="px-5 py-2.5 bg-white border border-[#E8EBE8] text-xs uppercase tracking-wider text-[#5F6661] hover:text-[#222624] hover:bg-[#FBFBF9] cursor-pointer rounded-none"
+        >
+          Cancelar
+        </button>
+        <button 
+          type="submit" 
+          [disabled]="faqModalForm.invalid || isSavingFaq"
+          class="px-6 py-2.5 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-wider font-sans disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer rounded-none shadow-xs"
+        >
+          <span *ngIf="!isSavingFaq">{{ editingFaqId ? 'Atualizar Pergunta' : 'Salvar Pergunta' }}</span>
+          <span *ngIf="isSavingFaq">Gravando...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL DE CONFIRMAÇÃO DE EXCLUSÃO -->
+<div *ngIf="deleteModalOpen" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+  <div class="bg-white border border-[#E8EBE8] max-w-sm w-full p-6 space-y-4 shadow-xl rounded-none">
+    <div class="flex items-center gap-3 text-red-700">
+      <div class="p-2 bg-red-50 border border-red-200">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+      </div>
+      <div>
+        <h3 class="text-xs font-serif uppercase tracking-wider text-[#222624] font-semibold">Excluir Pergunta</h3>
+        <p class="text-[11px] text-[#5F6661]">Esta ação removerá o item permanentemente.</p>
+      </div>
+    </div>
+
+    <p class="text-xs text-[#5F6661] leading-relaxed">
+      Deseja realmente excluir a pergunta <strong>"{{ faqToDelete?.question }}"</strong>?
+    </p>
+
+    <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#E8EBE8]">
+      <button 
+        type="button" 
+        (click)="cancelDelete()" 
+        class="px-4 py-2 border border-[#E8EBE8] text-xs uppercase tracking-wider text-[#5F6661] hover:bg-[#FBFBF9] cursor-pointer rounded-none"
+      >
+        Cancelar
+      </button>
+      <button 
+        type="button" 
+        (click)="executeDelete()" 
+        class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white text-xs uppercase tracking-wider cursor-pointer rounded-none"
+      >
+        Sim, Excluir
+      </button>
+    </div>
+  </div>
+</div>

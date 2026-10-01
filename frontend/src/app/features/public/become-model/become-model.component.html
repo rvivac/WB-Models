@@ -4,14 +4,44 @@
     <!-- CABEÇALHO EDITORIAL INSTITUCIONAL -->
     <div class="text-center space-y-3 border-b border-[#E8EBE8] pb-8">
       <span class="text-[10px] uppercase tracking-[0.3em] font-sans text-[#4B584E] font-semibold block">
-        WB Scouting Desk
+        {{ headerSubtitle }}
       </span>
-      <h1 class="text-2xl sm:text-3xl font-serif uppercase tracking-wider text-[#222624]">
-        Seja um Modelo
+      <h1 class="text-3xl sm:text-4xl font-serif uppercase tracking-wider text-[#222624]">
+        {{ headerTitle }}
       </h1>
-      <p class="text-xs text-[#5F6661] max-w-lg mx-auto tracking-wide leading-relaxed">
-        Preencha sua ficha biométrica e envie suas polaroids naturais para a curadoria da nossa diretoria de casting internacional.
+      <p class="text-xs sm:text-sm text-[#5F6661] max-w-2xl mx-auto leading-relaxed mt-3">
+        {{ headerDescription }}
       </p>
+    </div>
+
+    <!-- SEÇÃO EDITORIAL DE ORIENTAÇÕES & FAQ SANFONADO -->
+    <div *ngIf="faqs && faqs.length > 0 && !submitSuccess" class="bg-white border border-[#E8EBE8] rounded-none p-6 sm:p-8 space-y-3 mb-8 shadow-xs">
+      <div class="border-b border-[#E8EBE8] pb-3 mb-4">
+        <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">Orientações &amp; Dúvidas Frequentes</h2>
+        <p class="text-[11px] text-[#5F6661] mt-0.5">Tudo o que você precisa saber antes de enviar seu material.</p>
+      </div>
+
+      <div *ngFor="let item of faqs; let i = index" class="border border-[#E8EBE8] rounded-none overflow-hidden transition-all">
+        <button
+          type="button"
+          (click)="toggleFaq(item.id)"
+          class="w-full text-left p-4 sm:p-5 flex items-center justify-between gap-4 bg-[#FBFBF9] hover:bg-[#F4F5F4] transition-colors cursor-pointer select-none rounded-none"
+        >
+          <span class="text-xs sm:text-sm font-sans uppercase tracking-[0.12em] text-[#222624] font-medium">
+            {{ item.question }}
+          </span>
+          <span class="text-base font-mono text-[#4B584E] shrink-0 font-semibold">
+            {{ isFaqOpen(item.id) ? '−' : '+' }}
+          </span>
+        </button>
+
+        <div
+          *ngIf="isFaqOpen(item.id)"
+          class="p-4 sm:p-5 bg-white whitespace-pre-line text-xs sm:text-sm text-[#5F6661] leading-relaxed border-t border-[#E8EBE8]"
+        >
+          {{ item.answer }}
+        </div>
+      </div>
     </div>
 
     <!-- TELA DE SUCESSO EDITORIAL -->

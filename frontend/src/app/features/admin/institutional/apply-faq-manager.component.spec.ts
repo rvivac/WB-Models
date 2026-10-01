@@ -49,8 +49,8 @@ describe('ApplyFaqManagerComponent', () => {
       defaultHeader: mockHeader
     });
 
-    faqServiceSpy.getAdminApplyHeader.and.returnValue(of(mockHeader));
-    faqServiceSpy.getAdminFaqs.and.returnValue(of(mockFaqs));
+    faqServiceSpy.getAdminApplyHeader.and.callFake(() => of({ ...mockHeader }));
+    faqServiceSpy.getAdminFaqs.and.callFake(() => of(mockFaqs.map(f => ({ ...f }))));
 
     await TestBed.configureTestingModule({
       imports: [ApplyFaqManagerComponent],

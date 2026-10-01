@@ -46,11 +46,11 @@ export class ContactSettingsComponent implements OnInit {
   private http = inject(HttpClient);
 
   contactData: ContactSettingsData = {
-    primaryEmail: 'contato@wbscouting.com',
-    scoutingEmail: 'scouting@wbscouting.com',
-    pressEmail: 'press@wbscouting.com',
-    phone: '+55 11 99999-9999',
-    whatsapp: '+55 11 99999-9999',
+    primaryEmail: 'info@wbagency.com.br',
+    scoutingEmail: 'scouting@wbagency.com.br',
+    pressEmail: 'press@wbagency.com.br',
+    phone: '+55 11 97065-6003',
+    whatsapp: '+55 11 97065-6003',
     whatsappDefaultMessage: 'Olá! Gostaria de falar com a equipe de atendimento da WB Agency.',
     businessHours: 'Segunda a Sexta: 09h às 18h (GMT-3)',
     address: {

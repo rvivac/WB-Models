@@ -49,10 +49,10 @@ export class PublicContentService {
   };
 
   private readonly defaultContactChannels: ContactChannelsPublicDto = {
-    email: 'contato@wbscouting.com',
-    whatsappNumber: '+55 (11) 99999-9999',
-    whatsappUrl: 'https://wa.me/5511999999999',
-    instagramHandle: '@wbscouting',
+    email: 'info@wbagency.com.br',
+    whatsappNumber: '5511970656003',
+    whatsappUrl: 'https://wa.me/5511970656003',
+    instagramHandle: '@wbagency',
     address: 'São Paulo - SP, Brasil',
     officeHours: 'Segunda a Sexta, das 09h às 18h'
   };

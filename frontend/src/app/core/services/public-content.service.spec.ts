@@ -76,4 +76,16 @@ describe('PublicContentService', () => {
       officeHours: '09h às 18h'
     });
   });
+
+  it('should fallback to default contact channels on HTTP error', () => {
+    service.getContactChannels('pt').subscribe(data => {
+      expect(data).toBeTruthy();
+      expect(data.email).toBe('info@wbagency.com.br');
+      expect(data.whatsappNumber).toBe('5511970656003');
+    });
+
+    const req = httpTesting.expectOne(`${environment.apiUrl}/public/contact-channels?lang=pt`);
+    req.error(new ProgressEvent('error'));
+  });
 });
+

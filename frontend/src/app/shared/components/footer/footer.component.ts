@@ -18,10 +18,10 @@ export class FooterComponent implements OnInit {
 
   readonly currentYear = new Date().getFullYear();
   readonly contactChannels = signal<ContactChannelsPublicDto>({
-    email: 'contato@wbscouting.com',
-    whatsappNumber: '5511999999999',
-    whatsappUrl: 'https://wa.me/5511999999999?text=Ol%C3%A1%21',
-    instagramHandle: '@wbscouting',
+    email: 'info@wbagency.com.br',
+    whatsappNumber: '5511970656003',
+    whatsappUrl: 'https://wa.me/5511970656003?text=Ol%C3%A1%21',
+    instagramHandle: '@wbagency',
     address: 'São Paulo - SP, Brasil',
     officeHours: 'Segunda a Sexta, das 09h às 18h'
   });
@@ -50,8 +50,23 @@ export class FooterComponent implements OnInit {
     });
   }
 
+  formatPhone(phone?: string): string {
+    if (!phone) return '';
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length === 13 && digits.startsWith('55')) {
+      return `+${digits.slice(0, 2)} (${digits.slice(2, 4)}) ${digits.slice(4, 9)}-${digits.slice(9)}`;
+    }
+    if (digits.length === 11) {
+      return `+55 (${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+    }
+    return phone;
+  }
+
   getInstagramUrl(): string {
-    const handle = this.contactChannels().instagramHandle || '@wbscouting';
+    const handle = this.contactChannels().instagramHandle || '@wbagency';
+    if (handle.startsWith('http://') || handle.startsWith('https://')) {
+      return handle;
+    }
     return `https://instagram.com/${handle.replace('@', '')}`;
   }
 }

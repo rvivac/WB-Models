@@ -46,7 +46,7 @@
           <li>
             <a [href]="contactChannels().whatsappUrl" target="_blank" rel="noopener noreferrer" class="contact-link whatsapp-link">
               <span class="contact-label">WhatsApp:</span>
-              <span class="contact-val">{{ contactChannels().whatsappNumber }}</span>
+              <span class="contact-val">{{ formatPhone(contactChannels().whatsappNumber) }}</span>
             </a>
           </li>
           <li>

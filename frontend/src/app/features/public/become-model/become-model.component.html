@@ -1,61 +1,29 @@
-<div class="min-h-screen bg-[#FBFBF9] py-10 md:py-16 px-4 sm:px-6 lg:px-8 selection:bg-[#4B584E] selection:text-white w-full max-w-full overflow-x-hidden">
-  <div class="max-w-4xl mx-auto space-y-10 w-full">
+<div class="min-h-screen bg-[#FBFBF9] py-12 px-4 sm:px-6 lg:px-8 selection:bg-[#4B584E] selection:text-white">
+  <div class="max-w-4xl mx-auto space-y-8">
 
-    <!-- CABEÇALHO EDITORIAL DE SCOUTING -->
-    <header class="text-center space-y-3 pb-4">
-      <div class="inline-flex items-center gap-2 bg-[#F4F5F4] border border-[#E8EBE8] px-3.5 py-1 text-[10px] uppercase tracking-[0.24em] font-sans text-[#4B584E] font-semibold">
-        <span class="w-1.5 h-1.5 rounded-full bg-[#4B584E] animate-pulse"></span>
-        WB Scouting Desk &bull; Casting Oficial
-      </div>
-      
-      <h1 class="text-3xl sm:text-4xl md:text-5xl font-serif uppercase tracking-wider text-[#222624] font-normal">
+    <!-- CABEÇALHO EDITORIAL INSTITUCIONAL -->
+    <div class="text-center space-y-3 border-b border-[#E8EBE8] pb-8">
+      <span class="text-[10px] uppercase tracking-[0.3em] font-sans text-[#4B584E] font-semibold block">
+        WB Scouting Desk
+      </span>
+      <h1 class="text-2xl sm:text-3xl font-serif uppercase tracking-wider text-[#222624]">
         Seja um Modelo
       </h1>
-      
-      <p class="text-xs sm:text-sm text-[#5F6661] max-w-2xl mx-auto font-sans leading-relaxed tracking-wide">
-        A WB Agency busca novos rostos e identidades marcantes para moda, publicidade e passarela nacional e internacional. Preencha seus dados biométricos e anexe polaroids naturais.
+      <p class="text-xs text-[#5F6661] max-w-lg mx-auto tracking-wide leading-relaxed">
+        Preencha sua ficha biométrica e envie suas polaroids naturais para a curadoria da nossa diretoria de casting internacional.
       </p>
-
-      <!-- DESTAQUES DA AGÊNCIA -->
-      <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 pt-3 text-[11px] font-sans uppercase tracking-[0.14em] text-[#5F6661]">
-        <span class="inline-flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5 text-[#C2A87E]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-          Inscrição 100% Gratuita
-        </span>
-        <span class="text-[#D5D8D2] hidden sm:inline">&bull;</span>
-        <span class="inline-flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5 text-[#4B584E]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6l3 18h12l3-18H3z"/></svg>
-          Casting Internacional
-        </span>
-        <span class="text-[#D5D8D2] hidden sm:inline">&bull;</span>
-        <span class="inline-flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5 text-[#4B584E]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-          Proteção LGPD &amp; ECA
-        </span>
-      </div>
-
-      <!-- BARRA DE PROGRESSO DO DOSSIÊ -->
-      <div *ngIf="!submitSuccess" class="pt-4 max-w-md mx-auto">
-        <div class="flex justify-between items-center text-[10px] uppercase tracking-wider text-[#5F6661] font-sans mb-1.5">
-          <span>Progresso do Dossiê</span>
-          <span class="font-mono font-semibold text-[#4B584E]">{{ progressPercentage }}%</span>
-        </div>
-        <div class="w-full bg-[#E8EBE8] h-1.5 overflow-hidden">
-          <div class="bg-[#4B584E] h-full transition-all duration-300" [style.width.%]="progressPercentage"></div>
-        </div>
-      </div>
-    </header>
+    </div>
 
     <!-- TELA DE SUCESSO EDITORIAL -->
-    <div *ngIf="submitSuccess" class="bg-white border border-[#E8EBE8] p-8 sm:p-12 text-center space-y-6 shadow-sm">
-      <div class="w-16 h-16 rounded-full bg-[#F4F5F4] border border-[#E8EBE8] flex items-center justify-center mx-auto text-[#4B584E]">
+    <div *ngIf="submitSuccess" class="bg-white border border-[#E8EBE8] p-8 sm:p-12 text-center space-y-6 shadow-xs rounded-none">
+      <div class="w-16 h-16 bg-[#F4F5F4] border border-[#E8EBE8] flex items-center justify-center mx-auto text-[#4B584E] rounded-none">
         <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="20 6 9 17 4 12" />
         </svg>
       </div>
 
       <div class="space-y-2 max-w-lg mx-auto">
-        <span class="text-[11px] font-sans uppercase tracking-[0.25em] text-[#C2A87E] font-semibold block">Inscrição Confirmada</span>
+        <span class="text-[11px] font-sans uppercase tracking-[0.25em] text-[#4B584E] font-semibold block">Inscrição Confirmada</span>
         <h2 class="font-serif text-2xl sm:text-3xl uppercase tracking-wider text-[#222624]">Candidatura Enviada com Sucesso</h2>
         <p class="text-xs sm:text-sm text-[#5F6661] leading-relaxed">
           Seu dossiê de apresentação e polaroids foram catalogados na banca de scouting da WB Agency.
@@ -63,13 +31,13 @@
       </div>
 
       <!-- PROTOCOLO DE ATENDIMENTO -->
-      <div class="bg-[#FBFBF9] border border-[#E8EBE8] p-4 max-w-sm mx-auto space-y-1">
+      <div class="bg-[#FBFBF9] border border-[#E8EBE8] p-4 max-w-sm mx-auto space-y-1 rounded-none">
         <span class="text-[10px] uppercase tracking-[0.18em] text-[#5F6661] block font-sans">Protocolo de Scouting</span>
         <span class="font-mono text-base font-semibold text-[#222624] tracking-wider">{{ submissionProtocol }}</span>
       </div>
 
       <!-- PRÓXIMOS PASSOS -->
-      <div class="text-left bg-[#F4F5F4] p-5 sm:p-6 max-w-lg mx-auto space-y-3 border-l-2 border-[#4B584E]">
+      <div class="text-left bg-[#F4F5F4] p-5 sm:p-6 max-w-lg mx-auto space-y-3 border-l-2 border-[#4B584E] rounded-none">
         <h3 class="font-serif text-xs uppercase tracking-wider font-semibold text-[#222624]">Próximos Passos &bull; Como Funciona:</h3>
         <ul class="text-[11px] text-[#5F6661] space-y-2 list-disc list-inside leading-relaxed font-sans">
           <li>Nossa diretoria de casting analisa todas as candidaturas em até <strong>5 dias úteis</strong>.</li>
@@ -82,13 +50,13 @@
         <button 
           type="button" 
           (click)="resetForm()"
-          class="w-full sm:w-auto px-8 py-3.5 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-[0.18em] transition-all cursor-pointer font-sans"
+          class="w-full sm:w-auto px-8 py-3.5 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-[0.18em] transition-all cursor-pointer font-sans rounded-none"
         >
           Enviar Nova Candidatura
         </button>
         <a 
           routerLink="/models"
-          class="w-full sm:w-auto px-8 py-3.5 bg-white border border-[#E8EBE8] hover:border-[#4B584E] text-[#222624] text-xs uppercase tracking-[0.18em] transition-all text-center font-sans"
+          class="w-full sm:w-auto px-8 py-3.5 bg-white border border-[#E8EBE8] hover:border-[#4B584E] text-[#222624] text-xs uppercase tracking-[0.18em] transition-all text-center font-sans rounded-none"
         >
           Explorar Nosso Casting
         </a>
@@ -96,548 +64,356 @@
     </div>
 
     <!-- ALERTA DE ERRO -->
-    <div *ngIf="submitError" class="bg-red-50 border border-red-200 text-red-900 p-4 space-y-1 flex items-start gap-3">
+    <div *ngIf="submitError" class="bg-red-50 border border-red-200 text-red-900 p-4 space-y-1 flex items-start gap-3 rounded-none">
       <svg class="w-5 h-5 text-red-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-      <div>
-        <h3 class="font-serif text-xs uppercase tracking-wider font-semibold">Falha no Envio do Dossiê</h3>
-        <p class="text-xs leading-relaxed">{{ submitError }}</p>
+      <div class="text-xs">
+        <strong class="font-semibold block">Não foi possível enviar a candidatura:</strong>
+        <span>{{ submitError }}</span>
       </div>
     </div>
 
-    <!-- FORMULÁRIO PRINCIPAL -->
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-8 w-full" *ngIf="!submitSuccess">
+    <!-- FORMULÁRIO PRINCIPAL REATIVO -->
+    <form *ngIf="!submitSuccess" [formGroup]="applyForm" (ngSubmit)="onSubmit()" class="space-y-8">
 
-      <!-- ===================================================================== -->
-      <!-- BLOCO 1: DADOS PESSOAIS & IDENTIDADE -->
-      <!-- ===================================================================== -->
-      <div class="bg-white border border-[#E8EBE8] p-5 sm:p-8 space-y-6 shadow-xs w-full">
-        <div class="flex items-center justify-between border-b border-[#E8EBE8] pb-3">
-          <div class="flex items-center gap-2.5">
-            <span class="font-serif text-sm font-semibold text-[#C2A87E]">01</span>
-            <h2 class="text-xs font-serif uppercase tracking-[0.18em] text-[#222624] font-medium">Dados Pessoais &amp; Contato</h2>
-          </div>
-          <span class="text-[10px] text-[#5F6661] uppercase tracking-wider font-sans">* Obrigatório</span>
+      <!-- BLOCO 1: DADOS PESSOAIS & IDENTIFICAÇÃO -->
+      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 shadow-xs rounded-none space-y-6">
+        <div class="border-b border-[#E8EBE8] pb-3">
+          <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">1. Dados Pessoais & Contato</h2>
+          <p class="text-[11px] text-[#5F6661] mt-0.5">Informações cadastrais para contato e triagem preliminar.</p>
         </div>
 
-        <!-- SELETOR DE GÊNERO EDITORIAL -->
-        <div>
-          <label class="block text-[11px] font-sans uppercase tracking-[0.15em] text-[#222624] mb-2 font-medium">
-            Divisão de Casting (Gênero) *
-          </label>
-          <div class="grid grid-cols-3 gap-2 sm:gap-3 max-w-lg">
-            <button
-              type="button"
-              (click)="setGender('FEMALE')"
-              [class.bg-[#4B584E]]="form.get('gender')?.value === 'FEMALE'"
-              [class.text-white]="form.get('gender')?.value === 'FEMALE'"
-              [class.border-[#4B584E]]="form.get('gender')?.value === 'FEMALE'"
-              class="py-2.5 px-3 border border-[#E8EBE8] bg-[#FBFBF9] text-xs font-sans uppercase tracking-wider text-[#222624] transition-all text-center hover:border-[#4B584E]"
-            >
-              Feminino
-            </button>
-            <button
-              type="button"
-              (click)="setGender('MALE')"
-              [class.bg-[#4B584E]]="form.get('gender')?.value === 'MALE'"
-              [class.text-white]="form.get('gender')?.value === 'MALE'"
-              [class.border-[#4B584E]]="form.get('gender')?.value === 'MALE'"
-              class="py-2.5 px-3 border border-[#E8EBE8] bg-[#FBFBF9] text-xs font-sans uppercase tracking-wider text-[#222624] transition-all text-center hover:border-[#4B584E]"
-            >
-              Masculino
-            </button>
-            <button
-              type="button"
-              (click)="setGender('NON_BINARY')"
-              [class.bg-[#4B584E]]="form.get('gender')?.value === 'NON_BINARY'"
-              [class.text-white]="form.get('gender')?.value === 'NON_BINARY'"
-              [class.border-[#4B584E]]="form.get('gender')?.value === 'NON_BINARY'"
-              class="py-2.5 px-3 border border-[#E8EBE8] bg-[#FBFBF9] text-xs font-sans uppercase tracking-wider text-[#222624] transition-all text-center hover:border-[#4B584E]"
-            >
-              Outro / Livre
-            </button>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          
           <!-- Nome Completo -->
           <div class="sm:col-span-2">
-            <label class="block text-[11px] font-sans uppercase tracking-[0.15em] text-[#222624] mb-1.5 font-medium">Nome Completo *</label>
+            <label for="fullName" class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
+              Nome Completo *
+            </label>
             <input 
+              id="fullName"
               type="text" 
-              formControlName="fullName" 
-              placeholder="Seu nome artístico ou completo"
-              class="w-full px-3.5 py-3 bg-[#FBFBF9] border border-[#E8EBE8] text-sm sm:text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] transition-colors"
-              [class.border-red-400]="form.get('fullName')?.touched && form.get('fullName')?.invalid"
-            >
-            <span *ngIf="form.get('fullName')?.touched && form.get('fullName')?.invalid" class="text-[10px] text-red-600 block mt-1">
-              Informe seu nome completo (ao menos 3 caracteres).
+              formControlName="fullName"
+              placeholder="Seu nome completo"
+              class="w-full px-3.5 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+            />
+            <span *ngIf="applyForm.get('fullName')?.touched && applyForm.get('fullName')?.invalid" class="text-[10px] text-red-600 block mt-1 tracking-wide">
+              Nome completo obrigatório.
             </span>
           </div>
 
           <!-- E-mail -->
           <div>
-            <label class="block text-[11px] font-sans uppercase tracking-[0.15em] text-[#222624] mb-1.5 font-medium">E-mail Principal *</label>
+            <label for="email" class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
+              E-mail *
+            </label>
             <input 
+              id="email"
               type="email" 
-              formControlName="email" 
-              placeholder="seuemail@exemplo.com"
-              class="w-full px-3.5 py-3 bg-[#FBFBF9] border border-[#E8EBE8] text-sm sm:text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] transition-colors"
-              [class.border-red-400]="form.get('email')?.touched && form.get('email')?.invalid"
-            >
-            <span *ngIf="form.get('email')?.touched && form.get('email')?.invalid" class="text-[10px] text-red-600 block mt-1">
-              Informe um e-mail válido para contato.
-            </span>
+              formControlName="email"
+              placeholder="seu.email@exemplo.com"
+              class="w-full px-3.5 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+            />
           </div>
 
           <!-- Telefone / WhatsApp -->
           <div>
-            <label class="block text-[11px] font-sans uppercase tracking-[0.15em] text-[#222624] mb-1.5 font-medium">Telefone / WhatsApp *</label>
+            <label for="phone" class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
+              WhatsApp / Celular *
+            </label>
             <input 
+              id="phone"
               type="tel" 
-              formControlName="phone" 
+              formControlName="phone"
+              placeholder="+55 (11) 99999-9999"
               (input)="onPhoneInput($event)"
-              placeholder="(11) 98765-4321" 
-              class="w-full px-3.5 py-3 bg-[#FBFBF9] border border-[#E8EBE8] text-sm sm:text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] font-mono transition-colors"
-              [class.border-red-400]="form.get('phone')?.touched && form.get('phone')?.invalid"
-            >
-            <span *ngIf="form.get('phone')?.touched && form.get('phone')?.invalid" class="text-[10px] text-red-600 block mt-1">
-              Telefone com DDD é obrigatório.
-            </span>
-          </div>
-
-          <!-- Instagram -->
-          <div>
-            <label class="block text-[11px] font-sans uppercase tracking-[0.15em] text-[#222624] mb-1.5 font-medium">Instagram (Opcional)</label>
-            <div class="flex items-center">
-              <span class="px-3 py-3 bg-[#F4F5F4] border border-r-0 border-[#E8EBE8] text-xs text-[#5F6661] font-mono select-none">&#64;</span>
-              <input 
-                type="text" 
-                formControlName="instagramHandle" 
-                placeholder="seu.usuario"
-                class="w-full px-3.5 py-3 bg-[#FBFBF9] border border-[#E8EBE8] text-sm sm:text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] transition-colors"
-              >
-            </div>
-            <span class="text-[10px] text-[#5F6661] block mt-1">Perfil público facilita a avaliação da diretoria.</span>
+              class="w-full px-3.5 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-[#222624] text-xs sm:text-sm font-mono focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+            />
           </div>
 
           <!-- Data de Nascimento -->
           <div>
-            <div class="flex items-center justify-between mb-1.5">
-              <label class="block text-[11px] font-sans uppercase tracking-[0.15em] text-[#222624] font-medium">Data de Nascimento *</label>
-              <span *ngIf="calculatedAge !== null" class="text-[10px] font-mono font-semibold px-2 py-0.5 bg-[#F4F5F4] text-[#4B584E] border border-[#E8EBE8]">
-                {{ calculatedAge }} anos {{ isMinor ? '(Menor)' : '' }}
-              </span>
-            </div>
+            <label for="birthDate" class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
+              Data de Nascimento *
+            </label>
             <input 
+              id="birthDate"
               type="date" 
-              formControlName="birthDate" 
-              class="w-full px-3.5 py-2.5 bg-[#FBFBF9] border border-[#E8EBE8] text-sm sm:text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] transition-colors"
-              [class.border-red-400]="form.get('birthDate')?.touched && form.get('birthDate')?.invalid"
-            >
-            <span *ngIf="form.get('birthDate')?.touched && form.get('birthDate')?.invalid" class="text-[10px] text-red-600 block mt-1">
-              Data de nascimento obrigatória.
-            </span>
+              formControlName="birthDate"
+              class="w-full px-3.5 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+            />
           </div>
 
-          <!-- Cidade -->
+          <!-- Instagram -->
           <div>
-            <label class="block text-[11px] font-sans uppercase tracking-[0.15em] text-[#222624] mb-1.5 font-medium">Cidade de Residência *</label>
+            <label for="instagram" class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
+              Instagram (Opcional)
+            </label>
+            <div class="relative flex items-center">
+              <span class="absolute left-3 text-xs text-[#5F6661] select-none font-mono">&#64;</span>
+              <input 
+                id="instagram"
+                type="text" 
+                formControlName="instagram"
+                placeholder="seuusuario"
+                class="w-full pl-8 pr-3.5 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-[#222624] text-xs sm:text-sm font-mono focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+              />
+            </div>
+          </div>
+
+          <!-- Cidade e Estado -->
+          <div>
+            <label for="city" class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
+              Cidade *
+            </label>
             <input 
+              id="city"
               type="text" 
-              formControlName="city" 
+              formControlName="city"
               placeholder="Ex: São Paulo"
-              class="w-full px-3.5 py-3 bg-[#FBFBF9] border border-[#E8EBE8] text-sm sm:text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] transition-colors"
-              [class.border-red-400]="form.get('city')?.touched && form.get('city')?.invalid"
-            >
+              class="w-full px-3.5 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+            />
           </div>
 
-          <!-- Estado (UF) -->
           <div>
-            <label class="block text-[11px] font-sans uppercase tracking-[0.15em] text-[#222624] mb-1.5 font-medium">Estado (UF) *</label>
-            <select 
-              formControlName="state" 
-              class="w-full px-3.5 py-3 bg-[#FBFBF9] border border-[#E8EBE8] text-sm sm:text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] transition-colors"
-              [class.border-red-400]="form.get('state')?.touched && form.get('state')?.invalid"
-            >
-              <option value="" disabled selected>Selecione a UF</option>
-              <option *ngFor="let s of brazilianStates" [value]="s.uf">{{ s.uf }} — {{ s.name }}</option>
-            </select>
+            <label for="state" class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
+              Estado (UF) *
+            </label>
+            <input 
+              id="state"
+              type="text" 
+              formControlName="state"
+              placeholder="SP"
+              maxlength="2"
+              class="w-full px-3.5 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-[#222624] text-xs sm:text-sm uppercase font-mono focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+            />
           </div>
+
         </div>
 
-        <!-- ===================================================================== -->
-        <!-- BLOCO 1.1: AUTORIZAÇÃO DE MENOR DE IDADE (ECA / LGPD) -->
-        <!-- ===================================================================== -->
-        <div *ngIf="isMinor" class="bg-[#F8F7F4] border-l-2 border-[#C2A87E] p-5 sm:p-6 space-y-4 mt-6">
-          <div class="flex items-center justify-between flex-wrap gap-2">
-            <div class="flex items-center gap-2">
-              <svg class="w-4 h-4 text-[#C2A87E]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-              <span class="text-xs font-serif uppercase tracking-wider text-[#222624] font-semibold">
-                Autorização Legal &bull; Candidato Menor de Idade ({{ calculatedAge }} anos)
-              </span>
-            </div>
-            <span class="bg-[#C2A87E]/20 text-[#6B5A3C] text-[9px] uppercase tracking-widest px-2.5 py-0.5 font-medium font-sans">
-              Obrigatório por Lei
+        <!-- CONDICIONAL: RESPONSÁVEL LEGAL (CANDIDATOS MENORES DE IDADE) -->
+        <div *ngIf="isMinor" class="bg-[#FBFBF9] border-l-2 border-[#4B584E] p-5 sm:p-6 space-y-4 rounded-none mt-6">
+          <div class="flex items-center justify-between border-b border-[#E8EBE8] pb-2">
+            <span class="text-xs font-serif uppercase tracking-wider text-[#222624] font-semibold">
+              Autorização do Responsável Legal (Candidato Menor de Idade)
+            </span>
+            <span class="bg-amber-100 text-amber-900 border border-amber-200 text-[9px] uppercase tracking-widest px-2 py-0.5 font-semibold">
+              Obrigatório
             </span>
           </div>
 
-          <p class="text-[11px] text-[#5F6661] leading-relaxed font-sans">
-            Em conformidade com a Lei Geral de Proteção de Dados (LGPD) e o Estatuto da Criança e do Adolescente (ECA), a inscrição de talentos com menos de 18 anos exige a identificação formal do responsável legal.
-          </p>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-[10px] font-sans uppercase tracking-widest text-[#222624] mb-1">Nome Completo do Responsável *</label>
-              <input 
-                type="text" 
-                formControlName="guardianName" 
-                class="w-full px-3 py-2 bg-white border border-[#E8EBE8] text-xs focus:outline-none focus:border-[#4B584E]"
-                [class.border-red-400]="form.get('guardianName')?.touched && form.get('guardianName')?.invalid"
-              >
-              <span *ngIf="form.get('guardianName')?.touched && form.get('guardianName')?.invalid" class="text-[10px] text-red-600 block mt-1">
-                Nome do responsável obrigatório.
-              </span>
+              <label class="block text-[10px] font-sans uppercase tracking-widest text-[#222624] mb-1">Nome do Responsável *</label>
+              <input type="text" formControlName="guardianName" class="w-full px-3 py-2 bg-white border border-[#D1D5D1] text-xs focus:outline-none focus:border-[#4B584E] rounded-none">
             </div>
 
             <div>
               <label class="block text-[10px] font-sans uppercase tracking-widest text-[#222624] mb-1">CPF do Responsável *</label>
-              <input 
-                type="text" 
-                formControlName="guardianCpf" 
-                (input)="onCpfInput($event)"
-                placeholder="000.000.000-00" 
-                maxlength="14"
-                class="w-full px-3 py-2 bg-white border border-[#E8EBE8] text-xs focus:outline-none focus:border-[#4B584E] font-mono"
-                [class.border-red-400]="form.get('guardianCpf')?.touched && form.get('guardianCpf')?.invalid"
-              >
-              <span *ngIf="form.get('guardianCpf')?.hasError('required') && form.get('guardianCpf')?.touched" class="text-[10px] text-red-600 block mt-1">
-                CPF do responsável obrigatório para menores.
-              </span>
-              <span *ngIf="form.get('guardianCpf')?.hasError('invalidCpf') && form.get('guardianCpf')?.touched" class="text-[10px] text-red-600 block mt-1">
-                CPF inválido. Verifique os dígitos digitados.
-              </span>
+              <input type="text" formControlName="guardianCpf" (input)="onCpfInput($event)" placeholder="000.000.000-00" class="w-full px-3 py-2 bg-white border border-[#D1D5D1] text-xs font-mono focus:outline-none focus:border-[#4B584E] rounded-none">
             </div>
 
             <div>
               <label class="block text-[10px] font-sans uppercase tracking-widest text-[#222624] mb-1">Telefone do Responsável *</label>
-              <input 
-                type="tel" 
-                formControlName="guardianPhone" 
-                (input)="onGuardianPhoneInput($event)"
-                placeholder="(11) 98765-4321"
-                class="w-full px-3 py-2 bg-white border border-[#E8EBE8] text-xs focus:outline-none focus:border-[#4B584E] font-mono"
-                [class.border-red-400]="form.get('guardianPhone')?.touched && form.get('guardianPhone')?.invalid"
-              >
+              <input type="tel" formControlName="guardianPhone" (input)="onGuardianPhoneInput($event)" class="w-full px-3 py-2 bg-white border border-[#D1D5D1] text-xs font-mono focus:outline-none focus:border-[#4B584E] rounded-none">
             </div>
 
             <div>
               <label class="block text-[10px] font-sans uppercase tracking-widest text-[#222624] mb-1">E-mail do Responsável *</label>
-              <input 
-                type="email" 
-                formControlName="guardianEmail" 
-                placeholder="responsavel@email.com"
-                class="w-full px-3 py-2 bg-white border border-[#E8EBE8] text-xs focus:outline-none focus:border-[#4B584E]"
-                [class.border-red-400]="form.get('guardianEmail')?.touched && form.get('guardianEmail')?.invalid"
-              >
+              <input type="email" formControlName="guardianEmail" class="w-full px-3 py-2 bg-white border border-[#D1D5D1] text-xs focus:outline-none focus:border-[#4B584E] rounded-none">
             </div>
           </div>
         </div>
 
       </div>
 
-      <!-- ===================================================================== -->
-      <!-- BLOCO 2: FICHA MÉTRICA & BIOMETRIA EDITORIAL -->
-      <!-- ===================================================================== -->
-      <div class="bg-white border border-[#E8EBE8] p-5 sm:p-8 space-y-6 shadow-xs w-full">
-        <div class="flex items-center justify-between border-b border-[#E8EBE8] pb-3">
-          <div class="flex items-center gap-2.5">
-            <span class="font-serif text-sm font-semibold text-[#C2A87E]">02</span>
-            <h2 class="text-xs font-serif uppercase tracking-[0.18em] text-[#222624] font-medium">Ficha Métrica &amp; Biometria</h2>
-          </div>
-          <span class="text-[10px] text-[#5F6661] uppercase tracking-wider font-sans">Medidas em centímetros</span>
+      <!-- BLOCO 2: FICHA MÉTRICA & BIOMETRIA (RÉGUA DE INPUTS EM 4 COLUNAS) -->
+      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 shadow-xs rounded-none space-y-6">
+        <div class="border-b border-[#E8EBE8] pb-3">
+          <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">2. Medidas Biométricas</h2>
+          <p class="text-[11px] text-[#5F6661] mt-0.5">Insira os valores exatos em centímetros (cm).</p>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <!-- Altura -->
+          
           <div>
-            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] mb-1 font-medium">Altura *</label>
-            <div class="relative">
-              <input 
-                type="number" 
-                formControlName="height" 
-                placeholder="178" 
-                class="w-full pl-3 pr-8 py-2.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] font-mono"
-                [class.border-red-400]="form.get('height')?.touched && form.get('height')?.invalid"
-              >
-              <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-[#5F6661] font-mono pointer-events-none">cm</span>
-            </div>
-          </div>
-
-          <!-- Busto / Tórax -->
-          <div>
-            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] mb-1 font-medium">Busto / Tórax *</label>
-            <div class="relative">
-              <input 
-                type="number" 
-                formControlName="bust" 
-                placeholder="84" 
-                class="w-full pl-3 pr-8 py-2.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] font-mono"
-                [class.border-red-400]="form.get('bust')?.touched && form.get('bust')?.invalid"
-              >
-              <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-[#5F6661] font-mono pointer-events-none">cm</span>
-            </div>
-          </div>
-
-          <!-- Cintura -->
-          <div>
-            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] mb-1 font-medium">Cintura *</label>
-            <div class="relative">
-              <input 
-                type="number" 
-                formControlName="waist" 
-                placeholder="60" 
-                class="w-full pl-3 pr-8 py-2.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] font-mono"
-                [class.border-red-400]="form.get('waist')?.touched && form.get('waist')?.invalid"
-              >
-              <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-[#5F6661] font-mono pointer-events-none">cm</span>
-            </div>
-          </div>
-
-          <!-- Quadril -->
-          <div>
-            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] mb-1 font-medium">Quadril *</label>
-            <div class="relative">
-              <input 
-                type="number" 
-                formControlName="hips" 
-                placeholder="90" 
-                class="w-full pl-3 pr-8 py-2.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] font-mono"
-                [class.border-red-400]="form.get('hips')?.touched && form.get('hips')?.invalid"
-              >
-              <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-[#5F6661] font-mono pointer-events-none">cm</span>
-            </div>
-          </div>
-
-          <!-- Calçado -->
-          <div>
-            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] mb-1 font-medium">Calçado *</label>
+            <label for="height" class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Altura (cm) *</label>
             <input 
-              type="text" 
-              formControlName="shoes" 
-              placeholder="Ex: 38" 
-              class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] font-mono"
-              [class.border-red-400]="form.get('shoes')?.touched && form.get('shoes')?.invalid"
-            >
+              id="height"
+              type="number" 
+              formControlName="height" 
+              placeholder="178"
+              class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-xs sm:text-sm text-[#222624] font-mono focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+            />
           </div>
 
-          <!-- Olhos -->
           <div>
-            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] mb-1 font-medium">Cor dos Olhos *</label>
+            <label for="bust" class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Busto / Tórax (cm) *</label>
+            <input 
+              id="bust"
+              type="number" 
+              formControlName="bust" 
+              placeholder="84"
+              class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-xs sm:text-sm text-[#222624] font-mono focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+            />
+          </div>
+
+          <div>
+            <label for="waist" class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Cintura (cm) *</label>
+            <input 
+              id="waist"
+              type="number" 
+              formControlName="waist" 
+              placeholder="60"
+              class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-xs sm:text-sm text-[#222624] font-mono focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+            />
+          </div>
+
+          <div>
+            <label for="hips" class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Quadril (cm) *</label>
+            <input 
+              id="hips"
+              type="number" 
+              formControlName="hips" 
+              placeholder="90"
+              class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-xs sm:text-sm text-[#222624] font-mono focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+            />
+          </div>
+
+          <div>
+            <label for="shoes" class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Calçado *</label>
+            <input 
+              id="shoes"
+              type="number" 
+              formControlName="shoes" 
+              placeholder="38"
+              class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-xs sm:text-sm text-[#222624] font-mono focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+            />
+          </div>
+
+          <div>
+            <label for="eyes" class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Cor dos Olhos *</label>
             <select 
-              formControlName="eyes" 
-              class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E]"
+              id="eyes" 
+              formControlName="eyes"
+              class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-xs sm:text-sm text-[#222624] focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none cursor-pointer"
             >
-              <option *ngFor="let eye of eyeColors" [value]="eye">{{ eye }}</option>
+              <option value="">Selecione...</option>
+              <option value="CASTANHO">Castanho</option>
+              <option value="VERDE">Verde</option>
+              <option value="AZUL">Azul</option>
+              <option value="PRETO">Preto</option>
+              <option value="MEL">Mel</option>
             </select>
           </div>
 
-          <!-- Cabelo -->
-          <div class="col-span-2">
-            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] mb-1 font-medium">Cor do Cabelo *</label>
+          <div class="sm:col-span-2">
+            <label for="hair" class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Cor dos Cabelos *</label>
             <select 
-              formControlName="hair" 
-              class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E]"
+              id="hair" 
+              formControlName="hair"
+              class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-xs sm:text-sm text-[#222624] focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none cursor-pointer"
             >
-              <option *ngFor="let hair of hairColors" [value]="hair">{{ hair }}</option>
+              <option value="">Selecione...</option>
+              <option value="CASTANHO">Castanho</option>
+              <option value="LOIRO">Loiro</option>
+              <option value="PRETO">Preto</option>
+              <option value="RUIVO">Ruivo</option>
+              <option value="GRISALHO">Grisalho</option>
             </select>
           </div>
-        </div>
 
-        <div class="text-[11px] text-[#5F6661] bg-[#FBFBF9] p-3 border border-[#E8EBE8] flex items-center gap-2">
-          <svg class="w-4 h-4 text-[#C2A87E] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <span>Utilize uma fita métrica maleável diretamente sobre a pele para aferir medidas com precisão.</span>
         </div>
       </div>
 
-      <!-- ===================================================================== -->
-      <!-- BLOCO 3: GUIA DE POLAROIDS & GRADE DE FOTOS (ATÉ 8 FOTOS) -->
-      <!-- ===================================================================== -->
-      <div class="bg-white border border-[#E8EBE8] p-5 sm:p-8 space-y-6 shadow-xs w-full">
+      <!-- BLOCO 3: SLOTS DE POLAROIDS (GRADE 3:4 DESTACADA) -->
+      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 shadow-xs rounded-none space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E8EBE8] pb-3 gap-2">
-          <div class="flex items-center gap-2.5">
-            <span class="font-serif text-sm font-semibold text-[#C2A87E]">03</span>
-            <div>
-              <h2 class="text-xs font-serif uppercase tracking-[0.18em] text-[#222624] font-medium">Polaroids &amp; Apresentação Natural</h2>
-              <p class="text-[11px] text-[#5F6661] mt-0.5">As 3 primeiras fotografias são obrigatórias para análise de casting.</p>
-            </div>
+          <div>
+            <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">3. Polaroids e Fotos de Avaliação</h2>
+            <p class="text-[11px] text-[#5F6661] mt-0.5">Fotos nítidas, com luz natural, sem maquiagem e sem filtros (mínimo 3 obrigatórias).</p>
           </div>
-          <span class="self-start sm:self-center text-xs font-mono text-[#4B584E] font-medium bg-[#F4F5F4] border border-[#E8EBE8] px-2.5 py-1 whitespace-nowrap">
-            {{ totalUploadedPhotos }}/8 Fotos Anexadas
+          <span class="text-xs font-mono text-[#4B584E] font-medium bg-[#F4F5F4] border border-[#E8EBE8] px-2.5 py-1 self-start sm:self-auto rounded-none">
+            {{ totalUploadedPhotos }}/8 Enviadas
           </span>
         </div>
 
-        <!-- GUIA DE ORIENTAÇÕES DE FOTOGRAFIA -->
-        <div class="bg-[#F8F7F4] border border-[#E8EBE8] p-4 sm:p-5 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-          <div class="space-y-1">
-            <span class="text-base block">☀️</span>
-            <strong class="text-[10px] uppercase tracking-wider text-[#222624] block">Luz Natural</strong>
-            <p class="text-[9px] text-[#5F6661]">De frente para janela, iluminação diurna suave.</p>
-          </div>
-          <div class="space-y-1">
-            <span class="text-base block">🧼</span>
-            <strong class="text-[10px] uppercase tracking-wider text-[#222624] block">Sem Filtro/Make</strong>
-            <p class="text-[9px] text-[#5F6661]">Pele limpa, textura real, sem maquiagem ou edições.</p>
-          </div>
-          <div class="space-y-1">
-            <span class="text-base block">👕</span>
-            <strong class="text-[10px] uppercase tracking-wider text-[#222624] block">Roupa Básica</strong>
-            <p class="text-[9px] text-[#5F6661]">Regata ou camiseta neutra e calça justa/jeans.</p>
-          </div>
-          <div class="space-y-1">
-            <span class="text-base block">📐</span>
-            <strong class="text-[10px] uppercase tracking-wider text-[#222624] block">Fundo Neutro</strong>
-            <p class="text-[9px] text-[#5F6661]">Parede lisa branca ou cinza sem objetos ao fundo.</p>
-          </div>
-        </div>
-
-        <!-- GRADE DINÂMICA 4 COLUNAS (3:4 EDITORIAL) -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div *ngFor="let slot of photoSlots; let i = index" class="space-y-2 photo-slot-item">
-            
+          <div *ngFor="let slot of photoSlots; let i = index" class="space-y-1.5">
             <div 
-              class="relative aspect-[3/4] bg-[#FBFBF9] border border-dashed border-[#E8EBE8] hover:border-[#4B584E] transition-all flex flex-col items-center justify-center text-center group overflow-hidden cursor-pointer shadow-xs"
+              class="relative aspect-[3/4] bg-[#FBFBF9] border-2 border-dashed border-[#D1D5D1] hover:border-[#4B584E] transition-all flex flex-col items-center justify-center p-2 text-center overflow-hidden rounded-none"
               [class.border-solid]="slot.previewUrl"
               [class.border-[#4B584E]]="slot.previewUrl"
-              [class.bg-white]="slot.previewUrl"
-              (click)="!slot.previewUrl ? fileInput.click() : null"
             >
-              <!-- FOTO ANEXADA -->
-              <img 
+              <img *ngIf="slot.previewUrl" [src]="slot.previewUrl" class="absolute inset-0 w-full h-full object-cover">
+
+              <button 
                 *ngIf="slot.previewUrl" 
-                [src]="slot.previewUrl" 
-                class="absolute inset-0 w-full h-full object-cover group-hover:scale-102 transition-transform duration-300" 
-                alt=""
+                type="button" 
+                (click)="removePhoto(i)" 
+                class="absolute top-1.5 right-1.5 bg-black/75 hover:bg-black text-white w-6 h-6 flex items-center justify-center text-xs transition-colors rounded-none cursor-pointer z-10"
+                title="Remover foto"
               >
+                ✕
+              </button>
 
-              <!-- OVERLAY NO HOVER SE CARREGADA -->
-              <div *ngIf="slot.previewUrl" class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
-                <button 
-                  type="button" 
-                  (click)="fileInput.click()" 
-                  class="px-2 py-1 bg-white text-[#222624] text-[9px] uppercase tracking-wider font-semibold hover:bg-neutral-100"
-                  title="Alterar fotografia"
-                >
-                  Trocar
-                </button>
-                <button 
-                  type="button" 
-                  (click)="removePhoto(i, $event)" 
-                  class="px-2 py-1 bg-red-600 text-white text-[9px] uppercase tracking-wider font-semibold hover:bg-red-700"
-                  title="Remover fotografia"
-                >
-                  Excluir
-                </button>
-              </div>
-
-              <!-- BADGE DO SLOT -->
-              <div class="absolute top-2 inset-x-2 flex items-center justify-between pointer-events-none z-10">
-                <span 
-                  [ngClass]="slot.required ? 'bg-[#4B584E] text-white' : 'bg-black/60 backdrop-blur-xs text-white'"
-                  class="text-[9px] uppercase tracking-[0.14em] px-2 py-0.5 font-medium shadow-xs"
-                >
+              <div *ngIf="!slot.previewUrl" class="space-y-1 cursor-pointer w-full h-full flex flex-col items-center justify-center" (click)="fileInput.click()">
+                <svg class="w-6 h-6 text-[#5F6661] stroke-[1.2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                <span class="text-[9px] uppercase tracking-wider text-[#5F6661] block font-sans">
                   {{ slot.required ? 'Obrigatória *' : 'Opcional' }}
                 </span>
-                <span *ngIf="slot.previewUrl" class="bg-emerald-600 text-white text-[9px] w-4 h-4 flex items-center justify-center font-bold">
-                  ✓
-                </span>
               </div>
 
-              <!-- ESTADO VAZIO PARA UPLOAD -->
-              <div *ngIf="!slot.previewUrl" class="p-3 space-y-1.5 w-full h-full flex flex-col items-center justify-center">
-                <div class="w-10 h-10 rounded-full border border-[#D5D8D2] flex items-center justify-center text-[#8A928C] group-hover:text-[#4B584E] group-hover:border-[#4B584E] transition-colors">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                  </svg>
-                </div>
-                <span class="text-[9px] uppercase tracking-wider text-[#5F6661] group-hover:text-[#4B584E] transition-colors font-medium">
-                  Clique para anexar
-                </span>
-                <span class="text-[8px] text-[#8A928C]">JPG, PNG até 5MB</span>
-              </div>
-
-              <!-- INPUT DE ARQUIVO ESCONDIDO -->
               <input 
                 #fileInput 
                 type="file" 
                 accept="image/jpeg,image/png,image/webp" 
                 class="hidden" 
                 (change)="onFileSelected(i, $event)"
-              >
+              />
             </div>
-
-            <!-- TÍTULO E DICA DA POLAROID -->
-            <div class="text-center space-y-0.5">
-              <h4 class="text-[10px] font-sans uppercase tracking-wider text-[#222624] font-medium truncate" [title]="slot.label">
-                {{ slot.label }}
-              </h4>
-              <p class="text-[9px] text-[#5F6661] truncate" [title]="slot.hint">
-                {{ slot.hint }}
-              </p>
-            </div>
-
+            <p class="text-[9px] uppercase tracking-wider text-center text-[#5F6661] font-sans truncate" [title]="slot.label">
+              {{ slot.label }}
+            </p>
           </div>
         </div>
 
-        <!-- AVISO SE FALTAR FOTO OBRIGATÓRIA -->
-        <div *ngIf="!hasRequiredPhotos" class="text-xs text-amber-900 bg-amber-50 p-3 border border-amber-200 flex items-center gap-2">
-          <span class="text-sm">⚠️</span>
-          <span>As 3 primeiras fotos (Rosto Frontal, Perfil 3/4 e Corpo Inteiro) são obrigatórias para que a banca possa avaliar sua candidatura.</span>
+        <div *ngIf="!hasRequiredPhotos" class="text-[11px] text-amber-800 bg-amber-50 p-3 border-l-2 border-amber-600 rounded-none">
+          ⚠️ As 3 primeiras polaroids (Rosto Frontal, Perfil 3/4 e Corpo Inteiro) são obrigatórias para submeter o perfil.
         </div>
       </div>
 
-      <!-- ===================================================================== -->
-      <!-- BLOCO 4: TERMO DE CONSENTIMENTO LGPD -->
-      <!-- ===================================================================== -->
-      <div class="bg-white border border-[#E8EBE8] p-5 sm:p-6 shadow-xs space-y-3 w-full">
-        <div class="flex items-center gap-2.5 pb-2 border-b border-[#E8EBE8]">
-          <span class="font-serif text-sm font-semibold text-[#C2A87E]">04</span>
-          <h2 class="text-xs font-serif uppercase tracking-[0.18em] text-[#222624] font-medium">Termo de Consentimento &amp; LGPD</h2>
-        </div>
-
-        <label class="flex items-start gap-3 cursor-pointer pt-1">
+      <!-- BLOCO 4: ACEITE LGPD & ENQUADRAMENTO LEGAL -->
+      <div class="bg-white border border-[#E8EBE8] p-6 shadow-xs rounded-none space-y-3">
+        <label class="flex items-start gap-3 cursor-pointer">
           <input 
             type="checkbox" 
             formControlName="lgpdConsent" 
-            class="mt-1 accent-[#4B584E] shrink-0 w-4 h-4 cursor-pointer"
-          >
-          <span class="text-xs text-[#5F6661] leading-relaxed break-words font-sans">
-            Declaro sob as penas da lei que todas as informações e fotos enviadas são verídicas e autorizo a <strong>WB Agency</strong> a processar meus dados e mídias exclusivamente para fins de avaliação de casting e representação artística, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).
+            class="mt-1 h-4 w-4 accent-[#4B584E] rounded-none cursor-pointer"
+          />
+          <span class="text-xs text-[#5F6661] leading-relaxed">
+            Declaro a veracidade dos dados informados e autorizo a <strong>WB Agency</strong> a armazenar e processar meus dados e mídias exclusivamente para fins de avaliação de casting e representação artística, nos termos da Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018).
           </span>
         </label>
-        <span *ngIf="form.get('lgpdConsent')?.touched && form.get('lgpdConsent')?.invalid" class="text-[10px] text-red-600 block pl-7">
-          O aceite dos termos da LGPD é indispensável para submissão.
-        </span>
       </div>
 
-      <!-- ===================================================================== -->
-      <!-- BOTÃO DE ENVIO & STATUS -->
-      <!-- ===================================================================== -->
-      <div class="text-center pt-2 space-y-3">
+      <!-- BOTÃO DE SUBMISSÃO -->
+      <div class="text-center pt-2">
         <button 
           type="submit" 
-          [disabled]="form.invalid || !hasRequiredPhotos || isSubmitting"
-          class="w-full sm:w-auto px-12 py-4 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-[0.22em] font-sans disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-md inline-flex items-center justify-center gap-3 font-semibold"
+          [disabled]="applyForm.invalid || !hasRequiredPhotos || isSubmitting"
+          class="w-full sm:w-auto px-12 py-4 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-[0.25em] font-sans disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer shadow-sm rounded-none"
         >
-          <span *ngIf="!isSubmitting">Submeter Candidatura para Scouting</span>
-          <span *ngIf="isSubmitting" class="inline-flex items-center gap-2">
-            <svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+          <span *ngIf="!isSubmitting">Submeter Candidatura</span>
+          <span *ngIf="isSubmitting" class="flex items-center justify-center gap-2">
+            <svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
             Enviando Material...
           </span>
         </button>
-
-        <p *ngIf="form.invalid || !hasRequiredPhotos" class="text-[11px] text-[#5F6661] font-sans">
-          Complete os campos obrigatórios (*) e anexe as 3 polaroids principais para liberar o envio.
-        </p>
       </div>
 
     </form>

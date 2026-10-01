@@ -17,35 +17,32 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
-// Suavização das polaroids
-.photo-slot-item {
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-
-  &:hover {
-    transform: translateY(-2px);
-  }
-}
-
-// Efeito no botão de envio
-button[type="submit"]:not(:disabled) {
-  &:hover {
-    box-shadow: 0 6px 20px rgba(75, 88, 78, 0.25);
-  }
-}
-
-// Seletores de gênero e inputs customizados
+// Seletores com seta sutil minimalista
 select {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%235F6661'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 0.75rem center;
-  background-size: 0.875rem;
-  padding-right: 2rem !important;
+  background-position: right 0.85rem center;
+  background-size: 0.85rem;
+  padding-right: 2.25rem !important;
 }
 
-// Inputs com foco editorial refinado
+// Foco estrito editorial nos inputs e selects
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
   border-color: #4B584E !important;
-  box-shadow: 0 0 0 1px #4B584E;
+  outline: none !important;
+}
+
+// Hover sutil no botão de submissão
+button[type="submit"]:not(:disabled) {
+  &:hover {
+    box-shadow: 0 4px 14px rgba(75, 88, 78, 0.2);
+  }
+}
+
+// Acabamento estrito rounded-none em todos os elementos do formulário
+* {
+  border-radius: 0 !important;
 }

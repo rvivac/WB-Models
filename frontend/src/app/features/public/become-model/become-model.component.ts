@@ -33,7 +33,11 @@ export class BecomeModelComponent implements OnInit {
   submitError: string | null = null;
   submissionProtocol: string | null = null;
 
-  // Estados Brasileiros para seleção rápida
+  get applyForm(): FormGroup {
+    return this.form;
+  }
+
+  // Estados Brasileiros para referência e seleção
   readonly brazilianStates = [
     { uf: 'AC', name: 'Acre' },
     { uf: 'AL', name: 'Alagoas' },
@@ -65,8 +69,8 @@ export class BecomeModelComponent implements OnInit {
   ];
 
   // Cores curadas para olhos e cabelos
-  readonly eyeColors = ['Castanhos', 'Castanhos Claros / Mel', 'Verdes', 'Azuis', 'Pretos', 'Cinzas'];
-  readonly hairColors = ['Castanho Escuro', 'Castanho Claro', 'Preto', 'Loiro', 'Ruivo', 'Grisalho / Branco'];
+  readonly eyeColors = ['CASTANHO', 'VERDE', 'AZUL', 'PRETO', 'MEL'];
+  readonly hairColors = ['CASTANHO', 'LOIRO', 'PRETO', 'RUIVO', 'GRISALHO'];
 
   // Grade editorial de fotos: 3 obrigatórias e 5 complementares (total de 8)
   photoSlots: PhotoSlot[] = [
@@ -91,6 +95,7 @@ export class BecomeModelComponent implements OnInit {
       gender: ['FEMALE', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.required]],
+      instagram: [''],
       instagramHandle: [''],
       birthDate: ['', [Validators.required]],
       city: ['', [Validators.required]],
@@ -101,8 +106,8 @@ export class BecomeModelComponent implements OnInit {
       waist: ['', [Validators.required]],
       hips: ['', [Validators.required]],
       shoes: ['', [Validators.required]],
-      eyes: ['Castanhos', [Validators.required]],
-      hair: ['Castanho Escuro', [Validators.required]],
+      eyes: ['', [Validators.required]],
+      hair: ['', [Validators.required]],
       // Responsável Legal (Condicional)
       guardianName: [''],
       guardianCpf: [''],
@@ -288,19 +293,24 @@ export class BecomeModelComponent implements OnInit {
     const heightInMeters = heightVal > 3 ? +(heightVal / 100).toFixed(2) : +heightVal.toFixed(2);
     const shoeSizeVal = parseInt(String(formVal.shoes).replace(/\D/g, ''), 10) || 38;
 
-    let instagram = (formVal.instagramHandle || '').trim();
+    let instagram = (formVal.instagram || formVal.instagramHandle || '').trim();
     if (instagram && !instagram.startsWith('@') && !instagram.startsWith('http')) {
       instagram = '@' + instagram;
     }
 
+    const stateVal = (formVal.state || '').trim().toUpperCase();
+
     // Payload compatível com ambos os DTOs
     const candidateData = {
       ...formVal,
+      gender: formVal.gender || 'FEMALE',
+      state: stateVal,
       height: heightInMeters,
       shoeSize: shoeSizeVal,
       eyeColor: formVal.eyes,
       hairColor: formVal.hair,
       instagramHandle: instagram,
+      instagram: instagram,
       age: this.calculatedAge,
       isMinor: this.isMinor
     };
@@ -341,8 +351,8 @@ export class BecomeModelComponent implements OnInit {
     this.submissionProtocol = null;
     this.form.reset({
       gender: 'FEMALE',
-      eyes: 'Castanhos',
-      hair: 'Castanho Escuro',
+      eyes: '',
+      hair: '',
       lgpdConsent: false
     });
     this.photoSlots.forEach(s => { s.file = null; s.previewUrl = null; });

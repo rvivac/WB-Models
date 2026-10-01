@@ -1,0 +1,67 @@
+name: Deploy Frontend para Hostinger
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-hostinger.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-hostinger
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    name: Build Angular & Deploy FTP
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar Dependências
+        run: npm ci
+
+      - name: Compilar Angular em Produção
+        run: npm run build -- --configuration production
+
+      - name: Garantir fallback SPA para rotas (404.html e .htaccess)
+        run: |
+          DIST_DIR="dist/frontend/browser"
+          if [ -d "$DIST_DIR" ]; then
+            cp "$DIST_DIR/index.html" "$DIST_DIR/404.html"
+            # Cria .htaccess para Apache/Hostinger rotear o Angular SPA
+            cat << 'EOF' > "$DIST_DIR/.htaccess"
+          <IfModule mod_rewrite.c>
+            RewriteEngine On
+            RewriteBase /
+            RewriteRule ^index\.html$ - [L]
+            RewriteCond %{REQUEST_FILENAME} !-f
+            RewriteCond %{REQUEST_FILENAME} !-d
+            RewriteRule . /index.html [L]
+          </IfModule>
+          EOF
+          fi
+
+      - name: Enviar arquivos via FTP para a Hostinger
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./frontend/dist/frontend/browser/
+          server-dir: public_html/

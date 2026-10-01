@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { RouterModule } from '@angular/router';
 import { cpfValidator } from '../../../core/validators/cpf.validator';
 import { environment } from '../../../../environments/environment';
 
@@ -9,13 +10,14 @@ export interface PhotoSlot {
   file: File | null;
   previewUrl: string | null;
   label: string;
+  hint: string;
   required: boolean;
 }
 
 @Component({
   selector: 'app-become-model',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './become-model.component.html',
   styleUrls: ['./become-model.component.scss']
 })
@@ -29,17 +31,53 @@ export class BecomeModelComponent implements OnInit {
   calculatedAge: number | null = null;
   submitSuccess = false;
   submitError: string | null = null;
+  submissionProtocol: string | null = null;
 
-  // Grade dinâmica de fotos: 3 obrigatórias e 5 complementares (total de até 8)
+  // Estados Brasileiros para seleção rápida
+  readonly brazilianStates = [
+    { uf: 'AC', name: 'Acre' },
+    { uf: 'AL', name: 'Alagoas' },
+    { uf: 'AP', name: 'Amapá' },
+    { uf: 'AM', name: 'Amazonas' },
+    { uf: 'BA', name: 'Bahia' },
+    { uf: 'CE', name: 'Ceará' },
+    { uf: 'DF', name: 'Distrito Federal' },
+    { uf: 'ES', name: 'Espírito Santo' },
+    { uf: 'GO', name: 'Goiás' },
+    { uf: 'MA', name: 'Maranhão' },
+    { uf: 'MT', name: 'Mato Grosso' },
+    { uf: 'MS', name: 'Mato Grosso do Sul' },
+    { uf: 'MG', name: 'Minas Gerais' },
+    { uf: 'PA', name: 'Pará' },
+    { uf: 'PB', name: 'Paraíba' },
+    { uf: 'PR', name: 'Paraná' },
+    { uf: 'PE', name: 'Pernambuco' },
+    { uf: 'PI', name: 'Piauí' },
+    { uf: 'RJ', name: 'Rio de Janeiro' },
+    { uf: 'RN', name: 'Rio Grande do Norte' },
+    { uf: 'RS', name: 'Rio Grande do Sul' },
+    { uf: 'RO', name: 'Rondônia' },
+    { uf: 'RR', name: 'Roraima' },
+    { uf: 'SC', name: 'Santa Catarina' },
+    { uf: 'SP', name: 'São Paulo' },
+    { uf: 'SE', name: 'Sergipe' },
+    { uf: 'TO', name: 'Tocantins' }
+  ];
+
+  // Cores curadas para olhos e cabelos
+  readonly eyeColors = ['Castanhos', 'Castanhos Claros / Mel', 'Verdes', 'Azuis', 'Pretos', 'Cinzas'];
+  readonly hairColors = ['Castanho Escuro', 'Castanho Claro', 'Preto', 'Loiro', 'Ruivo', 'Grisalho / Branco'];
+
+  // Grade editorial de fotos: 3 obrigatórias e 5 complementares (total de 8)
   photoSlots: PhotoSlot[] = [
-    { file: null, previewUrl: null, label: 'Rosto Frontal (Natural)', required: true },
-    { file: null, previewUrl: null, label: 'Perfil 3/4', required: true },
-    { file: null, previewUrl: null, label: 'Corpo Inteiro', required: true },
-    { file: null, previewUrl: null, label: 'Luz Natural / Meio Corpo', required: false },
-    { file: null, previewUrl: null, label: 'Perfil Oposto', required: false },
-    { file: null, previewUrl: null, label: 'Expressão / Sorriso', required: false },
-    { file: null, previewUrl: null, label: 'Foto Editorial Livre', required: false },
-    { file: null, previewUrl: null, label: 'Composite ou Ensaio Anterior', required: false }
+    { file: null, previewUrl: null, label: 'Rosto Frontal (Close)', hint: 'Sem maquiagem, expressão neutra', required: true },
+    { file: null, previewUrl: null, label: 'Perfil 3/4', hint: 'Ângulo de 45°, cabelo atrás da orelha', required: true },
+    { file: null, previewUrl: null, label: 'Corpo Inteiro', hint: 'Roupa básica e postura natural', required: true },
+    { file: null, previewUrl: null, label: 'Luz Natural / Meio Corpo', hint: 'Iluminação difusa de dia', required: false },
+    { file: null, previewUrl: null, label: 'Perfil Oposto', hint: 'Visão lateral completa', required: false },
+    { file: null, previewUrl: null, label: 'Expressão / Sorriso', hint: 'Mostre sua espontaneidade', required: false },
+    { file: null, previewUrl: null, label: 'Foto Editorial Livre', hint: 'Ensaio fotográfico ou teste', required: false },
+    { file: null, previewUrl: null, label: 'Composite ou Ensaio Anterior', hint: 'Material profissional se houver', required: false }
   ];
 
   ngOnInit(): void {
@@ -50,19 +88,21 @@ export class BecomeModelComponent implements OnInit {
   private initForm(): void {
     this.form = this.fb.group({
       fullName: ['', [Validators.required, Validators.minLength(3)]],
+      gender: ['FEMALE', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.required]],
+      instagramHandle: [''],
       birthDate: ['', [Validators.required]],
       city: ['', [Validators.required]],
       state: ['', [Validators.required]],
       // Biometria
-      height: ['', [Validators.required, Validators.min(140), Validators.max(220)]],
+      height: ['', [Validators.required, Validators.min(100), Validators.max(230)]],
       bust: ['', [Validators.required]],
       waist: ['', [Validators.required]],
       hips: ['', [Validators.required]],
       shoes: ['', [Validators.required]],
-      eyes: ['', [Validators.required]],
-      hair: ['', [Validators.required]],
+      eyes: ['Castanhos', [Validators.required]],
+      hair: ['Castanho Escuro', [Validators.required]],
       // Responsável Legal (Condicional)
       guardianName: [''],
       guardianCpf: [''],
@@ -71,6 +111,10 @@ export class BecomeModelComponent implements OnInit {
       // Termos
       lgpdConsent: [false, [Validators.requiredTrue]]
     });
+  }
+
+  setGender(gender: string): void {
+    this.form.get('gender')?.setValue(gender);
   }
 
   private watchBirthDate(): void {
@@ -124,6 +168,55 @@ export class BecomeModelComponent implements OnInit {
     guardianEmail?.updateValueAndValidity();
   }
 
+  onPhoneInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let v = input.value.replace(/\D/g, '');
+    if (v.length > 11) v = v.substring(0, 11);
+    
+    if (v.length > 10) {
+      input.value = `(${v.substring(0, 2)}) ${v.substring(2, 7)}-${v.substring(7)}`;
+    } else if (v.length > 6) {
+      input.value = `(${v.substring(0, 2)}) ${v.substring(2, 6)}-${v.substring(6)}`;
+    } else if (v.length > 2) {
+      input.value = `(${v.substring(0, 2)}) ${v.substring(2)}`;
+    } else if (v.length > 0) {
+      input.value = `(${v}`;
+    }
+    this.form.get('phone')?.setValue(input.value, { emitEvent: false });
+  }
+
+  onGuardianPhoneInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let v = input.value.replace(/\D/g, '');
+    if (v.length > 11) v = v.substring(0, 11);
+    
+    if (v.length > 10) {
+      input.value = `(${v.substring(0, 2)}) ${v.substring(2, 7)}-${v.substring(7)}`;
+    } else if (v.length > 6) {
+      input.value = `(${v.substring(0, 2)}) ${v.substring(2, 6)}-${v.substring(6)}`;
+    } else if (v.length > 2) {
+      input.value = `(${v.substring(0, 2)}) ${v.substring(2)}`;
+    } else if (v.length > 0) {
+      input.value = `(${v}`;
+    }
+    this.form.get('guardianPhone')?.setValue(input.value, { emitEvent: false });
+  }
+
+  onCpfInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let v = input.value.replace(/\D/g, '');
+    if (v.length > 11) v = v.substring(0, 11);
+    
+    if (v.length > 9) {
+      input.value = `${v.substring(0, 3)}.${v.substring(3, 6)}.${v.substring(6, 9)}-${v.substring(9)}`;
+    } else if (v.length > 6) {
+      input.value = `${v.substring(0, 3)}.${v.substring(3, 6)}.${v.substring(6)}`;
+    } else if (v.length > 3) {
+      input.value = `${v.substring(0, 3)}.${v.substring(3)}`;
+    }
+    this.form.get('guardianCpf')?.setValue(input.value, { emitEvent: false });
+  }
+
   onFileSelected(index: number, event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
@@ -148,18 +241,34 @@ export class BecomeModelComponent implements OnInit {
     }
   }
 
-  removePhoto(index: number): void {
+  removePhoto(index: number, event?: Event): void {
+    if (event) event.stopPropagation();
     this.photoSlots[index].file = null;
     this.photoSlots[index].previewUrl = null;
   }
 
   get hasRequiredPhotos(): boolean {
-    // Exige obrigatoriamente que as 3 primeiras fotos estejam preenchidas
     return this.photoSlots.slice(0, 3).every(slot => slot.file !== null);
   }
 
   get totalUploadedPhotos(): number {
     return this.photoSlots.filter(s => s.file !== null).length;
+  }
+
+  get progressPercentage(): number {
+    const totalFields = 10;
+    let completed = 0;
+    const f = this.form.value;
+    if (f.fullName?.length >= 3) completed++;
+    if (f.email) completed++;
+    if (f.phone) completed++;
+    if (f.birthDate) completed++;
+    if (f.city && f.state) completed++;
+    if (f.height) completed++;
+    if (f.bust && f.waist && f.hips) completed++;
+    if (this.hasRequiredPhotos) completed += 2;
+    if (f.lgpdConsent) completed++;
+    return Math.min(100, Math.round((completed / totalFields) * 100));
   }
 
   onSubmit(): void {
@@ -173,12 +282,29 @@ export class BecomeModelComponent implements OnInit {
     this.isSubmitting = true;
     const formData = new FormData();
 
-    // Payload de dados cadastrais
+    const formVal = this.form.value;
+    const heightVal = Number(formVal.height);
+    // Backend espera altura em metros (1.20 a 2.30)
+    const heightInMeters = heightVal > 3 ? +(heightVal / 100).toFixed(2) : +heightVal.toFixed(2);
+    const shoeSizeVal = parseInt(String(formVal.shoes).replace(/\D/g, ''), 10) || 38;
+
+    let instagram = (formVal.instagramHandle || '').trim();
+    if (instagram && !instagram.startsWith('@') && !instagram.startsWith('http')) {
+      instagram = '@' + instagram;
+    }
+
+    // Payload compatível com ambos os DTOs
     const candidateData = {
-      ...this.form.value,
+      ...formVal,
+      height: heightInMeters,
+      shoeSize: shoeSizeVal,
+      eyeColor: formVal.eyes,
+      hairColor: formVal.hair,
+      instagramHandle: instagram,
       age: this.calculatedAge,
       isMinor: this.isMinor
     };
+
     formData.append('data', new Blob([JSON.stringify(candidateData)], { type: 'application/json' }));
 
     // Anexo de compatibilidade com controllers específicos
@@ -193,17 +319,33 @@ export class BecomeModelComponent implements OnInit {
       }
     });
 
-    this.http.post(`${environment.apiUrl}/submissions`, formData).subscribe({
-      next: () => {
+    this.http.post<any>(`${environment.apiUrl}/submissions`, formData).subscribe({
+      next: (res) => {
         this.isSubmitting = false;
         this.submitSuccess = true;
+        this.submissionProtocol = res?.protocol || (`WB-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`);
         this.form.reset();
         this.photoSlots.forEach(s => { s.file = null; s.previewUrl = null; });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       },
       error: (err) => {
         this.isSubmitting = false;
         this.submitError = err?.error?.detail || err?.error?.message || 'Falha ao submeter candidatura. Por favor, revise seus dados e tente novamente.';
       }
     });
+  }
+
+  resetForm(): void {
+    this.submitSuccess = false;
+    this.submitError = null;
+    this.submissionProtocol = null;
+    this.form.reset({
+      gender: 'FEMALE',
+      eyes: 'Castanhos',
+      hair: 'Castanho Escuro',
+      lgpdConsent: false
+    });
+    this.photoSlots.forEach(s => { s.file = null; s.previewUrl = null; });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }

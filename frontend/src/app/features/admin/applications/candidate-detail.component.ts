@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { CandidateDetail } from './candidate-detail.model';
+import { fixUtf8, sanitizeCandidateName } from '../../../core/utils/text-sanitizer.util';
 
 @Component({
   selector: 'app-candidate-detail',
@@ -48,7 +49,12 @@ export class CandidateDetailComponent implements OnInit {
   loadCandidate(id: string): void {
     this.http.get<CandidateDetail>(`${environment.apiUrl}/admin/applications/${id}`).subscribe({
       next: (data) => {
-        this.candidate = data;
+        this.candidate = {
+          ...data,
+          fullName: sanitizeCandidateName(data.fullName),
+          city: fixUtf8(data.city),
+          state: fixUtf8(data.state)
+        };
         this.internalNotes = data.internalNotes || '';
       },
       error: () => this.loadMockFallback(id)

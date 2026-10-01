@@ -10,6 +10,7 @@ import {
   CandidateStatus,
   CandidatePhoto
 } from '../../../core/models/candidate.model';
+import { fixUtf8, sanitizeCandidateName } from '../../../core/utils/text-sanitizer.util';
 
 @Component({
   selector: 'app-candidate-list',
@@ -98,7 +99,13 @@ export class CandidateListComponent implements OnInit, OnDestroy {
     }).subscribe({
       next: (res) => {
         this.isLoading.set(false);
-        this.candidates.set(res.content);
+        const sanitized = (res.content || []).map((c: any) => ({
+          ...c,
+          fullName: sanitizeCandidateName(c.fullName),
+          city: fixUtf8(c.city),
+          state: fixUtf8(c.state)
+        }));
+        this.candidates.set(sanitized);
         this.totalElements.set(res.totalElements);
         this.totalPages.set(res.totalPages);
         this.updateCountersFromLocal();

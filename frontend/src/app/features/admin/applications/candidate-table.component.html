@@ -80,18 +80,38 @@
         *ngFor="let candidate of applications" 
         class="candidate-card group bg-white border border-[#E8EBE8] hover:border-[#4B584E] transition-all duration-200 flex flex-col justify-between shadow-xs"
       >
-        <div>
-          <!-- Moldura da Foto Vertical (3:4) -->
-          <div class="relative aspect-[3/4] bg-[#F4F5F4] overflow-hidden">
+        <div class="w-full">
+          <!-- Moldura da Foto Vertical (3:4) com Altura Mínima Garantida -->
+          <div class="card-photo-wrapper">
+            
+            <!-- Foto de Capa (quando presente e válida) -->
             <img 
-              [src]="candidate.coverPhoto || candidate.photos?.[0]?.url || 'assets/images/placeholder-polaroid.jpg'" 
-              [alt]="candidate.fullName" 
-              class="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
+              *ngIf="candidate.coverPhoto && !candidate.photoError"
+              [src]="candidate.coverPhoto" 
+              alt=""
+              role="presentation"
+              (error)="onPhotoError(candidate)"
+              class="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300 block"
             />
+
+            <!-- Placeholder Editorial Elegante (quando sem foto ou erro de imagem) -->
+            <div 
+              *ngIf="!candidate.coverPhoto || candidate.photoError"
+              class="photo-placeholder"
+            >
+              <div class="placeholder-icon-circle">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+              </div>
+              <span class="placeholder-brand">WB Agency</span>
+              <span class="placeholder-hint">Aguardando Polaroids</span>
+            </div>
 
             <!-- Badges no topo -->
             <div class="absolute top-2.5 inset-x-2.5 flex items-center justify-between pointer-events-none z-10">
-              <span *ngIf="candidate.isMinor" class="bg-amber-100/95 backdrop-blur-xs text-amber-900 border border-amber-300/60 text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5">
+              <span *ngIf="candidate.isMinor" class="bg-amber-100/95 backdrop-blur-xs text-amber-900 border border-amber-300/60 text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 shadow-xs">
                 Menor
               </span>
               
@@ -101,15 +121,18 @@
                   'bg-emerald-700 text-white': candidate.status === 'APPROVED',
                   'bg-neutral-600 text-white': candidate.status === 'REJECTED'
                 }"
-                class="ml-auto text-[10px] uppercase font-medium tracking-[0.14em] px-2.5 py-0.5"
+                class="ml-auto text-[10px] uppercase font-medium tracking-[0.14em] px-2.5 py-0.5 shadow-xs"
               >
                 {{ candidate.status === 'PENDING' ? 'Pendente' : (candidate.status === 'APPROVED' ? 'Aprovada' : 'Declinada') }}
               </span>
             </div>
 
-            <!-- Contador de Polaroids -->
-            <div class="absolute bottom-2.5 right-2.5 bg-black/65 backdrop-blur-xs text-white text-[10px] font-sans tracking-wide px-2 py-0.5">
-              {{ candidate.polaroidsCount || candidate.photos?.length || 4 }} Polaroids
+            <!-- Contador de Polaroids (apenas quando houver polaroids cadastradas) -->
+            <div 
+              *ngIf="candidate.polaroidsCount > 0"
+              class="absolute bottom-2.5 right-2.5 bg-black/65 backdrop-blur-xs text-white text-[10px] font-sans tracking-wide px-2 py-0.5"
+            >
+              {{ candidate.polaroidsCount }} {{ candidate.polaroidsCount === 1 ? 'Polaroid' : 'Polaroids' }}
             </div>
           </div>
 

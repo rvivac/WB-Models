@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import { fixUtf8, sanitizeCandidateName } from '../../../core/utils/text-sanitizer.util';
 
 export interface CandidateApplicationRow {
   id: string;
@@ -27,6 +28,7 @@ export interface CandidateApplicationRow {
   coverPhoto?: string;
   photos?: { id: string; url: string; type: string }[];
   createdAt: string;
+  photoError?: boolean;
 }
 
 @Component({
@@ -112,7 +114,12 @@ export class CandidateTableComponent implements OnInit {
         const items = res.content || [];
         this.applications = items.map((item: any) => ({
           ...item,
-          coverPhoto: item.coverPhoto || (item.photos && item.photos.length > 0 ? item.photos[0].url : undefined)
+          fullName: sanitizeCandidateName(item.fullName),
+          city: fixUtf8(item.city),
+          state: fixUtf8(item.state),
+          polaroidsCount: item.photoCount ?? item.polaroidsCount ?? (item.photos ? item.photos.length : 0),
+          coverPhoto: item.coverPhoto || (item.photos && item.photos.length > 0 ? item.photos[0].url : undefined),
+          photoError: false
         }));
         this.totalElements = res.totalElements || 0;
         this.totalPages = res.totalPages || 0;
@@ -123,6 +130,10 @@ export class CandidateTableComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  onPhotoError(candidate: CandidateApplicationRow): void {
+    candidate.photoError = true;
   }
 
   loadCounts(): void {

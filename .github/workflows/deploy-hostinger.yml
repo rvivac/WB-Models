@@ -1,3 +1,4 @@
+# WB Agency - Pipeline de Deploy Hostinger (Angular 18 -> public_html via FTP)
 name: Deploy Frontend para Hostinger
 
 on:

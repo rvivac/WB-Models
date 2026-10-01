@@ -36,19 +36,19 @@ class ContactChannelsServiceImplTest {
     @BeforeEach
     void setUp() {
         Map<String, Object> ptPayload = Map.of(
-                "email", "contato@wbscouting.com",
+                "email", "contato@wbagency.com.br",
                 "whatsappNumber", "5511988887777",
-                "whatsappDefaultMessage", "Olá WB Scouting!",
-                "instagramHandle", "@wbscouting",
+                "whatsappDefaultMessage", "Olá WB Agency!",
+                "instagramHandle", "@wbagency",
                 "address", "Av. Paulista, 1000 - São Paulo, SP",
                 "officeHours", "Segunda a Sexta, das 09h às 18h"
         );
 
         Map<String, Object> enPayload = Map.of(
-                "email", "contact@wbscouting.com",
+                "email", "contact@wbagency.com.br",
                 "whatsappNumber", "5511988887777",
-                "whatsappDefaultMessage", "Hello WB Scouting!",
-                "instagramHandle", "@wbscouting",
+                "whatsappDefaultMessage", "Hello WB Agency!",
+                "instagramHandle", "@wbagency",
                 "address", "Paulista Ave, 1000 - Sao Paulo, Brazil",
                 "officeHours", "Monday to Friday, 9:00 AM - 6:00 PM"
         );
@@ -70,10 +70,10 @@ class ContactChannelsServiceImplTest {
         ContactChannelsPublicDto result = contactChannelsService.getContactChannels("pt");
 
         assertThat(result).isNotNull();
-        assertThat(result.getEmail()).isEqualTo("contato@wbscouting.com");
-        assertThat(result.getWhatsappNumber()).isEqualTo("5511999999999");
-        assertThat(result.getWhatsappUrl()).contains("https://wa.me/5511999999999");
-        assertThat(result.getInstagramHandle()).isEqualTo("@wbscouting");
+        assertThat(result.getEmail()).isEqualTo("info@wbagency.com.br");
+        assertThat(result.getWhatsappNumber()).isEqualTo("5511970656003");
+        assertThat(result.getWhatsappUrl()).contains("https://wa.me/5511970656003");
+        assertThat(result.getInstagramHandle()).isEqualTo("@wbagency");
         assertThat(result.getAddress()).isEqualTo("São Paulo - SP, Brasil");
         assertThat(result.getOfficeHours()).isEqualTo("Segunda a Sexta, das 09h às 18h");
     }
@@ -87,10 +87,10 @@ class ContactChannelsServiceImplTest {
         ContactChannelsPublicDto result = contactChannelsService.getContactChannels("en");
 
         assertThat(result).isNotNull();
-        assertThat(result.getEmail()).isEqualTo("contact@wbscouting.com");
+        assertThat(result.getEmail()).isEqualTo("contact@wbagency.com.br");
         assertThat(result.getWhatsappNumber()).isEqualTo("5511988887777");
         assertThat(result.getWhatsappUrl()).contains("https://wa.me/5511988887777");
-        assertThat(result.getWhatsappUrl()).contains("Hello%20WB%20Scouting%21");
+        assertThat(result.getWhatsappUrl()).contains("Hello%20WB%20Agency%21");
         assertThat(result.getAddress()).isEqualTo("Paulista Ave, 1000 - Sao Paulo, Brazil");
         assertThat(result.getOfficeHours()).isEqualTo("Monday to Friday, 9:00 AM - 6:00 PM");
     }
@@ -105,8 +105,8 @@ class ContactChannelsServiceImplTest {
         ContactChannelsPublicDto result = contactChannelsService.getContactChannels("en");
 
         assertThat(result).isNotNull();
-        assertThat(result.getEmail()).isEqualTo("contato@wbscouting.com");
-        assertThat(result.getWhatsappUrl()).contains("Ol%C3%A1%20WB%20Scouting%21");
+        assertThat(result.getEmail()).isEqualTo("contato@wbagency.com.br");
+        assertThat(result.getWhatsappUrl()).contains("Ol%C3%A1%20WB%20Agency%21");
         assertThat(result.getAddress()).isEqualTo("Av. Paulista, 1000 - São Paulo, SP");
     }
 
@@ -119,7 +119,7 @@ class ContactChannelsServiceImplTest {
         ContactChannelsPublicDto result = contactChannelsService.getContactChannels("pt");
 
         assertThat(result).isNotNull();
-        assertThat(result.getEmail()).isEqualTo("contato@wbscouting.com");
+        assertThat(result.getEmail()).isEqualTo("contato@wbagency.com.br");
         assertThat(result.getWhatsappNumber()).isEqualTo("5511988887777");
         assertThat(result.getAddress()).isEqualTo("Av. Paulista, 1000 - São Paulo, SP");
     }
@@ -134,11 +134,11 @@ class ContactChannelsServiceImplTest {
 
         UUID adminId = UUID.randomUUID();
         ContactChannelsUpdateRequestDto dto = ContactChannelsUpdateRequestDto.builder()
-                .email("novo@wbscouting.com")
+                .email("novo@wbagency.com.br")
                 .whatsappNumber("+55 (11) 97777-6666")
                 .whatsappDefaultMessagePt("Olá, quero conversar!")
                 .whatsappDefaultMessageEn("Hello, let's talk!")
-                .instagramHandle("@wbscouting_oficial")
+                .instagramHandle("@wbagency_oficial")
                 .addressPt("Rua Oscar Freire, 500 - SP")
                 .addressEn("Oscar Freire St, 500 - SP")
                 .officeHoursPt("08h às 17h")
@@ -148,7 +148,7 @@ class ContactChannelsServiceImplTest {
         ContactChannelsPublicDto updated = contactChannelsService.updateContactChannels(dto, adminId);
 
         assertThat(updated).isNotNull();
-        assertThat(updated.getEmail()).isEqualTo("novo@wbscouting.com");
+        assertThat(updated.getEmail()).isEqualTo("novo@wbagency.com.br");
         assertThat(updated.getWhatsappNumber()).isEqualTo("5511977776666");
         assertThat(updated.getWhatsappUrl()).contains("https://wa.me/5511977776666");
 
@@ -169,7 +169,7 @@ class ContactChannelsServiceImplTest {
 
         UUID adminId = UUID.randomUUID();
         ContactChannelsUpdateRequestDto dto = ContactChannelsUpdateRequestDto.builder()
-                .email("contato@wbscouting.com")
+                .email("contato@wbagency.com.br")
                 .whatsappNumber("5511999998888")
                 .whatsappDefaultMessagePt("Mensagem PT")
                 .addressPt("Endereço PT")

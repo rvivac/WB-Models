@@ -24,11 +24,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ContactChannelsServiceImpl implements ContactChannelsService {
 
-    private static final String DEFAULT_EMAIL = "contato@wbscouting.com";
-    private static final String DEFAULT_WHATSAPP = "5511999999999";
-    private static final String DEFAULT_MESSAGE_PT = "Olá! Gostaria de mais informações sobre a agência WB Scouting.";
-    private static final String DEFAULT_MESSAGE_EN = "Hello! I would like more information about WB Scouting agency.";
-    private static final String DEFAULT_INSTAGRAM = "@wbscouting";
+    private static final String DEFAULT_EMAIL = "info@wbagency.com.br";
+    private static final String DEFAULT_WHATSAPP = "5511970656003";
+    private static final String DEFAULT_MESSAGE_PT = "Olá! Gostaria de mais informações sobre a agência WB Agency.";
+    private static final String DEFAULT_MESSAGE_EN = "Hello! I would like more information about WB Agency.";
+    private static final String DEFAULT_INSTAGRAM = "@wbagency";
     private static final String DEFAULT_ADDRESS_PT = "São Paulo - SP, Brasil";
     private static final String DEFAULT_ADDRESS_EN = "São Paulo - SP, Brazil";
     private static final String DEFAULT_OFFICE_HOURS_PT = "Segunda a Sexta, das 09h às 18h";
@@ -42,6 +42,9 @@ public class ContactChannelsServiceImpl implements ContactChannelsService {
         boolean isEn = "en".equalsIgnoreCase(lang);
 
         Optional<SiteContent> contentOpt = siteContentRepository.findBySectionKey(ContentSectionKey.CONTACT_INFO);
+        if (contentOpt.isEmpty()) {
+            contentOpt = siteContentRepository.findBySectionKey("contact");
+        }
 
         String email = DEFAULT_EMAIL;
         String whatsappNumber = DEFAULT_WHATSAPP;
@@ -56,17 +59,17 @@ public class ContactChannelsServiceImpl implements ContactChannelsService {
             Map<String, Object> en = content.getPayloadEn() != null ? content.getPayloadEn() : Map.of();
 
             if (isEn) {
-                email = getString(en, "email", getString(pt, "email", DEFAULT_EMAIL));
-                whatsappNumber = getString(en, "whatsappNumber", getString(pt, "whatsappNumber", DEFAULT_WHATSAPP));
+                email = sanitizeVal(getString(en, "email", getString(pt, "email", DEFAULT_EMAIL)), DEFAULT_EMAIL);
+                whatsappNumber = sanitizeVal(getString(en, "whatsappNumber", getString(pt, "whatsappNumber", DEFAULT_WHATSAPP)), DEFAULT_WHATSAPP);
                 defaultMessage = getString(en, "whatsappDefaultMessage", getString(pt, "whatsappDefaultMessage", DEFAULT_MESSAGE_EN));
-                instagramHandle = getString(en, "instagramHandle", getString(pt, "instagramHandle", DEFAULT_INSTAGRAM));
+                instagramHandle = sanitizeInstagram(getString(en, "instagramHandle", getString(pt, "instagramHandle", DEFAULT_INSTAGRAM)));
                 address = getString(en, "address", getString(pt, "address", DEFAULT_ADDRESS_EN));
                 officeHours = getString(en, "officeHours", getString(pt, "officeHours", DEFAULT_OFFICE_HOURS_EN));
             } else {
-                email = getString(pt, "email", DEFAULT_EMAIL);
-                whatsappNumber = getString(pt, "whatsappNumber", DEFAULT_WHATSAPP);
+                email = sanitizeVal(getString(pt, "email", DEFAULT_EMAIL), DEFAULT_EMAIL);
+                whatsappNumber = sanitizeVal(getString(pt, "whatsappNumber", DEFAULT_WHATSAPP), DEFAULT_WHATSAPP);
                 defaultMessage = getString(pt, "whatsappDefaultMessage", DEFAULT_MESSAGE_PT);
-                instagramHandle = getString(pt, "instagramHandle", DEFAULT_INSTAGRAM);
+                instagramHandle = sanitizeInstagram(getString(pt, "instagramHandle", DEFAULT_INSTAGRAM));
                 address = getString(pt, "address", DEFAULT_ADDRESS_PT);
                 officeHours = getString(pt, "officeHours", DEFAULT_OFFICE_HOURS_PT);
             }
@@ -151,5 +154,19 @@ public class ContactChannelsServiceImpl implements ContactChannelsService {
         }
         String str = val.toString().trim();
         return str.isEmpty() ? defaultValue : str;
+    }
+
+    private String sanitizeVal(String val, String fallback) {
+        if (!StringUtils.hasText(val) || val.contains("wbscouting.com") || val.contains("99999-9999") || val.equals("5511999999999")) {
+            return fallback;
+        }
+        return val;
+    }
+
+    private String sanitizeInstagram(String val) {
+        if (!StringUtils.hasText(val) || val.contains("wbscouting")) {
+            return DEFAULT_INSTAGRAM;
+        }
+        return val;
     }
 }

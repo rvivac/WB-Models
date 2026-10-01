@@ -118,8 +118,10 @@ public class AdminInstitutionalContactController {
             Map<String, Object> payloadPt = new LinkedHashMap<>();
             payloadPt.put("email", dto.getPrimaryEmail());
             payloadPt.put("whatsappNumber", cleanWhatsapp);
-            payloadPt.put("whatsappDefaultMessage", dto.getWhatsappDefaultMessage());
-            payloadPt.put("instagramHandle", dto.getSocialMedia() != null ? dto.getSocialMedia().getInstagram() : "@wbscouting");
+            String instagram = (dto.getSocialMedia() != null && dto.getSocialMedia().getInstagram() != null && !dto.getSocialMedia().getInstagram().isBlank())
+                    ? dto.getSocialMedia().getInstagram().trim()
+                    : "@wbagency";
+            payloadPt.put("instagramHandle", instagram);
             payloadPt.put("address", dto.getAddress() != null ? dto.getAddress().getCity() + " - " + dto.getAddress().getState() : "São Paulo - SP");
             payloadPt.put("officeHours", dto.getBusinessHours());
 
@@ -193,11 +195,11 @@ public class AdminInstitutionalContactController {
                 .build();
 
         return ContactSettingsDto.builder()
-                .primaryEmail(getString(pt, "primaryEmail", "contato@wbscouting.com"))
-                .scoutingEmail(getString(pt, "scoutingEmail", "scouting@wbscouting.com"))
-                .pressEmail(getString(pt, "pressEmail", "press@wbscouting.com"))
-                .phone(getString(pt, "phone", "+55 11 99999-9999"))
-                .whatsapp(getString(pt, "whatsapp", "+55 11 99999-9999"))
+                .primaryEmail(getString(pt, "primaryEmail", "info@wbagency.com.br"))
+                .scoutingEmail(getString(pt, "scoutingEmail", "scouting@wbagency.com.br"))
+                .pressEmail(getString(pt, "pressEmail", "press@wbagency.com.br"))
+                .phone(getString(pt, "phone", "+55 11 97065-6003"))
+                .whatsapp(getString(pt, "whatsapp", "+55 11 97065-6003"))
                 .whatsappDefaultMessage(getString(pt, "whatsappDefaultMessage", "Olá! Gostaria de falar com a equipe de atendimento da WB Agency."))
                 .businessHours(getString(pt, "businessHours", "Segunda a Sexta: 09h às 18h (GMT-3)"))
                 .address(address)
@@ -207,11 +209,11 @@ public class AdminInstitutionalContactController {
 
     private SiteContent createDefaultContactContent() {
         ContactSettingsDto defaultDto = ContactSettingsDto.builder()
-                .primaryEmail("contato@wbscouting.com")
-                .scoutingEmail("scouting@wbscouting.com")
-                .pressEmail("press@wbscouting.com")
-                .phone("+55 11 99999-9999")
-                .whatsapp("+55 11 99999-9999")
+                .primaryEmail("info@wbagency.com.br")
+                .scoutingEmail("scouting@wbagency.com.br")
+                .pressEmail("press@wbagency.com.br")
+                .phone("+55 11 97065-6003")
+                .whatsapp("+55 11 97065-6003")
                 .whatsappDefaultMessage("Olá! Gostaria de falar com a equipe de atendimento da WB Agency.")
                 .businessHours("Segunda a Sexta: 09h às 18h (GMT-3)")
                 .address(ContactSettingsDto.AddressDto.builder()

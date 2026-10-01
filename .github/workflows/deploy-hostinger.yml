@@ -45,6 +45,7 @@ jobs:
             cp "$DIST_DIR/index.html" "$DIST_DIR/404.html"
             # Cria .htaccess para Apache/Hostinger rotear o Angular SPA
             cat << 'EOF' > "$DIST_DIR/.htaccess"
+          DirectoryIndex index.html index.php
           <IfModule mod_rewrite.c>
             RewriteEngine On
             RewriteBase /

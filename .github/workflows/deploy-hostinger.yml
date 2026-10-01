@@ -66,4 +66,4 @@ jobs:
           protocol: ftp
           timeout: 60000
           local-dir: ./frontend/dist/frontend/browser/
-          server-dir: ./
+          server-dir: domains/wbagency.com.br/public_html/

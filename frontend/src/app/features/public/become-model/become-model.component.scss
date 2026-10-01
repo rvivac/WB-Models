@@ -6,6 +6,11 @@
   font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, sans-serif);
 }
 
+// Acabamento estrito rounded-none em todos os elementos do formulário
+* {
+  border-radius: 0 !important;
+}
+
 // Remove spin buttons nativos de inputs numéricos
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
@@ -20,19 +25,34 @@ input[type="number"] {
 // Seletores com seta sutil minimalista
 select {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%235F6661'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%238A7C64'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.85rem center;
   background-size: 0.85rem;
   padding-right: 2.25rem !important;
 }
 
-// Foco estrito editorial nos inputs e selects
-input:focus,
-select:focus,
-textarea:focus {
-  border-color: #4B584E !important;
-  outline: none !important;
+// Estilo dos campos de entrada: Fundo amarelado suave / champanhe em repouso e foco verde profundo
+input:not([type="checkbox"]):not([type="file"]),
+select,
+textarea {
+  background-color: #FFFDF5;
+  border: 1px solid #E2D9C2;
+  color: #222624;
+  border-radius: 0 !important;
+  transition: all 0.2s ease-in-out;
+
+  &::placeholder {
+    color: #A89E88;
+  }
+
+  &:focus {
+    background-color: #F4F7F4 !important;
+    border-color: #4B584E !important;
+    border-width: 1.5px;
+    outline: none !important;
+    box-shadow: none !important;
+  }
 }
 
 // Hover sutil no botão de submissão
@@ -40,9 +60,4 @@ button[type="submit"]:not(:disabled) {
   &:hover {
     box-shadow: 0 4px 14px rgba(75, 88, 78, 0.2);
   }
-}
-
-// Acabamento estrito rounded-none em todos os elementos do formulário
-* {
-  border-radius: 0 !important;
 }

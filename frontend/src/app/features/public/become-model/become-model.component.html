@@ -1,5 +1,5 @@
 <div class="min-h-screen bg-[#FBFBF9] py-12 px-4 sm:px-6 lg:px-8 selection:bg-[#4B584E] selection:text-white">
-  <div class="max-w-4xl mx-auto space-y-8">
+  <div class="max-w-4xl mx-auto space-y-10">
 
     <!-- CABEÇALHO EDITORIAL INSTITUCIONAL -->
     <div class="text-center space-y-3 border-b border-[#E8EBE8] pb-8">
@@ -9,13 +9,13 @@
       <h1 class="text-3xl sm:text-4xl font-serif uppercase tracking-wider text-[#222624]">
         {{ headerTitle }}
       </h1>
-      <p class="text-xs sm:text-sm text-[#5F6661] max-w-2xl mx-auto leading-relaxed mt-3">
+      <p class="text-xs sm:text-sm text-[#5F6661] max-w-xl mx-auto leading-relaxed mt-2">
         {{ headerDescription }}
       </p>
     </div>
 
     <!-- SEÇÃO EDITORIAL DE ORIENTAÇÕES & FAQ SANFONADO -->
-    <div *ngIf="faqs && faqs.length > 0 && !submitSuccess" class="bg-white border border-[#E8EBE8] rounded-none p-6 sm:p-8 space-y-3 mb-8 shadow-xs">
+    <div *ngIf="faqs && faqs.length > 0 && !submitSuccess" class="bg-white border border-[#E8EBE8] rounded-none p-6 sm:p-8 space-y-3 shadow-xs">
       <div class="border-b border-[#E8EBE8] pb-3 mb-4">
         <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">Orientações &amp; Dúvidas Frequentes</h2>
         <p class="text-[11px] text-[#5F6661] mt-0.5">Tudo o que você precisa saber antes de enviar seu material.</p>
@@ -61,13 +61,13 @@
       </div>
 
       <!-- PROTOCOLO DE ATENDIMENTO -->
-      <div class="bg-[#FBFBF9] border border-[#E8EBE8] p-4 max-w-sm mx-auto space-y-1 rounded-none">
-        <span class="text-[10px] uppercase tracking-[0.18em] text-[#5F6661] block font-sans">Protocolo de Scouting</span>
+      <div class="bg-[#FFFDF5] border border-[#E2D9C2] p-4 max-w-sm mx-auto space-y-1 rounded-none">
+        <span class="text-[10px] uppercase tracking-[0.18em] text-[#8A7C64] block font-sans">Protocolo de Scouting</span>
         <span class="font-mono text-base font-semibold text-[#222624] tracking-wider">{{ submissionProtocol }}</span>
       </div>
 
       <!-- PRÓXIMOS PASSOS -->
-      <div class="text-left bg-[#F4F5F4] p-5 sm:p-6 max-w-lg mx-auto space-y-3 border-l-2 border-[#4B584E] rounded-none">
+      <div class="text-left bg-[#F4F7F4] p-5 sm:p-6 max-w-lg mx-auto space-y-3 border-l-2 border-[#4B584E] rounded-none">
         <h3 class="font-serif text-xs uppercase tracking-wider font-semibold text-[#222624]">Próximos Passos &bull; Como Funciona:</h3>
         <ul class="text-[11px] text-[#5F6661] space-y-2 list-disc list-inside leading-relaxed font-sans">
           <li>Nossa diretoria de casting analisa todas as candidaturas em até <strong>5 dias úteis</strong>.</li>
@@ -102,29 +102,27 @@
       </div>
     </div>
 
-    <!-- FORMULÁRIO PRINCIPAL REATIVO -->
+    <!-- FORMULÁRIO -->
     <form *ngIf="!submitSuccess" [formGroup]="applyForm" (ngSubmit)="onSubmit()" class="space-y-8">
 
-      <!-- BLOCO 1: DADOS PESSOAIS & IDENTIFICAÇÃO -->
-      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 shadow-xs rounded-none space-y-6">
+      <!-- BLOCO 1: IDENTIFICAÇÃO E CONTATO -->
+      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 space-y-6 rounded-none shadow-xs">
         <div class="border-b border-[#E8EBE8] pb-3">
-          <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">1. Dados Pessoais & Contato</h2>
-          <p class="text-[11px] text-[#5F6661] mt-0.5">Informações cadastrais para contato e triagem preliminar.</p>
+          <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">1. Identificação e Contato</h2>
+          <p class="text-[11px] text-[#5F6661] mt-0.5">Campos destacados para facilitar o preenchimento.</p>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          
           <!-- Nome Completo -->
           <div class="sm:col-span-2">
-            <label for="fullName" class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
+            <label class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
               Nome Completo *
             </label>
             <input 
-              id="fullName"
               type="text" 
               formControlName="fullName"
-              placeholder="Seu nome completo"
-              class="w-full px-3.5 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+              placeholder="Digite seu nome completo"
+              class="w-full px-4 py-3 bg-[#FFFDF5] border border-[#E2D9C2] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none placeholder:text-[#A89E88]"
             />
             <span *ngIf="applyForm.get('fullName')?.touched && applyForm.get('fullName')?.invalid" class="text-[10px] text-red-600 block mt-1 tracking-wide">
               Nome completo obrigatório.
@@ -133,100 +131,108 @@
 
           <!-- E-mail -->
           <div>
-            <label for="email" class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
+            <label class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
               E-mail *
             </label>
             <input 
-              id="email"
               type="email" 
               formControlName="email"
               placeholder="seu.email@exemplo.com"
-              class="w-full px-3.5 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+              class="w-full px-4 py-3 bg-[#FFFDF5] border border-[#E2D9C2] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none placeholder:text-[#A89E88]"
             />
+            <span *ngIf="applyForm.get('email')?.touched && applyForm.get('email')?.invalid" class="text-[10px] text-red-600 block mt-1 tracking-wide">
+              E-mail válido obrigatório.
+            </span>
           </div>
 
           <!-- Telefone / WhatsApp -->
           <div>
-            <label for="phone" class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
-              WhatsApp / Celular *
+            <label class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
+              Telefone / WhatsApp *
             </label>
             <input 
-              id="phone"
               type="tel" 
               formControlName="phone"
               placeholder="+55 (11) 99999-9999"
               (input)="onPhoneInput($event)"
-              class="w-full px-3.5 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-[#222624] text-xs sm:text-sm font-mono focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+              class="w-full px-4 py-3 bg-[#FFFDF5] border border-[#E2D9C2] text-[#222624] text-xs sm:text-sm font-mono focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none placeholder:text-[#A89E88]"
             />
+            <span *ngIf="applyForm.get('phone')?.touched && applyForm.get('phone')?.invalid" class="text-[10px] text-red-600 block mt-1 tracking-wide">
+              Telefone obrigatório.
+            </span>
           </div>
 
           <!-- Data de Nascimento -->
           <div>
-            <label for="birthDate" class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
+            <label class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
               Data de Nascimento *
             </label>
             <input 
-              id="birthDate"
               type="date" 
               formControlName="birthDate"
-              class="w-full px-3.5 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+              class="w-full px-4 py-3 bg-[#FFFDF5] border border-[#E2D9C2] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none"
             />
+            <span *ngIf="applyForm.get('birthDate')?.touched && applyForm.get('birthDate')?.invalid" class="text-[10px] text-red-600 block mt-1 tracking-wide">
+              Data de nascimento obrigatória.
+            </span>
           </div>
 
           <!-- Instagram -->
           <div>
-            <label for="instagram" class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
-              Instagram (Opcional)
+            <label class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
+              Instagram
             </label>
             <div class="relative flex items-center">
-              <span class="absolute left-3 text-xs text-[#5F6661] select-none font-mono">&#64;</span>
+              <span class="absolute left-3 text-xs text-[#8A7C64] font-mono select-none">&#64;</span>
               <input 
-                id="instagram"
                 type="text" 
                 formControlName="instagram"
-                placeholder="seuusuario"
-                class="w-full pl-8 pr-3.5 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-[#222624] text-xs sm:text-sm font-mono focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+                placeholder="seu.usuario"
+                class="w-full pl-8 pr-4 py-3 bg-[#FFFDF5] border border-[#E2D9C2] text-[#222624] text-xs sm:text-sm font-mono focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none placeholder:text-[#A89E88]"
               />
             </div>
           </div>
 
           <!-- Cidade e Estado -->
           <div>
-            <label for="city" class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
+            <label class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
               Cidade *
             </label>
             <input 
-              id="city"
               type="text" 
               formControlName="city"
               placeholder="Ex: São Paulo"
-              class="w-full px-3.5 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+              class="w-full px-4 py-3 bg-[#FFFDF5] border border-[#E2D9C2] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none placeholder:text-[#A89E88]"
             />
+            <span *ngIf="applyForm.get('city')?.touched && applyForm.get('city')?.invalid" class="text-[10px] text-red-600 block mt-1 tracking-wide">
+              Cidade obrigatória.
+            </span>
           </div>
 
           <div>
-            <label for="state" class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
+            <label class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
               Estado (UF) *
             </label>
             <input 
-              id="state"
               type="text" 
               formControlName="state"
               placeholder="SP"
               maxlength="2"
-              class="w-full px-3.5 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-[#222624] text-xs sm:text-sm uppercase font-mono focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
+              class="w-full px-4 py-3 bg-[#FFFDF5] border border-[#E2D9C2] text-[#222624] text-xs sm:text-sm uppercase font-mono focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none placeholder:text-[#A89E88]"
             />
+            <span *ngIf="applyForm.get('state')?.touched && applyForm.get('state')?.invalid" class="text-[10px] text-red-600 block mt-1 tracking-wide">
+              UF obrigatória (2 letras).
+            </span>
           </div>
-
         </div>
 
-        <!-- CONDICIONAL: RESPONSÁVEL LEGAL (CANDIDATOS MENORES DE IDADE) -->
-        <div *ngIf="isMinor" class="bg-[#FBFBF9] border-l-2 border-[#4B584E] p-5 sm:p-6 space-y-4 rounded-none mt-6">
-          <div class="flex items-center justify-between border-b border-[#E8EBE8] pb-2">
+        <!-- CONDICIONAL: MENOR DE IDADE -->
+        <div *ngIf="isMinor" class="bg-[#FFFDF5] border-l-2 border-[#4B584E] p-5 space-y-4 rounded-none mt-4">
+          <div class="flex items-center justify-between border-b border-[#E2D9C2] pb-2">
             <span class="text-xs font-serif uppercase tracking-wider text-[#222624] font-semibold">
-              Autorização do Responsável Legal (Candidato Menor de Idade)
+              Responsável Legal (Candidato Menor de Idade)
             </span>
-            <span class="bg-amber-100 text-amber-900 border border-amber-200 text-[9px] uppercase tracking-widest px-2 py-0.5 font-semibold">
+            <span class="bg-amber-100 text-amber-900 border border-amber-300 text-[9px] uppercase tracking-widest px-2 py-0.5 font-semibold">
               Obrigatório
             </span>
           </div>
@@ -234,99 +240,63 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-[10px] font-sans uppercase tracking-widest text-[#222624] mb-1">Nome do Responsável *</label>
-              <input type="text" formControlName="guardianName" class="w-full px-3 py-2 bg-white border border-[#D1D5D1] text-xs focus:outline-none focus:border-[#4B584E] rounded-none">
+              <input type="text" formControlName="guardianName" class="w-full px-3 py-2 bg-white border border-[#E2D9C2] text-xs focus:outline-none focus:border-[#4B584E] rounded-none">
             </div>
 
             <div>
               <label class="block text-[10px] font-sans uppercase tracking-widest text-[#222624] mb-1">CPF do Responsável *</label>
-              <input type="text" formControlName="guardianCpf" (input)="onCpfInput($event)" placeholder="000.000.000-00" class="w-full px-3 py-2 bg-white border border-[#D1D5D1] text-xs font-mono focus:outline-none focus:border-[#4B584E] rounded-none">
+              <input type="text" formControlName="guardianCpf" (input)="onCpfInput($event)" placeholder="000.000.000-00" class="w-full px-3 py-2 bg-white border border-[#E2D9C2] text-xs font-mono focus:outline-none focus:border-[#4B584E] rounded-none">
             </div>
 
             <div>
               <label class="block text-[10px] font-sans uppercase tracking-widest text-[#222624] mb-1">Telefone do Responsável *</label>
-              <input type="tel" formControlName="guardianPhone" (input)="onGuardianPhoneInput($event)" class="w-full px-3 py-2 bg-white border border-[#D1D5D1] text-xs font-mono focus:outline-none focus:border-[#4B584E] rounded-none">
+              <input type="tel" formControlName="guardianPhone" (input)="onGuardianPhoneInput($event)" class="w-full px-3 py-2 bg-white border border-[#E2D9C2] text-xs font-mono focus:outline-none focus:border-[#4B584E] rounded-none">
             </div>
 
             <div>
               <label class="block text-[10px] font-sans uppercase tracking-widest text-[#222624] mb-1">E-mail do Responsável *</label>
-              <input type="email" formControlName="guardianEmail" class="w-full px-3 py-2 bg-white border border-[#D1D5D1] text-xs focus:outline-none focus:border-[#4B584E] rounded-none">
+              <input type="email" formControlName="guardianEmail" class="w-full px-3 py-2 bg-white border border-[#E2D9C2] text-xs focus:outline-none focus:border-[#4B584E] rounded-none">
             </div>
           </div>
         </div>
-
       </div>
 
-      <!-- BLOCO 2: FICHA MÉTRICA & BIOMETRIA (RÉGUA DE INPUTS EM 4 COLUNAS) -->
-      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 shadow-xs rounded-none space-y-6">
+      <!-- BLOCO 2: DADOS BIOMÉTRICOS -->
+      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 space-y-6 rounded-none shadow-xs">
         <div class="border-b border-[#E8EBE8] pb-3">
           <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">2. Medidas Biométricas</h2>
-          <p class="text-[11px] text-[#5F6661] mt-0.5">Insira os valores exatos em centímetros (cm).</p>
+          <p class="text-[11px] text-[#5F6661] mt-0.5">Insira os valores em centímetros (cm).</p>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          
           <div>
-            <label for="height" class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Altura (cm) *</label>
-            <input 
-              id="height"
-              type="number" 
-              formControlName="height" 
-              placeholder="178"
-              class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-xs sm:text-sm text-[#222624] font-mono focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
-            />
+            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Altura (cm) *</label>
+            <input type="number" formControlName="height" placeholder="178" class="w-full px-3 py-2.5 bg-[#FFFDF5] border border-[#E2D9C2] text-xs sm:text-sm font-mono focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none" />
           </div>
 
           <div>
-            <label for="bust" class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Busto / Tórax (cm) *</label>
-            <input 
-              id="bust"
-              type="number" 
-              formControlName="bust" 
-              placeholder="84"
-              class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-xs sm:text-sm text-[#222624] font-mono focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
-            />
+            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Busto / Tórax (cm) *</label>
+            <input type="number" formControlName="bust" placeholder="84" class="w-full px-3 py-2.5 bg-[#FFFDF5] border border-[#E2D9C2] text-xs sm:text-sm font-mono focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none" />
           </div>
 
           <div>
-            <label for="waist" class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Cintura (cm) *</label>
-            <input 
-              id="waist"
-              type="number" 
-              formControlName="waist" 
-              placeholder="60"
-              class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-xs sm:text-sm text-[#222624] font-mono focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
-            />
+            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Cintura (cm) *</label>
+            <input type="number" formControlName="waist" placeholder="60" class="w-full px-3 py-2.5 bg-[#FFFDF5] border border-[#E2D9C2] text-xs sm:text-sm font-mono focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none" />
           </div>
 
           <div>
-            <label for="hips" class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Quadril (cm) *</label>
-            <input 
-              id="hips"
-              type="number" 
-              formControlName="hips" 
-              placeholder="90"
-              class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-xs sm:text-sm text-[#222624] font-mono focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
-            />
+            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Quadril (cm) *</label>
+            <input type="number" formControlName="hips" placeholder="90" class="w-full px-3 py-2.5 bg-[#FFFDF5] border border-[#E2D9C2] text-xs sm:text-sm font-mono focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none" />
           </div>
 
           <div>
-            <label for="shoes" class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Calçado *</label>
-            <input 
-              id="shoes"
-              type="number" 
-              formControlName="shoes" 
-              placeholder="38"
-              class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-xs sm:text-sm text-[#222624] font-mono focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none"
-            />
+            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Calçado *</label>
+            <input type="number" formControlName="shoes" placeholder="38" class="w-full px-3 py-2.5 bg-[#FFFDF5] border border-[#E2D9C2] text-xs sm:text-sm font-mono focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none" />
           </div>
 
           <div>
-            <label for="eyes" class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Cor dos Olhos *</label>
-            <select 
-              id="eyes" 
-              formControlName="eyes"
-              class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-xs sm:text-sm text-[#222624] focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none cursor-pointer"
-            >
+            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Olhos *</label>
+            <select formControlName="eyes" class="w-full px-3 py-2.5 bg-[#FFFDF5] border border-[#E2D9C2] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none cursor-pointer">
               <option value="">Selecione...</option>
               <option value="CASTANHO">Castanho</option>
               <option value="VERDE">Verde</option>
@@ -337,12 +307,8 @@
           </div>
 
           <div class="sm:col-span-2">
-            <label for="hair" class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Cor dos Cabelos *</label>
-            <select 
-              id="hair" 
-              formControlName="hair"
-              class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#D1D5D1] text-xs sm:text-sm text-[#222624] focus:outline-none focus:border-[#4B584E] focus:bg-white transition-all rounded-none cursor-pointer"
-            >
+            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Cabelos *</label>
+            <select formControlName="hair" class="w-full px-3 py-2.5 bg-[#FFFDF5] border border-[#E2D9C2] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none cursor-pointer">
               <option value="">Selecione...</option>
               <option value="CASTANHO">Castanho</option>
               <option value="LOIRO">Loiro</option>
@@ -351,26 +317,25 @@
               <option value="GRISALHO">Grisalho</option>
             </select>
           </div>
-
         </div>
       </div>
 
-      <!-- BLOCO 3: SLOTS DE POLAROIDS (GRADE 3:4 DESTACADA) -->
-      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 shadow-xs rounded-none space-y-6">
+      <!-- BLOCO 3: FOTOS E POLAROIDS (PROPORÇÃO 3:4) -->
+      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 space-y-6 rounded-none shadow-xs">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E8EBE8] pb-3 gap-2">
           <div>
             <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">3. Polaroids e Fotos de Avaliação</h2>
-            <p class="text-[11px] text-[#5F6661] mt-0.5">Fotos nítidas, com luz natural, sem maquiagem e sem filtros (mínimo 3 obrigatórias).</p>
+            <p class="text-[11px] text-[#5F6661] mt-0.5">Fotos nítidas com luz natural, sem maquiagem e sem filtros (mínimo 3).</p>
           </div>
-          <span class="text-xs font-mono text-[#4B584E] font-medium bg-[#F4F5F4] border border-[#E8EBE8] px-2.5 py-1 self-start sm:self-auto rounded-none">
-            {{ totalUploadedPhotos }}/8 Enviadas
+          <span class="text-xs font-mono text-[#4B584E] font-medium bg-[#F4F7F4] border border-[#E8EBE8] px-2.5 py-1 rounded-none self-start sm:self-auto">
+            {{ totalUploadedPhotos }}/8 Fotos
           </span>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div *ngFor="let slot of photoSlots; let i = index" class="space-y-1.5">
             <div 
-              class="relative aspect-[3/4] bg-[#FBFBF9] border-2 border-dashed border-[#D1D5D1] hover:border-[#4B584E] transition-all flex flex-col items-center justify-center p-2 text-center overflow-hidden rounded-none"
+              class="relative aspect-[3/4] bg-[#FFFDF5] border-2 border-dashed border-[#E2D9C2] hover:border-[#4B584E] transition-all flex flex-col items-center justify-center p-2 text-center overflow-hidden rounded-none"
               [class.border-solid]="slot.previewUrl"
               [class.border-[#4B584E]]="slot.previewUrl"
             >
@@ -380,32 +345,24 @@
                 *ngIf="slot.previewUrl" 
                 type="button" 
                 (click)="removePhoto(i)" 
-                class="absolute top-1.5 right-1.5 bg-black/75 hover:bg-black text-white w-6 h-6 flex items-center justify-center text-xs transition-colors rounded-none cursor-pointer z-10"
+                class="absolute top-1.5 right-1.5 bg-black/75 hover:bg-black text-white w-6 h-6 flex items-center justify-center text-xs transition-colors rounded-none z-10 cursor-pointer"
                 title="Remover foto"
               >
                 ✕
               </button>
 
               <div *ngIf="!slot.previewUrl" class="space-y-1 cursor-pointer w-full h-full flex flex-col items-center justify-center" (click)="fileInput.click()">
-                <svg class="w-6 h-6 text-[#5F6661] stroke-[1.2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="w-6 h-6 text-[#8A7C64] stroke-[1.2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
-                <span class="text-[9px] uppercase tracking-wider text-[#5F6661] block font-sans">
+                <span class="text-[9px] uppercase tracking-wider text-[#8A7C64] block font-sans">
                   {{ slot.required ? 'Obrigatória *' : 'Opcional' }}
                 </span>
               </div>
 
-              <input 
-                #fileInput 
-                type="file" 
-                accept="image/jpeg,image/png,image/webp" 
-                class="hidden" 
-                (change)="onFileSelected(i, $event)"
-              />
+              <input #fileInput type="file" accept="image/jpeg,image/png,image/webp" class="hidden" (change)="onFileSelected(i, $event)">
             </div>
-            <p class="text-[9px] uppercase tracking-wider text-center text-[#5F6661] font-sans truncate" [title]="slot.label">
-              {{ slot.label }}
-            </p>
+            <p class="text-[9px] uppercase tracking-wider text-center text-[#5F6661] font-sans truncate">{{ slot.label }}</p>
           </div>
         </div>
 
@@ -414,21 +371,17 @@
         </div>
       </div>
 
-      <!-- BLOCO 4: ACEITE LGPD & ENQUADRAMENTO LEGAL -->
-      <div class="bg-white border border-[#E8EBE8] p-6 shadow-xs rounded-none space-y-3">
+      <!-- BLOCO 4: LGPD -->
+      <div class="bg-white border border-[#E8EBE8] p-6 rounded-none shadow-xs">
         <label class="flex items-start gap-3 cursor-pointer">
-          <input 
-            type="checkbox" 
-            formControlName="lgpdConsent" 
-            class="mt-1 h-4 w-4 accent-[#4B584E] rounded-none cursor-pointer"
-          />
+          <input type="checkbox" formControlName="lgpdConsent" class="mt-1 h-4 w-4 accent-[#4B584E] rounded-none cursor-pointer">
           <span class="text-xs text-[#5F6661] leading-relaxed">
-            Declaro a veracidade dos dados informados e autorizo a <strong>WB Agency</strong> a armazenar e processar meus dados e mídias exclusivamente para fins de avaliação de casting e representação artística, nos termos da Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018).
+            Declaro a veracidade dos dados informados e autorizo a <strong>WB Agency</strong> a processar meus dados e imagens exclusivamente para fins de avaliação de casting e representação artística (LGPD — Lei nº 13.709/2018).
           </span>
         </label>
       </div>
 
-      <!-- BOTÃO DE SUBMISSÃO -->
+      <!-- BOTÃO DE ENVIO -->
       <div class="text-center pt-2">
         <button 
           type="submit" 
@@ -447,6 +400,5 @@
       </div>
 
     </form>
-
   </div>
 </div>

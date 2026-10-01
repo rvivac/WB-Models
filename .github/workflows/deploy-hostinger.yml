@@ -64,4 +64,4 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           local-dir: ./frontend/dist/frontend/browser/
-          server-dir: public_html/
+          server-dir: ./

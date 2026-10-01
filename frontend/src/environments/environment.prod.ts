@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: '/api/v1',
+  apiUrl: 'https://wb-models-1.onrender.com/api/v1',
   appName: 'WB Agency',
   agencyContactEmail: 'contato@wbagency.com.br',
   agencyPhone: '+55 11 99999-9999',

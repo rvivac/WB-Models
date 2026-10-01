@@ -33,35 +33,15 @@
 
         <!-- Coluna de Pilares Estratégicos -->
         <div class="pillars-column">
-          <div class="pillar-card">
-            <span class="pillar-number">01</span>
-            <div class="pillar-details">
-              <h3 class="pillar-heading">Scouting Singular</h3>
-              <p class="pillar-desc">
-                Descoberta de perfis autênticos com potencial para as principais passarelas e campanhas editoriais globais.
-              </p>
+          @for (pillar of pillars(); track pillar.order || $index) {
+            <div class="pillar-card">
+              <span class="pillar-number">{{ (pillar.order < 10 ? '0' + pillar.order : pillar.order) || '0' + ($index + 1) }}</span>
+              <div class="pillar-details">
+                <h3 class="pillar-heading">{{ pillar.titulo }}</h3>
+                <p class="pillar-desc">{{ pillar.descricao }}</p>
+              </div>
             </div>
-          </div>
-
-          <div class="pillar-card">
-            <span class="pillar-number">02</span>
-            <div class="pillar-details">
-              <h3 class="pillar-heading">Desenvolvimento Editorial</h3>
-              <p class="pillar-desc">
-                Direção artística, construção de portfólio de alta moda e posicionamento internacional de imagem.
-              </p>
-            </div>
-          </div>
-
-          <div class="pillar-card">
-            <span class="pillar-number">03</span>
-            <div class="pillar-details">
-              <h3 class="pillar-heading">Mercados Globais</h3>
-              <p class="pillar-desc">
-                Conexão com agências parceiras nos principais centros: Paris, Milão, Nova York, Londres e Tóquio.
-              </p>
-            </div>
-          </div>
+          }
         </div>
       </div>
     </section>

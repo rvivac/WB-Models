@@ -1,0 +1,402 @@
+<div class="mgmt-page selection:bg-[#4B584E] selection:text-white bg-[#FBFBF9] min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-6xl mx-auto space-y-8">
+
+    <!-- CABEÇALHO DO MÓDULO INSTITUCIONAL -->
+    <header class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-[#E8EBE8] gap-4">
+      <div>
+        <div class="inline-flex items-center gap-2 bg-[#F4F5F4] border border-[#E8EBE8] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.2em] font-sans text-[#4B584E] font-semibold mb-1">
+          Conteúdo Institucional
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-serif uppercase tracking-wider text-[#222624]">
+          Sobre Nós &amp; Manifesto
+        </h1>
+        <p class="text-xs text-[#5F6661] mt-1 max-w-xl">
+          Gerenciamento dinâmico dos textos, citação hero, manifesto e pilares estratégicos da página pública <code class="text-[#4B584E]">/sobre</code>.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <a 
+          routerLink="/sobre" 
+          target="_blank" 
+          class="px-4 py-2 bg-white border border-[#E8EBE8] hover:border-[#4B584E] text-xs font-sans uppercase tracking-widest text-[#222624] transition-all rounded-none inline-flex items-center gap-1.5"
+        >
+          Ver Página Pública ↗
+        </a>
+      </div>
+    </header>
+
+    <!-- SUB-NAVEGAÇÃO INSTITUCIONAL EM ABAS -->
+    <div class="flex items-center gap-2 border-b border-[#E8EBE8] pb-1 overflow-x-auto text-xs uppercase tracking-wider font-sans">
+      <a 
+        routerLink="/admin/institucional/home" 
+        class="px-4 py-2 text-[#5F6661] hover:text-[#222624] hover:bg-white transition-all rounded-none whitespace-nowrap"
+      >
+        Home
+      </a>
+      <a 
+        routerLink="/admin/institucional/sobre" 
+        class="px-4 py-2 bg-white border-b-2 border-[#4B584E] text-[#4B584E] font-semibold rounded-none whitespace-nowrap"
+      >
+        Sobre Nós (Manifesto)
+      </a>
+      <a 
+        routerLink="/admin/institucional/contatos" 
+        class="px-4 py-2 text-[#5F6661] hover:text-[#222624] hover:bg-white transition-all rounded-none whitespace-nowrap"
+      >
+        Contatos &amp; Redes
+      </a>
+      <a 
+        routerLink="/admin/institucional/quero-ser-modelo" 
+        class="px-4 py-2 text-[#5F6661] hover:text-[#222624] hover:bg-white transition-all rounded-none whitespace-nowrap"
+      >
+        Quero Ser Modelo (FAQ)
+      </a>
+      <a 
+        routerLink="/admin/institucional/idiomas" 
+        class="px-4 py-2 text-[#5F6661] hover:text-[#222624] hover:bg-white transition-all rounded-none whitespace-nowrap"
+      >
+        Idiomas (PT/EN)
+      </a>
+    </div>
+
+    <!-- FEEDBACK ALERT / TOAST -->
+    <div 
+      *ngIf="feedbackMessage" 
+      class="p-4 text-xs flex items-center justify-between rounded-none transition-all shadow-xs"
+      [ngClass]="feedbackType === 'success' ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' : 'bg-red-50 border border-red-200 text-red-800'"
+    >
+      <div class="flex items-center gap-2">
+        <span class="font-bold">{{ feedbackType === 'success' ? '✓' : '⚠' }}</span>
+        <span>{{ feedbackMessage }}</span>
+      </div>
+      <button type="button" (click)="feedbackMessage = ''" class="cursor-pointer text-sm font-bold ml-4">✕</button>
+    </div>
+
+    <!-- ESTADO DE CARREGAMENTO -->
+    <div *ngIf="isLoading" class="p-12 text-center bg-white border border-[#E8EBE8]">
+      <div class="inline-block w-6 h-6 border-2 border-[#4B584E] border-t-transparent animate-spin mb-3"></div>
+      <p class="text-xs uppercase tracking-widest text-[#5F6661]">Carregando configurações institucionais...</p>
+    </div>
+
+    <!-- FORMULÁRIO PRINCIPAL DE CONFIGURAÇÃO -->
+    <form *ngIf="!isLoading" [formGroup]="aboutForm" (ngSubmit)="save()" class="space-y-8">
+
+      <!-- BARRA DE AÇÃO SUPERIOR -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-white border border-[#E8EBE8] px-6 py-4 gap-4">
+        <div class="text-xs text-[#5F6661]">
+          <span *ngIf="lastUpdated">Última atualização: <strong>{{ lastUpdated | date:'dd/MM/yyyy HH:mm' }}</strong></span>
+          <span *ngIf="!lastUpdated">Registro sincronizado com o padrão institucional</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            (click)="restoreDefaults()"
+            class="px-4 py-2 bg-white border border-[#E8EBE8] hover:border-[#4B584E] text-[11px] font-sans uppercase tracking-widest text-[#5F6661] hover:text-[#222624] transition-all rounded-none cursor-pointer"
+          >
+            Restaurar Padrões
+          </button>
+          <button
+            type="submit"
+            [disabled]="isSaving"
+            class="px-6 py-2 bg-[#4B584E] hover:bg-[#3D4840] disabled:bg-[#8D968F] text-white text-[11px] font-sans uppercase tracking-widest transition-all rounded-none cursor-pointer inline-flex items-center gap-2"
+          >
+            <span *ngIf="isSaving" class="inline-block w-3 h-3 border-2 border-white border-t-transparent animate-spin"></span>
+            {{ isSaving ? 'Salvando...' : 'Salvar Alterações' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- SEÇÃO 1: CABEÇALHO HERO & CITAÇÃO EDITORIAL -->
+      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 shadow-xs rounded-none space-y-6">
+        <div class="border-b border-[#E8EBE8] pb-3 flex items-center justify-between">
+          <div>
+            <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">1. Cabeçalho Hero &amp; Citação de Destaque</h2>
+            <p class="text-[11px] text-[#5F6661] mt-0.5">Título editorial, subtítulo em caixa alta e a citação central da página.</p>
+          </div>
+          <span class="text-[9px] uppercase tracking-widest font-mono text-[#4B584E] bg-[#F4F5F4] px-2 py-0.5 border border-[#E8EBE8]">
+            Topo Editorial
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Título Principal -->
+          <div class="space-y-1 md:col-span-2">
+            <label class="block text-[11px] uppercase tracking-wider font-semibold text-[#222624]">
+              Título Principal da Página (H1) <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              formControlName="title"
+              placeholder="Ex: A Nova Estética do Scouting Global"
+              class="w-full px-3 py-2 text-sm border border-[#D4D9D5] focus:border-[#4B584E] focus:outline-none rounded-none bg-white text-[#222624]"
+            />
+            <p *ngIf="aboutForm.get('title')?.touched && aboutForm.get('title')?.hasError('required')" class="text-[10px] text-red-600">
+              O título principal é obrigatório.
+            </p>
+          </div>
+
+          <!-- Subtítulo Editorial -->
+          <div class="space-y-1">
+            <label class="block text-[11px] uppercase tracking-wider font-semibold text-[#222624]">
+              Subtítulo / Eyebrow <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              formControlName="subtitle"
+              placeholder="Ex: MANIFESTO INSTITUCIONAL"
+              class="w-full px-3 py-2 text-sm border border-[#D4D9D5] focus:border-[#4B584E] focus:outline-none rounded-none bg-white text-[#222624]"
+            />
+            <p *ngIf="aboutForm.get('subtitle')?.touched && aboutForm.get('subtitle')?.hasError('required')" class="text-[10px] text-red-600">
+              O subtítulo é obrigatório.
+            </p>
+          </div>
+
+          <!-- Citação Hero (Quote) -->
+          <div class="space-y-1 md:col-span-2">
+            <label class="block text-[11px] uppercase tracking-wider font-semibold text-[#222624]">
+              Citação de Destaque (Hero Quote) <span class="text-red-500">*</span>
+            </label>
+            <textarea 
+              rows="2"
+              formControlName="heroQuote"
+              placeholder="Ex: Acreditamos na autenticidade, na força da personalidade e na beleza singular de cada indivíduo."
+              class="w-full px-3 py-2 text-sm border border-[#D4D9D5] focus:border-[#4B584E] focus:outline-none rounded-none bg-white text-[#222624]"
+            ></textarea>
+            <p class="text-[10px] text-[#5F6661]">Exibida em itálico com aspas estilizadas logo abaixo do título principal.</p>
+            <p *ngIf="aboutForm.get('heroQuote')?.touched && aboutForm.get('heroQuote')?.hasError('required')" class="text-[10px] text-red-600">
+              A citação hero é obrigatória.
+            </p>
+          </div>
+
+          <!-- Descrição de Abertura -->
+          <div class="space-y-1 md:col-span-2">
+            <label class="block text-[11px] uppercase tracking-wider font-semibold text-[#222624]">
+              Descrição Resumida de Abertura
+            </label>
+            <textarea 
+              rows="3"
+              formControlName="description"
+              placeholder="Parágrafo introdutório complementar sobre a agência..."
+              class="w-full px-3 py-2 text-sm border border-[#D4D9D5] focus:border-[#4B584E] focus:outline-none rounded-none bg-white text-[#222624]"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEÇÃO 2: MANIFESTO & FILOSOFIA INSTITUCIONAL -->
+      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 shadow-xs rounded-none space-y-6">
+        <div class="border-b border-[#E8EBE8] pb-3 flex items-center justify-between">
+          <div>
+            <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">2. Manifesto &amp; Filosofia Institucional</h2>
+            <p class="text-[11px] text-[#5F6661] mt-0.5">Texto editorial detalhado que expressa a missão, visão e metodologia da WB Agency.</p>
+          </div>
+          <span class="text-[9px] uppercase tracking-widest font-mono text-[#4B584E] bg-[#F4F5F4] px-2 py-0.5 border border-[#E8EBE8]">
+            Manifesto
+          </span>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Título do Manifesto -->
+          <div class="space-y-1">
+            <label class="block text-[11px] uppercase tracking-wider font-semibold text-[#222624]">
+              Título da Seção de Filosofia <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              formControlName="manifestoTitle"
+              placeholder="Ex: Nossa Filosofia"
+              class="w-full px-3 py-2 text-sm border border-[#D4D9D5] focus:border-[#4B584E] focus:outline-none rounded-none bg-white text-[#222624]"
+            />
+            <p *ngIf="aboutForm.get('manifestoTitle')?.touched && aboutForm.get('manifestoTitle')?.hasError('required')" class="text-[10px] text-red-600">
+              O título do manifesto é obrigatório.
+            </p>
+          </div>
+
+          <!-- Texto do Manifesto -->
+          <div class="space-y-1">
+            <label class="block text-[11px] uppercase tracking-wider font-semibold text-[#222624]">
+              Texto Integral do Manifesto / Corpo Editorial <span class="text-red-500">*</span>
+            </label>
+            <textarea 
+              rows="6"
+              formControlName="manifestoText"
+              placeholder="Conectamos talentos às principais marcas com curadoria estratégica, visão de vanguarda e compromisso com o desenvolvimento humano e profissional em escala global..."
+              class="w-full px-3 py-2 text-sm border border-[#D4D9D5] focus:border-[#4B584E] focus:outline-none rounded-none bg-white text-[#222624] font-serif leading-relaxed"
+            ></textarea>
+            <p *ngIf="aboutForm.get('manifestoText')?.touched && aboutForm.get('manifestoText')?.hasError('required')" class="text-[10px] text-red-600">
+              O texto do manifesto é obrigatório.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEÇÃO 3: PILARES ESTRATÉGICOS & VALORES -->
+      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 shadow-xs rounded-none space-y-6">
+        <div class="border-b border-[#E8EBE8] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">3. Pilares &amp; Valores da Agência</h2>
+            <p class="text-[11px] text-[#5F6661] mt-0.5">Cards informativos que destacam os pilares de atuação no mercado da moda.</p>
+          </div>
+          <button
+            type="button"
+            (click)="addPillar()"
+            class="px-4 py-2 bg-[#F4F5F4] hover:bg-[#E8EBE8] border border-[#D4D9D5] text-xs font-sans uppercase tracking-widest text-[#222624] transition-all rounded-none self-start sm:self-auto cursor-pointer inline-flex items-center gap-1.5"
+          >
+            <span>+</span> Adicionar Pilar
+          </button>
+        </div>
+
+        <!-- Título da Seção de Pilares -->
+        <div class="space-y-1">
+          <label class="block text-[11px] uppercase tracking-wider font-semibold text-[#222624]">
+            Título da Seção de Pilares <span class="text-red-500">*</span>
+          </label>
+          <input 
+            type="text" 
+            formControlName="pillarsTitle"
+            placeholder="Ex: Nossos Pilares &amp; Valores"
+            class="w-full px-3 py-2 text-sm border border-[#D4D9D5] focus:border-[#4B584E] focus:outline-none rounded-none bg-white text-[#222624]"
+          />
+        </div>
+
+        <!-- LISTA DE PILARES -->
+        <div formArrayName="pillars" class="space-y-4 pt-2">
+          <div 
+            *ngFor="let pillarGroup of pillarsArray.controls; let i = index" 
+            [formGroupName]="i"
+            class="p-5 border border-[#E8EBE8] bg-[#FBFBF9] hover:border-[#D4D9D5] transition-all rounded-none space-y-4"
+          >
+            <!-- Barra superior do Card de Pilar -->
+            <div class="flex items-center justify-between border-b border-[#E8EBE8] pb-3">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 bg-[#4B584E] text-white text-[11px] font-mono flex items-center justify-center font-bold">
+                  {{ i + 1 }}
+                </span>
+                <span class="text-xs font-serif uppercase tracking-wider text-[#222624]">
+                  Pilar {{ (i + 1) < 10 ? '0' + (i + 1) : (i + 1) }}
+                </span>
+              </div>
+
+              <!-- Ações de Ordenação e Exclusão -->
+              <div class="flex items-center gap-1">
+                <button
+                  type="button"
+                  (click)="movePillarUp(i)"
+                  [disabled]="i === 0"
+                  class="px-2 py-1 bg-white border border-[#E8EBE8] hover:border-[#4B584E] disabled:opacity-30 text-xs text-[#222624] transition-all rounded-none cursor-pointer"
+                  title="Mover para cima"
+                >
+                  ▲
+                </button>
+                <button
+                  type="button"
+                  (click)="movePillarDown(i)"
+                  [disabled]="i === pillarsArray.length - 1"
+                  class="px-2 py-1 bg-white border border-[#E8EBE8] hover:border-[#4B584E] disabled:opacity-30 text-xs text-[#222624] transition-all rounded-none cursor-pointer"
+                  title="Mover para baixo"
+                >
+                  ▼
+                </button>
+                <button
+                  type="button"
+                  (click)="removePillar(i)"
+                  class="ml-2 px-2.5 py-1 bg-white border border-red-200 hover:bg-red-50 text-xs text-red-600 transition-all rounded-none cursor-pointer"
+                  title="Remover pilar"
+                >
+                  ✕ Excluir
+                </button>
+              </div>
+            </div>
+
+            <!-- Campos do Pilar -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="space-y-1">
+                <label class="block text-[10px] uppercase tracking-wider font-semibold text-[#5F6661]">
+                  Título do Pilar <span class="text-red-500">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  formControlName="titulo"
+                  placeholder="Ex: Curadoria &amp; Autenticidade"
+                  class="w-full px-3 py-2 text-xs border border-[#D4D9D5] focus:border-[#4B584E] focus:outline-none rounded-none bg-white text-[#222624]"
+                />
+              </div>
+
+              <div class="space-y-1 md:col-span-2">
+                <label class="block text-[10px] uppercase tracking-wider font-semibold text-[#5F6661]">
+                  Descrição do Pilar <span class="text-red-500">*</span>
+                </label>
+                <textarea 
+                  rows="2"
+                  formControlName="descricao"
+                  placeholder="Explicação do compromisso e metodologia aplicada neste pilar..."
+                  class="w-full px-3 py-2 text-xs border border-[#D4D9D5] focus:border-[#4B584E] focus:outline-none rounded-none bg-white text-[#222624]"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEÇÃO 4: METADADOS & SEO -->
+      <div formGroupName="seo" class="bg-white border border-[#E8EBE8] p-6 sm:p-8 shadow-xs rounded-none space-y-6">
+        <div class="border-b border-[#E8EBE8] pb-3 flex items-center justify-between">
+          <div>
+            <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">4. Metadados &amp; SEO</h2>
+            <p class="text-[11px] text-[#5F6661] mt-0.5">Configurações para mecanismos de busca (Google) e compartilhamento social.</p>
+          </div>
+          <span class="text-[9px] uppercase tracking-widest font-mono text-[#4B584E] bg-[#F4F5F4] px-2 py-0.5 border border-[#E8EBE8]">
+            Indexação
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-1">
+            <label class="block text-[11px] uppercase tracking-wider font-semibold text-[#222624]">
+              Meta Título (Tag Title)
+            </label>
+            <input 
+              type="text" 
+              formControlName="metaTitle"
+              placeholder="Ex: Sobre Nós | WB Agency - Scouting &amp; Model Management"
+              class="w-full px-3 py-2 text-sm border border-[#D4D9D5] focus:border-[#4B584E] focus:outline-none rounded-none bg-white text-[#222624]"
+            />
+          </div>
+
+          <div class="space-y-1">
+            <label class="block text-[11px] uppercase tracking-wider font-semibold text-[#222624]">
+              Meta Descrição (Snippet Google)
+            </label>
+            <input 
+              type="text" 
+              formControlName="metaDescription"
+              placeholder="Ex: Conheça a WB Agency, agência de modelos e scouting internacional..."
+              class="w-full px-3 py-2 text-sm border border-[#D4D9D5] focus:border-[#4B584E] focus:outline-none rounded-none bg-white text-[#222624]"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- BARRA DE AÇÃO INFERIOR -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-end bg-white border border-[#E8EBE8] p-6 gap-4">
+        <button
+          type="button"
+          (click)="restoreDefaults()"
+          class="px-5 py-2.5 bg-white border border-[#E8EBE8] hover:border-[#4B584E] text-xs font-sans uppercase tracking-widest text-[#5F6661] hover:text-[#222624] transition-all rounded-none cursor-pointer"
+        >
+          Restaurar Padrões
+        </button>
+        <button
+          type="submit"
+          [disabled]="isSaving"
+          class="px-8 py-2.5 bg-[#4B584E] hover:bg-[#3D4840] disabled:bg-[#8D968F] text-white text-xs font-sans uppercase tracking-widest transition-all rounded-none cursor-pointer inline-flex items-center gap-2"
+        >
+          <span *ngIf="isSaving" class="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent animate-spin"></span>
+          {{ isSaving ? 'Salvando Alterações...' : 'Salvar Todas as Alterações' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

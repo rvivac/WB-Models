@@ -229,6 +229,21 @@ export const routes: Routes = [
         pathMatch: 'full'
       },
       {
+        path: 'institucional/sobre',
+        loadComponent: () => import('./features/admin/institutional/about-page-manager.component').then(m => m.AboutPageManagerComponent),
+        title: 'Gestão Sobre Nós & Manifesto | WB Agency'
+      },
+      {
+        path: 'institucional/sobre-nos',
+        redirectTo: 'institucional/sobre',
+        pathMatch: 'full'
+      },
+      {
+        path: 'institutional/about',
+        redirectTo: 'institucional/sobre',
+        pathMatch: 'full'
+      },
+      {
         path: 'institucional/quero-ser-modelo',
         loadComponent: () => import('./features/admin/institutional/apply-faq-manager.component').then(m => m.ApplyFaqManagerComponent),
         title: 'Gestão Quero Ser Modelo & FAQ | WB Agency'

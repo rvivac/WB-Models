@@ -29,6 +29,10 @@ public class InstitutionalSetting {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "content_data", columnDefinition = "jsonb")
+    private java.util.Map<String, Object> contentData;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;

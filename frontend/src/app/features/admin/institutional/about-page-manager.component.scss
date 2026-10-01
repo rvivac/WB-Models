@@ -1,0 +1,16 @@
+:host {
+  display: block;
+  font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, sans-serif);
+}
+
+// Acabamento estrito rounded-none em todos os elementos
+* {
+  border-radius: 0 !important;
+}
+
+// Efeito de foco nos inputs e textareas
+input:focus,
+textarea:focus {
+  border-color: #4B584E !important;
+  outline: none !important;
+}

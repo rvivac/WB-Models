@@ -218,6 +218,7 @@
     "city_error": "City is required.",
     "state_label": "State / Region",
     "state_placeholder": "Select state / region...",
+    "state_not_in_brazil": "NOT IN BRAZIL",
     "state_error": "State / Region is required.",
     "guardian_badge": "LEGAL GUARDIAN • MINOR APPLICANT",
     "guardian_tag": "Required",

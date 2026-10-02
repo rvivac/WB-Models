@@ -272,6 +272,7 @@
                 </label>
                 <select id="state" formControlName="state" class="form-control">
                   <option value="">{{ 'apply_page.state_placeholder' | translate }}</option>
+                  <option value="EX">{{ 'apply_page.state_not_in_brazil' | translate }}</option>
                   @for (st of brazilianStates; track st.uf) {
                     <option [value]="st.uf">{{ st.name }} ({{ st.uf }})</option>
                   }

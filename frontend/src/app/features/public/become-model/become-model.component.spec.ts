@@ -216,4 +216,16 @@ describe('BecomeModelComponent', () => {
     expect(component.getFaqQuestion(faq, 0)).toBe('Is there any cost for application or evaluation?');
     expect(component.getFaqAnswer(faq, 0)).toBe('No. WB Agency never charges any fees...');
   });
+
+  it('deve permitir selecionar a opção NOT IN BRAZIL (EX) no campo de estado', () => {
+    component.form.get('state')?.setValue('EX');
+    expect(component.form.get('state')?.valid).toBeTrue();
+    expect(component.form.get('state')?.value).toBe('EX');
+
+    const selectEl: HTMLSelectElement = fixture.nativeElement.querySelector('#state');
+    expect(selectEl).toBeTruthy();
+    const options = Array.from(selectEl.options);
+    const notInBrazilOption = options.find(opt => opt.value === 'EX');
+    expect(notInBrazilOption).toBeTruthy();
+  });
 });

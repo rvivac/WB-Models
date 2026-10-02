@@ -7,6 +7,9 @@ import { environment } from '../../../../environments/environment';
 import { of } from 'rxjs';
 import { ApplyFaqService } from '../../../core/services/apply-faq.service';
 
+import { provideRouter } from '@angular/router';
+import { TranslationService } from '../../../core/services/translation.service';
+
 describe('BecomeModelComponent', () => {
   let component: BecomeModelComponent;
   let fixture: ComponentFixture<BecomeModelComponent>;
@@ -33,9 +36,23 @@ describe('BecomeModelComponent', () => {
     await TestBed.configureTestingModule({
       imports: [BecomeModelComponent],
       providers: [
+        provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: ApplyFaqService, useValue: mockFaqService }
+        { provide: ApplyFaqService, useValue: mockFaqService },
+        {
+          provide: TranslationService,
+          useValue: {
+            currentLang: () => 'pt',
+            translate: (key: string) => {
+              const dict: Record<string, string> = {
+                'nav.home': 'Home',
+                'nav.apply': 'Quero ser modelo'
+              };
+              return dict[key] || key;
+            }
+          }
+        }
       ]
     }).compileComponents();
 

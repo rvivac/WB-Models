@@ -1,404 +1,546 @@
-<div class="min-h-screen bg-[#FBFBF9] py-12 px-4 sm:px-6 lg:px-8 selection:bg-[#4B584E] selection:text-white">
-  <div class="max-w-4xl mx-auto space-y-10">
+<div class="become-model-page">
+  <div class="container">
+    <div class="apply-content-layout">
 
-    <!-- CABEÇALHO EDITORIAL INSTITUCIONAL -->
-    <div class="text-center space-y-3 border-b border-[#E8EBE8] pb-8">
-      <span class="text-[10px] uppercase tracking-[0.3em] font-sans text-[#4B584E] font-semibold block">
-        {{ headerSubtitle }}
-      </span>
-      <h1 class="text-3xl sm:text-4xl font-serif uppercase tracking-wider text-[#222624]">
-        {{ headerTitle }}
-      </h1>
-      <p class="text-xs sm:text-sm text-[#5F6661] max-w-xl mx-auto leading-relaxed mt-2">
-        {{ headerDescription }}
-      </p>
-    </div>
+      <!-- 1. Cabeçalho Editorial Padronizado (Cormorant Garamond + Plus Jakarta Sans) -->
+      <header class="page-header">
+        <nav class="header-breadcrumbs">
+          <a routerLink="/" class="breadcrumb-link">{{ 'nav.home' | translate }}</a>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">{{ 'nav.apply' | translate }}</span>
+        </nav>
 
-    <!-- SEÇÃO EDITORIAL DE ORIENTAÇÕES & FAQ SANFONADO -->
-    <div *ngIf="faqs && faqs.length > 0 && !submitSuccess" class="bg-white border border-[#E8EBE8] rounded-none p-6 sm:p-8 space-y-3 shadow-xs">
-      <div class="border-b border-[#E8EBE8] pb-3 mb-4">
-        <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">Orientações &amp; Dúvidas Frequentes</h2>
-        <p class="text-[11px] text-[#5F6661] mt-0.5">Tudo o que você precisa saber antes de enviar seu material.</p>
-      </div>
-
-      <div *ngFor="let item of faqs; let i = index" class="border border-[#E8EBE8] rounded-none overflow-hidden transition-all">
-        <button
-          type="button"
-          (click)="toggleFaq(item.id)"
-          class="w-full text-left p-4 sm:p-5 flex items-center justify-between gap-4 bg-[#FBFBF9] hover:bg-[#F4F5F4] transition-colors cursor-pointer select-none rounded-none"
-        >
-          <span class="text-xs sm:text-sm font-sans uppercase tracking-[0.12em] text-[#222624] font-medium">
-            {{ item.question }}
-          </span>
-          <span class="text-base font-mono text-[#4B584E] shrink-0 font-semibold">
-            {{ isFaqOpen(item.id) ? '−' : '+' }}
-          </span>
-        </button>
-
-        <div
-          *ngIf="isFaqOpen(item.id)"
-          class="p-4 sm:p-5 bg-white whitespace-pre-line text-xs sm:text-sm text-[#5F6661] leading-relaxed border-t border-[#E8EBE8]"
-        >
-          {{ item.answer }}
-        </div>
-      </div>
-    </div>
-
-    <!-- TELA DE SUCESSO EDITORIAL -->
-    <div *ngIf="submitSuccess" class="bg-white border border-[#E8EBE8] p-8 sm:p-12 text-center space-y-6 shadow-xs rounded-none">
-      <div class="w-16 h-16 bg-[#F4F5F4] border border-[#E8EBE8] flex items-center justify-center mx-auto text-[#4B584E] rounded-none">
-        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
-      </div>
-
-      <div class="space-y-2 max-w-lg mx-auto">
-        <span class="text-[11px] font-sans uppercase tracking-[0.25em] text-[#4B584E] font-semibold block">Inscrição Confirmada</span>
-        <h2 class="font-serif text-2xl sm:text-3xl uppercase tracking-wider text-[#222624]">Candidatura Enviada com Sucesso</h2>
-        <p class="text-xs sm:text-sm text-[#5F6661] leading-relaxed">
-          Seu dossiê de apresentação e polaroids foram catalogados na banca de scouting da WB Agency.
+        <h1 class="page-title font-serif">
+          {{ headerTitle }}
+        </h1>
+        <p class="page-subtitle">
+          {{ headerDescription }}
         </p>
-      </div>
+      </header>
 
-      <!-- PROTOCOLO DE ATENDIMENTO -->
-      <div class="bg-[#FFFDF5] border border-[#E2D9C2] p-4 max-w-sm mx-auto space-y-1 rounded-none">
-        <span class="text-[10px] uppercase tracking-[0.18em] text-[#8A7C64] block font-sans">Protocolo de Scouting</span>
-        <span class="font-mono text-base font-semibold text-[#222624] tracking-wider">{{ submissionProtocol }}</span>
-      </div>
-
-      <!-- PRÓXIMOS PASSOS -->
-      <div class="text-left bg-[#F4F7F4] p-5 sm:p-6 max-w-lg mx-auto space-y-3 border-l-2 border-[#4B584E] rounded-none">
-        <h3 class="font-serif text-xs uppercase tracking-wider font-semibold text-[#222624]">Próximos Passos &bull; Como Funciona:</h3>
-        <ul class="text-[11px] text-[#5F6661] space-y-2 list-disc list-inside leading-relaxed font-sans">
-          <li>Nossa diretoria de casting analisa todas as candidaturas em até <strong>5 dias úteis</strong>.</li>
-          <li>Em caso de compatibilidade de perfil com nosso casting comercial ou fashion, nossa equipe entrará em contato via telefone ou e-mail cadastrado.</li>
-          <li>A WB Agency <strong>nunca cobra taxas</strong> para avaliação de perfil ou agenciamento inicial.</li>
-        </ul>
-      </div>
-
-      <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
-        <button 
-          type="button" 
-          (click)="resetForm()"
-          class="w-full sm:w-auto px-8 py-3.5 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-[0.18em] transition-all cursor-pointer font-sans rounded-none"
-        >
-          Enviar Nova Candidatura
-        </button>
-        <a 
-          routerLink="/models"
-          class="w-full sm:w-auto px-8 py-3.5 bg-white border border-[#E8EBE8] hover:border-[#4B584E] text-[#222624] text-xs uppercase tracking-[0.18em] transition-all text-center font-sans rounded-none"
-        >
-          Explorar Nosso Casting
-        </a>
-      </div>
-    </div>
-
-    <!-- ALERTA DE ERRO -->
-    <div *ngIf="submitError" class="bg-red-50 border border-red-200 text-red-900 p-4 space-y-1 flex items-start gap-3 rounded-none">
-      <svg class="w-5 h-5 text-red-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-      <div class="text-xs">
-        <strong class="font-semibold block">Não foi possível enviar a candidatura:</strong>
-        <span>{{ submitError }}</span>
-      </div>
-    </div>
-
-    <!-- FORMULÁRIO -->
-    <form *ngIf="!submitSuccess" [formGroup]="applyForm" (ngSubmit)="onSubmit()" class="space-y-8">
-
-      <!-- BLOCO 1: IDENTIFICAÇÃO E CONTATO -->
-      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 space-y-6 rounded-none shadow-xs">
-        <div class="border-b border-[#E8EBE8] pb-3">
-          <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">1. Identificação e Contato</h2>
-          <p class="text-[11px] text-[#5F6661] mt-0.5">Campos destacados para facilitar o preenchimento.</p>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <!-- Nome Completo -->
-          <div class="sm:col-span-2">
-            <label class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
-              Nome Completo *
-            </label>
-            <input 
-              type="text" 
-              formControlName="fullName"
-              placeholder="Digite seu nome completo"
-              class="w-full px-4 py-3 bg-[#FFFDF5] border border-[#E2D9C2] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none placeholder:text-[#A89E88]"
-            />
-            <span *ngIf="applyForm.get('fullName')?.touched && applyForm.get('fullName')?.invalid" class="text-[10px] text-red-600 block mt-1 tracking-wide">
-              Nome completo obrigatório.
-            </span>
+      <!-- 2. Seção Editorial de Orientações & Dúvidas Frequentes (FAQ Acordeão) -->
+      @if (faqs && faqs.length > 0 && !submitSuccess) {
+        <section class="form-card faq-section" aria-label="Orientações e Dúvidas Frequentes">
+          <div class="section-header">
+            <span class="badge-editorial">ORIENTAÇÕES &amp; FAQ</span>
+            <h2 class="section-title font-serif">Orientações &amp; Dúvidas Frequentes</h2>
+            <p class="section-subtitle">Tudo o que você precisa saber antes de enviar seu material.</p>
           </div>
 
-          <!-- E-mail -->
-          <div>
-            <label class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
-              E-mail *
-            </label>
-            <input 
-              type="email" 
-              formControlName="email"
-              placeholder="seu.email@exemplo.com"
-              class="w-full px-4 py-3 bg-[#FFFDF5] border border-[#E2D9C2] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none placeholder:text-[#A89E88]"
-            />
-            <span *ngIf="applyForm.get('email')?.touched && applyForm.get('email')?.invalid" class="text-[10px] text-red-600 block mt-1 tracking-wide">
-              E-mail válido obrigatório.
-            </span>
-          </div>
+          <div class="faq-list">
+            @for (item of faqs; track item.id; let i = $index) {
+              <div class="faq-item">
+                <button
+                  type="button"
+                  (click)="toggleFaq(item.id)"
+                  class="faq-trigger"
+                  [attr.aria-expanded]="isFaqOpen(item.id)"
+                >
+                  <span class="faq-question">{{ item.question }}</span>
+                  <span class="faq-icon">{{ isFaqOpen(item.id) ? '−' : '+' }}</span>
+                </button>
 
-          <!-- Telefone / WhatsApp -->
-          <div>
-            <label class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
-              Telefone / WhatsApp *
-            </label>
-            <input 
-              type="tel" 
-              formControlName="phone"
-              placeholder="+55 (11) 99999-9999"
-              (input)="onPhoneInput($event)"
-              class="w-full px-4 py-3 bg-[#FFFDF5] border border-[#E2D9C2] text-[#222624] text-xs sm:text-sm font-mono focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none placeholder:text-[#A89E88]"
-            />
-            <span *ngIf="applyForm.get('phone')?.touched && applyForm.get('phone')?.invalid" class="text-[10px] text-red-600 block mt-1 tracking-wide">
-              Telefone obrigatório.
-            </span>
+                @if (isFaqOpen(item.id)) {
+                  <div class="faq-body">
+                    {{ item.answer }}
+                  </div>
+                }
+              </div>
+            }
           </div>
+        </section>
+      }
 
-          <!-- Data de Nascimento -->
-          <div>
-            <label class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
-              Data de Nascimento *
-            </label>
-            <input 
-              type="date" 
-              formControlName="birthDate"
-              class="w-full px-4 py-3 bg-[#FFFDF5] border border-[#E2D9C2] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none"
-            />
-            <span *ngIf="applyForm.get('birthDate')?.touched && applyForm.get('birthDate')?.invalid" class="text-[10px] text-red-600 block mt-1 tracking-wide">
-              Data de nascimento obrigatória.
-            </span>
-          </div>
-
-          <!-- Instagram -->
-          <div>
-            <label class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
-              Instagram
-            </label>
-            <div class="relative flex items-center">
-              <span class="absolute left-3 text-xs text-[#8A7C64] font-mono select-none">&#64;</span>
-              <input 
-                type="text" 
-                formControlName="instagram"
-                placeholder="seu.usuario"
-                class="w-full pl-8 pr-4 py-3 bg-[#FFFDF5] border border-[#E2D9C2] text-[#222624] text-xs sm:text-sm font-mono focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none placeholder:text-[#A89E88]"
-              />
-            </div>
-          </div>
-
-          <!-- Cidade e Estado -->
-          <div>
-            <label class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
-              Cidade *
-            </label>
-            <input 
-              type="text" 
-              formControlName="city"
-              placeholder="Ex: São Paulo"
-              class="w-full px-4 py-3 bg-[#FFFDF5] border border-[#E2D9C2] text-[#222624] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none placeholder:text-[#A89E88]"
-            />
-            <span *ngIf="applyForm.get('city')?.touched && applyForm.get('city')?.invalid" class="text-[10px] text-red-600 block mt-1 tracking-wide">
-              Cidade obrigatória.
-            </span>
-          </div>
-
-          <div>
-            <label class="block text-[11px] font-sans uppercase tracking-[0.18em] text-[#222624] font-medium mb-1.5">
-              Estado (UF) *
-            </label>
-            <input 
-              type="text" 
-              formControlName="state"
-              placeholder="SP"
-              maxlength="2"
-              class="w-full px-4 py-3 bg-[#FFFDF5] border border-[#E2D9C2] text-[#222624] text-xs sm:text-sm uppercase font-mono focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none placeholder:text-[#A89E88]"
-            />
-            <span *ngIf="applyForm.get('state')?.touched && applyForm.get('state')?.invalid" class="text-[10px] text-red-600 block mt-1 tracking-wide">
-              UF obrigatória (2 letras).
-            </span>
+      <!-- 3. Alerta de Erro Editorial -->
+      @if (submitError) {
+        <div class="alert-error-box" role="alert">
+          <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+          <div class="alert-content">
+            <strong class="alert-title">Não foi possível enviar a candidatura:</strong>
+            <p class="alert-text">{{ submitError }}</p>
           </div>
         </div>
+      }
 
-        <!-- CONDICIONAL: MENOR DE IDADE -->
-        <div *ngIf="isMinor" class="bg-[#FFFDF5] border-l-2 border-[#4B584E] p-5 space-y-4 rounded-none mt-4">
-          <div class="flex items-center justify-between border-b border-[#E2D9C2] pb-2">
-            <span class="text-xs font-serif uppercase tracking-wider text-[#222624] font-semibold">
-              Responsável Legal (Candidato Menor de Idade)
-            </span>
-            <span class="bg-amber-100 text-amber-900 border border-amber-300 text-[9px] uppercase tracking-widest px-2 py-0.5 font-semibold">
-              Obrigatório
-            </span>
+      <!-- 4. Tela de Sucesso Editorial -->
+      @if (submitSuccess) {
+        <div class="form-card success-card">
+          <div class="success-icon-wrap">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-[10px] font-sans uppercase tracking-widest text-[#222624] mb-1">Nome do Responsável *</label>
-              <input type="text" formControlName="guardianName" class="w-full px-3 py-2 bg-white border border-[#E2D9C2] text-xs focus:outline-none focus:border-[#4B584E] rounded-none">
-            </div>
-
-            <div>
-              <label class="block text-[10px] font-sans uppercase tracking-widest text-[#222624] mb-1">CPF do Responsável *</label>
-              <input type="text" formControlName="guardianCpf" (input)="onCpfInput($event)" placeholder="000.000.000-00" class="w-full px-3 py-2 bg-white border border-[#E2D9C2] text-xs font-mono focus:outline-none focus:border-[#4B584E] rounded-none">
-            </div>
-
-            <div>
-              <label class="block text-[10px] font-sans uppercase tracking-widest text-[#222624] mb-1">Telefone do Responsável *</label>
-              <input type="tel" formControlName="guardianPhone" (input)="onGuardianPhoneInput($event)" class="w-full px-3 py-2 bg-white border border-[#E2D9C2] text-xs font-mono focus:outline-none focus:border-[#4B584E] rounded-none">
-            </div>
-
-            <div>
-              <label class="block text-[10px] font-sans uppercase tracking-widest text-[#222624] mb-1">E-mail do Responsável *</label>
-              <input type="email" formControlName="guardianEmail" class="w-full px-3 py-2 bg-white border border-[#E2D9C2] text-xs focus:outline-none focus:border-[#4B584E] rounded-none">
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- BLOCO 2: DADOS BIOMÉTRICOS -->
-      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 space-y-6 rounded-none shadow-xs">
-        <div class="border-b border-[#E8EBE8] pb-3">
-          <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">2. Medidas Biométricas</h2>
-          <p class="text-[11px] text-[#5F6661] mt-0.5">Insira os valores em centímetros (cm).</p>
-        </div>
-
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div>
-            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Altura (cm) *</label>
-            <input type="number" formControlName="height" placeholder="178" class="w-full px-3 py-2.5 bg-[#FFFDF5] border border-[#E2D9C2] text-xs sm:text-sm font-mono focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none" />
+          <div class="success-header">
+            <span class="badge-editorial">CANDIDATURA CONFIRMADA</span>
+            <h2 class="section-title font-serif success-title">Candidatura Enviada com Sucesso</h2>
+            <p class="section-subtitle success-subtitle">
+              Seu dossiê de apresentação e polaroids foram catalogados na banca de scouting da WB Agency.
+            </p>
           </div>
 
-          <div>
-            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Busto / Tórax (cm) *</label>
-            <input type="number" formControlName="bust" placeholder="84" class="w-full px-3 py-2.5 bg-[#FFFDF5] border border-[#E2D9C2] text-xs sm:text-sm font-mono focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none" />
+          <!-- Protocolo de Atendimento -->
+          <div class="protocol-card">
+            <span class="protocol-label">Protocolo de Scouting</span>
+            <span class="protocol-value">{{ submissionProtocol }}</span>
           </div>
 
-          <div>
-            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Cintura (cm) *</label>
-            <input type="number" formControlName="waist" placeholder="60" class="w-full px-3 py-2.5 bg-[#FFFDF5] border border-[#E2D9C2] text-xs sm:text-sm font-mono focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none" />
+          <!-- Próximos Passos -->
+          <div class="next-steps-card">
+            <h3 class="next-steps-heading">Próximos Passos &bull; Como Funciona:</h3>
+            <ul class="editorial-guidelines">
+              <li>
+                <span class="check-bullet">&bull;</span>
+                <span>Nossa diretoria de casting analisa todas as candidaturas em até <strong>5 dias úteis</strong>.</span>
+              </li>
+              <li>
+                <span class="check-bullet">&bull;</span>
+                <span>Em caso de compatibilidade de perfil com nosso casting comercial ou fashion, nossa equipe entrará em contato via telefone ou e-mail cadastrado.</span>
+              </li>
+              <li>
+                <span class="check-bullet">&bull;</span>
+                <span>A WB Agency <strong>nunca cobra taxas</strong> para avaliação de perfil ou agenciamento inicial.</span>
+              </li>
+            </ul>
           </div>
 
-          <div>
-            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Quadril (cm) *</label>
-            <input type="number" formControlName="hips" placeholder="90" class="w-full px-3 py-2.5 bg-[#FFFDF5] border border-[#E2D9C2] text-xs sm:text-sm font-mono focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none" />
-          </div>
-
-          <div>
-            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Calçado *</label>
-            <input type="number" formControlName="shoes" placeholder="38" class="w-full px-3 py-2.5 bg-[#FFFDF5] border border-[#E2D9C2] text-xs sm:text-sm font-mono focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none" />
-          </div>
-
-          <div>
-            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Olhos *</label>
-            <select formControlName="eyes" class="w-full px-3 py-2.5 bg-[#FFFDF5] border border-[#E2D9C2] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none cursor-pointer">
-              <option value="">Selecione...</option>
-              <option value="CASTANHO">Castanho</option>
-              <option value="VERDE">Verde</option>
-              <option value="AZUL">Azul</option>
-              <option value="PRETO">Preto</option>
-              <option value="MEL">Mel</option>
-            </select>
-          </div>
-
-          <div class="sm:col-span-2">
-            <label class="block text-[10px] font-sans uppercase tracking-wider text-[#5F6661] font-semibold mb-1">Cabelos *</label>
-            <select formControlName="hair" class="w-full px-3 py-2.5 bg-[#FFFDF5] border border-[#E2D9C2] text-xs sm:text-sm focus:outline-none focus:border-[#4B584E] focus:bg-[#F4F7F4] transition-all rounded-none cursor-pointer">
-              <option value="">Selecione...</option>
-              <option value="CASTANHO">Castanho</option>
-              <option value="LOIRO">Loiro</option>
-              <option value="PRETO">Preto</option>
-              <option value="RUIVO">Ruivo</option>
-              <option value="GRISALHO">Grisalho</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- BLOCO 3: FOTOS E POLAROIDS (PROPORÇÃO 3:4) -->
-      <div class="bg-white border border-[#E8EBE8] p-6 sm:p-8 space-y-6 rounded-none shadow-xs">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E8EBE8] pb-3 gap-2">
-          <div>
-            <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">3. Polaroids e Fotos de Avaliação</h2>
-            <p class="text-[11px] text-[#5F6661] mt-0.5">Fotos nítidas com luz natural, sem maquiagem e sem filtros (mínimo 3).</p>
-          </div>
-          <span class="text-xs font-mono text-[#4B584E] font-medium bg-[#F4F7F4] border border-[#E8EBE8] px-2.5 py-1 rounded-none self-start sm:self-auto">
-            {{ totalUploadedPhotos }}/8 Fotos
-          </span>
-        </div>
-
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div *ngFor="let slot of photoSlots; let i = index" class="space-y-1.5">
-            <div 
-              class="relative aspect-[3/4] bg-[#FFFDF5] border-2 border-dashed border-[#E2D9C2] hover:border-[#4B584E] transition-all flex flex-col items-center justify-center p-2 text-center overflow-hidden rounded-none"
-              [class.border-solid]="slot.previewUrl"
-              [class.border-[#4B584E]]="slot.previewUrl"
+          <div class="success-actions">
+            <button 
+              type="button" 
+              (click)="resetForm()"
+              class="btn-editorial-primary"
             >
-              <img *ngIf="slot.previewUrl" [src]="slot.previewUrl" class="absolute inset-0 w-full h-full object-cover">
+              Enviar Nova Candidatura
+            </button>
+            <a 
+              routerLink="/models"
+              class="btn-editorial-secondary"
+            >
+              Explorar Nosso Casting
+            </a>
+          </div>
+        </div>
+      }
 
-              <button 
-                *ngIf="slot.previewUrl" 
-                type="button" 
-                (click)="removePhoto(i)" 
-                class="absolute top-1.5 right-1.5 bg-black/75 hover:bg-black text-white w-6 h-6 flex items-center justify-center text-xs transition-colors rounded-none z-10 cursor-pointer"
-                title="Remover foto"
-              >
-                ✕
-              </button>
+      <!-- 5. Formulário de Candidatura -->
+      @if (!submitSuccess) {
+        <form [formGroup]="applyForm" (ngSubmit)="onSubmit()" class="editorial-form-wrapper">
 
-              <div *ngIf="!slot.previewUrl" class="space-y-1 cursor-pointer w-full h-full flex flex-col items-center justify-center" (click)="fileInput.click()">
-                <svg class="w-6 h-6 text-[#8A7C64] stroke-[1.2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                <span class="text-[9px] uppercase tracking-wider text-[#8A7C64] block font-sans">
-                  {{ slot.required ? 'Obrigatória *' : 'Opcional' }}
-                </span>
+          <!-- BLOCO 1: IDENTIFICAÇÃO E CONTATO -->
+          <section class="form-card" aria-label="Identificação e Contato">
+            <div class="section-header">
+              <span class="badge-editorial">01 / IDENTIFICAÇÃO &amp; CONTATO</span>
+              <h2 class="section-title font-serif">Dados Pessoais &amp; Contato</h2>
+              <p class="section-subtitle">Informe seus dados cadastrais e canais de contato direto.</p>
+            </div>
+
+            <div class="form-grid">
+              <!-- Nome Completo -->
+              <div class="form-group col-full">
+                <label class="form-label" for="fullName">
+                  Nome Completo <span class="required-mark">*</span>
+                </label>
+                <input 
+                  id="fullName"
+                  type="text" 
+                  formControlName="fullName"
+                  placeholder="Digite seu nome completo"
+                  class="form-control"
+                />
+                @if (applyForm.get('fullName')?.touched && applyForm.get('fullName')?.invalid) {
+                  <span class="field-error">Nome completo obrigatório.</span>
+                }
               </div>
 
-              <input #fileInput type="file" accept="image/jpeg,image/png,image/webp" class="hidden" (change)="onFileSelected(i, $event)">
+              <!-- Gênero / Casting -->
+              <div class="form-group col-half">
+                <label class="form-label">
+                  Gênero / Categoria <span class="required-mark">*</span>
+                </label>
+                <div class="gender-toggle-group">
+                  <button 
+                    type="button"
+                    (click)="setGender('FEMALE')"
+                    class="btn-gender-toggle"
+                    [class.active]="applyForm.get('gender')?.value === 'FEMALE'"
+                  >
+                    Feminino
+                  </button>
+                  <button 
+                    type="button"
+                    (click)="setGender('MALE')"
+                    class="btn-gender-toggle"
+                    [class.active]="applyForm.get('gender')?.value === 'MALE'"
+                  >
+                    Masculino
+                  </button>
+                </div>
+              </div>
+
+              <!-- Data de Nascimento -->
+              <div class="form-group col-half">
+                <label class="form-label" for="birthDate">
+                  Data de Nascimento <span class="required-mark">*</span>
+                </label>
+                <input 
+                  id="birthDate"
+                  type="date" 
+                  formControlName="birthDate"
+                  class="form-control font-mono"
+                />
+                @if (applyForm.get('birthDate')?.touched && applyForm.get('birthDate')?.invalid) {
+                  <span class="field-error">Data de nascimento obrigatória.</span>
+                }
+              </div>
+
+              <!-- E-mail -->
+              <div class="form-group col-half">
+                <label class="form-label" for="email">
+                  E-mail <span class="required-mark">*</span>
+                </label>
+                <input 
+                  id="email"
+                  type="email" 
+                  formControlName="email"
+                  placeholder="seu.email@exemplo.com"
+                  class="form-control"
+                />
+                @if (applyForm.get('email')?.touched && applyForm.get('email')?.invalid) {
+                  <span class="field-error">E-mail válido obrigatório.</span>
+                }
+              </div>
+
+              <!-- Telefone / WhatsApp -->
+              <div class="form-group col-half">
+                <label class="form-label" for="phone">
+                  Telefone / WhatsApp <span class="required-mark">*</span>
+                </label>
+                <input 
+                  id="phone"
+                  type="tel" 
+                  formControlName="phone"
+                  placeholder="+55 (11) 99999-9999"
+                  (input)="onPhoneInput($event)"
+                  class="form-control font-mono"
+                />
+                @if (applyForm.get('phone')?.touched && applyForm.get('phone')?.invalid) {
+                  <span class="field-error">Telefone obrigatório.</span>
+                }
+              </div>
+
+              <!-- Instagram -->
+              <div class="form-group col-full">
+                <label class="form-label" for="instagram">
+                  Instagram
+                </label>
+                <div class="input-with-prefix">
+                  <span class="input-prefix">&#64;</span>
+                  <input 
+                    id="instagram"
+                    type="text" 
+                    formControlName="instagram"
+                    placeholder="seu.perfil"
+                    class="form-control with-prefix font-mono"
+                  />
+                </div>
+              </div>
+
+              <!-- Cidade -->
+              <div class="form-group col-half">
+                <label class="form-label" for="city">
+                  Cidade <span class="required-mark">*</span>
+                </label>
+                <input 
+                  id="city"
+                  type="text" 
+                  formControlName="city"
+                  placeholder="Ex: São Paulo"
+                  class="form-control"
+                />
+                @if (applyForm.get('city')?.touched && applyForm.get('city')?.invalid) {
+                  <span class="field-error">Cidade obrigatória.</span>
+                }
+              </div>
+
+              <!-- Estado (UF) -->
+              <div class="form-group col-half">
+                <label class="form-label" for="state">
+                  Estado (UF) <span class="required-mark">*</span>
+                </label>
+                <select id="state" formControlName="state" class="form-control">
+                  <option value="">Selecione o estado...</option>
+                  @for (st of brazilianStates; track st.uf) {
+                    <option [value]="st.uf">{{ st.name }} ({{ st.uf }})</option>
+                  }
+                </select>
+                @if (applyForm.get('state')?.touched && applyForm.get('state')?.invalid) {
+                  <span class="field-error">UF obrigatória.</span>
+                }
+              </div>
             </div>
-            <p class="text-[9px] uppercase tracking-wider text-center text-[#5F6661] font-sans truncate">{{ slot.label }}</p>
+
+            <!-- CONDICIONAL: MENOR DE IDADE -->
+            @if (isMinor) {
+              <div class="guardian-subcard">
+                <div class="guardian-header">
+                  <span class="badge-editorial-mini">RESPONSÁVEL LEGAL &bull; CANDIDATO MENOR DE IDADE</span>
+                  <span class="tag-required">Obrigatório</span>
+                </div>
+                <p class="guardian-hint">Para candidatos com menos de 18 anos, é obrigatório informar os dados e CPF do responsável legal.</p>
+
+                <div class="form-grid">
+                  <div class="form-group col-half">
+                    <label class="form-label" for="guardianName">
+                      Nome do Responsável <span class="required-mark">*</span>
+                    </label>
+                    <input 
+                      id="guardianName"
+                      type="text" 
+                      formControlName="guardianName"
+                      placeholder="Nome completo do responsável"
+                      class="form-control"
+                    />
+                    @if (applyForm.get('guardianName')?.touched && applyForm.get('guardianName')?.invalid) {
+                      <span class="field-error">Nome do responsável obrigatório.</span>
+                    }
+                  </div>
+
+                  <div class="form-group col-half">
+                    <label class="form-label" for="guardianCpf">
+                      CPF do Responsável <span class="required-mark">*</span>
+                    </label>
+                    <input 
+                      id="guardianCpf"
+                      type="text" 
+                      formControlName="guardianCpf"
+                      (input)="onCpfInput($event)"
+                      placeholder="000.000.000-00"
+                      class="form-control font-mono"
+                    />
+                    @if (applyForm.get('guardianCpf')?.touched && applyForm.get('guardianCpf')?.invalid) {
+                      <span class="field-error">CPF válido do responsável obrigatório.</span>
+                    }
+                  </div>
+
+                  <div class="form-group col-half">
+                    <label class="form-label" for="guardianPhone">
+                      Telefone do Responsável <span class="required-mark">*</span>
+                    </label>
+                    <input 
+                      id="guardianPhone"
+                      type="tel" 
+                      formControlName="guardianPhone"
+                      (input)="onGuardianPhoneInput($event)"
+                      placeholder="+55 (11) 99999-9999"
+                      class="form-control font-mono"
+                    />
+                    @if (applyForm.get('guardianPhone')?.touched && applyForm.get('guardianPhone')?.invalid) {
+                      <span class="field-error">Telefone do responsável obrigatório.</span>
+                    }
+                  </div>
+
+                  <div class="form-group col-half">
+                    <label class="form-label" for="guardianEmail">
+                      E-mail do Responsável <span class="required-mark">*</span>
+                    </label>
+                    <input 
+                      id="guardianEmail"
+                      type="email" 
+                      formControlName="guardianEmail"
+                      placeholder="email.responsavel@exemplo.com"
+                      class="form-control"
+                    />
+                    @if (applyForm.get('guardianEmail')?.touched && applyForm.get('guardianEmail')?.invalid) {
+                      <span class="field-error">E-mail do responsável obrigatório.</span>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </section>
+
+          <!-- BLOCO 2: DADOS BIOMÉTRICOS -->
+          <section class="form-card" aria-label="Medidas Biométricas">
+            <div class="section-header">
+              <span class="badge-editorial">02 / MEDIDAS &amp; BIOMETRIA</span>
+              <h2 class="section-title font-serif">Perfil Físico &amp; Vestuário</h2>
+              <p class="section-subtitle">Dimensões corporais precisas em centímetros (cm) para dimensionamento de casting.</p>
+            </div>
+
+            <div class="biometric-grid">
+              <div class="form-group">
+                <label class="form-label" for="height">Altura (cm) <span class="required-mark">*</span></label>
+                <input id="height" type="number" formControlName="height" placeholder="178" class="form-control font-mono" />
+                @if (applyForm.get('height')?.touched && applyForm.get('height')?.invalid) {
+                  <span class="field-error">Obrigatório.</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="bust">Busto / Tórax (cm) <span class="required-mark">*</span></label>
+                <input id="bust" type="number" formControlName="bust" placeholder="84" class="form-control font-mono" />
+                @if (applyForm.get('bust')?.touched && applyForm.get('bust')?.invalid) {
+                  <span class="field-error">Obrigatório.</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="waist">Cintura (cm) <span class="required-mark">*</span></label>
+                <input id="waist" type="number" formControlName="waist" placeholder="60" class="form-control font-mono" />
+                @if (applyForm.get('waist')?.touched && applyForm.get('waist')?.invalid) {
+                  <span class="field-error">Obrigatório.</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="hips">Quadril (cm) <span class="required-mark">*</span></label>
+                <input id="hips" type="number" formControlName="hips" placeholder="90" class="form-control font-mono" />
+                @if (applyForm.get('hips')?.touched && applyForm.get('hips')?.invalid) {
+                  <span class="field-error">Obrigatório.</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="shoes">Calçado <span class="required-mark">*</span></label>
+                <input id="shoes" type="number" formControlName="shoes" placeholder="38" class="form-control font-mono" />
+                @if (applyForm.get('shoes')?.touched && applyForm.get('shoes')?.invalid) {
+                  <span class="field-error">Obrigatório.</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="eyes">Olhos <span class="required-mark">*</span></label>
+                <select id="eyes" formControlName="eyes" class="form-control">
+                  <option value="">Selecione...</option>
+                  @for (color of eyeColors; track color) {
+                    <option [value]="color">{{ color | titlecase }}</option>
+                  }
+                </select>
+                @if (applyForm.get('eyes')?.touched && applyForm.get('eyes')?.invalid) {
+                  <span class="field-error">Obrigatório.</span>
+                }
+              </div>
+
+              <div class="form-group col-span-2">
+                <label class="form-label" for="hair">Cabelos <span class="required-mark">*</span></label>
+                <select id="hair" formControlName="hair" class="form-control">
+                  <option value="">Selecione...</option>
+                  @for (color of hairColors; track color) {
+                    <option [value]="color">{{ color | titlecase }}</option>
+                  }
+                </select>
+                @if (applyForm.get('hair')?.touched && applyForm.get('hair')?.invalid) {
+                  <span class="field-error">Obrigatório.</span>
+                }
+              </div>
+            </div>
+          </section>
+
+          <!-- BLOCO 3: FOTOS E POLAROIDS -->
+          <section class="form-card" aria-label="Polaroids e Fotos de Avaliação">
+            <div class="section-header-split">
+              <div class="section-header">
+                <span class="badge-editorial">03 / MATERIAL FOTOGRÁFICO</span>
+                <h2 class="section-title font-serif">Polaroids &amp; Fotos de Avaliação</h2>
+                <p class="section-subtitle">Fotos nítidas com luz natural, sem maquiagem e sem filtros (mínimo de 3 fotos obrigatórias).</p>
+              </div>
+              <div class="photo-counter-badge">
+                <span class="photo-counter-text">{{ totalUploadedPhotos }}/8 Fotos Enviadas</span>
+              </div>
+            </div>
+
+            <div class="photo-slots-grid">
+              @for (slot of photoSlots; track $index; let i = $index) {
+                <div class="photo-slot-item">
+                  <div 
+                    class="photo-dropzone"
+                    [class.has-preview]="slot.previewUrl"
+                  >
+                    @if (slot.previewUrl) {
+                      <img [src]="slot.previewUrl" [alt]="slot.label" class="photo-preview-img" />
+                      <button 
+                        type="button" 
+                        (click)="removePhoto(i)" 
+                        class="btn-remove-photo"
+                        title="Remover foto"
+                      >
+                        ✕
+                      </button>
+                    } @else {
+                      <div class="photo-placeholder" (click)="fileInput.click()">
+                        <svg class="photo-upload-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        <span class="slot-requirement-tag">
+                          {{ slot.required ? 'Obrigatória *' : 'Opcional' }}
+                        </span>
+                      </div>
+                    }
+
+                    <input #fileInput type="file" accept="image/jpeg,image/png,image/webp" class="hidden-file-input" (change)="onFileSelected(i, $event)">
+                  </div>
+
+                  <span class="photo-slot-name" [title]="slot.label">{{ slot.label }}</span>
+                  <span class="photo-slot-hint">{{ slot.hint }}</span>
+                </div>
+              }
+            </div>
+
+            @if (!hasRequiredPhotos) {
+              <div class="photo-warning-box">
+                <span class="warning-icon">⚠️</span>
+                <span>As 3 primeiras polaroids (<strong>Rosto Frontal</strong>, <strong>Perfil 3/4</strong> e <strong>Corpo Inteiro</strong>) são obrigatórias para submeter o dossiê.</span>
+              </div>
+            }
+          </section>
+
+          <!-- BLOCO 4: TERMOS E LGPD -->
+          <section class="form-card" aria-label="Termos de Consentimento e Privacidade">
+            <div class="section-header">
+              <span class="badge-editorial">04 / TERMOS &amp; PRIVACIDADE</span>
+              <h2 class="section-title font-serif">Consentimento e Proteção de Dados (LGPD)</h2>
+              <p class="section-subtitle">Termos legais para tratamento confidencial de fotos e dados cadastrais.</p>
+            </div>
+
+            <div class="consent-box">
+              <label class="consent-label">
+                <input type="checkbox" formControlName="lgpdConsent" class="consent-checkbox">
+                <span class="consent-text">
+                  Declaro a veracidade dos dados informados e autorizo a <strong>WB Agency</strong> a processar meus dados e imagens exclusivamente para fins de avaliação de casting e representação artística (LGPD — Lei nº 13.709/2018).
+                </span>
+              </label>
+              @if (applyForm.get('lgpdConsent')?.touched && applyForm.get('lgpdConsent')?.invalid) {
+                <span class="field-error">Você deve concordar com os termos da LGPD para prosseguir.</span>
+              }
+            </div>
+          </section>
+
+          <!-- BOTÃO DE ENVIO PADRONIZADO -->
+          <div class="submit-action-wrapper">
+            <button 
+              type="submit" 
+              [disabled]="applyForm.invalid || !hasRequiredPhotos || isSubmitting"
+              class="btn-submit-editorial"
+            >
+              @if (!isSubmitting) {
+                <span>Submeter Candidatura Oficial</span>
+              } @else {
+                <span class="spinner-inline">
+                  <svg class="animate-spin" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                  </svg>
+                  Enviando Dossiê...
+                </span>
+              }
+            </button>
           </div>
-        </div>
 
-        <div *ngIf="!hasRequiredPhotos" class="text-[11px] text-amber-800 bg-amber-50 p-3 border-l-2 border-amber-600 rounded-none">
-          ⚠️ As 3 primeiras polaroids (Rosto Frontal, Perfil 3/4 e Corpo Inteiro) são obrigatórias para submeter o perfil.
-        </div>
-      </div>
+        </form>
+      }
 
-      <!-- BLOCO 4: LGPD -->
-      <div class="bg-white border border-[#E8EBE8] p-6 rounded-none shadow-xs">
-        <label class="flex items-start gap-3 cursor-pointer">
-          <input type="checkbox" formControlName="lgpdConsent" class="mt-1 h-4 w-4 accent-[#4B584E] rounded-none cursor-pointer">
-          <span class="text-xs text-[#5F6661] leading-relaxed">
-            Declaro a veracidade dos dados informados e autorizo a <strong>WB Agency</strong> a processar meus dados e imagens exclusivamente para fins de avaliação de casting e representação artística (LGPD — Lei nº 13.709/2018).
-          </span>
-        </label>
-      </div>
-
-      <!-- BOTÃO DE ENVIO -->
-      <div class="text-center pt-2">
-        <button 
-          type="submit" 
-          [disabled]="applyForm.invalid || !hasRequiredPhotos || isSubmitting"
-          class="w-full sm:w-auto px-12 py-4 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-[0.25em] font-sans disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer shadow-sm rounded-none"
-        >
-          <span *ngIf="!isSubmitting">Submeter Candidatura</span>
-          <span *ngIf="isSubmitting" class="flex items-center justify-center gap-2">
-            <svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-            </svg>
-            Enviando Material...
-          </span>
-        </button>
-      </div>
-
-    </form>
+    </div>
   </div>
 </div>

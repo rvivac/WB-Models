@@ -17,10 +17,12 @@ export interface PhotoSlot {
   required: boolean;
 }
 
+import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
+
 @Component({
   selector: 'app-become-model',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, TranslatePipe],
   templateUrl: './become-model.component.html',
   styleUrls: ['./become-model.component.scss']
 })

@@ -1,0 +1,482 @@
+<div class="min-h-screen bg-[#FBFBF9] py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-4xl mx-auto space-y-8">
+
+    <!-- Cabeçalho da Página -->
+    <div class="border-b border-[#E8EBE8] pb-6">
+      <div class="flex items-center gap-2">
+        <span class="text-xs uppercase tracking-widest text-[#4B584E] font-semibold">Credenciais &amp; Segurança</span>
+        <span class="text-neutral-300">&bull;</span>
+        <span class="text-xs uppercase tracking-widest text-neutral-400">ADM-017</span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-light text-neutral-900 tracking-tight mt-1 font-serif">
+        Meu Perfil &amp; Segurança
+      </h1>
+      <p class="text-xs text-neutral-500 mt-1 max-w-xl leading-relaxed">
+        Gerencie sua senha de acesso e configure a proteção avançada por autenticação de dois fatores (TOTP).
+      </p>
+    </div>
+
+    <!-- Alertas Globais -->
+    @if (errorMessage()) {
+      <div class="bg-red-50 border-l-2 border-red-600 p-4 text-xs text-red-800 rounded-none flex items-start justify-between">
+        <span>{{ errorMessage() }}</span>
+        <button type="button" (click)="errorMessage.set(null)" class="text-red-500 hover:text-red-700 ml-4 font-bold">&times;</button>
+      </div>
+    }
+
+    @if (successMessage()) {
+      <div class="bg-emerald-50 border-l-2 border-[#4B584E] p-4 text-xs text-[#222624] rounded-none flex items-start justify-between">
+        <span>{{ successMessage() }}</span>
+        <button type="button" (click)="successMessage.set(null)" class="text-[#4B584E] hover:text-neutral-900 ml-4 font-bold">&times;</button>
+      </div>
+    }
+
+    <!-- Informações do Operador -->
+    <div class="bg-white border border-[#E8EBE8] p-6 shadow-xs rounded-none">
+      <h2 class="text-xs uppercase tracking-widest text-[#4B584E] font-semibold mb-4">Dados da Conta</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+        <div>
+          <span class="text-neutral-400 uppercase tracking-wider block text-[10px]">Nome</span>
+          <span class="font-medium text-neutral-800 text-sm mt-0.5 block">{{ currentUser?.name }}</span>
+        </div>
+        <div>
+          <span class="text-neutral-400 uppercase tracking-wider block text-[10px]">E-mail Corporativo</span>
+          <span class="font-medium text-neutral-800 text-sm mt-0.5 block">{{ currentUser?.email }}</span>
+        </div>
+        <div>
+          <span class="text-neutral-400 uppercase tracking-wider block text-[10px]">Nível Hierárquico</span>
+          <span class="inline-block bg-[#4B584E] text-white text-[10px] font-mono font-bold uppercase tracking-widest px-2.5 py-1 mt-1 rounded-none">
+            {{ currentUser?.role }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+      <!-- ============================================== -->
+      <!-- CARD 1: ALTERAÇÃO DE SENHA                     -->
+      <!-- ============================================== -->
+      <div class="bg-white border border-[#E8EBE8] p-6 shadow-xs rounded-none flex flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <svg class="w-4 h-4 text-[#4B584E]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z" />
+            </svg>
+            <h2 class="text-xs uppercase tracking-widest font-semibold text-neutral-800">
+              Alterar Senha de Acesso
+            </h2>
+          </div>
+          <p class="text-xs text-neutral-500 mb-6 leading-relaxed">
+            Exige a validação da senha atual e aplicação das diretrizes de segurança editorial.
+          </p>
+
+          <form [formGroup]="passwordForm" (ngSubmit)="submitPasswordChange()" class="space-y-4" novalidate>
+            
+            <!-- Senha Atual -->
+            <div>
+              <label for="currentPassword" class="block text-[11px] uppercase tracking-wider text-neutral-700 font-medium mb-1">
+                Senha Atual *
+              </label>
+              <div class="relative">
+                <input
+                  id="currentPassword"
+                  [type]="showCurrentPassword() ? 'text' : 'password'"
+                  formControlName="currentPassword"
+                  placeholder="••••••••••••"
+                  class="w-full px-3 py-2 pr-10 text-xs border border-[#E2E8E2] bg-[#FFFDF5] focus:bg-white focus:outline-none focus:border-[#4B584E] rounded-none transition-colors"
+                />
+                <button
+                  type="button"
+                  (click)="showCurrentPassword.set(!showCurrentPassword())"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 text-xs cursor-pointer"
+                >
+                  {{ showCurrentPassword() ? 'Ocultar' : 'Exibir' }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Nova Senha -->
+            <div>
+              <label for="newPassword" class="block text-[11px] uppercase tracking-wider text-neutral-700 font-medium mb-1">
+                Nova Senha *
+              </label>
+              <div class="relative">
+                <input
+                  id="newPassword"
+                  [type]="showNewPassword() ? 'text' : 'password'"
+                  formControlName="newPassword"
+                  placeholder="••••••••••••"
+                  class="w-full px-3 py-2 pr-10 text-xs border border-[#E2E8E2] bg-[#FFFDF5] focus:bg-white focus:outline-none focus:border-[#4B584E] rounded-none transition-colors"
+                />
+                <button
+                  type="button"
+                  (click)="showNewPassword.set(!showNewPassword())"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 text-xs cursor-pointer"
+                >
+                  {{ showNewPassword() ? 'Ocultar' : 'Exibir' }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Confirmação da Nova Senha -->
+            <div>
+              <label for="confirmPassword" class="block text-[11px] uppercase tracking-wider text-neutral-700 font-medium mb-1">
+                Confirmar Nova Senha *
+              </label>
+              <div class="relative">
+                <input
+                  id="confirmPassword"
+                  [type]="showConfirmPassword() ? 'text' : 'password'"
+                  formControlName="confirmPassword"
+                  placeholder="••••••••••••"
+                  class="w-full px-3 py-2 pr-10 text-xs border border-[#E2E8E2] bg-[#FFFDF5] focus:bg-white focus:outline-none focus:border-[#4B584E] rounded-none transition-colors"
+                />
+                <button
+                  type="button"
+                  (click)="showConfirmPassword.set(!showConfirmPassword())"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 text-xs cursor-pointer"
+                >
+                  {{ showConfirmPassword() ? 'Ocultar' : 'Exibir' }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Indicadores Visuais de Complexidade em Tempo Real (Deep Sage #4B584E) -->
+            <div class="bg-[#F8F9F8] border border-[#E8EBE8] p-3 text-[11px] space-y-1.5 rounded-none">
+              <span class="text-[10px] uppercase tracking-wider text-neutral-400 font-semibold block mb-1">Requisitos de Segurança</span>
+              
+              <div class="flex items-center gap-2" [class.text-[#4B584E]]="hasMinLength()" [class.text-neutral-400]="!hasMinLength()">
+                <span class="w-1.5 h-1.5 rounded-full" [class.bg-[#4B584E]]="hasMinLength()" [class.bg-neutral-300]="!hasMinLength()"></span>
+                <span>Pelo menos 8 caracteres</span>
+              </div>
+
+              <div class="flex items-center gap-2" [class.text-[#4B584E]]="hasUppercase()" [class.text-neutral-400]="!hasUppercase()">
+                <span class="w-1.5 h-1.5 rounded-full" [class.bg-[#4B584E]]="hasUppercase()" [class.bg-neutral-300]="!hasUppercase()"></span>
+                <span>Uma letra maiúscula (A-Z)</span>
+              </div>
+
+              <div class="flex items-center gap-2" [class.text-[#4B584E]]="hasLowercase()" [class.text-neutral-400]="!hasLowercase()">
+                <span class="w-1.5 h-1.5 rounded-full" [class.bg-[#4B584E]]="hasLowercase()" [class.bg-neutral-300]="!hasLowercase()"></span>
+                <span>Uma letra minúscula (a-z)</span>
+              </div>
+
+              <div class="flex items-center gap-2" [class.text-[#4B584E]]="hasNumber()" [class.text-neutral-400]="!hasNumber()">
+                <span class="w-1.5 h-1.5 rounded-full" [class.bg-[#4B584E]]="hasNumber()" [class.bg-neutral-300]="!hasNumber()"></span>
+                <span>Um número (0-9)</span>
+              </div>
+
+              <div class="flex items-center gap-2" [class.text-[#4B584E]]="hasSpecialChar()" [class.text-neutral-400]="!hasSpecialChar()">
+                <span class="w-1.5 h-1.5 rounded-full" [class.bg-[#4B584E]]="hasSpecialChar()" [class.bg-neutral-300]="!hasSpecialChar()"></span>
+                <span>Um caractere especial (&#64;, $, !, %, *, ?, &amp;, #)</span>
+              </div>
+
+              <div class="flex items-center gap-2" [class.text-[#4B584E]]="passwordsMatch()" [class.text-neutral-400]="!passwordsMatch()">
+                <span class="w-1.5 h-1.5 rounded-full" [class.bg-[#4B584E]]="passwordsMatch()" [class.bg-neutral-300]="!passwordsMatch()"></span>
+                <span>Confirmação idêntica</span>
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <button
+                type="submit"
+                [disabled]="isLoading() || !hasMinLength() || !hasUppercase() || !hasLowercase() || !hasNumber() || !hasSpecialChar() || !passwordsMatch()"
+                class="w-full py-2.5 bg-[#4B584E] hover:bg-[#3D473F] text-white text-xs uppercase tracking-widest font-medium transition-all cursor-pointer rounded-none disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {{ isLoading() ? 'Atualizando...' : 'Atualizar Senha' }}
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- CARD 2: AUTENTICAÇÃO DE DOIS FATORES (2FA)    -->
+      <!-- ============================================== -->
+      <div class="bg-white border border-[#E8EBE8] p-6 shadow-xs rounded-none flex flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <svg class="w-4 h-4 text-[#4B584E]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+            </svg>
+            <h2 class="text-xs uppercase tracking-widest font-semibold text-neutral-800">
+              Autenticação de Dois Fatores (2FA)
+            </h2>
+          </div>
+          <p class="text-xs text-neutral-500 mb-6 leading-relaxed">
+            Proteja sua conta contra acessos não autorizados utilizando Google Authenticator ou Microsoft Authenticator (RFC 6238).
+          </p>
+
+          <!-- Status Atual do 2FA -->
+          <div class="border border-[#E8EBE8] p-5 mb-6 bg-[#FCFCFA] rounded-none">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-[10px] uppercase tracking-wider text-neutral-500 font-medium">Status de Proteção</span>
+              @if (is2faEnabled()) {
+                <span class="inline-flex items-center gap-1.5 text-emerald-800 bg-emerald-50 border border-emerald-200 text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-none">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                  Ativado
+                </span>
+              } @else {
+                <span class="inline-flex items-center gap-1.5 text-neutral-500 bg-neutral-100 border border-neutral-200 text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-none">
+                  <span class="w-1.5 h-1.5 rounded-full bg-neutral-400"></span>
+                  Desativado
+                </span>
+              }
+            </div>
+
+            <p class="text-xs text-neutral-600 leading-relaxed">
+              @if (is2faEnabled()) {
+                Sua conta está protegida. O login exige a validação de um token de 6 dígitos gerado no seu smartphone a cada novo acesso.
+              } @else {
+                Recomendamos ativar o 2FA para garantir a inviolabilidade da gestão de candidaturas, modelos e banco de dados da agência.
+              }
+            </p>
+          </div>
+
+          <!-- Ação Principal de 2FA -->
+          @if (!is2faEnabled()) {
+            <button
+              type="button"
+              (click)="start2faSetup()"
+              [disabled]="isLoading()"
+              class="w-full py-2.5 bg-[#4B584E] hover:bg-[#3D473F] text-white text-xs uppercase tracking-widest font-medium transition-all cursor-pointer rounded-none"
+            >
+              Configurar 2FA (TOTP)
+            </button>
+          } @else {
+            <button
+              type="button"
+              (click)="openDisable2faModal()"
+              [disabled]="isLoading()"
+              class="w-full py-2.5 border border-red-300 text-red-700 hover:bg-red-700 hover:text-white text-xs uppercase tracking-widest font-medium transition-all cursor-pointer rounded-none"
+            >
+              Desativar Autenticação em 2 Etapas
+            </button>
+          }
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================== -->
+<!-- MODAL: SETUP 2FA (QR CODE + CHAVE + CONFIRMAÇÃO) -->
+<!-- ============================================== -->
+@if (isSetup2faModalOpen()) {
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white border border-[#E8EBE8] max-w-md w-full p-6 shadow-2xl rounded-none animate-in fade-in duration-200 max-h-[90vh] overflow-y-auto">
+      
+      <div class="flex items-center justify-between border-b border-[#E8EBE8] pb-3 mb-4">
+        <div>
+          <span class="text-[10px] uppercase tracking-widest text-[#4B584E] font-semibold">Configuração</span>
+          <h3 class="text-base font-medium text-neutral-900 uppercase tracking-wider font-serif">
+            Ativar Autenticação 2FA
+          </h3>
+        </div>
+        <button
+          type="button"
+          (click)="closeSetup2faModal()"
+          class="text-neutral-400 hover:text-neutral-700 text-lg cursor-pointer leading-none"
+        >&times;</button>
+      </div>
+
+      <div class="space-y-5 text-xs text-neutral-600">
+        
+        <!-- Passo 1 -->
+        <div>
+          <div class="font-semibold text-neutral-800 uppercase tracking-wider text-[11px] mb-1">
+            Passo 1: Escaneie o QR Code
+          </div>
+          <p class="leading-relaxed mb-3">
+            Abra seu app autenticador (Google Authenticator, Microsoft Authenticator) e aponte a câmera para o código:
+          </p>
+
+          <div class="flex justify-center bg-[#F8F9F8] border border-[#E8EBE8] p-4">
+            @if (setupData()?.qrCodeDataUrl) {
+              <img [src]="setupData()?.qrCodeDataUrl" alt="QR Code 2FA" class="w-48 h-48 border border-neutral-300" />
+            } @else {
+              <div class="w-48 h-48 flex items-center justify-center text-neutral-400">Carregando...</div>
+            }
+          </div>
+        </div>
+
+        <!-- Chave Manual Alternativa -->
+        <div>
+          <div class="font-semibold text-neutral-800 uppercase tracking-wider text-[11px] mb-1">
+            Ou insira a chave manualmente:
+          </div>
+          <div class="flex items-center gap-2 bg-[#F8F9F8] border border-[#E8EBE8] p-2.5">
+            <code class="font-mono text-xs text-[#4B584E] font-bold tracking-widest flex-1 select-all">
+              {{ setupData()?.secret }}
+            </code>
+            <button
+              type="button"
+              (click)="copySecret()"
+              class="px-2.5 py-1 bg-[#4B584E] text-white text-[10px] uppercase font-medium rounded-none hover:bg-[#3D473F] transition-all cursor-pointer"
+            >
+              {{ copiedSecret() ? 'Copiado!' : 'Copiar' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Passo 2 -->
+        <form [formGroup]="confirm2faForm" (ngSubmit)="submitConfirm2fa()" class="space-y-4 pt-2 border-t border-[#E8EBE8]">
+          <div>
+            <label for="code" class="block font-semibold text-neutral-800 uppercase tracking-wider text-[11px] mb-1">
+              Passo 2: Digite o código de 6 dígitos gerado
+            </label>
+            <input
+              id="code"
+              type="text"
+              formControlName="code"
+              maxlength="6"
+              placeholder="123456"
+              class="w-full text-center font-mono text-lg tracking-[0.5em] px-4 py-2 border border-[#E2E8E2] bg-[#FFFDF5] focus:bg-white focus:outline-none focus:border-[#4B584E] rounded-none transition-colors"
+            />
+            @if (confirm2faForm.get('code')?.touched && confirm2faForm.get('code')?.invalid) {
+              <span class="text-[11px] text-red-600 mt-1 block">Insira o código numérico de 6 dígitos.</span>
+            }
+          </div>
+
+          <div class="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              (click)="closeSetup2faModal()"
+              class="px-4 py-2 border border-neutral-300 text-neutral-600 hover:bg-neutral-50 text-xs uppercase tracking-wider rounded-none cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              [disabled]="isLoading() || confirm2faForm.invalid"
+              class="px-5 py-2 bg-[#4B584E] hover:bg-[#3D473F] text-white text-xs uppercase tracking-widest font-medium transition-all rounded-none cursor-pointer disabled:opacity-50"
+            >
+              {{ isLoading() ? 'Validando...' : 'Confirmar e Ativar' }}
+            </button>
+          </div>
+        </form>
+
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- ============================================== -->
+<!-- MODAL: CÓDIGOS DE BACKUP DESCARTÁVEIS          -->
+<!-- ============================================== -->
+@if (isBackupCodesModalOpen()) {
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#4B584E] max-w-md w-full p-6 shadow-2xl rounded-none animate-in fade-in duration-200">
+      
+      <div class="flex items-center gap-3 mb-4 text-[#4B584E]">
+        <div class="w-8 h-8 flex items-center justify-center bg-emerald-50 border border-emerald-200">
+          <svg class="w-5 h-5 text-[#4B584E]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-sm font-semibold uppercase tracking-wider text-neutral-900 font-serif">
+            2FA Ativado com Sucesso
+          </h3>
+          <p class="text-xs text-neutral-500">Salve seus códigos de contingência</p>
+        </div>
+      </div>
+
+      <p class="text-xs text-neutral-600 leading-relaxed mb-4">
+        Guarde estes <strong>8 códigos de backup</strong> em um local seguro. Caso perca o acesso ao seu celular, cada código pode ser usado uma única vez para autenticar:
+      </p>
+
+      <div class="grid grid-cols-2 gap-2 bg-[#F8F9F8] border border-[#E8EBE8] p-4 mb-4 font-mono text-xs text-center font-bold text-neutral-800">
+        @for (code of backupCodes(); track code) {
+          <div class="p-1.5 bg-white border border-[#E2E8E2] select-all">
+            {{ code }}
+          </div>
+        }
+      </div>
+
+      <div class="flex items-center justify-between pt-2">
+        <button
+          type="button"
+          (click)="copyBackupCodes()"
+          class="px-4 py-2 border border-neutral-300 text-neutral-700 hover:bg-neutral-50 text-xs uppercase tracking-wider rounded-none cursor-pointer"
+        >
+          {{ copiedBackupCodes() ? 'Códigos Copiados!' : 'Copiar Todos' }}
+        </button>
+        <button
+          type="button"
+          (click)="closeBackupCodesModal()"
+          class="px-5 py-2 bg-[#4B584E] hover:bg-[#3D473F] text-white text-xs uppercase tracking-widest font-medium rounded-none cursor-pointer"
+        >
+          Salvo e Concluído
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- ============================================== -->
+<!-- MODAL: DESATIVAR 2FA                          -->
+<!-- ============================================== -->
+@if (isDisable2faModalOpen()) {
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white border border-red-200 max-w-sm w-full p-6 shadow-2xl rounded-none animate-in fade-in duration-150">
+      
+      <div class="flex items-center justify-between border-b border-neutral-200 pb-3 mb-4">
+        <div>
+          <span class="text-[10px] uppercase tracking-widest text-red-600 font-semibold">Segurança</span>
+          <h3 class="text-sm font-medium text-neutral-900 uppercase tracking-wider font-serif">
+            Desativar 2FA
+          </h3>
+        </div>
+        <button
+          type="button"
+          (click)="closeDisable2faModal()"
+          class="text-neutral-400 hover:text-neutral-700 text-lg cursor-pointer leading-none"
+        >&times;</button>
+      </div>
+
+      <p class="text-xs text-neutral-600 leading-relaxed mb-4">
+        Por segurança, confirme sua senha atual para remover a camada de verificação em duas etapas:
+      </p>
+
+      <form [formGroup]="disable2faForm" (ngSubmit)="submitDisable2fa()" class="space-y-4">
+        <div>
+          <label for="disablePassword" class="block text-[11px] uppercase tracking-wider text-neutral-700 font-medium mb-1">
+            Senha Atual *
+          </label>
+          <input
+            id="disablePassword"
+            type="password"
+            formControlName="password"
+            placeholder="••••••••••••"
+            class="w-full px-3 py-2 text-xs border border-[#E2E8E2] bg-[#FFFDF5] focus:bg-white focus:outline-none focus:border-red-600 rounded-none transition-colors"
+          />
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button
+            type="button"
+            (click)="closeDisable2faModal()"
+            class="px-3 py-1.5 border border-neutral-300 text-neutral-600 hover:bg-neutral-50 text-xs uppercase tracking-wider rounded-none cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            [disabled]="isLoading() || disable2faForm.invalid"
+            class="px-4 py-1.5 bg-red-700 hover:bg-red-800 text-white text-xs uppercase tracking-widest font-medium rounded-none cursor-pointer disabled:opacity-50"
+          >
+            {{ isLoading() ? 'Desativando...' : 'Confirmar Desativação' }}
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+}

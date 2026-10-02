@@ -21,10 +21,19 @@ export class AdminLoginComponent implements OnInit {
   readonly errorMessage = signal<string | null>(null);
   readonly showPassword = signal<boolean>(false);
 
+  // 2FA Challenge Flow
+  readonly is2faStep = signal<boolean>(false);
+  readonly tempToken = signal<string>('');
+  readonly useBackupCode = signal<boolean>(false);
+
   readonly loginForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]],
     rememberMe: [false]
+  });
+
+  readonly challengeForm: FormGroup = this.fb.group({
+    code: ['', [Validators.required]]
   });
 
   ngOnInit(): void {
@@ -41,6 +50,18 @@ export class AdminLoginComponent implements OnInit {
 
   togglePasswordVisibility(): void {
     this.showPassword.update((val) => !val);
+  }
+
+  toggleBackupCode(): void {
+    this.useBackupCode.update((val) => !val);
+    this.challengeForm.reset();
+  }
+
+  backToLogin(): void {
+    this.is2faStep.set(false);
+    this.tempToken.set('');
+    this.challengeForm.reset();
+    this.errorMessage.set(null);
   }
 
   onSubmit(): void {
@@ -65,6 +86,39 @@ export class AdminLoginComponent implements OnInit {
     const credentials = { email, password };
 
     this.authService.login(credentials).subscribe({
+      next: (res) => {
+        this.isLoading.set(false);
+        if (res.requires2fa && res.tempToken) {
+          this.tempToken.set(res.tempToken);
+          this.is2faStep.set(true);
+          this.errorMessage.set(null);
+          return;
+        }
+        this.redirectToTarget();
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        const detail =
+          err?.error?.detail ||
+          err?.error?.message ||
+          'Credenciais inválidas. Verifique seu e-mail e senha de acesso.';
+        this.errorMessage.set(detail);
+      }
+    });
+  }
+
+  onSubmitChallenge(): void {
+    if (this.challengeForm.invalid) {
+      this.challengeForm.markAllAsTouched();
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+
+    const code = this.challengeForm.value.code.trim();
+
+    this.authService.challenge2fa(this.tempToken(), code).subscribe({
       next: () => {
         this.isLoading.set(false);
         this.redirectToTarget();
@@ -74,7 +128,7 @@ export class AdminLoginComponent implements OnInit {
         const detail =
           err?.error?.detail ||
           err?.error?.message ||
-          'Credenciais inválidas. Verifique seu e-mail e senha de acesso.';
+          'Código de autenticação inválido ou expirado. Tente novamente.';
         this.errorMessage.set(detail);
       }
     });

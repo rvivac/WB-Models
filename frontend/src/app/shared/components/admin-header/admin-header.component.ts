@@ -24,6 +24,19 @@ export class AdminHeaderComponent implements OnInit {
     return this.authService.currentUser()?.email || 'admin@wbscouting.com';
   }
 
+  get userName(): string {
+    return this.authService.currentUser()?.name || 'Administrador';
+  }
+
+  get userRole(): string {
+    return (this.authService.currentUser()?.role || 'ADMIN').toUpperCase();
+  }
+
+  get isWebmasterOrSuperAdmin(): boolean {
+    const role = this.userRole;
+    return role === 'WEBMASTER' || role === 'SUPER_ADMIN';
+  }
+
   ngOnInit(): void {
     this.fetchPendingCount();
   }

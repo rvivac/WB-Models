@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { adminAuthGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   // Rotas Públicas Institucionais
@@ -286,6 +287,28 @@ export const routes: Routes = [
       {
         path: 'featured-models',
         redirectTo: 'destaques-home',
+        pathMatch: 'full'
+      },
+      {
+        path: 'usuarios',
+        canActivate: [roleGuard],
+        data: { roles: ['WEBMASTER', 'SUPER_ADMIN'] },
+        loadComponent: () => import('./features/admin/users/admin-users.component').then(m => m.AdminUsersComponent),
+        title: 'Gestão de Usuários & Acessos | WB Agency'
+      },
+      {
+        path: 'users',
+        redirectTo: 'usuarios',
+        pathMatch: 'full'
+      },
+      {
+        path: 'perfil',
+        loadComponent: () => import('./features/admin/profile/admin-profile.component').then(m => m.AdminProfileComponent),
+        title: 'Meu Perfil & Segurança | WB Agency'
+      },
+      {
+        path: 'profile',
+        redirectTo: 'perfil',
         pathMatch: 'full'
       }
     ]

@@ -82,7 +82,8 @@ class AdminInitialPasswordRejectionTest {
                 passwordEncoder,
                 jwtService,
                 emailService,
-                tokenBlacklistService
+                tokenBlacklistService,
+                mock(com.wbscouting.api.service.auth.TotpService.class)
         );
 
         AuthController authController = new AuthController(authService);

@@ -15,106 +15,178 @@
       </div>
     }
 
-    <!-- Formulário de Login -->
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form" novalidate>
-      <div class="form-field-group">
-        <label for="email" class="field-label">E-mail Corporativo</label>
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          placeholder="admin@wbscouting.com"
-          autocomplete="username"
-          class="field-input"
-        />
-        @if (loginForm.get('email')?.touched && loginForm.get('email')?.invalid) {
-          <span class="field-error">
-            Insira um e-mail válido.
-          </span>
-        }
-      </div>
-
-      <div class="form-field-group">
-        <label for="password" class="field-label">Senha de Acesso</label>
-        <div class="password-input-wrapper">
+    @if (!is2faStep()) {
+      <!-- Formulário de Login -->
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form" novalidate>
+        <div class="form-field-group">
+          <label for="email" class="field-label">E-mail Corporativo</label>
           <input
-            id="password"
-            [type]="showPassword() ? 'text' : 'password'"
-            formControlName="password"
-            placeholder="••••••••••••"
-            autocomplete="current-password"
-            class="field-input field-input-password"
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="admin@wbscouting.com"
+            autocomplete="username"
+            class="field-input"
           />
+          @if (loginForm.get('email')?.touched && loginForm.get('email')?.invalid) {
+            <span class="field-error">
+              Insira um e-mail válido.
+            </span>
+          }
+        </div>
+
+        <div class="form-field-group">
+          <label for="password" class="field-label">Senha de Acesso</label>
+          <div class="password-input-wrapper">
+            <input
+              id="password"
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              placeholder="••••••••••••"
+              autocomplete="current-password"
+              class="field-input field-input-password"
+            />
+            <button
+              type="button"
+              (click)="togglePasswordVisibility()"
+              class="password-visibility-btn"
+              [attr.aria-label]="showPassword() ? 'Ocultar senha' : 'Exibir senha'"
+              tabindex="-1"
+            >
+              @if (showPassword()) {
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+                  <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+                  <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+                  <line x1="2" y1="2" x2="22" y2="22"/>
+                </svg>
+              }
+            </button>
+          </div>
+          @if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
+            <span class="field-error">
+              A senha é obrigatória.
+            </span>
+          }
+        </div>
+
+        <!-- Opções: Lembrar senha e Esqueceu a senha? -->
+        <div class="form-options-row">
+          <label class="remember-label">
+            <input
+              type="checkbox"
+              formControlName="rememberMe"
+              id="rememberMe"
+              class="checkbox-input"
+            />
+            <span>Lembrar senha</span>
+          </label>
+
+          <a
+            routerLink="/admin/forgot-password"
+            class="forgot-link"
+            title="Recuperar credencial de acesso"
+          >
+            Esqueceu a senha?
+          </a>
+        </div>
+
+        <!-- Botão Principal de Login -->
+        <button
+          type="submit"
+          [disabled]="isLoading()"
+          class="btn-login-submit"
+          title="Entrar no painel administrativo"
+        >
+          @if (!isLoading()) {
+            <span>ENTRAR</span>
+          } @else {
+            <span class="loading-content">
+              <svg class="animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              AUTENTICANDO...
+            </span>
+          }
+        </button>
+      </form>
+    } @else {
+      <!-- Desafio de Dois Fatores (2FA) -->
+      <form [formGroup]="challengeForm" (ngSubmit)="onSubmitChallenge()" class="login-form" novalidate>
+        
+        <div class="text-center mb-4">
+          <div class="inline-flex items-center justify-center w-10 h-10 bg-[#F4F5F4] border border-[#E8EBE8] text-[#4B584E] mb-2">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+            </svg>
+          </div>
+          <h2 class="text-sm font-semibold uppercase tracking-wider text-neutral-900 font-serif">
+            Verificação em Duas Etapas
+          </h2>
+          <p class="text-xs text-neutral-500 mt-1 leading-relaxed">
+            @if (!useBackupCode()) {
+              Insira o código de 6 dígitos gerado pelo seu app autenticador.
+            } @else {
+              Insira um dos seus códigos de backup (ex: ABCD-1234).
+            }
+          </p>
+        </div>
+
+        <div class="form-field-group">
+          <input
+            id="challengeCode"
+            type="text"
+            formControlName="code"
+            [placeholder]="useBackupCode() ? 'ABCD-1234' : '123456'"
+            [attr.maxlength]="useBackupCode() ? 12 : 6"
+            autocomplete="one-time-code"
+            autofocus
+            class="field-input text-center font-mono text-lg tracking-widest uppercase"
+          />
+          @if (challengeForm.get('code')?.touched && challengeForm.get('code')?.invalid) {
+            <span class="field-error">
+              Informe o código de autenticação.
+            </span>
+          }
+        </div>
+
+        <div class="flex items-center justify-between text-xs py-1">
           <button
             type="button"
-            (click)="togglePasswordVisibility()"
-            class="password-visibility-btn"
-            [attr.aria-label]="showPassword() ? 'Ocultar senha' : 'Exibir senha'"
-            tabindex="-1"
+            (click)="toggleBackupCode()"
+            class="text-[#4B584E] hover:underline cursor-pointer bg-transparent border-0 p-0"
           >
-            @if (showPassword()) {
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-            } @else {
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
-                <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
-                <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
-                <line x1="2" y1="2" x2="22" y2="22"/>
-              </svg>
-            }
+            {{ useBackupCode() ? 'Usar código do autenticador' : 'Usar código de backup' }}
+          </button>
+          <button
+            type="button"
+            (click)="backToLogin()"
+            class="text-neutral-500 hover:text-neutral-800 cursor-pointer bg-transparent border-0 p-0"
+          >
+            Voltar
           </button>
         </div>
-        @if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
-          <span class="field-error">
-            A senha é obrigatória.
-          </span>
-        }
-      </div>
 
-      <!-- Opções: Lembrar senha e Esqueceu a senha? -->
-      <div class="form-options-row">
-        <label class="remember-label">
-          <input
-            type="checkbox"
-            formControlName="rememberMe"
-            id="rememberMe"
-            class="checkbox-input"
-          />
-          <span>Lembrar senha</span>
-        </label>
-
-        <a
-          routerLink="/admin/forgot-password"
-          class="forgot-link"
-          title="Recuperar credencial de acesso"
+        <button
+          type="submit"
+          [disabled]="isLoading() || challengeForm.invalid"
+          class="btn-login-submit"
         >
-          Esqueceu a senha?
-        </a>
-      </div>
+          @if (!isLoading()) {
+            <span>VALIDAR E ACESSAR</span>
+          } @else {
+            <span class="loading-content">VALIDANDO...</span>
+          }
+        </button>
 
-      <!-- Botão Principal de Login -->
-      <button
-        type="submit"
-        [disabled]="isLoading()"
-        class="btn-login-submit"
-        title="Entrar no painel administrativo"
-      >
-        @if (!isLoading()) {
-          <span>ENTRAR</span>
-        } @else {
-          <span class="loading-content">
-            <svg class="animate-spin" viewBox="0 0 24 24" fill="none">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-            </svg>
-            AUTENTICANDO...
-          </span>
-        }
-      </button>
-    </form>
+      </form>
+    }
 
     <div class="card-footer">
       <a routerLink="/" class="back-link">

@@ -21,4 +21,14 @@ public class LoginResponseDto {
     private String adminName;
 
     private String adminEmail;
+
+    private String role;
+
+    @Builder.Default
+    private Boolean requires2fa = false;
+
+    private String tempToken;
+
+    @Builder.Default
+    private Boolean mustChangePassword = false;
 }

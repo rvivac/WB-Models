@@ -34,9 +34,10 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final EmailService emailService;
     private final com.wbscouting.api.security.TokenBlacklistService tokenBlacklistService;
+    private final TotpService totpService;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public LoginResponseDto login(LoginRequestDto request) {
         String email = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
 
@@ -50,6 +51,19 @@ public class AuthServiceImpl implements AuthService {
             log.warn("Tentativa de login com senha incorreta para: {}", email);
             throw new BadCredentialsException("Credenciais inválidas. Verifique seu e-mail e senha.");
         }
+
+        if (Boolean.TRUE.equals(admin.getIs2faEnabled())) {
+            log.info("Desafio 2FA solicitado para: {}", admin.getEmail());
+            String tempToken = jwtService.generate2faChallengeToken(admin);
+            return LoginResponseDto.builder()
+                    .requires2fa(true)
+                    .tempToken(tempToken)
+                    .adminEmail(admin.getEmail())
+                    .build();
+        }
+
+        admin.setLastLoginAt(OffsetDateTime.now());
+        adminRepository.save(admin);
 
         String token = jwtService.generateToken(admin);
 
@@ -66,6 +80,76 @@ public class AuthServiceImpl implements AuthService {
                 .expiresIn(jwtService.getExpirationInSeconds())
                 .adminName(admin.getName())
                 .adminEmail(admin.getEmail())
+                .role(admin.getRole() != null ? admin.getRole().name() : null)
+                .mustChangePassword(Boolean.TRUE.equals(admin.getMustChangePassword()))
+                .requires2fa(false)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public LoginResponseDto challenge2fa(com.wbscouting.api.dto.auth.TwoFactorChallengeRequestDto request) {
+        String email;
+        try {
+            email = jwtService.extract2faChallengeEmail(request.getTempToken());
+        } catch (Exception e) {
+            log.warn("Token de desafio 2FA inválido ou expirado: {}", e.getMessage());
+            throw new BadCredentialsException("Sessão de desafio 2FA expirada ou inválida. Faça login novamente.");
+        }
+
+        Admin admin = adminRepository.findByEmailAndIsActiveTrue(email)
+                .orElseThrow(() -> new BadCredentialsException("Administrador não encontrado ou inativo."));
+
+        if (!Boolean.TRUE.equals(admin.getIs2faEnabled()) || admin.getTotpSecret() == null) {
+            throw new BadCredentialsException("2FA não está habilitado para este usuário.");
+        }
+
+        String code = request.getCode().trim();
+        boolean valid = totpService.verifyCode(admin.getTotpSecret(), code);
+
+        if (!valid && admin.getBackupCodes() != null && !admin.getBackupCodes().isEmpty()) {
+            java.util.List<String> backupCodes = new java.util.ArrayList<>(admin.getBackupCodes());
+            String matchedCode = null;
+            for (String storedHashed : backupCodes) {
+                if (totpService.verifyBackupCode(code, storedHashed)) {
+                    matchedCode = storedHashed;
+                    break;
+                }
+            }
+            if (matchedCode != null) {
+                valid = true;
+                backupCodes.remove(matchedCode);
+                admin.setBackupCodes(backupCodes);
+                log.info("Código de contingência (backup) 2FA utilizado por: {}", admin.getEmail());
+            }
+        }
+
+        if (!valid) {
+            log.warn("Código 2FA incorreto para o usuário: {}", admin.getEmail());
+            throw new BadCredentialsException("Código de autenticação ou de contingência inválido.");
+        }
+
+        admin.setLastLoginAt(OffsetDateTime.now());
+        adminRepository.save(admin);
+
+        String token = jwtService.generateToken(admin);
+
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                admin, null, admin.getAuthorities()
+        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        log.info("Administrador autenticado com 2FA com sucesso: {}", admin.getEmail());
+
+        return LoginResponseDto.builder()
+                .accessToken(token)
+                .tokenType("Bearer")
+                .expiresIn(jwtService.getExpirationInSeconds())
+                .adminName(admin.getName())
+                .adminEmail(admin.getEmail())
+                .role(admin.getRole() != null ? admin.getRole().name() : null)
+                .mustChangePassword(Boolean.TRUE.equals(admin.getMustChangePassword()))
+                .requires2fa(false)
                 .build();
     }
 

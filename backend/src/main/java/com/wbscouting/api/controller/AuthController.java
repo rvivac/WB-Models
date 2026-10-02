@@ -33,16 +33,42 @@ public class AuthController {
             HttpServletResponse httpResponse) {
         LoginResponseDto response = authService.login(request);
 
-        boolean isSecure = httpRequest.isSecure() || "https".equalsIgnoreCase(httpRequest.getHeader("X-Forwarded-Proto"));
-        ResponseCookie jwtCookie = ResponseCookie.from("jwt_token", response.getAccessToken())
-                .httpOnly(true)
-                .secure(isSecure)
-                .path("/")
-                .maxAge(response.getExpiresIn())
-                .sameSite("Strict")
-                .build();
+        if (response.getAccessToken() != null) {
+            boolean isSecure = httpRequest.isSecure() || "https".equalsIgnoreCase(httpRequest.getHeader("X-Forwarded-Proto"));
+            ResponseCookie jwtCookie = ResponseCookie.from("jwt_token", response.getAccessToken())
+                    .httpOnly(true)
+                    .secure(isSecure)
+                    .path("/")
+                    .maxAge(response.getExpiresIn() != null ? response.getExpiresIn() : 28800)
+                    .sameSite("Strict")
+                    .build();
 
-        httpResponse.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+            httpResponse.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/2fa/challenge")
+    public ResponseEntity<LoginResponseDto> challenge2fa(
+            @Valid @RequestBody com.wbscouting.api.dto.auth.TwoFactorChallengeRequestDto request,
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
+        LoginResponseDto response = authService.challenge2fa(request);
+
+        if (response.getAccessToken() != null) {
+            boolean isSecure = httpRequest.isSecure() || "https".equalsIgnoreCase(httpRequest.getHeader("X-Forwarded-Proto"));
+            ResponseCookie jwtCookie = ResponseCookie.from("jwt_token", response.getAccessToken())
+                    .httpOnly(true)
+                    .secure(isSecure)
+                    .path("/")
+                    .maxAge(response.getExpiresIn() != null ? response.getExpiresIn() : 28800)
+                    .sameSite("Strict")
+                    .build();
+
+            httpResponse.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+        }
+
         return ResponseEntity.ok(response);
     }
 

@@ -52,6 +52,22 @@ public class JwtService {
         return buildToken(extraClaims, admin.getUsername(), jwtExpirationMs);
     }
 
+    public String generate2faChallengeToken(Admin admin) {
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("id", admin.getId() != null ? admin.getId().toString() : null);
+        extraClaims.put("type", "2FA_CHALLENGE");
+        // 5 minutos de validade (300.000 ms)
+        return buildToken(extraClaims, admin.getUsername(), 300_000L);
+    }
+
+    public String extract2faChallengeEmail(String token) {
+        Claims claims = extractAllClaims(token);
+        if (!"2FA_CHALLENGE".equals(claims.get("type"))) {
+            throw new IllegalArgumentException("Token não é válido para o desafio 2FA.");
+        }
+        return claims.getSubject();
+    }
+
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         return buildToken(extraClaims, userDetails.getUsername(), jwtExpirationMs);
     }
@@ -105,8 +121,12 @@ public class JwtService {
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         try {
-            final String username = extractUsername(token);
-            return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+            final Claims claims = extractAllClaims(token);
+            if ("2FA_CHALLENGE".equals(claims.get("type"))) {
+                return false; // Token provisório não pode autenticar requisições normais
+            }
+            final String username = claims.getSubject();
+            return (username != null && username.equals(userDetails.getUsername())) && !isTokenExpired(token);
         } catch (JwtException | IllegalArgumentException e) {
             log.debug("Validação de token falhou: {}", e.getMessage());
             return false;

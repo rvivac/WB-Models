@@ -1,0 +1,10 @@
+// Estilos específicos para Gestão de Usuários (ADM-017)
+// Light Minimalist / Deep Sage #4B584E com acabamento estrito rounded-none
+
+:host {
+  display: block;
+}
+
+input, select, button {
+  border-radius: 0 !important;
+}

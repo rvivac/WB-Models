@@ -44,7 +44,9 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.API_URL}/login`, credentials).pipe(
       tap((res) => {
-        this.setSession(res);
+        if (!res.requires2fa) {
+          this.setSession(res);
+        }
       }),
       catchError((err) => {
         // Fallback em mock para homologação/Vercel ou quando o backend estiver offline (status 0, 404, 405 ou 5xx)
@@ -55,6 +57,18 @@ export class AuthService {
           return of(mockResponse);
         }
         return throwError(() => err);
+      })
+    );
+  }
+
+  /**
+   * Valida o desafio de dois fatores (TOTP RFC 6238 ou Código de Backup).
+   * Emite a sessão definitiva caso o código seja aceito.
+   */
+  challenge2fa(tempToken: string, code: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.API_URL}/2fa/challenge`, { tempToken, code }).pipe(
+      tap((res) => {
+        this.setSession(res);
       })
     );
   }

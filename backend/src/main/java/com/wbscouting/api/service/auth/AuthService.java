@@ -18,6 +18,8 @@ public interface AuthService {
 
     AuthDTO.MessageResponse resetPassword(AuthDTO.ResetPasswordRequest request);
 
+    LoginResponseDto challenge2fa(com.wbscouting.api.dto.auth.TwoFactorChallengeRequestDto request);
+
     void logout(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response);
 }
 

@@ -7,14 +7,20 @@ export interface AdminUser {
   id?: string;
   name: string;
   email: string;
-  role: 'ADMIN' | 'SCOUT' | 'SUPER_ADMIN' | string;
+  role: 'ADMIN' | 'SCOUT' | 'SUPER_ADMIN' | 'WEBMASTER' | string;
+  isActive?: boolean;
+  is2faEnabled?: boolean;
+  mustChangePassword?: boolean;
+  lastLoginAt?: string;
 }
 
 export interface AuthResponse {
-  token: string;
+  token?: string;
   refreshToken?: string;
   type?: string;
   user?: AdminUser;
+  requires2fa?: boolean;
+  tempToken?: string;
   // Campos de compatibilidade com backend Spring Boot
   accessToken?: string;
   tokenType?: string;

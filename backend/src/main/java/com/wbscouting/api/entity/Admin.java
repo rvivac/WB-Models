@@ -49,6 +49,23 @@ public class Admin implements UserDetails {
     @Builder.Default
     private Boolean isActive = true;
 
+    @Column(name = "totp_secret", length = 128)
+    private String totpSecret;
+
+    @Column(name = "is_2fa_enabled", nullable = false)
+    @Builder.Default
+    private Boolean is2faEnabled = false;
+
+    @Column(name = "backup_codes", columnDefinition = "text[]")
+    private List<String> backupCodes;
+
+    @Column(name = "must_change_password", nullable = false)
+    @Builder.Default
+    private Boolean mustChangePassword = false;
+
+    @Column(name = "last_login_at")
+    private OffsetDateTime lastLoginAt;
+
     @Column(name = "password_reset_token", length = 255)
     private String passwordResetToken;
 

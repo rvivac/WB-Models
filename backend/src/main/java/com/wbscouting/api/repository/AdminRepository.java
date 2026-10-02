@@ -1,9 +1,11 @@
 package com.wbscouting.api.repository;
 
 import com.wbscouting.api.entity.Admin;
+import com.wbscouting.api.enums.AdminRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,4 +19,8 @@ public interface AdminRepository extends JpaRepository<Admin, UUID> {
     boolean existsByEmail(String email);
 
     Optional<Admin> findByPasswordResetToken(String token);
+
+    long countByRoleAndIsActiveTrue(AdminRole role);
+
+    long countByRoleInAndIsActiveTrue(Collection<AdminRole> roles);
 }

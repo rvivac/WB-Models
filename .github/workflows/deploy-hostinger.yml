@@ -46,25 +46,42 @@ jobs:
             cp "$DIST_DIR/index.html" "$DIST_DIR/404.html"
             # Cria .htaccess para Apache/Hostinger rotear o Angular SPA
             cat << 'EOF' > "$DIST_DIR/.htaccess"
-          DirectoryIndex index.html index.php
-          <IfModule mod_rewrite.c>
-            RewriteEngine On
-            RewriteBase /
-            RewriteRule ^index\.html$ - [L]
-            RewriteCond %{REQUEST_FILENAME} !-f
-            RewriteCond %{REQUEST_FILENAME} !-d
-            RewriteRule . /index.html [L]
-          </IfModule>
-          EOF
+DirectoryIndex index.html index.php
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
+EOF
           fi
 
-      - name: Enviar arquivos via FTP para a Hostinger
+      - name: Validar e Garantir Presença dos Assets no Pacote de Deploy
+        run: |
+          DIST_DIR="dist/frontend/browser"
+          echo "=== Verificando integridade dos assets para deploy na Hostinger ==="
+          if [ ! -d "$DIST_DIR/assets" ]; then
+            echo "ERRO CRÍTICO: Pasta assets não encontrada em $DIST_DIR!"
+            exit 1
+          fi
+          echo "Lista de arquivos e subdiretórios em assets:"
+          ls -la "$DIST_DIR/assets"
+          ls -la "$DIST_DIR/assets/i18n"
+          ls -la "$DIST_DIR/assets/images"
+          ls -la "$DIST_DIR/assets/videos"
+          echo "Assets validados com sucesso para o deploy."
+
+      - name: Enviar arquivos via FTP para a Hostinger (public_html)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftp
-          timeout: 60000
+          port: 21
+          timeout: 300000
           local-dir: ./frontend/dist/frontend/browser/
-          server-dir: ./
+          server-dir: ./public_html/
+

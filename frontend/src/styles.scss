@@ -2,6 +2,10 @@
 @import './styles/reset';
 @import './styles/typography';
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 // ==============================================================================
 // RESET EDITORIAL GLOBAL: IMPOSIÇÃO DE CANTOS VIVOS (ZERO BORDER-RADIUS)
 // ==============================================================================

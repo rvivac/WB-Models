@@ -18,6 +18,7 @@ export interface PhotoSlot {
 }
 
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
+import { TranslationService } from '../../../core/services/translation.service';
 
 @Component({
   selector: 'app-become-model',
@@ -30,6 +31,7 @@ export class BecomeModelComponent implements OnInit {
   private fb = inject(FormBuilder);
   private http = inject(HttpClient);
   private faqService = inject(ApplyFaqService);
+  readonly translationService = inject(TranslationService);
 
   form!: FormGroup;
   isSubmitting = false;
@@ -44,6 +46,26 @@ export class BecomeModelComponent implements OnInit {
   headerSubtitle = 'WB SCOUTING DESK';
   headerDescription = 'Se você deseja fazer parte do casting da WB Agency, atenção para as informações abaixo: preencha o formulário e envie suas fotos para realizarmos a avaliação digital.';
 
+  get displayHeaderTitle(): string {
+    if (this.translationService.currentLang() === 'en') {
+      const translated = this.translationService.translate('apply_page.header_title');
+      if (translated && translated !== 'apply_page.header_title') {
+        return translated;
+      }
+    }
+    return this.headerTitle;
+  }
+
+  get displayHeaderDescription(): string {
+    if (this.translationService.currentLang() === 'en') {
+      const translated = this.translationService.translate('apply_page.header_description');
+      if (translated && translated !== 'apply_page.header_description') {
+        return translated;
+      }
+    }
+    return this.headerDescription;
+  }
+
   // FAQs e Orientações
   faqs: ApplyFaq[] = [];
   openFaqId: string | null = null;
@@ -54,6 +76,28 @@ export class BecomeModelComponent implements OnInit {
 
   isFaqOpen(id: string): boolean {
     return this.openFaqId === id;
+  }
+
+  getFaqQuestion(item: ApplyFaq, index: number): string {
+    if (this.translationService.currentLang() === 'en') {
+      const key = `apply_page.faq_${index + 1}_q`;
+      const translated = this.translationService.translate(key);
+      if (translated && translated !== key) {
+        return translated;
+      }
+    }
+    return item.question;
+  }
+
+  getFaqAnswer(item: ApplyFaq, index: number): string {
+    if (this.translationService.currentLang() === 'en') {
+      const key = `apply_page.faq_${index + 1}_a`;
+      const translated = this.translationService.translate(key);
+      if (translated && translated !== key) {
+        return translated;
+      }
+    }
+    return item.answer;
   }
 
   get applyForm(): FormGroup {
@@ -267,13 +311,17 @@ export class BecomeModelComponent implements OnInit {
     if (input.files && input.files[0]) {
       const file = input.files[0];
       if (file.size > 5 * 1024 * 1024) {
-        alert('A foto excede o limite máximo permitido de 5MB.');
+        alert(this.translationService.currentLang() === 'en'
+          ? 'The photo exceeds the maximum allowed size of 5MB.'
+          : 'A foto excede o limite máximo permitido de 5MB.');
         return;
       }
 
       const validMimes = ['image/jpeg', 'image/png', 'image/webp'];
       if (!validMimes.includes(file.type.toLowerCase())) {
-        alert('Formato de foto inválido. Utilize JPG, PNG ou WEBP.');
+        alert(this.translationService.currentLang() === 'en'
+          ? 'Invalid photo format. Please use JPG, PNG or WEBP.'
+          : 'Formato de foto inválido. Utilize JPG, PNG ou WEBP.');
         return;
       }
 

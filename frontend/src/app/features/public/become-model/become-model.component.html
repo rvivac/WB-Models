@@ -11,20 +11,20 @@
         </nav>
 
         <h1 class="page-title font-serif">
-          {{ headerTitle }}
+          {{ displayHeaderTitle }}
         </h1>
         <p class="page-subtitle">
-          {{ headerDescription }}
+          {{ displayHeaderDescription }}
         </p>
       </header>
 
       <!-- 2. Seção Editorial de Orientações & Dúvidas Frequentes (FAQ Acordeão) -->
       @if (faqs && faqs.length > 0 && !submitSuccess) {
-        <section class="form-card faq-section" aria-label="Orientações e Dúvidas Frequentes">
+        <section class="form-card faq-section" [attr.aria-label]="'apply_page.faq_title' | translate">
           <div class="section-header">
-            <span class="badge-editorial">ORIENTAÇÕES &amp; FAQ</span>
-            <h2 class="section-title font-serif">Orientações &amp; Dúvidas Frequentes</h2>
-            <p class="section-subtitle">Tudo o que você precisa saber antes de enviar seu material.</p>
+            <span class="badge-editorial">{{ 'apply_page.faq_badge' | translate }}</span>
+            <h2 class="section-title font-serif">{{ 'apply_page.faq_title' | translate }}</h2>
+            <p class="section-subtitle">{{ 'apply_page.faq_subtitle' | translate }}</p>
           </div>
 
           <div class="faq-list">
@@ -36,13 +36,13 @@
                   class="faq-trigger"
                   [attr.aria-expanded]="isFaqOpen(item.id)"
                 >
-                  <span class="faq-question">{{ item.question }}</span>
+                  <span class="faq-question">{{ getFaqQuestion(item, i) }}</span>
                   <span class="faq-icon">{{ isFaqOpen(item.id) ? '−' : '+' }}</span>
                 </button>
 
                 @if (isFaqOpen(item.id)) {
                   <div class="faq-body">
-                    {{ item.answer }}
+                    {{ getFaqAnswer(item, i) }}
                   </div>
                 }
               </div>
@@ -58,7 +58,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
           </svg>
           <div class="alert-content">
-            <strong class="alert-title">Não foi possível enviar a candidatura:</strong>
+            <strong class="alert-title">{{ 'apply_page.error_title' | translate }}</strong>
             <p class="alert-text">{{ submitError }}</p>
           </div>
         </div>
@@ -74,34 +74,34 @@
           </div>
 
           <div class="success-header">
-            <span class="badge-editorial">CANDIDATURA CONFIRMADA</span>
-            <h2 class="section-title font-serif success-title">Candidatura Enviada com Sucesso</h2>
+            <span class="badge-editorial">{{ 'apply_page.success_badge' | translate }}</span>
+            <h2 class="section-title font-serif success-title">{{ 'apply_page.success_title' | translate }}</h2>
             <p class="section-subtitle success-subtitle">
-              Seu dossiê de apresentação e polaroids foram catalogados na banca de scouting da WB Agency.
+              {{ 'apply_page.success_subtitle' | translate }}
             </p>
           </div>
 
           <!-- Protocolo de Atendimento -->
           <div class="protocol-card">
-            <span class="protocol-label">Protocolo de Scouting</span>
+            <span class="protocol-label">{{ 'apply_page.protocol_label' | translate }}</span>
             <span class="protocol-value">{{ submissionProtocol }}</span>
           </div>
 
           <!-- Próximos Passos -->
           <div class="next-steps-card">
-            <h3 class="next-steps-heading">Próximos Passos &bull; Como Funciona:</h3>
+            <h3 class="next-steps-heading">{{ 'apply_page.next_steps_heading' | translate }}</h3>
             <ul class="editorial-guidelines">
               <li>
                 <span class="check-bullet">&bull;</span>
-                <span>Nossa diretoria de casting analisa todas as candidaturas em até <strong>5 dias úteis</strong>.</span>
+                <span [innerHTML]="'apply_page.step1' | translate"></span>
               </li>
               <li>
                 <span class="check-bullet">&bull;</span>
-                <span>Em caso de compatibilidade de perfil com nosso casting comercial ou fashion, nossa equipe entrará em contato via telefone ou e-mail cadastrado.</span>
+                <span>{{ 'apply_page.step2' | translate }}</span>
               </li>
               <li>
                 <span class="check-bullet">&bull;</span>
-                <span>A WB Agency <strong>nunca cobra taxas</strong> para avaliação de perfil ou agenciamento inicial.</span>
+                <span [innerHTML]="'apply_page.step3' | translate"></span>
               </li>
             </ul>
           </div>
@@ -112,13 +112,13 @@
               (click)="resetForm()"
               class="btn-editorial-primary"
             >
-              Enviar Nova Candidatura
+              {{ 'apply_page.btn_new' | translate }}
             </button>
             <a 
               routerLink="/models"
               class="btn-editorial-secondary"
             >
-              Explorar Nosso Casting
+              {{ 'apply_page.btn_explore' | translate }}
             </a>
           </div>
         </div>
@@ -129,35 +129,35 @@
         <form [formGroup]="applyForm" (ngSubmit)="onSubmit()" class="editorial-form-wrapper">
 
           <!-- BLOCO 1: IDENTIFICAÇÃO E CONTATO -->
-          <section class="form-card" aria-label="Identificação e Contato">
+          <section class="form-card" [attr.aria-label]="'apply_page.section1_title' | translate">
             <div class="section-header">
-              <span class="badge-editorial">01 / IDENTIFICAÇÃO &amp; CONTATO</span>
-              <h2 class="section-title font-serif">Dados Pessoais &amp; Contato</h2>
-              <p class="section-subtitle">Informe seus dados cadastrais e canais de contato direto.</p>
+              <span class="badge-editorial">{{ 'apply_page.section1_badge' | translate }}</span>
+              <h2 class="section-title font-serif">{{ 'apply_page.section1_title' | translate }}</h2>
+              <p class="section-subtitle">{{ 'apply_page.section1_subtitle' | translate }}</p>
             </div>
 
             <div class="form-grid">
               <!-- Nome Completo -->
               <div class="form-group col-full">
                 <label class="form-label" for="fullName">
-                  Nome Completo <span class="required-mark">*</span>
+                  {{ 'apply_page.full_name_label' | translate }} <span class="required-mark">*</span>
                 </label>
                 <input 
                   id="fullName"
                   type="text" 
                   formControlName="fullName"
-                  placeholder="Digite seu nome completo"
+                  [placeholder]="'apply_page.full_name_placeholder' | translate"
                   class="form-control"
                 />
                 @if (applyForm.get('fullName')?.touched && applyForm.get('fullName')?.invalid) {
-                  <span class="field-error">Nome completo obrigatório.</span>
+                  <span class="field-error">{{ 'apply_page.full_name_error' | translate }}</span>
                 }
               </div>
 
               <!-- Gênero / Casting -->
               <div class="form-group col-half">
                 <label class="form-label">
-                  Gênero / Categoria <span class="required-mark">*</span>
+                  {{ 'apply_page.gender_label' | translate }} <span class="required-mark">*</span>
                 </label>
                 <div class="gender-toggle-group">
                   <button 
@@ -166,7 +166,7 @@
                     class="btn-gender-toggle"
                     [class.active]="applyForm.get('gender')?.value === 'FEMALE'"
                   >
-                    Feminino
+                    {{ 'apply_page.gender_female' | translate }}
                   </button>
                   <button 
                     type="button"
@@ -174,7 +174,7 @@
                     class="btn-gender-toggle"
                     [class.active]="applyForm.get('gender')?.value === 'MALE'"
                   >
-                    Masculino
+                    {{ 'apply_page.gender_male' | translate }}
                   </button>
                 </div>
               </div>
@@ -182,7 +182,7 @@
               <!-- Data de Nascimento -->
               <div class="form-group col-half">
                 <label class="form-label" for="birthDate">
-                  Data de Nascimento <span class="required-mark">*</span>
+                  {{ 'apply_page.birth_date_label' | translate }} <span class="required-mark">*</span>
                 </label>
                 <input 
                   id="birthDate"
@@ -191,49 +191,49 @@
                   class="form-control font-mono"
                 />
                 @if (applyForm.get('birthDate')?.touched && applyForm.get('birthDate')?.invalid) {
-                  <span class="field-error">Data de nascimento obrigatória.</span>
+                  <span class="field-error">{{ 'apply_page.birth_date_error' | translate }}</span>
                 }
               </div>
 
               <!-- E-mail -->
               <div class="form-group col-half">
                 <label class="form-label" for="email">
-                  E-mail <span class="required-mark">*</span>
+                  {{ 'apply_page.email_label' | translate }} <span class="required-mark">*</span>
                 </label>
                 <input 
                   id="email"
                   type="email" 
                   formControlName="email"
-                  placeholder="seu.email@exemplo.com"
+                  [placeholder]="'apply_page.email_placeholder' | translate"
                   class="form-control"
                 />
                 @if (applyForm.get('email')?.touched && applyForm.get('email')?.invalid) {
-                  <span class="field-error">E-mail válido obrigatório.</span>
+                  <span class="field-error">{{ 'apply_page.email_error' | translate }}</span>
                 }
               </div>
 
               <!-- Telefone / WhatsApp -->
               <div class="form-group col-half">
                 <label class="form-label" for="phone">
-                  Telefone / WhatsApp <span class="required-mark">*</span>
+                  {{ 'apply_page.phone_label' | translate }} <span class="required-mark">*</span>
                 </label>
                 <input 
                   id="phone"
                   type="tel" 
                   formControlName="phone"
-                  placeholder="+55 (11) 99999-9999"
+                  [placeholder]="'apply_page.phone_placeholder' | translate"
                   (input)="onPhoneInput($event)"
                   class="form-control font-mono"
                 />
                 @if (applyForm.get('phone')?.touched && applyForm.get('phone')?.invalid) {
-                  <span class="field-error">Telefone obrigatório.</span>
+                  <span class="field-error">{{ 'apply_page.phone_error' | translate }}</span>
                 }
               </div>
 
               <!-- Instagram -->
               <div class="form-group col-full">
                 <label class="form-label" for="instagram">
-                  Instagram
+                  {{ 'apply_page.instagram_label' | translate }}
                 </label>
                 <div class="input-with-prefix">
                   <span class="input-prefix">&#64;</span>
@@ -241,7 +241,7 @@
                     id="instagram"
                     type="text" 
                     formControlName="instagram"
-                    placeholder="seu.perfil"
+                    [placeholder]="'apply_page.instagram_placeholder' | translate"
                     class="form-control with-prefix font-mono"
                   />
                 </div>
@@ -250,33 +250,33 @@
               <!-- Cidade -->
               <div class="form-group col-half">
                 <label class="form-label" for="city">
-                  Cidade <span class="required-mark">*</span>
+                  {{ 'apply_page.city_label' | translate }} <span class="required-mark">*</span>
                 </label>
                 <input 
                   id="city"
                   type="text" 
                   formControlName="city"
-                  placeholder="Ex: São Paulo"
+                  [placeholder]="'apply_page.city_placeholder' | translate"
                   class="form-control"
                 />
                 @if (applyForm.get('city')?.touched && applyForm.get('city')?.invalid) {
-                  <span class="field-error">Cidade obrigatória.</span>
+                  <span class="field-error">{{ 'apply_page.city_error' | translate }}</span>
                 }
               </div>
 
               <!-- Estado (UF) -->
               <div class="form-group col-half">
                 <label class="form-label" for="state">
-                  Estado (UF) <span class="required-mark">*</span>
+                  {{ 'apply_page.state_label' | translate }} <span class="required-mark">*</span>
                 </label>
                 <select id="state" formControlName="state" class="form-control">
-                  <option value="">Selecione o estado...</option>
+                  <option value="">{{ 'apply_page.state_placeholder' | translate }}</option>
                   @for (st of brazilianStates; track st.uf) {
                     <option [value]="st.uf">{{ st.name }} ({{ st.uf }})</option>
                   }
                 </select>
                 @if (applyForm.get('state')?.touched && applyForm.get('state')?.invalid) {
-                  <span class="field-error">UF obrigatória.</span>
+                  <span class="field-error">{{ 'apply_page.state_error' | translate }}</span>
                 }
               </div>
             </div>
@@ -285,75 +285,75 @@
             @if (isMinor) {
               <div class="guardian-subcard">
                 <div class="guardian-header">
-                  <span class="badge-editorial-mini">RESPONSÁVEL LEGAL &bull; CANDIDATO MENOR DE IDADE</span>
-                  <span class="tag-required">Obrigatório</span>
+                  <span class="badge-editorial-mini">{{ 'apply_page.guardian_badge' | translate }}</span>
+                  <span class="tag-required">{{ 'apply_page.guardian_tag' | translate }}</span>
                 </div>
-                <p class="guardian-hint">Para candidatos com menos de 18 anos, é obrigatório informar os dados e CPF do responsável legal.</p>
+                <p class="guardian-hint">{{ 'apply_page.guardian_hint' | translate }}</p>
 
                 <div class="form-grid">
                   <div class="form-group col-half">
                     <label class="form-label" for="guardianName">
-                      Nome do Responsável <span class="required-mark">*</span>
+                      {{ 'apply_page.guardian_name_label' | translate }} <span class="required-mark">*</span>
                     </label>
                     <input 
                       id="guardianName"
                       type="text" 
                       formControlName="guardianName"
-                      placeholder="Nome completo do responsável"
+                      [placeholder]="'apply_page.guardian_name_placeholder' | translate"
                       class="form-control"
                     />
                     @if (applyForm.get('guardianName')?.touched && applyForm.get('guardianName')?.invalid) {
-                      <span class="field-error">Nome do responsável obrigatório.</span>
+                      <span class="field-error">{{ 'apply_page.guardian_name_error' | translate }}</span>
                     }
                   </div>
 
                   <div class="form-group col-half">
                     <label class="form-label" for="guardianCpf">
-                      CPF do Responsável <span class="required-mark">*</span>
+                      {{ 'apply_page.guardian_cpf_label' | translate }} <span class="required-mark">*</span>
                     </label>
                     <input 
                       id="guardianCpf"
                       type="text" 
                       formControlName="guardianCpf"
                       (input)="onCpfInput($event)"
-                      placeholder="000.000.000-00"
+                      [placeholder]="'apply_page.guardian_cpf_placeholder' | translate"
                       class="form-control font-mono"
                     />
                     @if (applyForm.get('guardianCpf')?.touched && applyForm.get('guardianCpf')?.invalid) {
-                      <span class="field-error">CPF válido do responsável obrigatório.</span>
+                      <span class="field-error">{{ 'apply_page.guardian_cpf_error' | translate }}</span>
                     }
                   </div>
 
                   <div class="form-group col-half">
                     <label class="form-label" for="guardianPhone">
-                      Telefone do Responsável <span class="required-mark">*</span>
+                      {{ 'apply_page.guardian_phone_label' | translate }} <span class="required-mark">*</span>
                     </label>
                     <input 
                       id="guardianPhone"
                       type="tel" 
                       formControlName="guardianPhone"
                       (input)="onGuardianPhoneInput($event)"
-                      placeholder="+55 (11) 99999-9999"
+                      [placeholder]="'apply_page.guardian_phone_placeholder' | translate"
                       class="form-control font-mono"
                     />
                     @if (applyForm.get('guardianPhone')?.touched && applyForm.get('guardianPhone')?.invalid) {
-                      <span class="field-error">Telefone do responsável obrigatório.</span>
+                      <span class="field-error">{{ 'apply_page.guardian_phone_error' | translate }}</span>
                     }
                   </div>
 
                   <div class="form-group col-half">
                     <label class="form-label" for="guardianEmail">
-                      E-mail do Responsável <span class="required-mark">*</span>
+                      {{ 'apply_page.guardian_email_label' | translate }} <span class="required-mark">*</span>
                     </label>
                     <input 
                       id="guardianEmail"
                       type="email" 
                       formControlName="guardianEmail"
-                      placeholder="email.responsavel@exemplo.com"
+                      [placeholder]="'apply_page.guardian_email_placeholder' | translate"
                       class="form-control"
                     />
                     @if (applyForm.get('guardianEmail')?.touched && applyForm.get('guardianEmail')?.invalid) {
-                      <span class="field-error">E-mail do responsável obrigatório.</span>
+                      <span class="field-error">{{ 'apply_page.guardian_email_error' | translate }}</span>
                     }
                   </div>
                 </div>
@@ -362,92 +362,92 @@
           </section>
 
           <!-- BLOCO 2: DADOS BIOMÉTRICOS -->
-          <section class="form-card" aria-label="Medidas Biométricas">
+          <section class="form-card" [attr.aria-label]="'apply_page.section2_title' | translate">
             <div class="section-header">
-              <span class="badge-editorial">02 / MEDIDAS &amp; BIOMETRIA</span>
-              <h2 class="section-title font-serif">Perfil Físico &amp; Vestuário</h2>
-              <p class="section-subtitle">Dimensões corporais precisas em centímetros (cm) para dimensionamento de casting.</p>
+              <span class="badge-editorial">{{ 'apply_page.section2_badge' | translate }}</span>
+              <h2 class="section-title font-serif">{{ 'apply_page.section2_title' | translate }}</h2>
+              <p class="section-subtitle">{{ 'apply_page.section2_subtitle' | translate }}</p>
             </div>
 
             <div class="biometric-grid">
               <div class="form-group">
-                <label class="form-label" for="height">Altura (cm) <span class="required-mark">*</span></label>
+                <label class="form-label" for="height">{{ 'apply_page.height_label' | translate }} <span class="required-mark">*</span></label>
                 <input id="height" type="number" formControlName="height" placeholder="178" class="form-control font-mono" />
                 @if (applyForm.get('height')?.touched && applyForm.get('height')?.invalid) {
-                  <span class="field-error">Obrigatório.</span>
+                  <span class="field-error">{{ 'apply_page.field_required' | translate }}</span>
                 }
               </div>
 
               <div class="form-group">
-                <label class="form-label" for="bust">Busto / Tórax (cm) <span class="required-mark">*</span></label>
+                <label class="form-label" for="bust">{{ 'apply_page.bust_label' | translate }} <span class="required-mark">*</span></label>
                 <input id="bust" type="number" formControlName="bust" placeholder="84" class="form-control font-mono" />
                 @if (applyForm.get('bust')?.touched && applyForm.get('bust')?.invalid) {
-                  <span class="field-error">Obrigatório.</span>
+                  <span class="field-error">{{ 'apply_page.field_required' | translate }}</span>
                 }
               </div>
 
               <div class="form-group">
-                <label class="form-label" for="waist">Cintura (cm) <span class="required-mark">*</span></label>
+                <label class="form-label" for="waist">{{ 'apply_page.waist_label' | translate }} <span class="required-mark">*</span></label>
                 <input id="waist" type="number" formControlName="waist" placeholder="60" class="form-control font-mono" />
                 @if (applyForm.get('waist')?.touched && applyForm.get('waist')?.invalid) {
-                  <span class="field-error">Obrigatório.</span>
+                  <span class="field-error">{{ 'apply_page.field_required' | translate }}</span>
                 }
               </div>
 
               <div class="form-group">
-                <label class="form-label" for="hips">Quadril (cm) <span class="required-mark">*</span></label>
+                <label class="form-label" for="hips">{{ 'apply_page.hips_label' | translate }} <span class="required-mark">*</span></label>
                 <input id="hips" type="number" formControlName="hips" placeholder="90" class="form-control font-mono" />
                 @if (applyForm.get('hips')?.touched && applyForm.get('hips')?.invalid) {
-                  <span class="field-error">Obrigatório.</span>
+                  <span class="field-error">{{ 'apply_page.field_required' | translate }}</span>
                 }
               </div>
 
               <div class="form-group">
-                <label class="form-label" for="shoes">Calçado <span class="required-mark">*</span></label>
+                <label class="form-label" for="shoes">{{ 'apply_page.shoes_label' | translate }} <span class="required-mark">*</span></label>
                 <input id="shoes" type="number" formControlName="shoes" placeholder="38" class="form-control font-mono" />
                 @if (applyForm.get('shoes')?.touched && applyForm.get('shoes')?.invalid) {
-                  <span class="field-error">Obrigatório.</span>
+                  <span class="field-error">{{ 'apply_page.field_required' | translate }}</span>
                 }
               </div>
 
               <div class="form-group">
-                <label class="form-label" for="eyes">Olhos <span class="required-mark">*</span></label>
+                <label class="form-label" for="eyes">{{ 'apply_page.eyes_label' | translate }} <span class="required-mark">*</span></label>
                 <select id="eyes" formControlName="eyes" class="form-control">
-                  <option value="">Selecione...</option>
+                  <option value="">{{ 'apply_page.select_option' | translate }}</option>
                   @for (color of eyeColors; track color) {
-                    <option [value]="color">{{ color | titlecase }}</option>
+                    <option [value]="color">{{ ('apply_page.eyes_' + color.toLowerCase()) | translate }}</option>
                   }
                 </select>
                 @if (applyForm.get('eyes')?.touched && applyForm.get('eyes')?.invalid) {
-                  <span class="field-error">Obrigatório.</span>
+                  <span class="field-error">{{ 'apply_page.field_required' | translate }}</span>
                 }
               </div>
 
               <div class="form-group col-span-2">
-                <label class="form-label" for="hair">Cabelos <span class="required-mark">*</span></label>
+                <label class="form-label" for="hair">{{ 'apply_page.hair_label' | translate }} <span class="required-mark">*</span></label>
                 <select id="hair" formControlName="hair" class="form-control">
-                  <option value="">Selecione...</option>
+                  <option value="">{{ 'apply_page.select_option' | translate }}</option>
                   @for (color of hairColors; track color) {
-                    <option [value]="color">{{ color | titlecase }}</option>
+                    <option [value]="color">{{ ('apply_page.hair_' + color.toLowerCase()) | translate }}</option>
                   }
                 </select>
                 @if (applyForm.get('hair')?.touched && applyForm.get('hair')?.invalid) {
-                  <span class="field-error">Obrigatório.</span>
+                  <span class="field-error">{{ 'apply_page.field_required' | translate }}</span>
                 }
               </div>
             </div>
           </section>
 
           <!-- BLOCO 3: FOTOS E POLAROIDS -->
-          <section class="form-card" aria-label="Polaroids e Fotos de Avaliação">
+          <section class="form-card" [attr.aria-label]="'apply_page.section3_title' | translate">
             <div class="section-header-split">
               <div class="section-header">
-                <span class="badge-editorial">03 / MATERIAL FOTOGRÁFICO</span>
-                <h2 class="section-title font-serif">Polaroids &amp; Fotos de Avaliação</h2>
-                <p class="section-subtitle">Fotos nítidas com luz natural, sem maquiagem e sem filtros (mínimo de 3 fotos obrigatórias).</p>
+                <span class="badge-editorial">{{ 'apply_page.section3_badge' | translate }}</span>
+                <h2 class="section-title font-serif">{{ 'apply_page.section3_title' | translate }}</h2>
+                <p class="section-subtitle">{{ 'apply_page.section3_subtitle' | translate }}</p>
               </div>
               <div class="photo-counter-badge">
-                <span class="photo-counter-text">{{ totalUploadedPhotos }}/8 Fotos Enviadas</span>
+                <span class="photo-counter-text">{{ 'apply_page.photos_counter' | translate: { count: totalUploadedPhotos } }}</span>
               </div>
             </div>
 
@@ -459,12 +459,12 @@
                     [class.has-preview]="slot.previewUrl"
                   >
                     @if (slot.previewUrl) {
-                      <img [src]="slot.previewUrl" [alt]="slot.label" class="photo-preview-img" />
+                      <img [src]="slot.previewUrl" [alt]="('apply_page.slot_' + i + '_label') | translate" class="photo-preview-img" />
                       <button 
                         type="button" 
                         (click)="removePhoto(i)" 
                         class="btn-remove-photo"
-                        title="Remover foto"
+                        [title]="'apply_page.remove_photo' | translate"
                       >
                         ✕
                       </button>
@@ -474,7 +474,7 @@
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
                         <span class="slot-requirement-tag">
-                          {{ slot.required ? 'Obrigatória *' : 'Opcional' }}
+                          {{ slot.required ? ('apply_page.tag_required' | translate) : ('apply_page.tag_optional' | translate) }}
                         </span>
                       </div>
                     }
@@ -482,8 +482,12 @@
                     <input #fileInput type="file" accept="image/jpeg,image/png,image/webp" class="hidden-file-input" (change)="onFileSelected(i, $event)">
                   </div>
 
-                  <span class="photo-slot-name" [title]="slot.label">{{ slot.label }}</span>
-                  <span class="photo-slot-hint">{{ slot.hint }}</span>
+                  <span class="photo-slot-name" [title]="('apply_page.slot_' + i + '_label') | translate">
+                    {{ ('apply_page.slot_' + i + '_label') | translate }}
+                  </span>
+                  <span class="photo-slot-hint">
+                    {{ ('apply_page.slot_' + i + '_hint') | translate }}
+                  </span>
                 </div>
               }
             </div>
@@ -491,28 +495,26 @@
             @if (!hasRequiredPhotos) {
               <div class="photo-warning-box">
                 <span class="warning-icon">⚠️</span>
-                <span>As 3 primeiras polaroids (<strong>Rosto Frontal</strong>, <strong>Perfil 3/4</strong> e <strong>Corpo Inteiro</strong>) são obrigatórias para submeter o dossiê.</span>
+                <span [innerHTML]="'apply_page.photo_warning' | translate"></span>
               </div>
             }
           </section>
 
           <!-- BLOCO 4: TERMOS E LGPD -->
-          <section class="form-card" aria-label="Termos de Consentimento e Privacidade">
+          <section class="form-card" [attr.aria-label]="'apply_page.section4_title' | translate">
             <div class="section-header">
-              <span class="badge-editorial">04 / TERMOS &amp; PRIVACIDADE</span>
-              <h2 class="section-title font-serif">Consentimento e Proteção de Dados (LGPD)</h2>
-              <p class="section-subtitle">Termos legais para tratamento confidencial de fotos e dados cadastrais.</p>
+              <span class="badge-editorial">{{ 'apply_page.section4_badge' | translate }}</span>
+              <h2 class="section-title font-serif">{{ 'apply_page.section4_title' | translate }}</h2>
+              <p class="section-subtitle">{{ 'apply_page.section4_subtitle' | translate }}</p>
             </div>
 
             <div class="consent-box">
               <label class="consent-label">
                 <input type="checkbox" formControlName="lgpdConsent" class="consent-checkbox">
-                <span class="consent-text">
-                  Declaro a veracidade dos dados informados e autorizo a <strong>WB Agency</strong> a processar meus dados e imagens exclusivamente para fins de avaliação de casting e representação artística (LGPD — Lei nº 13.709/2018).
-                </span>
+                <span class="consent-text" [innerHTML]="'apply_page.lgpd_text' | translate"></span>
               </label>
               @if (applyForm.get('lgpdConsent')?.touched && applyForm.get('lgpdConsent')?.invalid) {
-                <span class="field-error">Você deve concordar com os termos da LGPD para prosseguir.</span>
+                <span class="field-error">{{ 'apply_page.lgpd_error' | translate }}</span>
               }
             </div>
           </section>
@@ -525,14 +527,14 @@
               class="btn-submit-editorial"
             >
               @if (!isSubmitting) {
-                <span>Submeter Candidatura Oficial</span>
+                <span>{{ 'apply_page.submit_btn' | translate }}</span>
               } @else {
                 <span class="spinner-inline">
                   <svg class="animate-spin" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                   </svg>
-                  Enviando Dossiê...
+                  {{ 'apply_page.submitting' | translate }}
                 </span>
               }
             </button>

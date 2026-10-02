@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { BecomeModelComponent } from './become-model.component';
@@ -32,7 +33,11 @@ describe('BecomeModelComponent', () => {
     ])
   };
 
+  let currentLangSignal = signal<'pt' | 'en'>('pt');
+
   beforeEach(async () => {
+    currentLangSignal = signal<'pt' | 'en'>('pt');
+
     await TestBed.configureTestingModule({
       imports: [BecomeModelComponent],
       providers: [
@@ -43,11 +48,15 @@ describe('BecomeModelComponent', () => {
         {
           provide: TranslationService,
           useValue: {
-            currentLang: () => 'pt',
+            currentLang: currentLangSignal,
             translate: (key: string) => {
               const dict: Record<string, string> = {
                 'nav.home': 'Home',
-                'nav.apply': 'Quero ser modelo'
+                'nav.apply': 'Quero ser modelo',
+                'apply_page.header_title': 'BECOME A MODEL',
+                'apply_page.header_description': 'If you wish to join the WB Agency casting...',
+                'apply_page.faq_1_q': 'Is there any cost for application or evaluation?',
+                'apply_page.faq_1_a': 'No. WB Agency never charges any fees...'
               };
               return dict[key] || key;
             }
@@ -190,5 +199,21 @@ describe('BecomeModelComponent', () => {
 
     expect(component.isSubmitting).toBeFalse();
     expect(component.submitSuccess).toBeTrue();
+  });
+
+  it('deve exibir títulos e FAQs em inglês quando o idioma ativo for en', () => {
+    currentLangSignal.set('en');
+    expect(component.displayHeaderTitle).toBe('BECOME A MODEL');
+    expect(component.displayHeaderDescription).toBe('If you wish to join the WB Agency casting...');
+
+    const faq = {
+      id: '00000000-0000-0000-0000-000000000001',
+      question: 'Existe algum custo para inscrição?',
+      answer: 'Não, 100% gratuito.',
+      displayOrder: 0,
+      isActive: true
+    };
+    expect(component.getFaqQuestion(faq, 0)).toBe('Is there any cost for application or evaluation?');
+    expect(component.getFaqAnswer(faq, 0)).toBe('No. WB Agency never charges any fees...');
   });
 });

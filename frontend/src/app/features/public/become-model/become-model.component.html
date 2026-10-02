@@ -1,23 +1,23 @@
 <div class="become-model-page">
   <div class="container">
-
-    <!-- 1. Cabeçalho Editorial Padronizado (Cormorant Garamond + Plus Jakarta Sans) -->
-    <header class="page-header">
-      <nav class="header-breadcrumbs">
-        <a routerLink="/" class="breadcrumb-link">{{ 'nav.home' | translate }}</a>
-        <span class="breadcrumb-separator">/</span>
-        <span class="breadcrumb-current">{{ 'nav.apply' | translate }}</span>
-      </nav>
-
-      <h1 class="page-title font-serif">
-        {{ displayHeaderTitle }}
-      </h1>
-      <p class="page-subtitle">
-        {{ displayHeaderDescription }}
-      </p>
-    </header>
-
     <div class="apply-content-layout">
+
+      <!-- 1. Cabeçalho Editorial Padronizado (Cormorant Garamond + Plus Jakarta Sans) -->
+      <header class="page-header">
+        <nav class="header-breadcrumbs">
+          <a routerLink="/" class="breadcrumb-link">{{ 'nav.home' | translate }}</a>
+          <span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">{{ 'nav.apply' | translate }}</span>
+        </nav>
+
+        <h1 class="page-title font-serif">
+          {{ displayHeaderTitle }}
+        </h1>
+        <p class="page-subtitle">
+          {{ displayHeaderDescription }}
+        </p>
+      </header>
+
 
       <!-- 2. Seção Editorial de Orientações & Dúvidas Frequentes (FAQ Acordeão) -->
       @if (faqs && faqs.length > 0 && !submitSuccess) {

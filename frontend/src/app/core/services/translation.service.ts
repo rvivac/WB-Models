@@ -3,6 +3,8 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of } from 'rxjs';
 
+import ptTranslations from '../../../assets/i18n/pt.json';
+
 export type SupportedLanguage = 'pt' | 'en';
 
 const STORAGE_KEY = 'wb_scouting_lang';
@@ -16,7 +18,7 @@ export class TranslationService {
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   readonly currentLang = signal<SupportedLanguage>(this.getInitialLanguage());
-  readonly translations = signal<Record<string, any>>({});
+  readonly translations = signal<Record<string, any>>(ptTranslations as Record<string, any>);
 
   constructor() {}
 
@@ -70,6 +72,27 @@ export class TranslationService {
     }
 
     if (typeof current !== 'string') {
+      // Fallback para o dicionário padrão ptTranslations caso a chave não exista no idioma atual
+      if (dict !== ptTranslations) {
+        let fallbackCurrent: any = ptTranslations;
+        for (const segment of segments) {
+          if (fallbackCurrent && typeof fallbackCurrent === 'object' && segment in fallbackCurrent) {
+            fallbackCurrent = fallbackCurrent[segment];
+          } else {
+            fallbackCurrent = undefined;
+            break;
+          }
+        }
+        if (typeof fallbackCurrent === 'string') {
+          let fallbackResult = fallbackCurrent;
+          if (params) {
+            Object.entries(params).forEach(([placeholder, value]) => {
+              fallbackResult = fallbackResult.replace(new RegExp(`\\{${placeholder}\\}`, 'g'), String(value));
+            });
+          }
+          return fallbackResult;
+        }
+      }
       return key;
     }
 
@@ -94,12 +117,18 @@ export class TranslationService {
    * Loads translation dictionary file via HttpClient.
    */
   private loadTranslations(lang: SupportedLanguage): Observable<Record<string, any>> {
-    return this.http.get<Record<string, any>>(`assets/i18n/${lang}.json`).pipe(
+    return this.http.get<Record<string, any>>(`/assets/i18n/${lang}.json`).pipe(
       tap((data) => {
-        this.translations.set(data || {});
+        if (data && Object.keys(data).length > 0) {
+          this.translations.set(data);
+        }
       }),
       catchError((error) => {
         console.error(`Failed to load translations for '${lang}'`, error);
+        if (lang === 'pt') {
+          this.translations.set(ptTranslations as Record<string, any>);
+          return of(ptTranslations as Record<string, any>);
+        }
         return of({});
       })
     );

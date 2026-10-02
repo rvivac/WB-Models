@@ -18,7 +18,7 @@ describe('BecomeModelComponent', () => {
 
   const mockFaqService = {
     getPublicApplyHeader: () => of({
-      title: 'QUERO SER MODELO',
+      title: 'Quero ser Modelo',
       subtitle: 'WB SCOUTING DESK',
       description: 'Preencha o formulário e envie suas fotos.'
     }),

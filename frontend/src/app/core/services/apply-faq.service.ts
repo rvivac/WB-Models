@@ -10,7 +10,7 @@ export class ApplyFaqService {
   private readonly api = inject(ApiService);
 
   public readonly defaultHeader: ApplyHeader = {
-    title: 'QUERO SER MODELO',
+    title: 'Quero ser Modelo',
     subtitle: 'WB SCOUTING DESK',
     description: 'Se você deseja fazer parte do casting da WB Agency, atenção para as informações abaixo: preencha o formulário e envie suas fotos para realizarmos a avaliação digital.'
   };

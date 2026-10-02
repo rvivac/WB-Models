@@ -218,6 +218,7 @@
     "city_error": "Cidade obrigatória.",
     "state_label": "Estado (UF)",
     "state_placeholder": "Selecione o estado...",
+    "state_not_in_brazil": "NOT IN BRAZIL (Exterior)",
     "state_error": "UF obrigatória.",
     "guardian_badge": "RESPONSÁVEL LEGAL • CANDIDATO MENOR DE IDADE",
     "guardian_tag": "Obrigatório",

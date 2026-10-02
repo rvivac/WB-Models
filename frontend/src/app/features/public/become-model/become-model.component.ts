@@ -42,7 +42,7 @@ export class BecomeModelComponent implements OnInit {
   submissionProtocol: string | null = null;
 
   // Cabeçalho Editorial Dinâmico
-  headerTitle = 'QUERO SER MODELO';
+  headerTitle = 'Quero Ser Modelo';
   headerSubtitle = 'WB SCOUTING DESK';
   headerDescription = 'Se você deseja fazer parte do casting da WB Agency, atenção para as informações abaixo: preencha o formulário e envie suas fotos para realizarmos a avaliação digital.';
 

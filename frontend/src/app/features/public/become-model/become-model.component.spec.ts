@@ -53,7 +53,7 @@ describe('BecomeModelComponent', () => {
               const dict: Record<string, string> = {
                 'nav.home': 'Home',
                 'nav.apply': 'Quero ser modelo',
-                'apply_page.header_title': 'BECOME A MODEL',
+                'apply_page.header_title': 'Be a Model',
                 'apply_page.header_description': 'If you wish to join the WB Agency casting...',
                 'apply_page.faq_1_q': 'Is there any cost for application or evaluation?',
                 'apply_page.faq_1_a': 'No. WB Agency never charges any fees...'
@@ -203,7 +203,7 @@ describe('BecomeModelComponent', () => {
 
   it('deve exibir títulos e FAQs em inglês quando o idioma ativo for en', () => {
     currentLangSignal.set('en');
-    expect(component.displayHeaderTitle).toBe('BECOME A MODEL');
+    expect(component.displayHeaderTitle).toBe('Be a Model');
     expect(component.displayHeaderDescription).toBe('If you wish to join the WB Agency casting...');
 
     const faq = {

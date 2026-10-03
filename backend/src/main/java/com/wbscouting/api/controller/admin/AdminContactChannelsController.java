@@ -19,7 +19,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping({"/api/v1/admin/contact-channels", "/admin/contact-channels"})
-@PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CONTENT_ADMIN')")
+@PreAuthorize("hasAnyRole('WEBMASTER', 'SUPER_ADMIN', 'CONTENT_ADMIN', 'ADMIN')")
 @RequiredArgsConstructor
 public class AdminContactChannelsController {
 

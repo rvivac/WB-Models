@@ -25,7 +25,7 @@ import java.util.*;
 @Slf4j
 @RestController
 @RequestMapping({"/api/v1/admin/institutional/home", "/admin/institutional/home"})
-@PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CONTENT_ADMIN', 'ADMIN')")
+@PreAuthorize("hasAnyRole('WEBMASTER', 'SUPER_ADMIN', 'CONTENT_ADMIN', 'ADMIN')")
 @RequiredArgsConstructor
 public class AdminInstitutionalHomeController {
 

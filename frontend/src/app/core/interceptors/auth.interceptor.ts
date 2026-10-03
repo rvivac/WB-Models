@@ -26,8 +26,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      // Redireciona e limpa a sessão em 401/403, preservando respostas de falha na tela de login
-      if ((error.status === 401 || error.status === 403) && !req.url.includes('/auth/login')) {
+      // Redireciona e limpa a sessão em 401 (não autenticado), preservando respostas de falha na tela de login
+      if (error.status === 401 && !req.url.includes('/auth/login')) {
         authService.logout();
       }
       return throwError(() => error);

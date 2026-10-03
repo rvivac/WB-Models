@@ -78,4 +78,19 @@ describe('authInterceptor', () => {
     const req = httpTesting.expectOne('/api/v1/auth/login');
     req.flush('Invalid credentials', { status: 401, statusText: 'Unauthorized' });
   });
+
+  it('should NOT call logout on 403 Forbidden response', () => {
+    authServiceSpy.getToken.and.returnValue('my-jwt-token');
+
+    http.get('/api/v1/admin/users').subscribe({
+      next: () => fail('Should have failed with 403'),
+      error: (err) => {
+        expect(err.status).toBe(403);
+        expect(authServiceSpy.logout).not.toHaveBeenCalled();
+      }
+    });
+
+    const req = httpTesting.expectOne('/api/v1/admin/users');
+    req.flush('Forbidden', { status: 403, statusText: 'Forbidden' });
+  });
 });

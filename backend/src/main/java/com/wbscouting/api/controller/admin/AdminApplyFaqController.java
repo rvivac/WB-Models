@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@PreAuthorize("hasAnyRole('SUPER_ADMIN', 'CONTENT_ADMIN', 'ADMIN')")
+@PreAuthorize("hasAnyRole('WEBMASTER', 'SUPER_ADMIN', 'CONTENT_ADMIN', 'ADMIN')")
 @RequiredArgsConstructor
 public class AdminApplyFaqController {
 

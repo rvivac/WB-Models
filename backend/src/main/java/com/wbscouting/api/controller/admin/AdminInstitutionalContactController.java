@@ -38,6 +38,7 @@ public class AdminInstitutionalContactController {
     }
 
     @PutMapping
+    @com.wbscouting.api.security.audit.AuditAction(action = "UPDATE", resource = "INSTITUTIONAL_CONTACT", description = "Atualização de canais institucionais de contato e endereços")
     public ResponseEntity<ContactSettingsDto> updateContactSettings(
             @Valid @RequestBody ContactSettingsDto dto,
             Authentication authentication

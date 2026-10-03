@@ -17,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
+import com.wbscouting.api.security.audit.AuditAction;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -51,6 +52,7 @@ public class AdminInstitutionalHomeController {
     }
 
     @PutMapping
+    @AuditAction(action = "UPDATE", resource = "INSTITUTIONAL_HOME", description = "Atualização de textos e metadados da Home")
     public ResponseEntity<HomeContentDto> updateHomeContent(
             @Valid @RequestBody HomeContentDto dto,
             Authentication authentication

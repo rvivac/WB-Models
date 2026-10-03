@@ -75,13 +75,19 @@
         </div>
       </div>
 
-      <!-- Gestão de Usuários (Apenas WEBMASTER e SUPER_ADMIN) -->
+      <!-- Gestão de Usuários e Auditoria (Apenas WEBMASTER e SUPER_ADMIN) -->
       @if (isWebmasterOrSuperAdmin) {
         <a 
           routerLink="/admin/usuarios" 
           routerLinkActive="text-neutral-900 border-b-2 border-neutral-900 font-medium active" 
           class="text-xs uppercase tracking-widest text-[#4B584E] hover:text-neutral-900 transition-colors py-2 rounded-none whitespace-nowrap font-semibold">
           Usuários
+        </a>
+        <a 
+          routerLink="/admin/auditoria" 
+          routerLinkActive="text-neutral-900 border-b-2 border-neutral-900 font-medium active" 
+          class="text-xs uppercase tracking-widest text-[#4B584E] hover:text-neutral-900 transition-colors py-2 rounded-none whitespace-nowrap font-semibold">
+          Auditoria
         </a>
       }
 
@@ -175,11 +181,15 @@
         <span class="sub-module-title font-semibold text-xs uppercase tracking-wider text-[#222624] leading-tight">Destaques da Vitrine</span>
       </a>
 
-      <!-- 7. Segurança: Gestão de Administradores (Exclusivo Webmaster) -->
+      <!-- 7. Segurança: Gestão de Administradores & Auditoria (Exclusivo Webmaster) -->
       @if (isWebmasterOrSuperAdmin) {
         <a routerLink="/admin/usuarios" routerLinkActive="active-sub-link" class="sub-nav-item flex flex-col justify-center py-1 px-2.5 rounded-none hover:bg-white transition-all shrink-0 border-l border-[#E8EBE8]">
           <span class="sub-sector-label text-[9px] font-mono uppercase tracking-widest text-neutral-900 font-bold leading-tight mb-0.5">Segurança &bull; Master</span>
           <span class="sub-module-title font-bold text-xs uppercase tracking-wider text-neutral-900 leading-tight">Gestão de Admins</span>
+        </a>
+        <a routerLink="/admin/auditoria" routerLinkActive="active-sub-link" class="sub-nav-item flex flex-col justify-center py-1 px-2.5 rounded-none hover:bg-white transition-all shrink-0 border-l border-[#E8EBE8]">
+          <span class="sub-sector-label text-[9px] font-mono uppercase tracking-widest text-neutral-900 font-bold leading-tight mb-0.5">Auditoria &bull; Logs</span>
+          <span class="sub-module-title font-bold text-xs uppercase tracking-wider text-neutral-900 leading-tight">Trilha de Ações</span>
         </a>
       }
     </div>
@@ -226,6 +236,10 @@
             <span class="font-mono text-[9px] text-neutral-900 font-bold uppercase tracking-widest leading-none mb-0.5">Segurança &bull; Master</span>
             <span class="font-semibold text-xs uppercase tracking-wider text-neutral-900">Gestão de Administradores</span>
           </a>
+          <a routerLink="/admin/auditoria" (click)="closeMobileMenu()" class="mobile-nav-link flex flex-col py-1 text-neutral-900 font-semibold" routerLinkActive="active">
+            <span class="font-mono text-[9px] text-neutral-900 font-bold uppercase tracking-widest leading-none mb-0.5">Auditoria &bull; Logs</span>
+            <span class="font-semibold text-xs uppercase tracking-wider text-neutral-900">Trilha de Ações</span>
+          </a>
         }
       </div>
 
@@ -236,6 +250,7 @@
       <a routerLink="/admin/institucional/quero-ser-modelo" (click)="closeMobileMenu()" class="mobile-nav-link pl-3 text-[#4B584E]" routerLinkActive="active">↳ Quero Ser Modelo (FAQ)</a>
       @if (isWebmasterOrSuperAdmin) {
         <a routerLink="/admin/usuarios" (click)="closeMobileMenu()" class="mobile-nav-link text-[#4B584E] font-semibold" routerLinkActive="active">↳ Gestão de Usuários</a>
+        <a routerLink="/admin/auditoria" (click)="closeMobileMenu()" class="mobile-nav-link text-[#4B584E] font-semibold" routerLinkActive="active">↳ Trilha de Auditoria</a>
       }
       <a routerLink="/admin/perfil" (click)="closeMobileMenu()" class="mobile-nav-link" routerLinkActive="active">Meu Perfil & Segurança</a>
       <div class="border-t border-neutral-200 pt-2">

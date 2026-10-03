@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import com.wbscouting.api.security.audit.AuditAction;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -35,6 +36,7 @@ public class AdminUserController {
     }
 
     @PostMapping
+    @AuditAction(action = "CREATE", resource = "ADMIN_USER", description = "Criação de novo administrador secundário")
     public ResponseEntity<CreateAdminUserResponseDto> createUser(
             @Valid @RequestBody CreateAdminUserRequestDto request) {
         CreateAdminUserResponseDto response = adminUserService.createUser(request);
@@ -54,6 +56,7 @@ public class AdminUserController {
     }
 
     @PatchMapping("/{id}/toggle-status")
+    @AuditAction(action = "TOGGLE_STATUS", resource = "ADMIN_USER", description = "Ativação/Desativação de administrador")
     public ResponseEntity<AdminUserResponseDto> toggleUserStatus(
             @PathVariable UUID id,
             java.security.Principal principal) {
@@ -63,6 +66,7 @@ public class AdminUserController {
     }
 
     @PatchMapping("/{id}/role")
+    @AuditAction(action = "UPDATE_ROLE", resource = "ADMIN_USER", description = "Alteração de papel de administrador")
     public ResponseEntity<AdminUserResponseDto> updateRole(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateAdminRoleRequestDto request,
@@ -73,6 +77,7 @@ public class AdminUserController {
     }
 
     @DeleteMapping("/{id}")
+    @AuditAction(action = "DELETE", resource = "ADMIN_USER", description = "Exclusão permanente de administrador secundário")
     public ResponseEntity<Void> deleteAdmin(
             @PathVariable UUID id,
             java.security.Principal principal) {

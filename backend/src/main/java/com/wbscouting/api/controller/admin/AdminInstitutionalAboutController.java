@@ -24,6 +24,7 @@ public class AdminInstitutionalAboutController {
     }
 
     @PutMapping({"/api/v1/admin/institutional/about", "/admin/institutional/about"})
+    @com.wbscouting.api.security.audit.AuditAction(action = "UPDATE", resource = "INSTITUTIONAL_ABOUT", description = "Alteração de textos e manifesto da página Sobre Nós")
     public ResponseEntity<AboutPageDto> updateAboutPageSettings(@Valid @RequestBody AboutPageDto dto) {
         log.info("Admin atualizando textos da página institucional Sobre Nós");
         return ResponseEntity.ok(aboutPageService.updateAboutPage(dto));

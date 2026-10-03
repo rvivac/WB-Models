@@ -28,3 +28,24 @@ export const roleGuard: CanActivateFn = (route, state) => {
   // Redireciona usuários sem o papel necessário para o dashboard com feedback
   return router.createUrlTree(['/admin/dashboard']);
 };
+
+export const webmasterOnlyGuard: CanActivateFn = (route, state) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (!authService.isAuthenticated()) {
+    return router.createUrlTree(['/admin/login'], {
+      queryParams: { returnUrl: state.url }
+    });
+  }
+
+  const currentUser = authService.currentUser();
+  const userRole = (currentUser?.role || '').toUpperCase();
+
+  if (userRole === 'WEBMASTER' || userRole === 'SUPER_ADMIN') {
+    return true;
+  }
+
+  return router.createUrlTree(['/admin/dashboard']);
+};
+

@@ -68,6 +68,7 @@ public class AdminInstitutionalTranslationController {
     }
 
     @PutMapping("/{sectionKey}")
+    @com.wbscouting.api.security.audit.AuditAction(action = "UPDATE", resource = "INSTITUTIONAL_TRANSLATION", description = "Atualização de conteúdos bilíngues (PT/EN)")
     public ResponseEntity<SectionTranslationResponseDto> updateSectionTranslations(
             @PathVariable String sectionKey,
             @RequestBody TranslationUpdateRequestDto request,
@@ -77,6 +78,7 @@ public class AdminInstitutionalTranslationController {
     }
 
     @PatchMapping("/{sectionKey}")
+    @com.wbscouting.api.security.audit.AuditAction(action = "UPDATE", resource = "INSTITUTIONAL_TRANSLATION", description = "Atualização de conteúdos bilíngues (PT/EN)")
     public ResponseEntity<SectionTranslationResponseDto> patchSectionTranslations(
             @PathVariable String sectionKey,
             @RequestBody TranslationUpdateRequestDto request,

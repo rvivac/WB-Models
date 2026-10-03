@@ -84,6 +84,9 @@ public class SecurityConfig {
                         // Endpoints de gestão de usuários restritos exclusivamente a WEBMASTER e SUPER_ADMIN (ADM-018)
                         .requestMatchers("/admin/users/**", "/api/v1/admin/users/**").hasAnyRole("WEBMASTER", "SUPER_ADMIN")
 
+                        // Endpoints de trilha de auditoria restritos exclusivamente a WEBMASTER (ADM-019)
+                        .requestMatchers("/admin/audit-logs/**", "/api/v1/admin/audit-logs/**").hasAnyRole("WEBMASTER", "SUPER_ADMIN")
+
                         // Endpoints protegidos (Gestão e Backoffice)
                         .requestMatchers("/admin/**", "/api/v1/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN", "CONTENT_ADMIN", "WEBMASTER", "SCOUT")
                         .anyRequest().authenticated()

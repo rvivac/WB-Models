@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import com.wbscouting.api.security.audit.AuditAction;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -24,6 +25,7 @@ public class AdminModelController {
     private final ModelService modelService;
 
     @PostMapping
+    @AuditAction(action = "CREATE", resource = "MODEL", description = "Criação de novo modelo no casting")
     public ResponseEntity<ModelAdminResponseDto> createModel(@Valid @RequestBody ModelCreateRequestDto request) {
         ModelAdminResponseDto createdModel = modelService.createModel(request);
 
@@ -37,6 +39,7 @@ public class AdminModelController {
     }
 
     @PutMapping("/{id}")
+    @AuditAction(action = "UPDATE", resource = "MODEL", description = "Atualização cadastral do modelo")
     public ResponseEntity<ModelAdminResponseDto> updateModel(
             @PathVariable UUID id,
             @Valid @RequestBody ModelUpdateRequestDto request) {
@@ -44,6 +47,7 @@ public class AdminModelController {
     }
 
     @PatchMapping("/{id}/status")
+    @AuditAction(action = "UPDATE_STATUS", resource = "MODEL", description = "Alteração de status do modelo")
     public ResponseEntity<ModelAdminResponseDto> updateStatus(
             @PathVariable UUID id,
             @Valid @RequestBody ModelStatusPatchDto request) {
@@ -51,6 +55,7 @@ public class AdminModelController {
     }
 
     @PatchMapping("/{id}/star")
+    @AuditAction(action = "UPDATE_STAR", resource = "MODEL", description = "Alteração de selo star do modelo")
     public ResponseEntity<ModelAdminResponseDto> updateStar(
             @PathVariable UUID id,
             @Valid @RequestBody ModelStarPatchDto request) {
@@ -58,6 +63,7 @@ public class AdminModelController {
     }
 
     @PatchMapping("/{id}/featured")
+    @AuditAction(action = "UPDATE_FEATURED", resource = "MODEL", description = "Alteração de destaque na vitrine do modelo")
     public ResponseEntity<ModelAdminResponseDto> updateFeatured(
             @PathVariable UUID id,
             @Valid @RequestBody ModelFeaturedPatchDto request) {
@@ -84,6 +90,7 @@ public class AdminModelController {
     }
 
     @DeleteMapping("/{id}")
+    @AuditAction(action = "DELETE", resource = "MODEL", description = "Exclusão permanente de modelo do casting")
     public ResponseEntity<Void> deleteModel(@PathVariable UUID id) {
         modelService.deleteModel(id);
         return ResponseEntity.noContent().build();

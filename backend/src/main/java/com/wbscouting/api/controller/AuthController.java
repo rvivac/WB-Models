@@ -25,28 +25,59 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final com.wbscouting.api.service.audit.AuditLogService auditLogService;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(
             @Valid @RequestBody LoginRequestDto request,
             HttpServletRequest httpRequest,
             HttpServletResponse httpResponse) {
-        LoginResponseDto response = authService.login(request);
+        String clientIp = extractClientIp(httpRequest);
+        String userAgent = httpRequest.getHeader("User-Agent");
 
-        if (response.getAccessToken() != null) {
-            boolean isSecure = httpRequest.isSecure() || "https".equalsIgnoreCase(httpRequest.getHeader("X-Forwarded-Proto"));
-            ResponseCookie jwtCookie = ResponseCookie.from("jwt_token", response.getAccessToken())
-                    .httpOnly(true)
-                    .secure(isSecure)
-                    .path("/")
-                    .maxAge(response.getExpiresIn() != null ? response.getExpiresIn() : 28800)
-                    .sameSite("Strict")
-                    .build();
+        try {
+            LoginResponseDto response = authService.login(request);
 
-            httpResponse.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+            if (response.getAccessToken() != null) {
+                boolean isSecure = httpRequest.isSecure() || "https".equalsIgnoreCase(httpRequest.getHeader("X-Forwarded-Proto"));
+                ResponseCookie jwtCookie = ResponseCookie.from("jwt_token", response.getAccessToken())
+                        .httpOnly(true)
+                        .secure(isSecure)
+                        .path("/")
+                        .maxAge(response.getExpiresIn() != null ? response.getExpiresIn() : 28800)
+                        .sameSite("Strict")
+                        .build();
+
+                httpResponse.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+            }
+
+            auditLogService.recordLogAsync(
+                    null,
+                    request != null ? request.getEmail() : null,
+                    "LOGIN",
+                    "AUTH",
+                    null,
+                    "Autenticação de administrador realizada com sucesso",
+                    Map.of("email", request != null ? request.getEmail() : ""),
+                    clientIp,
+                    userAgent
+            );
+
+            return ResponseEntity.ok(response);
+        } catch (Exception ex) {
+            auditLogService.recordLogAsync(
+                    null,
+                    request != null ? request.getEmail() : "desconhecido",
+                    "LOGIN_FAILED",
+                    "AUTH",
+                    null,
+                    "Tentativa de login falhou: " + ex.getMessage(),
+                    Map.of("error", ex.getClass().getSimpleName()),
+                    clientIp,
+                    userAgent
+            );
+            throw ex;
         }
-
-        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/2fa/challenge")
@@ -90,7 +121,27 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+        String clientIp = extractClientIp(request);
+        String userAgent = request.getHeader("User-Agent");
+        String operator = "anonymous";
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getName() != null) {
+            operator = auth.getName();
+        }
+
         authService.logout(request, response);
+
+        auditLogService.recordLogAsync(
+                null,
+                operator,
+                "LOGOUT",
+                "AUTH",
+                null,
+                "Encerramento de sessão (Logout) seguro de administrador",
+                Map.of("operator", operator),
+                clientIp,
+                userAgent
+        );
 
         boolean isSecure = request.isSecure() || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
         ResponseCookie deleteCookie = ResponseCookie.from("jwt_token", "")
@@ -103,6 +154,21 @@ public class AuthController {
 
         response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
         return ResponseEntity.noContent().build();
+    }
+
+    private String extractClientIp(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isBlank() && !"unknown".equalsIgnoreCase(xForwardedFor)) {
+            String[] ips = xForwardedFor.split(",");
+            if (ips.length > 0) {
+                return ips[0].trim();
+            }
+        }
+        String xRealIp = request.getHeader("X-Real-IP");
+        if (xRealIp != null && !xRealIp.isBlank() && !"unknown".equalsIgnoreCase(xRealIp)) {
+            return xRealIp.trim();
+        }
+        return request.getRemoteAddr();
     }
 }
 

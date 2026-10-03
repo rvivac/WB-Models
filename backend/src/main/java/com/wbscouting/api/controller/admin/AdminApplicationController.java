@@ -28,6 +28,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import com.wbscouting.api.security.audit.AuditAction;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.OffsetDateTime;
@@ -107,6 +108,7 @@ public class AdminApplicationController {
     }
 
     @PatchMapping("/{id}/decision")
+    @AuditAction(action = "DECISION", resource = "SCOUTING_CANDIDATE", description = "Triagem de candidatura de modelo")
     public ResponseEntity<CandidateDetailResponseDto> updateDecision(
             @PathVariable UUID id,
             @Valid @RequestBody CandidateDecisionRequestDto decisionDto,
@@ -130,6 +132,7 @@ public class AdminApplicationController {
     }
 
     @PostMapping("/{id}/promote")
+    @AuditAction(action = "PROMOTE", resource = "SCOUTING_CANDIDATE", description = "Promoção de candidato para elenco de modelos")
     public ResponseEntity<ApiResponse<ModelResponseDto>> promoteCandidateToModel(
             @PathVariable("id") UUID id,
             @RequestParam(required = false, defaultValue = "true") Boolean activateImmediately,
@@ -143,6 +146,7 @@ public class AdminApplicationController {
     }
 
     @DeleteMapping("/{id}")
+    @AuditAction(action = "DELETE", resource = "SCOUTING_CANDIDATE", description = "Exclusão permanente de candidatura (Purge)")
     public ResponseEntity<Void> deleteApplication(@PathVariable UUID id) {
         log.info("Iniciando exclusão permanente defensiva (Purge LGPD) da candidatura ID: {}", id);
         CandidateSubmission submission = submissionRepository.findById(id)

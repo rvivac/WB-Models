@@ -414,3 +414,51 @@ CREATE INDEX IF NOT EXISTS idx_candidate_submissions_status ON public.candidate_
 CREATE INDEX IF NOT EXISTS idx_candidate_submissions_created_at ON public.candidate_submissions(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_candidate_submissions_converted_model ON public.candidate_submissions(converted_to_model_id);
 
+-- ------------------------------------------------------------------------------
+-- 4.8. TABELA: admin_audit_logs (ADM-019)
+-- Trilha de auditoria imutável (Append-only) e registro de mutações corporativas
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.admin_audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    admin_id UUID NULL REFERENCES public.admins(id) ON DELETE SET NULL,
+    admin_email VARCHAR(255) NOT NULL,
+    action VARCHAR(50) NOT NULL,
+    resource_type VARCHAR(100) NOT NULL,
+    resource_id VARCHAR(255) NULL,
+    description TEXT NULL,
+    details_json JSONB NULL,
+    ip_address VARCHAR(45) NULL,
+    user_agent TEXT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Índices de performance para busca por período, operador, ação e módulo
+CREATE INDEX IF NOT EXISTS idx_admin_audit_logs_created_at ON public.admin_audit_logs (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_admin_audit_logs_admin_email ON public.admin_audit_logs (admin_email);
+CREATE INDEX IF NOT EXISTS idx_admin_audit_logs_action ON public.admin_audit_logs (action);
+CREATE INDEX IF NOT EXISTS idx_admin_audit_logs_resource_type ON public.admin_audit_logs (resource_type);
+
+-- RLS Imutável: Somente Webmaster tem permissão de leitura; nenhuma atualização ou deleção permitida
+ALTER TABLE public.admin_audit_logs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Webmasters podem visualizar logs de auditoria" ON public.admin_audit_logs;
+CREATE POLICY "Webmasters podem visualizar logs de auditoria"
+    ON public.admin_audit_logs
+    FOR SELECT
+    TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.admins
+            WHERE public.admins.id = auth.uid()
+            AND public.admins.role IN ('WEBMASTER', 'SUPER_ADMIN')
+        )
+    );
+
+DROP POLICY IF EXISTS "Inserção de logs por serviço de backend autenticado" ON public.admin_audit_logs;
+CREATE POLICY "Inserção de logs por serviço de backend autenticado"
+    ON public.admin_audit_logs
+    FOR INSERT
+    TO authenticated, service_role
+    WITH CHECK (true);
+
+

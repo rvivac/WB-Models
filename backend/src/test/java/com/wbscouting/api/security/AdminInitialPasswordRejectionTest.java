@@ -86,7 +86,7 @@ class AdminInitialPasswordRejectionTest {
                 mock(com.wbscouting.api.service.auth.TotpService.class)
         );
 
-        AuthController authController = new AuthController(authService);
+        AuthController authController = new AuthController(authService, mock(com.wbscouting.api.service.audit.AuditLogService.class));
         mockMvc = MockMvcBuilders.standaloneSetup(authController)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();

@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { adminAuthGuard } from './core/guards/auth.guard';
-import { roleGuard } from './core/guards/role.guard';
+import { roleGuard, webmasterOnlyGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   // Rotas Públicas Institucionais
@@ -299,6 +299,17 @@ export const routes: Routes = [
       {
         path: 'users',
         redirectTo: 'usuarios',
+        pathMatch: 'full'
+      },
+      {
+        path: 'auditoria',
+        canActivate: [webmasterOnlyGuard],
+        loadComponent: () => import('./features/admin/audit-logs/audit-logs.component').then(m => m.AuditLogsComponent),
+        title: 'Trilha de Auditoria & Logs | WB Agency'
+      },
+      {
+        path: 'logs',
+        redirectTo: 'auditoria',
         pathMatch: 'full'
       },
       {

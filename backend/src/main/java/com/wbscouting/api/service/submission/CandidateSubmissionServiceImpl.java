@@ -1,5 +1,6 @@
 package com.wbscouting.api.service.submission;
 
+import com.wbscouting.api.config.SupabaseProperties;
 import com.wbscouting.api.dto.CandidateSubmissionRequestDto;
 import com.wbscouting.api.dto.CandidateSubmissionResponseDto;
 import com.wbscouting.api.entity.CandidateSubmission;
@@ -7,9 +8,8 @@ import com.wbscouting.api.enums.SubmissionStatus;
 import com.wbscouting.api.exception.BusinessException;
 import com.wbscouting.api.repository.CandidateSubmissionRepository;
 import com.wbscouting.api.service.storage.StorageService;
-import lombok.RequiredArgsConstructor;
+import com.wbscouting.api.service.storage.SupabaseStorageService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -27,23 +27,25 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class CandidateSubmissionServiceImpl implements CandidateSubmissionService {
 
-    private static final long MAX_FILE_SIZE = 5L * 1024 * 1024; // 5 MB
-    private static final String DEFAULT_BUCKET = "candidates-uploads";
     private static final Pattern HTML_PATTERN = Pattern.compile("<[^>]*>");
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$");
 
-    // Assinaturas mágicas de bytes
     private static final byte[] JPEG_MAGIC = new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF};
     private static final byte[] PNG_MAGIC = new byte[]{(byte) 0x89, (byte) 0x50, (byte) 0x4E, (byte) 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
 
     private final CandidateSubmissionRepository repository;
     private final StorageService storageService;
+    private final SupabaseProperties supabaseProperties;
 
-    @Value("${supabase.buckets.candidates-uploads:candidates-uploads}")
-    private String candidatesBucket;
+    public CandidateSubmissionServiceImpl(CandidateSubmissionRepository repository,
+                                          StorageService storageService,
+                                          SupabaseProperties supabaseProperties) {
+        this.repository = repository;
+        this.storageService = storageService;
+        this.supabaseProperties = supabaseProperties;
+    }
 
     @Override
     @Transactional
@@ -78,7 +80,7 @@ public class CandidateSubmissionServiceImpl implements CandidateSubmissionServic
         // 4. Geração de Identificadores e Protocolo
         UUID submissionId = UUID.randomUUID();
         String protocol = generateProtocol();
-        String bucket = StringUtils.hasText(candidatesBucket) ? candidatesBucket : DEFAULT_BUCKET;
+        String bucket = supabaseProperties.resolveBucketCandidates();
 
         // 5. Upload dos Arquivos para o Storage com Transação Compensatória Defensiva
         java.util.List<String> uploadedPaths = new java.util.ArrayList<>();
@@ -183,36 +185,40 @@ public class CandidateSubmissionServiceImpl implements CandidateSubmissionServic
         }
     }
 
+    private static final byte[] WEBP_RIFF_MAGIC = new byte[]{'R', 'I', 'F', 'F'};
+    private static final byte[] WEBP_FORMAT_SIG = new byte[]{'W', 'E', 'B', 'P'};
+
     private void validateImageFile(MultipartFile file, String photoRole) {
         if (file == null || file.isEmpty()) {
             throw new BusinessException("O arquivo de foto " + photoRole + " é obrigatório e não pode estar vazio.");
         }
 
-        if (file.getSize() > MAX_FILE_SIZE) {
-            throw new BusinessException("O arquivo de foto " + photoRole + " excede o limite máximo permitido de 5 MB.");
+        long maxSizeBytes = SupabaseStorageService.MAX_SIZE_CANDIDATES_UPLOADS;
+        if (file.getSize() > maxSizeBytes) {
+            long maxMb = maxSizeBytes / (1024 * 1024);
+            throw new BusinessException(String.format(
+                    "O arquivo enviado excede o limite máximo permitido de %d MB para %s.", maxMb, photoRole));
         }
 
-        String contentType = file.getContentType();
-        if (contentType == null || (!contentType.equalsIgnoreCase("image/jpeg")
-                && !contentType.equalsIgnoreCase("image/jpg")
-                && !contentType.equalsIgnoreCase("image/png"))) {
-            throw new BusinessException("Tipo de arquivo não permitido para " + photoRole + ". Formatos aceitos: JPEG e PNG.");
-        }
-
-        // Validação de integridade do cabeçalho (Magic Bytes)
+        // Validação de integridade do cabeçalho (Magic Bytes): JPEG, PNG e WEBP
         try (InputStream is = file.getInputStream()) {
-            byte[] header = new byte[8];
+            byte[] header = new byte[12];
             int read = is.read(header);
             if (read < 4) {
                 throw new BusinessException("Arquivo corrompido ou inválido para " + photoRole + ".");
             }
 
             boolean isJpeg = header[0] == JPEG_MAGIC[0] && header[1] == JPEG_MAGIC[1] && header[2] == JPEG_MAGIC[2];
-            boolean isPng = read >= 8 && Arrays.equals(header, PNG_MAGIC);
+            boolean isPng = read >= 8 && Arrays.equals(java.util.Arrays.copyOf(header, 8), PNG_MAGIC);
+            boolean isWebp = read >= 12
+                    && header[0] == WEBP_RIFF_MAGIC[0] && header[1] == WEBP_RIFF_MAGIC[1]
+                    && header[2] == WEBP_RIFF_MAGIC[2] && header[3] == WEBP_RIFF_MAGIC[3]
+                    && header[8] == WEBP_FORMAT_SIG[0] && header[9] == WEBP_FORMAT_SIG[1]
+                    && header[10] == WEBP_FORMAT_SIG[2] && header[11] == WEBP_FORMAT_SIG[3];
 
-            if (!isJpeg && !isPng) {
+            if (!isJpeg && !isPng && !isWebp) {
                 log.warn("Tentativa de upload com cabeçalho adulterado para {}. Bytes recebidos: {}", photoRole, Arrays.toString(header));
-                throw new BusinessException("Cabeçalho de arquivo adulterado ou inválido para " + photoRole + ". Envie uma imagem válida.");
+                throw new BusinessException("Cabeçalho de arquivo adulterado ou inválido para " + photoRole + ". Envie uma imagem válida (JPEG, PNG ou WEBP).");
             }
         } catch (IOException e) {
             log.error("Erro ao ler cabeçalho do arquivo de foto {}", photoRole, e);

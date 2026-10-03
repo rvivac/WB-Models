@@ -8,6 +8,7 @@ import com.wbscouting.api.exception.FileSizeExceededException;
 import com.wbscouting.api.exception.InvalidFileException;
 import com.wbscouting.api.repository.SiteContentRepository;
 import com.wbscouting.api.service.storage.StorageService;
+import com.wbscouting.api.service.storage.SupabaseStorageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,11 +32,6 @@ import java.util.*;
 public class AdminInstitutionalHomeController {
 
     private static final String SECTION_HOME = "home";
-    private static final long MAX_VIDEO_SIZE = 50L * 1024 * 1024; // 50 MB
-    private static final long MAX_POSTER_SIZE = 10L * 1024 * 1024; // 10 MB
-
-    private static final Set<String> ALLOWED_VIDEO_TYPES = Set.of("video/mp4", "video/webm");
-    private static final Set<String> ALLOWED_POSTER_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
 
     private final SiteContentRepository siteContentRepository;
     private final StorageService storageService;
@@ -94,7 +90,7 @@ public class AdminInstitutionalHomeController {
         log.info("Recebendo upload de vídeo hero da Home. Arquivo: {}, Tamanho: {} bytes",
                 file.getOriginalFilename(), file.getSize());
 
-        validateFile(file, MAX_VIDEO_SIZE, ALLOWED_VIDEO_TYPES, "vídeo");
+        validateFile(file, SupabaseStorageService.MAX_SIZE_SITE_ASSETS, SupabaseStorageService.ALLOWED_VIDEO_TYPES, "vídeo");
 
         String bucket = resolveBucketName();
         String extension = getFileExtension(file.getOriginalFilename(), ".mp4");
@@ -119,7 +115,7 @@ public class AdminInstitutionalHomeController {
         log.info("Recebendo upload de imagem poster fallback da Home. Arquivo: {}, Tamanho: {} bytes",
                 file.getOriginalFilename(), file.getSize());
 
-        validateFile(file, MAX_POSTER_SIZE, ALLOWED_POSTER_TYPES, "imagem de capa");
+        validateFile(file, SupabaseStorageService.MAX_SIZE_SITE_ASSETS, SupabaseStorageService.ALLOWED_IMAGE_TYPES, "imagem de capa");
 
         String bucket = resolveBucketName();
         String extension = getFileExtension(file.getOriginalFilename(), ".webp");
@@ -204,11 +200,7 @@ public class AdminInstitutionalHomeController {
     }
 
     private String resolveBucketName() {
-        if (supabaseProperties != null && supabaseProperties.getBuckets() != null
-                && StringUtils.hasText(supabaseProperties.getBuckets().getSiteAssets())) {
-            return supabaseProperties.getBuckets().getSiteAssets();
-        }
-        return "site-assets";
+        return supabaseProperties.resolveBucketSiteAssets();
     }
 
     private String getString(Map<String, Object> map, String key, String defaultValue) {

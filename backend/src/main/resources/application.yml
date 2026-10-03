@@ -19,7 +19,7 @@ spring:
   datasource:
     # Pooler via porta 6543 com suporte a sslmode=verify-full com validação de CA
     url: ${DB_URL:jdbc:postgresql://${DB_HOST:aws-0-sa-east-1.pooler.supabase.com}:${DB_PORT:6543}/${DB_NAME:postgres}?sslmode=${DB_SSL_MODE:require}&sslrootcert=${DB_SSL_ROOT_CERT_PATH:/etc/ssl/certs/supabase-ca.crt}&prepareThreshold=0}
-    username: ${DB_USERNAME:postgres.stmytwsdlonpnirqiufq}
+    username: ${DB_USERNAME:}
     password: ${DB_PASSWORD:}
     driver-class-name: org.postgresql.Driver
     hikari:
@@ -73,10 +73,10 @@ app:
       expiration-ms: ${JWT_EXPIRATION_MS:28800000} # 8 horas
     initial-admin:
       email: ${INITIAL_ADMIN_EMAIL:webmaster@wbagency.com.br}
-      password: ${INITIAL_ADMIN_PASSWORD:Admin@WbScouting2026!}
+      password: ${INITIAL_ADMIN_PASSWORD:}
       name: ${INITIAL_ADMIN_NAME:Webmaster WB Agency}
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,https://wbagency.com.br,https://www.wbagency.com.br,http://wbagency.com.br,http://www.wbagency.com.br}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,https://wbagency.com.br,https://www.wbagency.com.br,http://wbagency.com.br,http://www.wbagency.com.br,https://wb-models-1.onrender.com,http://wb-models-1.onrender.com}
     allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,PATCH,DELETE,OPTIONS}
     allowed-headers: ${CORS_ALLOWED_HEADERS:Authorization,Content-Type,X-Requested-With,Accept,Origin}
     allow-credentials: true
@@ -84,14 +84,14 @@ app:
 
 # Configurações do Supabase Storage e API
 supabase:
-  url: ${SUPABASE_URL:https://stmytwsdlonpnirqiufq.supabase.co}
+  url: ${SUPABASE_URL:}
   key: ${SUPABASE_KEY:}
   service-role-key: ${SUPABASE_SERVICE_ROLE_KEY:}
   anon-key: ${SUPABASE_ANON_KEY:}
   storage:
-    local-fallback: false
-    local-dir: uploads
-    local-base-url: http://localhost:8080
+    local-fallback: ${SUPABASE_STORAGE_LOCAL_FALLBACK:false}
+    local-dir: ${SUPABASE_STORAGE_LOCAL_DIR:uploads}
+    local-base-url: ${SUPABASE_STORAGE_LOCAL_BASE_URL:https://wb-models-1.onrender.com}
   buckets:
     site-assets: site-assets
     models-media: models-media
@@ -101,4 +101,5 @@ logging:
   level:
     root: INFO
     com.wbscouting.api: DEBUG
+    com.wbscouting.api.service.storage: DEBUG
     org.springframework.security: INFO

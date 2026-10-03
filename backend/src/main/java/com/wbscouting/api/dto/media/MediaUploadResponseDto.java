@@ -18,7 +18,7 @@ public class MediaUploadResponseDto {
     private UUID modelId;
     private MediaType mediaType;
     private String fileUrl;
-    private String storagePath;
+    private String filePath;
     private Integer displayOrder;
     private Boolean isCover;
     private OffsetDateTime createdAt;

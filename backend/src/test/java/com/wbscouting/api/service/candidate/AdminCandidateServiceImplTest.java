@@ -97,6 +97,8 @@ class AdminCandidateServiceImplTest {
 
         photo1.setCandidate(candidate);
         photo2.setCandidate(candidate);
+
+        lenient().when(supabaseProperties.resolveBucketCandidates()).thenReturn("candidates-uploads");
     }
 
     @Test

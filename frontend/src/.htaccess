@@ -1,0 +1,15 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  
+  # Se o arquivo ou pasta requisitado existir fisicamente, serve diretamente
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Caso contrário, redireciona todas as requisições para o index.html do Angular
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# Forçar HTTPS
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]

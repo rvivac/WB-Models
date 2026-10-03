@@ -44,7 +44,7 @@ public class ModelMediaServiceImpl implements ModelMediaService {
             throw new IllegalArgumentException("Apenas mídias do tipo BOOK podem ser marcadas como capa.");
         }
 
-        String bucket = supabaseProperties.getBuckets().getModelsMedia();
+        String bucket = supabaseProperties.resolveBucketModelsMedia();
 
         // Se a nova mídia for do tipo COMPOSITE, substitui o composite anterior se houver
         if (mediaType == MediaType.COMPOSITE) {
@@ -52,7 +52,7 @@ public class ModelMediaServiceImpl implements ModelMediaService {
             if (existingComposite.isPresent()) {
                 ModelMedia oldComp = existingComposite.get();
                 try {
-                    storageService.deleteFile(bucket, oldComp.getStoragePath());
+                    storageService.deleteFile(bucket, oldComp.getFilePath());
                 } catch (Exception e) {
                     log.warn("Falha ao remover arquivo do composite anterior do storage: {}", e.getMessage());
                 }
@@ -92,7 +92,7 @@ public class ModelMediaServiceImpl implements ModelMediaService {
                 .model(model)
                 .mediaType(mediaType)
                 .fileUrl(publicUrl)
-                .storagePath(uploadedPath)
+                .filePath(uploadedPath)
                 .displayOrder(nextOrder)
                 .isCover(isCover)
                 .isActive(true)
@@ -118,11 +118,11 @@ public class ModelMediaServiceImpl implements ModelMediaService {
         ModelMedia media = modelMediaRepository.findByIdAndModelId(mediaId, modelId)
                 .orElseThrow(() -> new ResourceNotFoundException("Mídia", "id", mediaId));
 
-        String bucket = supabaseProperties.getBuckets().getModelsMedia();
-        String storagePath = media.getStoragePath();
+        String bucket = supabaseProperties.resolveBucketModelsMedia();
+        String filePath = media.getFilePath();
 
         // 1. Excluir arquivo físico no Supabase Storage
-        storageService.deleteFile(bucket, storagePath);
+        storageService.deleteFile(bucket, filePath);
 
         boolean wasCover = Boolean.TRUE.equals(media.getIsCover());
 
@@ -269,14 +269,14 @@ public class ModelMediaServiceImpl implements ModelMediaService {
         Model model = modelRepository.findById(modelId)
                 .orElseThrow(() -> new ResourceNotFoundException("Modelo", "id", modelId));
 
-        String bucket = supabaseProperties.getBuckets().getModelsMedia();
+        String bucket = supabaseProperties.resolveBucketModelsMedia();
 
         // Substituição atômica: remove composite anterior do storage e banco se houver
         Optional<ModelMedia> existingComposite = modelMediaRepository.findByModelIdAndMediaTypeAndIsActiveTrue(modelId, MediaType.COMPOSITE);
         if (existingComposite.isPresent()) {
             ModelMedia oldComp = existingComposite.get();
             try {
-                storageService.deleteFile(bucket, oldComp.getStoragePath());
+                storageService.deleteFile(bucket, oldComp.getFilePath());
             } catch (Exception e) {
                 log.warn("Falha ao remover arquivo do composite anterior do storage: {}", e.getMessage());
             }
@@ -292,7 +292,7 @@ public class ModelMediaServiceImpl implements ModelMediaService {
                 .model(model)
                 .mediaType(MediaType.COMPOSITE)
                 .fileUrl(publicUrl)
-                .storagePath(filename)
+                .filePath(filename)
                 .displayOrder(1)
                 .isCover(false)
                 .isActive(true)
@@ -312,7 +312,7 @@ public class ModelMediaServiceImpl implements ModelMediaService {
         modelMediaRepository.findByModelIdAndMediaTypeAndIsActiveTrue(modelId, MediaType.COMPOSITE)
                 .ifPresent(comp -> {
                     try {
-                        storageService.deleteFile(supabaseProperties.getBuckets().getModelsMedia(), comp.getStoragePath());
+                        storageService.deleteFile(supabaseProperties.getBuckets().getModelsMedia(), comp.getFilePath());
                     } catch (Exception e) {
                         log.warn("Falha ao remover arquivo do composite do storage: {}", e.getMessage());
                     }
@@ -323,8 +323,8 @@ public class ModelMediaServiceImpl implements ModelMediaService {
     private com.wbscouting.api.dto.media.ModelCompositeResponseDto toCompositeDto(ModelMedia media, String originalFilename, Long sizeBytes) {
         String name = originalFilename;
         if (name == null || name.isBlank()) {
-            name = media.getStoragePath() != null
-                    ? media.getStoragePath().substring(media.getStoragePath().lastIndexOf('/') + 1)
+            name = media.getFilePath() != null
+                    ? media.getFilePath().substring(media.getFilePath().lastIndexOf('/') + 1)
                     : "composite";
             if (name.matches("^[0-9a-fA-F\\-]{36}-.+")) {
                 name = name.substring(37);
@@ -347,7 +347,7 @@ public class ModelMediaServiceImpl implements ModelMediaService {
                 .modelId(media.getModel().getId())
                 .mediaType(media.getMediaType())
                 .fileUrl(media.getFileUrl())
-                .storagePath(media.getStoragePath())
+                .filePath(media.getFilePath())
                 .displayOrder(media.getDisplayOrder())
                 .isCover(media.getIsCover())
                 .createdAt(media.getCreatedAt())

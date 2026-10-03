@@ -69,6 +69,7 @@ class ModelMediaServiceImplTest {
 
         buckets = new SupabaseProperties.Buckets();
         lenient().when(supabaseProperties.getBuckets()).thenReturn(buckets);
+        lenient().when(supabaseProperties.resolveBucketModelsMedia()).thenReturn("models-media");
     }
 
     @Test
@@ -81,7 +82,7 @@ class ModelMediaServiceImplTest {
                 .model(model)
                 .mediaType(MediaType.BOOK)
                 .fileUrl("https://supabase.co/old-cover.jpg")
-                .storagePath("models-media/old-cover.jpg")
+                .filePath("models-media/old-cover.jpg")
                 .isCover(true)
                 .build();
 
@@ -142,7 +143,7 @@ class ModelMediaServiceImplTest {
                 .id(UUID.randomUUID())
                 .model(model)
                 .mediaType(MediaType.COMPOSITE)
-                .storagePath("models-media/old-comp.jpg")
+                .filePath("models-media/old-comp.jpg")
                 .isActive(true)
                 .build();
 
@@ -219,7 +220,7 @@ class ModelMediaServiceImplTest {
                 .id(mediaId)
                 .model(model)
                 .mediaType(MediaType.POLAROID)
-                .storagePath("models-media/polaroid.jpg")
+                .filePath("models-media/polaroid.jpg")
                 .isCover(false)
                 .build();
 
@@ -242,7 +243,7 @@ class ModelMediaServiceImplTest {
                 .id(mediaId)
                 .model(model)
                 .mediaType(MediaType.BOOK)
-                .storagePath("models-media/current-cover.jpg")
+                .filePath("models-media/current-cover.jpg")
                 .isCover(true)
                 .build();
 
@@ -278,7 +279,7 @@ class ModelMediaServiceImplTest {
                 .id(mediaId)
                 .model(model)
                 .mediaType(MediaType.BOOK)
-                .storagePath("models-media/cover.jpg")
+                .filePath("models-media/cover.jpg")
                 .isCover(true)
                 .build();
 
@@ -330,7 +331,7 @@ class ModelMediaServiceImplTest {
                 .model(model)
                 .mediaType(MediaType.BOOK)
                 .fileUrl("https://supabase.co/1.jpg")
-                .storagePath("models-media/1.jpg")
+                .filePath("models-media/1.jpg")
                 .displayOrder(1)
                 .isCover(true)
                 .createdAt(OffsetDateTime.now())

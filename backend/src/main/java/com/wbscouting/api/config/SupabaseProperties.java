@@ -4,6 +4,9 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
+
+import java.util.Set;
 
 @Getter
 @Setter
@@ -11,55 +14,83 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "supabase")
 public class SupabaseProperties {
 
-    /**
-     * URL base do projeto Supabase (ex: https://xyzcompany.supabase.co)
-     */
+    private static final String FALLBACK_SITE_ASSETS = "site-assets";
+    private static final String FALLBACK_MODELS_MEDIA = "models-media";
+    private static final String FALLBACK_CANDIDATES_UPLOADS = "candidates-uploads";
+    private static final Set<String> KNOWN_BUCKETS = Set.of(FALLBACK_SITE_ASSETS, FALLBACK_MODELS_MEDIA, FALLBACK_CANDIDATES_UPLOADS);
+
     private String url;
 
-    /**
-     * Chave de serviço administrativa (Service Role Key) para operações com bypass de RLS
-     */
     private String serviceRoleKey;
 
-    /**
-     * Chave anônima pública (Anon Key)
-     */
     private String anonKey;
 
-    /**
-     * Chave genérica de API (supabase.key) alternativa
-     */
     private String key;
 
-    /**
-     * Configurações de armazenamento e fallback local
-     */
     private Storage storage = new Storage();
 
-    /**
-     * Mapeamento dos nomes dos buckets provisionados
-     */
     private Buckets buckets = new Buckets();
 
+    /**
+     * Resolve a chave efetiva de acesso ao Supabase com prioridade estrita:
+     * 1. serviceRoleKey (bypass RLS / backend administrativo) — usada para uploads e
+     *    operações privilegiadas de leitura.
+     * 2. key (chave genérica de compatibilidade — se o usuário desejar centralizar
+     *    a service role aqui).
+     * A 'anonKey' NÃO participa desta cascata, pois é uma chave pública de leitura
+     * (restrita pela RLS da role 'anon') e não tem permissão para escrita em Storage
+     * nem para bypass de RLS em tabelas. Use getAnonKeyOrEmpty() para expô-la em
+     * cenários específicos de leitura pública.
+     * Retorna "dummy-key" apenas quando nenhuma chave válida foi configurada.
+     */
     public String getEffectiveKey() {
-        if (org.springframework.util.StringUtils.hasText(serviceRoleKey) && !isDummy(serviceRoleKey)) {
+        if (!isDummy(serviceRoleKey)) {
             return serviceRoleKey.trim();
         }
-        if (org.springframework.util.StringUtils.hasText(key) && !isDummy(key)) {
-            return key.trim();
-        }
-        if (org.springframework.util.StringUtils.hasText(serviceRoleKey)) {
-            return serviceRoleKey.trim();
-        }
-        if (org.springframework.util.StringUtils.hasText(key)) {
+        if (!isDummy(key)) {
             return key.trim();
         }
         return "dummy-key";
     }
 
     public boolean isKeyConfigured() {
-        String effective = getEffectiveKey();
-        return org.springframework.util.StringUtils.hasText(effective) && !isDummy(effective);
+        return !isDummy(getEffectiveKey());
+    }
+
+    public String getAnonKeyOrEmpty() {
+        return StringUtils.hasText(anonKey) ? anonKey.trim() : "";
+    }
+
+    public String resolveBucketSiteAssets() {
+        if (buckets != null && StringUtils.hasText(buckets.getSiteAssets())) {
+            return buckets.getSiteAssets().trim();
+        }
+        return FALLBACK_SITE_ASSETS;
+    }
+
+    public String resolveBucketModelsMedia() {
+        if (buckets != null && StringUtils.hasText(buckets.getModelsMedia())) {
+            return buckets.getModelsMedia().trim();
+        }
+        return FALLBACK_MODELS_MEDIA;
+    }
+
+    public String resolveBucketCandidates() {
+        if (buckets != null && StringUtils.hasText(buckets.getCandidatesUploads())) {
+            return buckets.getCandidatesUploads().trim();
+        }
+        return FALLBACK_CANDIDATES_UPLOADS;
+    }
+
+    public boolean isValidBucket(String bucket) {
+        if (!StringUtils.hasText(bucket)) {
+            return false;
+        }
+        String normalized = bucket.trim().toLowerCase();
+        return KNOWN_BUCKETS.contains(normalized)
+                || normalized.equals(resolveBucketSiteAssets().toLowerCase())
+                || normalized.equals(resolveBucketModelsMedia().toLowerCase())
+                || normalized.equals(resolveBucketCandidates().toLowerCase());
     }
 
     public static boolean isDummy(String val) {
@@ -67,7 +98,9 @@ public class SupabaseProperties {
             return true;
         }
         String trimmed = val.trim();
-        return "dummy-key".equalsIgnoreCase(trimmed) || "your-service-role-key".equalsIgnoreCase(trimmed);
+        return "dummy-key".equalsIgnoreCase(trimmed)
+                || "your-service-role-key".equalsIgnoreCase(trimmed)
+                || "your-anon-key".equalsIgnoreCase(trimmed);
     }
 
     @Getter
@@ -81,8 +114,8 @@ public class SupabaseProperties {
     @Getter
     @Setter
     public static class Buckets {
-        private String siteAssets = "site-assets";
-        private String modelsMedia = "models-media";
-        private String candidatesUploads = "candidates-uploads";
+        private String siteAssets = FALLBACK_SITE_ASSETS;
+        private String modelsMedia = FALLBACK_MODELS_MEDIA;
+        private String candidatesUploads = FALLBACK_CANDIDATES_UPLOADS;
     }
 }

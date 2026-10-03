@@ -11,6 +11,7 @@ import com.wbscouting.api.exception.InvalidFileException;
 import com.wbscouting.api.exception.ResourceNotFoundException;
 import com.wbscouting.api.repository.SiteContentRepository;
 import com.wbscouting.api.service.storage.StorageService;
+import com.wbscouting.api.service.storage.SupabaseStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,21 +26,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class SiteContentServiceImpl implements SiteContentService {
-
-    public static final String DEFAULT_BUCKET_SITE_ASSETS = "site-assets";
-    public static final long MAX_IMAGE_SIZE_BYTES = 10L * 1024 * 1024; // 10 MB
-    public static final long MAX_VIDEO_SIZE_BYTES = 25L * 1024 * 1024; // 25 MB
-
-    public static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(
-            "image/jpeg",
-            "image/png",
-            "image/webp"
-    );
-
-    public static final Set<String> ALLOWED_VIDEO_TYPES = Set.of(
-            "video/mp4",
-            "video/webm"
-    );
 
     private final SiteContentRepository siteContentRepository;
     private final StorageService storageService;
@@ -124,9 +110,9 @@ public class SiteContentServiceImpl implements SiteContentService {
         log.info("Iniciando upload de ativo institucional. Nome='{}', Pasta='{}'",
                 file != null ? file.getOriginalFilename() : "null", folder);
 
-        validateAssetFile(file);
-
         String bucket = resolveBucketName();
+        validateAssetFile(file, bucket);
+
         String targetFolder = StringUtils.hasText(folder) ? folder.trim() : "assets";
         String sanitizedFilename = sanitizeFilename(file.getOriginalFilename());
         String storagePath = String.format("%s/%s-%s", targetFolder, UUID.randomUUID(), sanitizedFilename);
@@ -142,38 +128,6 @@ public class SiteContentServiceImpl implements SiteContentService {
                 .fileType(file.getContentType())
                 .fileSizeBytes(file.getSize())
                 .build();
-    }
-
-    private void validateAssetFile(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new InvalidFileException("O arquivo enviado não pode ser nulo ou vazio.");
-        }
-
-        String rawContentType = file.getContentType();
-        if (!StringUtils.hasText(rawContentType)) {
-            throw new InvalidFileException("O tipo de conteúdo (Content-Type) do arquivo não foi identificado.");
-        }
-
-        String contentType = rawContentType.toLowerCase().trim();
-        long fileSize = file.getSize();
-
-        if (ALLOWED_IMAGE_TYPES.contains(contentType)) {
-            if (fileSize > MAX_IMAGE_SIZE_BYTES) {
-                throw new FileSizeExceededException(String.format(
-                        "O arquivo de imagem excede o limite máximo permitido de 10 MB. Tamanho enviado: %.2f MB",
-                        fileSize / (1024.0 * 1024.0)));
-            }
-        } else if (ALLOWED_VIDEO_TYPES.contains(contentType)) {
-            if (fileSize > MAX_VIDEO_SIZE_BYTES) {
-                throw new FileSizeExceededException(String.format(
-                        "O arquivo de vídeo excede o limite máximo permitido de 25 MB. Tamanho enviado: %.2f MB",
-                        fileSize / (1024.0 * 1024.0)));
-            }
-        } else {
-            throw new InvalidFileException(String.format(
-                    "Tipo de arquivo '%s' não suportado para o bucket 'site-assets'. Permitidos: JPEG, PNG, WEBP, MP4, WEBM.",
-                    contentType));
-        }
     }
 
     private String resolveLanguage(String lang) {
@@ -220,11 +174,30 @@ public class SiteContentServiceImpl implements SiteContentService {
     }
 
     private String resolveBucketName() {
-        if (supabaseProperties != null && supabaseProperties.getBuckets() != null
-                && StringUtils.hasText(supabaseProperties.getBuckets().getSiteAssets())) {
-            return supabaseProperties.getBuckets().getSiteAssets();
+        return supabaseProperties.resolveBucketSiteAssets();
+    }
+
+    private void validateAssetFile(MultipartFile file, String bucket) {
+        if (file == null || file.isEmpty()) {
+            throw new InvalidFileException("O arquivo para upload é obrigatório e não pode estar vazio.");
         }
-        return DEFAULT_BUCKET_SITE_ASSETS;
+        long maxSize = SupabaseStorageService.MAX_SIZE_SITE_ASSETS;
+        if (file.getSize() > maxSize) {
+            long maxMb = maxSize / (1024 * 1024);
+            throw new FileSizeExceededException(
+                    String.format("O arquivo enviado (%.2f MB) excede o limite máximo permitido de %d MB para o bucket '%s'.",
+                            file.getSize() / (1024.0 * 1024.0), maxMb, bucket));
+        }
+        String contentType = file.getContentType();
+        boolean isImage = SupabaseStorageService.ALLOWED_IMAGE_TYPES.contains(contentType);
+        boolean isVideo = SupabaseStorageService.ALLOWED_VIDEO_TYPES.contains(contentType);
+        if (!isImage && !isVideo) {
+            throw new InvalidFileException(
+                    String.format("Formato de arquivo '%s' não suportado para o bucket '%s'. Tipos permitidos: imagens (%s) e vídeos (%s).",
+                            contentType, bucket,
+                            String.join(", ", SupabaseStorageService.ALLOWED_IMAGE_TYPES),
+                            String.join(", ", SupabaseStorageService.ALLOWED_VIDEO_TYPES)));
+        }
     }
 
     private SiteContent createDefaultAboutManifesto() {

@@ -1,5 +1,6 @@
 package com.wbscouting.api.service.submission;
 
+import com.wbscouting.api.config.SupabaseProperties;
 import com.wbscouting.api.dto.CandidateSubmissionRequestDto;
 import com.wbscouting.api.dto.CandidateSubmissionResponseDto;
 import com.wbscouting.api.entity.CandidateSubmission;
@@ -35,6 +36,9 @@ class CandidateSubmissionServiceTest {
 
     @Mock
     private StorageService storageService;
+
+    @Mock
+    private SupabaseProperties supabaseProperties;
 
     @InjectMocks
     private CandidateSubmissionServiceImpl submissionService;
@@ -81,6 +85,8 @@ class CandidateSubmissionServiceTest {
         validJpegFace = new MockMultipartFile("facePhoto", "face.jpg", "image/jpeg", jpegBytes);
         validPngProfile = new MockMultipartFile("profilePhoto", "profile.png", "image/png", pngBytes);
         validJpegBody = new MockMultipartFile("fullBodyPhoto", "body.jpg", "image/jpeg", jpegBytes);
+
+        lenient().when(supabaseProperties.resolveBucketCandidates()).thenReturn("candidates-uploads");
     }
 
     @Test

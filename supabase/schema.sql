@@ -26,15 +26,7 @@ BEGIN
 END $$;
 
 -- 3. FUNÇÃO GENÉRICA DE AUDITORIA (UPDATED_AT)
--- Executada antes de operações de UPDATE para manter a consistência temporal
-CREATE OR REPLACE FUNCTION trigger_set_timestamp()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
+-- Única função canônica usada por todos os triggers de updated_at
 CREATE OR REPLACE FUNCTION public.fn_set_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -63,11 +55,11 @@ CREATE TABLE IF NOT EXISTS public.admins (
     CONSTRAINT uk_admins_email UNIQUE (email)
 );
 
-DROP TRIGGER IF EXISTS set_timestamp_admins ON public.admins;
-CREATE TRIGGER set_timestamp_admins
+DROP TRIGGER IF EXISTS trg_admins_updated_at ON public.admins;
+CREATE TRIGGER trg_admins_updated_at
     BEFORE UPDATE ON public.admins
     FOR EACH ROW
-    EXECUTE FUNCTION trigger_set_timestamp();
+    EXECUTE FUNCTION public.fn_set_updated_at();
 
 -- ------------------------------------------------------------------------------
 -- 4.2. TABELA: models
@@ -83,7 +75,7 @@ CREATE TABLE IF NOT EXISTS public.models (
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     primary_photo_url TEXT NULL,
     instagram_url VARCHAR(255) NULL,
-    
+
     -- Dados biométricos e profissionais (anuláveis para preenchimento flexível)
     birth_date DATE NULL,
     height_cm INTEGER NULL CHECK (height_cm IS NULL OR (height_cm >= 50 AND height_cm <= 250)),
@@ -96,17 +88,17 @@ CREATE TABLE IF NOT EXISTS public.models (
     hips_cm NUMERIC(5,2) NULL,
     hair_color VARCHAR(50) NULL,
     eyes_color VARCHAR(50) NULL,
-    
+
     -- Auditoria
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-DROP TRIGGER IF EXISTS set_timestamp_models ON public.models;
-CREATE TRIGGER set_timestamp_models
+DROP TRIGGER IF EXISTS trg_models_updated_at ON public.models;
+CREATE TRIGGER trg_models_updated_at
     BEFORE UPDATE ON public.models
     FOR EACH ROW
-    EXECUTE FUNCTION trigger_set_timestamp();
+    EXECUTE FUNCTION public.fn_set_updated_at();
 
 -- ------------------------------------------------------------------------------
 -- 4.3. TABELA: model_media
@@ -123,17 +115,17 @@ CREATE TABLE IF NOT EXISTS public.model_media (
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT fk_model_media_model 
-        FOREIGN KEY (model_id) 
-        REFERENCES public.models(id) 
+    CONSTRAINT fk_model_media_model
+        FOREIGN KEY (model_id)
+        REFERENCES public.models(id)
         ON DELETE CASCADE
 );
 
-DROP TRIGGER IF EXISTS set_timestamp_model_media ON public.model_media;
-CREATE TRIGGER set_timestamp_model_media
+DROP TRIGGER IF EXISTS trg_model_media_updated_at ON public.model_media;
+CREATE TRIGGER trg_model_media_updated_at
     BEFORE UPDATE ON public.model_media
     FOR EACH ROW
-    EXECUTE FUNCTION trigger_set_timestamp();
+    EXECUTE FUNCTION public.fn_set_updated_at();
 
 -- Restrição Crítica: Cada modelo pode possuir NO MÁXIMO UM registro ativo com media_type = 'COMPOSITE'
 CREATE UNIQUE INDEX IF NOT EXISTS idx_model_media_single_active_composite
@@ -169,11 +161,11 @@ CREATE TABLE IF NOT EXISTS public.candidates (
     tiktok_handle VARCHAR(100) NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
     internal_notes TEXT NULL,
-    
+
     -- Termos LGPD (Consentimento explícito e mandatório)
     lgpd_accepted BOOLEAN NOT NULL DEFAULT TRUE CHECK (lgpd_accepted IS TRUE),
     lgpd_accepted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    
+
     -- Auditoria (Registro imutável de candidatura)
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -199,184 +191,19 @@ CREATE TABLE IF NOT EXISTS public.candidate_photos (
     file_url TEXT NULL,
     file_path TEXT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT fk_candidate_photos_candidate 
-        FOREIGN KEY (candidate_id) 
-        REFERENCES public.candidates(id) 
+    CONSTRAINT fk_candidate_photos_candidate
+        FOREIGN KEY (candidate_id)
+        REFERENCES public.candidates(id)
         ON DELETE CASCADE
 );
 
 -- ------------------------------------------------------------------------------
--- 4.5.1. TABELA: candidate_submissions
--- Submissões do endpoint público de captação (/api/v1/submissions - Prompt 3.3.1)
+-- 4.6. TABELA: candidate_submissions (CANÔNICA - Backoffice & Triagem + Conversão)
+-- Submissões do endpoint público de captação e backoffice de triagem
 -- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.candidate_submissions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     protocol VARCHAR(50) NOT NULL,
-    full_name VARCHAR(120) NOT NULL,
-    email VARCHAR(100) NOT NULL,
-    phone VARCHAR(50) NOT NULL,
-    birth_date DATE NOT NULL,
-    age INTEGER NOT NULL,
-    gender VARCHAR(30) NOT NULL,
-    city VARCHAR(80) NOT NULL,
-    state VARCHAR(2) NOT NULL,
-    height NUMERIC(4,2) NOT NULL,
-    bust NUMERIC(5,2) NULL,
-    waist NUMERIC(5,2) NULL,
-    hips NUMERIC(5,2) NULL,
-    shoe_size INTEGER NULL,
-    eye_color VARCHAR(50) NULL,
-    hair_color VARCHAR(50) NULL,
-    instagram_handle VARCHAR(80) NULL,
-    guardian_name VARCHAR(120) NULL,
-    guardian_phone VARCHAR(50) NULL,
-    guardian_email VARCHAR(100) NULL,
-    lgpd_consent BOOLEAN NOT NULL DEFAULT TRUE CHECK (lgpd_consent IS TRUE),
-    lgpd_consent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    status VARCHAR(30) NOT NULL DEFAULT 'PENDING',
-    face_photo_url TEXT NOT NULL,
-    profile_photo_url TEXT NOT NULL,
-    full_body_photo_url TEXT NOT NULL,
-    reviewed_by VARCHAR(150) NULL,
-    reviewed_at TIMESTAMPTZ NULL,
-    feedback_notes VARCHAR(500) NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT uk_candidate_submissions_protocol UNIQUE (protocol)
-);
-
-DROP TRIGGER IF EXISTS set_timestamp_candidate_submissions ON public.candidate_submissions;
-CREATE TRIGGER set_timestamp_candidate_submissions
-    BEFORE UPDATE ON public.candidate_submissions
-    FOR EACH ROW
-    EXECUTE FUNCTION trigger_set_timestamp();
-
-CREATE INDEX IF NOT EXISTS idx_candidate_submissions_status ON public.candidate_submissions (status);
-CREATE INDEX IF NOT EXISTS idx_candidate_submissions_email ON public.candidate_submissions (email);
-
--- ------------------------------------------------------------------------------
--- 4.6. TABELA: site_contents
--- Conteúdos institucionais dinâmicos e internacionalização (PT/EN)
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS public.site_contents (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    section_key VARCHAR(100) NOT NULL,
-    payload_pt JSONB NOT NULL,
-    payload_en JSONB NOT NULL,
-    media_urls JSONB NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT uk_site_contents_section_key UNIQUE (section_key)
-);
-
-DROP TRIGGER IF EXISTS set_timestamp_site_contents ON public.site_contents;
-CREATE TRIGGER set_timestamp_site_contents
-    BEFORE UPDATE ON public.site_contents
-    FOR EACH ROW
-    EXECUTE FUNCTION trigger_set_timestamp();
-
--- 5. ÍNDICES DE PERFORMANCE & OTIMIZAÇÃO DE BUSCA
-
--- Índices em Chaves Estrangeiras (Foreign Keys)
-CREATE INDEX IF NOT EXISTS idx_model_media_model_id 
-    ON public.model_media (model_id);
-
-CREATE INDEX IF NOT EXISTS idx_candidate_photos_candidate_id 
-    ON public.candidate_photos (candidate_id);
-
--- Índices Compostos para Catálogo e Filtragem de Casting
-CREATE INDEX IF NOT EXISTS idx_models_gender_active 
-    ON public.models (gender, is_active);
-
-CREATE INDEX IF NOT EXISTS idx_models_star_active 
-    ON public.models (is_star, is_active);
-
--- Índice Condicional para Vitrine da Home Page (Ordenação ultra-rápida)
-CREATE INDEX IF NOT EXISTS idx_models_featured_home 
-    ON public.models (is_featured_home, featured_order ASC) 
-    WHERE (is_active = TRUE);
-
--- Índice para ordenação de exibição de mídias ativas
-CREATE INDEX IF NOT EXISTS idx_model_media_order 
-    ON public.model_media (model_id, media_type, display_order ASC) 
-    WHERE (is_active = TRUE);
-
--- 6. SEGURANÇA E ROW LEVEL SECURITY (RLS)
-
--- Habilitar RLS em todas as tabelas
-ALTER TABLE public.admins ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.models ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.model_media ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.candidates ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.candidate_photos ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.candidate_submissions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.site_contents ENABLE ROW LEVEL SECURITY;
-
--- 6.1. Políticas de Leitura Pública (Catálogo e Site Institucional)
--- Visitantes podem visualizar apenas modelos marcados como ativos
-DROP POLICY IF EXISTS "Public Read Active Models" ON public.models;
-CREATE POLICY "Public Read Active Models" 
-    ON public.models 
-    FOR SELECT 
-    TO anon, authenticated
-    USING (is_active = TRUE);
-
--- Visitantes podem visualizar mídias de modelos ativos
-DROP POLICY IF EXISTS "Public Read Active Media" ON public.model_media;
-CREATE POLICY "Public Read Active Media" 
-    ON public.model_media 
-    FOR SELECT 
-    TO anon, authenticated
-    USING (
-        is_active = TRUE 
-        AND EXISTS (
-            SELECT 1 FROM public.models m 
-            WHERE m.id = model_media.model_id 
-              AND m.is_active = TRUE
-        )
-    );
-
--- Conteúdos do site são públicos para visualização irrestrita
-DROP POLICY IF EXISTS "Public Read Site Contents" ON public.site_contents;
-CREATE POLICY "Public Read Site Contents" 
-    ON public.site_contents 
-    FOR SELECT 
-    TO anon, authenticated
-    USING (TRUE);
-
--- 6.2. Políticas do Funil de Scouting (Quero ser modelo)
--- Candidatos anônimos podem inserir fichas (exigindo estritamente o aceite da LGPD)
-DROP POLICY IF EXISTS "Public Insert Candidate Application" ON public.candidates;
-CREATE POLICY "Public Insert Candidate Application" 
-    ON public.candidates 
-    FOR INSERT 
-    TO anon, authenticated
-    WITH CHECK (lgpd_accepted IS TRUE);
-
--- Candidatos anônimos podem inserir suas fotos associadas à candidatura existente
-DROP POLICY IF EXISTS "Public Insert Candidate Photos" ON public.candidate_photos;
-CREATE POLICY "Public Insert Candidate Photos" 
-    ON public.candidate_photos 
-    FOR INSERT 
-    TO anon, authenticated
-    WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM public.candidates c 
-            WHERE c.id = candidate_photos.candidate_id
-        )
-    );
-
--- 6.3. Bloqueio de Leitura Pública para Dados Sensíveis
--- 'admins', 'candidates' e 'candidate_photos' não possuem política SELECT para 'anon',
--- ficando acessíveis exclusivamente via Backend autenticado (Spring Data JPA com service_role / token de serviço)
--- ou usuários autenticados com papéis específicos no Supabase.
-
--- ------------------------------------------------------------------------------
--- 7. TABELA: candidate_submissions (Backoffice & Triagem de Candidaturas - Prompts 3.3.1, 3.3.2, 3.3.3)
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS public.candidate_submissions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    protocol VARCHAR(50) NOT NULL UNIQUE,
     full_name VARCHAR(120) NOT NULL,
     email VARCHAR(100) NOT NULL,
     phone VARCHAR(50) NOT NULL,
@@ -407,15 +234,45 @@ CREATE TABLE IF NOT EXISTS public.candidate_submissions (
     lgpd_consent BOOLEAN NOT NULL DEFAULT FALSE,
     lgpd_consent_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uk_candidate_submissions_protocol UNIQUE (protocol)
 );
+
+DROP TRIGGER IF EXISTS trg_candidate_submissions_updated_at ON public.candidate_submissions;
+CREATE TRIGGER trg_candidate_submissions_updated_at
+    BEFORE UPDATE ON public.candidate_submissions
+    FOR EACH ROW
+    EXECUTE FUNCTION public.fn_set_updated_at();
 
 CREATE INDEX IF NOT EXISTS idx_candidate_submissions_status ON public.candidate_submissions(status);
 CREATE INDEX IF NOT EXISTS idx_candidate_submissions_created_at ON public.candidate_submissions(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_candidate_submissions_converted_model ON public.candidate_submissions(converted_to_model_id);
+CREATE INDEX IF NOT EXISTS idx_candidate_submissions_email ON public.candidate_submissions (email);
 
 -- ------------------------------------------------------------------------------
--- 4.8. TABELA: admin_audit_logs (ADM-019)
+-- 4.7. TABELA: site_contents
+-- Conteúdos institucionais dinâmicos e internacionalização (PT/EN)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.site_contents (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    section_key VARCHAR(100) NOT NULL,
+    payload_pt JSONB NOT NULL,
+    payload_en JSONB NOT NULL,
+    media_urls JSONB NULL,
+    updated_by UUID NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uk_site_contents_section_key UNIQUE (section_key)
+);
+
+DROP TRIGGER IF EXISTS trg_site_contents_updated_at ON public.site_contents;
+CREATE TRIGGER trg_site_contents_updated_at
+    BEFORE UPDATE ON public.site_contents
+    FOR EACH ROW
+    EXECUTE FUNCTION public.fn_set_updated_at();
+
+-- ------------------------------------------------------------------------------
+-- 4.8. TABELA: admin_audit_logs
 -- Trilha de auditoria imutável (Append-only) e registro de mutações corporativas
 -- ------------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.admin_audit_logs (
@@ -438,9 +295,168 @@ CREATE INDEX IF NOT EXISTS idx_admin_audit_logs_admin_email ON public.admin_audi
 CREATE INDEX IF NOT EXISTS idx_admin_audit_logs_action ON public.admin_audit_logs (action);
 CREATE INDEX IF NOT EXISTS idx_admin_audit_logs_resource_type ON public.admin_audit_logs (resource_type);
 
--- RLS Imutável: Somente Webmaster tem permissão de leitura; nenhuma atualização ou deleção permitida
+-- 5. ÍNDICES DE PERFORMANCE & OTIMIZAÇÃO DE BUSCA
+
+-- Índices em Chaves Estrangeiras (Foreign Keys)
+CREATE INDEX IF NOT EXISTS idx_model_media_model_id
+    ON public.model_media (model_id);
+
+CREATE INDEX IF NOT EXISTS idx_candidate_photos_candidate_id
+    ON public.candidate_photos (candidate_id);
+
+-- Índices Compostos para Catálogo e Filtragem de Casting
+CREATE INDEX IF NOT EXISTS idx_models_gender_active
+    ON public.models (gender, is_active);
+
+CREATE INDEX IF NOT EXISTS idx_models_star_active
+    ON public.models (is_star, is_active);
+
+-- Índice Condicional para Vitrine da Home Page (Ordenação ultra-rápida)
+CREATE INDEX IF NOT EXISTS idx_models_featured_home
+    ON public.models (is_featured_home, featured_order ASC)
+    WHERE (is_active = TRUE);
+
+-- Índice para ordenação de exibição de mídias ativas
+CREATE INDEX IF NOT EXISTS idx_model_media_order
+    ON public.model_media (model_id, media_type, display_order ASC)
+    WHERE (is_active = TRUE);
+
+-- 6. SEGURANÇA E ROW LEVEL SECURITY (RLS)
+
+-- Habilitar RLS em todas as tabelas
+ALTER TABLE public.admins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.models ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.model_media ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.candidates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.candidate_photos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.candidate_submissions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.site_contents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admin_audit_logs ENABLE ROW LEVEL SECURITY;
 
+-- ==============================================================================
+-- 6.1. POLÍTICAS DE SERVICE_ROLE (BYPASS EXPLÍCITO PARA BACKEND SPRING BOOT)
+-- ==============================================================================
+-- Intencionalmente documenta acesso full para service_role, garantindo
+-- interoperabilidade caso a conexão JDBC seja futuramente trocada de owner
+-- para a role wb_app_user (least privilege).
+
+DROP POLICY IF EXISTS "Service Role Full Access - admins" ON public.admins;
+CREATE POLICY "Service Role Full Access - admins"
+    ON public.admins
+    TO service_role
+    USING (true)
+    WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Service Role Full Access - models" ON public.models;
+CREATE POLICY "Service Role Full Access - models"
+    ON public.models
+    TO service_role
+    USING (true)
+    WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Service Role Full Access - model_media" ON public.model_media;
+CREATE POLICY "Service Role Full Access - model_media"
+    ON public.model_media
+    TO service_role
+    USING (true)
+    WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Service Role Full Access - candidates" ON public.candidates;
+CREATE POLICY "Service Role Full Access - candidates"
+    ON public.candidates
+    TO service_role
+    USING (true)
+    WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Service Role Full Access - candidate_photos" ON public.candidate_photos;
+CREATE POLICY "Service Role Full Access - candidate_photos"
+    ON public.candidate_photos
+    TO service_role
+    USING (true)
+    WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Service Role Full Access - candidate_submissions" ON public.candidate_submissions;
+CREATE POLICY "Service Role Full Access - candidate_submissions"
+    ON public.candidate_submissions
+    TO service_role
+    USING (true)
+    WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Service Role Full Access - site_contents" ON public.site_contents;
+CREATE POLICY "Service Role Full Access - site_contents"
+    ON public.site_contents
+    TO service_role
+    USING (true)
+    WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Service Role Full Access - admin_audit_logs" ON public.admin_audit_logs;
+CREATE POLICY "Service Role Full Access - admin_audit_logs"
+    ON public.admin_audit_logs
+    TO service_role
+    USING (true)
+    WITH CHECK (true);
+
+-- ==============================================================================
+-- 6.2. POLÍTICAS DE LEITURA PÚBLICA (Catálogo e Site Institucional)
+-- ==============================================================================
+-- Visitantes podem visualizar apenas modelos marcados como ativos
+DROP POLICY IF EXISTS "Public Read Active Models" ON public.models;
+CREATE POLICY "Public Read Active Models"
+    ON public.models
+    FOR SELECT
+    TO anon, authenticated
+    USING (is_active = TRUE);
+
+-- Visitantes podem visualizar mídias de modelos ativos
+DROP POLICY IF EXISTS "Public Read Active Media" ON public.model_media;
+CREATE POLICY "Public Read Active Media"
+    ON public.model_media
+    FOR SELECT
+    TO anon, authenticated
+    USING (
+        is_active = TRUE
+        AND EXISTS (
+            SELECT 1 FROM public.models m
+            WHERE m.id = model_media.model_id
+              AND m.is_active = TRUE
+        )
+    );
+
+-- Conteúdos do site são públicos para visualização irrestrita
+DROP POLICY IF EXISTS "Public Read Site Contents" ON public.site_contents;
+CREATE POLICY "Public Read Site Contents"
+    ON public.site_contents
+    FOR SELECT
+    TO anon, authenticated
+    USING (TRUE);
+
+-- ==============================================================================
+-- 6.3. POLÍTICAS DO FUNIL DE SCOUTING (Quero ser modelo)
+-- ==============================================================================
+-- Candidatos anônimos podem inserir fichas (exigindo estritamente o aceite da LGPD)
+DROP POLICY IF EXISTS "Public Insert Candidate Application" ON public.candidates;
+CREATE POLICY "Public Insert Candidate Application"
+    ON public.candidates
+    FOR INSERT
+    TO anon, authenticated
+    WITH CHECK (lgpd_accepted IS TRUE);
+
+-- Candidatos anônimos podem inserir suas fotos associadas à candidatura existente
+DROP POLICY IF EXISTS "Public Insert Candidate Photos" ON public.candidate_photos;
+CREATE POLICY "Public Insert Candidate Photos"
+    ON public.candidate_photos
+    FOR INSERT
+    TO anon, authenticated
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.candidates c
+            WHERE c.id = candidate_photos.candidate_id
+        )
+    );
+
+-- ==============================================================================
+-- 6.4. POLÍTICAS DE ADMIN_AUDIT_LOGS (RLS Imutável)
+-- ==============================================================================
 DROP POLICY IF EXISTS "Webmasters podem visualizar logs de auditoria" ON public.admin_audit_logs;
 CREATE POLICY "Webmasters podem visualizar logs de auditoria"
     ON public.admin_audit_logs
@@ -461,4 +477,9 @@ CREATE POLICY "Inserção de logs por serviço de backend autenticado"
     TO authenticated, service_role
     WITH CHECK (true);
 
-
+-- ==============================================================================
+-- 6.5. BLOQUEIO EXPLÍCITO DE ESCRITA ANÔNIMA (DEFESA EM PROFUNDIDADE)
+-- ==============================================================================
+-- Roles anon/authenticated NÃO recebem GRANT de INSERT/UPDATE/DELETE nas
+-- tabelas transacionais sensíveis. Políticas acima existem para cenários de
+-- PostgREST, e a conexão JDBC principal usa privilégio de owner/service_role.

@@ -38,7 +38,7 @@ public class ModelMedia {
     private String fileUrl;
 
     @Column(name = "file_path", columnDefinition = "TEXT", nullable = false)
-    private String storagePath;
+    private String filePath;
 
     @Column(name = "display_order", nullable = false)
     @Builder.Default
@@ -60,11 +60,4 @@ public class ModelMedia {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
-    public String getFilePath() {
-        return storagePath;
-    }
-
-    public void setFilePath(String filePath) {
-        this.storagePath = filePath;
-    }
 }

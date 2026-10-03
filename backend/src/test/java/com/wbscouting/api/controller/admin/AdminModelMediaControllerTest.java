@@ -70,7 +70,7 @@ class AdminModelMediaControllerTest {
                 .modelId(modelId)
                 .mediaType(MediaType.BOOK)
                 .fileUrl("https://supabase.co/models-media/test.jpg")
-                .storagePath("models-media/test.jpg")
+                .filePath("models-media/test.jpg")
                 .displayOrder(1)
                 .isCover(true)
                 .createdAt(OffsetDateTime.now())

@@ -60,6 +60,8 @@ class SiteContentServiceImplTest {
                 .updatedAt(OffsetDateTime.now())
                 .updatedBy(adminId)
                 .build();
+
+        lenient().when(supabaseProperties.resolveBucketSiteAssets()).thenReturn("site-assets");
     }
 
     @Test
@@ -211,15 +213,15 @@ class SiteContentServiceImplTest {
     }
 
     @Test
-    @DisplayName("Deve lançar FileSizeExceededException se a imagem exceder 10MB")
-    void uploadAsset_ImageExceeds10MB_ThrowsException() {
+    @DisplayName("Deve lançar FileSizeExceededException se a imagem exceder 25MB")
+    void uploadAsset_ImageExceeds25MB_ThrowsException() {
         MockMultipartFile largeImage = new MockMultipartFile(
-                "file", "large.png", "image/png", new byte[11 * 1024 * 1024]
+                "file", "large.png", "image/png", new byte[26 * 1024 * 1024]
         );
 
         assertThatThrownBy(() -> siteContentService.uploadAsset(largeImage, "banners"))
                 .isInstanceOf(FileSizeExceededException.class)
-                .hasMessageContaining("excede o limite máximo permitido de 10 MB");
+                .hasMessageContaining("excede o limite máximo permitido de 25 MB");
 
         verify(storageService, never()).uploadFile(anyString(), anyString(), any());
     }

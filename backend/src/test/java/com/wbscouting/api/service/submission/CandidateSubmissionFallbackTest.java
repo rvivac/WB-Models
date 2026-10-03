@@ -60,7 +60,7 @@ class CandidateSubmissionFallbackTest {
         RestClient restClient = RestClient.builder().baseUrl(properties.getUrl()).build();
         storageService = new SupabaseStorageService(restClient, properties);
 
-        submissionService = new CandidateSubmissionServiceImpl(repository, storageService);
+        submissionService = new CandidateSubmissionServiceImpl(repository, storageService, properties);
 
         byte[] jpegBytes = new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0, 16, 'J', 'F', 'I', 'F'};
         facePhoto = new MockMultipartFile("facePhoto", "face.jpg", "image/jpeg", jpegBytes);

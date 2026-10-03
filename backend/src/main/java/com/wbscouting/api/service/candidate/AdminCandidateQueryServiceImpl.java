@@ -31,8 +31,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AdminCandidateQueryServiceImpl implements AdminCandidateQueryService {
 
-    public static final String DEFAULT_BUCKET_CANDIDATES = "candidates-uploads";
-    public static final int SIGNED_URL_EXPIRES_IN_SECONDS = 900; // 15 minutos
+    public static final int SIGNED_URL_EXPIRES_IN_SECONDS = 900;
 
     private final CandidateRepository candidateRepository;
     private final CandidatePhotoRepository candidatePhotoRepository;
@@ -259,10 +258,6 @@ public class AdminCandidateQueryServiceImpl implements AdminCandidateQueryServic
     }
 
     private String resolveBucketName() {
-        if (supabaseProperties != null && supabaseProperties.getBuckets() != null
-                && StringUtils.hasText(supabaseProperties.getBuckets().getCandidatesUploads())) {
-            return supabaseProperties.getBuckets().getCandidatesUploads();
-        }
-        return DEFAULT_BUCKET_CANDIDATES;
+        return supabaseProperties.resolveBucketCandidates();
     }
 }

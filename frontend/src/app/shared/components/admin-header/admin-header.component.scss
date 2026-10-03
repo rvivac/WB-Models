@@ -942,3 +942,61 @@ nav a, nav button, nav span {
     color: #4b584e;
   }
 }
+
+// ----------------------------------------------------
+// BARRA DEDICADA DE MÓDULO & SETOR (COLUNA DO DASHBOARD)
+// ----------------------------------------------------
+.sub-nav-bar {
+  border-top: 1px solid #e8ebe8;
+  background-color: #fbfbf9;
+  scrollbar-width: thin;
+  scrollbar-color: #d4d4d4 transparent;
+}
+
+.sub-sector-badge {
+  display: inline-block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #4b584e;
+  background: #f4f5f4;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid #e8ebe8;
+  line-height: 1.2;
+}
+
+.sub-module-title {
+  font-family: var(--font-serif, "Playfair Display", Georgia, serif);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #222624;
+}
+
+.sub-nav-item {
+  text-decoration: none;
+  padding: 0.25rem 0.25rem;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: #4b584e;
+
+    .sub-module-title {
+      color: #4b584e;
+    }
+  }
+
+  &.active-sub-link {
+    border-bottom-color: #171717;
+
+    .sub-module-title {
+      font-weight: 700;
+      color: #171717;
+    }
+  }
+}
+

@@ -196,6 +196,62 @@
 
   </div>
 
+  <!-- BARRA PERMANENTE: MÓDULO & SETOR (COLUNA DO DASHBOARD DIRETO NO HEADER) -->
+  <div class="sub-nav-bar w-full bg-[#FBFBF9] border-t border-neutral-200 px-4 sm:px-6 lg:px-8 py-2 overflow-x-auto select-none">
+    <div class="container max-w-7xl mx-auto flex items-center gap-3 lg:gap-5 text-xs whitespace-nowrap">
+      <span class="font-mono text-[9px] uppercase tracking-widest text-[#4B584E] font-bold shrink-0 border-r border-[#E8EBE8] pr-2.5">
+        Módulo &amp; Setor:
+      </span>
+
+      <!-- 1. Scouting: Candidaturas -->
+      <a routerLink="/admin/candidaturas" routerLinkActive="active-sub-link" class="sub-nav-item flex items-center gap-1.5 hover:text-[#4B584E] transition-colors shrink-0">
+        <span class="sub-sector-badge">Scouting</span>
+        <span class="sub-module-title">Candidaturas</span>
+        @if (pendingCandidatesCount > 0) {
+          <span class="badge-pending text-[9px] font-mono">{{ pendingCandidatesCount }}</span>
+        }
+      </a>
+
+      <!-- 2. Casting: Elenco & Stars -->
+      <a routerLink="/admin/models" routerLinkActive="active-sub-link" class="sub-nav-item flex items-center gap-1.5 hover:text-[#4B584E] transition-colors shrink-0">
+        <span class="sub-sector-badge">Casting</span>
+        <span class="sub-module-title">Elenco &amp; Stars</span>
+      </a>
+
+      <!-- 3. Institucional: Canais de Contato -->
+      <a routerLink="/admin/institucional/contatos" routerLinkActive="active-sub-link" class="sub-nav-item flex items-center gap-1.5 hover:text-[#4B584E] transition-colors shrink-0">
+        <span class="sub-sector-badge">Institucional</span>
+        <span class="sub-module-title">Canais de Contato</span>
+      </a>
+
+      <!-- 4. Internacional: Idiomas (PT/EN) -->
+      <a routerLink="/admin/institucional/idiomas" routerLinkActive="active-sub-link" class="sub-nav-item flex items-center gap-1.5 hover:text-[#4B584E] transition-colors shrink-0">
+        <span class="sub-sector-badge">Internacional</span>
+        <span class="sub-module-title">Idiomas (PT/EN)</span>
+      </a>
+
+      <!-- 5. Hero Media: Página Inicial -->
+      <a routerLink="/admin/institucional/home" routerLinkActive="active-sub-link" class="sub-nav-item flex items-center gap-1.5 hover:text-[#4B584E] transition-colors shrink-0">
+        <span class="sub-sector-badge">Hero Media</span>
+        <span class="sub-module-title">Página Inicial</span>
+      </a>
+
+      <!-- 6. Curadoria: Destaques da Vitrine -->
+      <a routerLink="/admin/destaques-home" routerLinkActive="active-sub-link" class="sub-nav-item flex items-center gap-1.5 hover:text-[#4B584E] transition-colors shrink-0">
+        <span class="sub-sector-badge">Curadoria</span>
+        <span class="sub-module-title">Destaques da Vitrine</span>
+      </a>
+
+      <!-- 7. Segurança: Gestão de Administradores (Exclusivo Webmaster) -->
+      @if (isWebmasterOrSuperAdmin) {
+        <a routerLink="/admin/usuarios" routerLinkActive="active-sub-link" class="sub-nav-item flex items-center gap-1.5 text-neutral-900 font-semibold hover:text-[#4B584E] transition-colors shrink-0">
+          <span class="sub-sector-badge bg-neutral-900 text-white border-neutral-900">Segurança &bull; Master</span>
+          <span class="sub-module-title font-bold">Gestão de Administradores</span>
+        </a>
+      }
+    </div>
+  </div>
+
   <!-- Menu Mobile Desdobrável -->
   @if (isMobileMenuOpen()) {
     <div class="mobile-dropdown md:hidden border-t border-neutral-200 bg-white px-6 py-4 space-y-3">

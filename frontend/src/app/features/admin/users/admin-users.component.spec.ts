@@ -44,7 +44,8 @@ describe('AdminUsersComponent', () => {
       'listUsers',
       'createUser',
       'toggleStatus',
-      'updateRole'
+      'updateRole',
+      'deleteUser'
     ]);
     authServiceSpy = jasmine.createSpyObj<AuthService>('AuthService', ['currentUser']);
 
@@ -129,5 +130,40 @@ describe('AdminUsersComponent', () => {
     expect(component.isCreateModalOpen()).toBeFalse();
     expect(component.isSuccessPasswordModalOpen()).toBeTrue();
     expect(component.createdTempPassword()).toBe('TempPassword@123');
+  });
+
+  it('deve impedir o auto-rebaixamento do Webmaster logado', () => {
+    const loggedUser = mockUsers[0]; // webmaster@wbagency.com.br
+    component.openRoleModal(loggedUser);
+    component.changeRoleForm.patchValue({ role: 'ADMIN' });
+
+    component.submitChangeRole();
+
+    expect(adminUserServiceSpy.updateRole).not.toHaveBeenCalled();
+    expect(component.errorMessage()).toContain('Não é permitido rebaixar seu próprio papel');
+  });
+
+  it('deve impedir a auto-exclusão do usuário logado', () => {
+    const loggedUser = mockUsers[0]; // webmaster@wbagency.com.br
+    component.openDeleteModal(loggedUser);
+
+    expect(component.isDeleteModalOpen()).toBeFalse();
+    expect(component.errorMessage()).toContain('você não pode excluir seu próprio usuário');
+  });
+
+  it('deve permitir abrir modal de exclusão e excluir outro administrador', () => {
+    const targetUser = mockUsers[1];
+    component.openDeleteModal(targetUser);
+
+    expect(component.isDeleteModalOpen()).toBeTrue();
+    expect(component.userToDelete()).toBe(targetUser);
+
+    adminUserServiceSpy.deleteUser.and.returnValue(of(void 0));
+
+    component.confirmDeleteUser();
+
+    expect(adminUserServiceSpy.deleteUser).toHaveBeenCalledWith(targetUser.id);
+    expect(component.isDeleteModalOpen()).toBeFalse();
+    expect(component.successMessage()).toContain('excluído com sucesso');
   });
 });

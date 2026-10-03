@@ -38,7 +38,7 @@ describe('ForgotPasswordComponent', () => {
     emailControl?.setValue('invalid-email');
     expect(emailControl?.valid).toBeFalse();
 
-    emailControl?.setValue('admin@wbscouting.com');
+    emailControl?.setValue('webmaster@wbagency.com.br');
     expect(emailControl?.valid).toBeTrue();
   });
 
@@ -47,10 +47,10 @@ describe('ForgotPasswordComponent', () => {
       of({ message: 'Se o e-mail informado estiver registrado em nossa base, as instruções de redefinição foram enviadas.' })
     );
 
-    component.forgotForm.setValue({ email: 'admin@wbscouting.com' });
+    component.forgotForm.setValue({ email: 'webmaster@wbagency.com.br' });
     component.onSubmit();
 
-    expect(authServiceSpy.requestPasswordReset).toHaveBeenCalledWith('admin@wbscouting.com');
+    expect(authServiceSpy.requestPasswordReset).toHaveBeenCalledWith('webmaster@wbagency.com.br');
     expect(component.isLoading).toBeFalse();
     expect(component.submittedSuccessfully).toBeTrue();
   });

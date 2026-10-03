@@ -18,4 +18,6 @@ public interface AdminUserService {
     AdminUserResponseDto toggleUserStatus(UUID id, String authenticatedEmail);
 
     AdminUserResponseDto updateRole(UUID id, AdminRole newRole, String authenticatedEmail);
+
+    void deleteSecondaryAdmin(UUID id, String authenticatedEmail);
 }

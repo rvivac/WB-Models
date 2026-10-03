@@ -38,8 +38,8 @@ class DataInitializerIdempotencyTest {
 
         dataInitializer = new DataInitializer(adminRepository, passwordEncoder, jdbcTemplate);
 
-        ReflectionTestUtils.setField(dataInitializer, "defaultName", "Administrador WB Scouting");
-        ReflectionTestUtils.setField(dataInitializer, "defaultEmail", "admin@wbscouting.com");
+        ReflectionTestUtils.setField(dataInitializer, "defaultName", "Webmaster WB Agency");
+        ReflectionTestUtils.setField(dataInitializer, "defaultEmail", "webmaster@wbagency.com.br");
         ReflectionTestUtils.setField(dataInitializer, "defaultPassword", "Admin@WbScouting2026!");
     }
 
@@ -88,10 +88,10 @@ class DataInitializerIdempotencyTest {
         verify(adminRepository, times(1)).save(adminCaptor.capture());
 
         Admin createdAdmin = adminCaptor.getValue();
-        assertThat(createdAdmin.getName()).isEqualTo("Administrador WB Scouting");
-        assertThat(createdAdmin.getEmail()).isEqualTo("admin@wbscouting.com");
+        assertThat(createdAdmin.getName()).isEqualTo("Webmaster WB Agency");
+        assertThat(createdAdmin.getEmail()).isEqualTo("webmaster@wbagency.com.br");
         assertThat(createdAdmin.getPasswordHash()).isEqualTo("bcrypt-encoded-strong-hash");
-        assertThat(createdAdmin.getRole()).isEqualTo(AdminRole.SUPER_ADMIN);
+        assertThat(createdAdmin.getRole()).isEqualTo(AdminRole.WEBMASTER);
         assertThat(createdAdmin.getIsActive()).isTrue();
     }
 

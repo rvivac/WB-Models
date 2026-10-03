@@ -261,7 +261,7 @@ export class AuthService {
       user = {
         id: authResult.id || 'admin-01',
         name: authResult.adminName || authResult.name || 'Administrador',
-        email: authResult.adminEmail || authResult.email || 'admin@wbscouting.com',
+        email: authResult.adminEmail || authResult.email || 'webmaster@wbagency.com.br',
         role: authResult.role || 'ADMIN'
       };
     }
@@ -331,7 +331,11 @@ export class AuthService {
 
   private isValidMockCredentials(credentials: LoginRequest): boolean {
     const email = credentials.email?.toLowerCase().trim();
-    const isAuthorizedEmail = email === 'admin@wbscouting.com';
+    // RBAC ADM-018: Apenas contas ativas oficiais da WB Agency
+    // A conta legada admin@wbscouting.com é estritamente rejeitada
+    const isAuthorizedEmail =
+      email === 'webmaster@wbagency.com.br' ||
+      email === 'info@wbagency.com.br';
     const isAuthorizedPassword =
       credentials.password === 'Admin@WbScouting2026!' ||
       credentials.password === 'admin123';
@@ -339,13 +343,18 @@ export class AuthService {
   }
 
   private generateMockAuthResponse(email: string): AuthResponse {
+    const normalizedEmail = email.toLowerCase().trim();
+    const isWebmaster = normalizedEmail === 'webmaster@wbagency.com.br';
+    const role = isWebmaster ? 'WEBMASTER' : 'ADMIN';
+    const name = isWebmaster ? 'Webmaster WB Agency' : 'Admin Secundário';
+
     // Cria um JWT mock estruturado (header.payload.signature) válido para decodificação
     const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
     const payload = btoa(
       JSON.stringify({
-        sub: email,
-        name: 'Administrador Editorial',
-        role: 'ADMIN',
+        sub: normalizedEmail,
+        name,
+        role,
         exp: Math.floor(Date.now() / 1000) + 3600 * 8 // Válido por 8 horas
       })
     );
@@ -360,10 +369,10 @@ export class AuthService {
       tokenType: 'Bearer',
       expiresIn: 28800,
       user: {
-        id: 'mock-admin-01',
-        name: 'Administrador Editorial',
-        email,
-        role: 'ADMIN'
+        id: isWebmaster ? 'mock-webmaster-01' : 'mock-admin-02',
+        name,
+        email: normalizedEmail,
+        role
       }
     };
   }

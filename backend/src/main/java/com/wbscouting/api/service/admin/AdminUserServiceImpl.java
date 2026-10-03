@@ -101,6 +101,10 @@ public class AdminUserServiceImpl implements AdminUserService {
         Admin target = adminRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Administrador não encontrado com o ID: " + id));
 
+        if (target.getEmail().equalsIgnoreCase(authenticatedEmail.trim()) && isSuperRole(target.getRole()) && !isSuperRole(newRole)) {
+            throw new IllegalArgumentException("Operação bloqueada: Não é permitido rebaixar seu próprio papel de Webmaster.");
+        }
+
         if (isSuperRole(target.getRole()) && !isSuperRole(newRole)) {
             long activeSuperAdmins = adminRepository.countByRoleInAndIsActiveTrue(List.of(AdminRole.SUPER_ADMIN, AdminRole.WEBMASTER));
             if (activeSuperAdmins <= 1) {
@@ -113,6 +117,27 @@ public class AdminUserServiceImpl implements AdminUserService {
         log.info("Papel do administrador ID: {} atualizado para {}", updated.getId(), updated.getRole());
 
         return toResponseDto(updated);
+    }
+
+    @Override
+    @Transactional
+    public void deleteSecondaryAdmin(UUID id, String authenticatedEmail) {
+        Admin target = adminRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Administrador não encontrado com o ID: " + id));
+
+        if (target.getEmail().equalsIgnoreCase(authenticatedEmail.trim())) {
+            throw new IllegalArgumentException("Operação bloqueada: Não é permitido excluir sua própria conta de administrador.");
+        }
+
+        if (isSuperRole(target.getRole())) {
+            long activeSuperAdmins = adminRepository.countByRoleInAndIsActiveTrue(List.of(AdminRole.SUPER_ADMIN, AdminRole.WEBMASTER));
+            if (activeSuperAdmins <= 1) {
+                throw new IllegalStateException("Operação bloqueada: Não é permitido excluir o único Webmaster/SuperAdmin ativo no sistema.");
+            }
+        }
+
+        adminRepository.delete(target);
+        log.info("Administrador ID: {} ({}) excluído com sucesso por {}", target.getId(), target.getEmail(), authenticatedEmail);
     }
 
     private boolean isSuperRole(AdminRole role) {

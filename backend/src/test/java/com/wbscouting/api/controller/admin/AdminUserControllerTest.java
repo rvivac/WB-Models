@@ -31,6 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -202,5 +203,27 @@ class AdminUserControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.role").value("SCOUT"));
+    }
+
+    @Test
+    @WithMockUser(username = "webmaster@wbagency.com.br", roles = {"WEBMASTER"})
+    @DisplayName("Webmaster deve excluir administrador secundário com sucesso")
+    void webmasterShouldDeleteSecondaryAdmin() throws Exception {
+        UUID id = UUID.randomUUID();
+
+        mockMvc.perform(delete("/api/v1/admin/users/" + id)
+                        .with(csrf()))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(username = "admin@wbagency.com.br", roles = {"ADMIN"})
+    @DisplayName("Usuário ADMIN comum deve receber 403 Forbidden ao tentar excluir administrador")
+    void adminShouldBeForbiddenToDeleteAdmin() throws Exception {
+        UUID id = UUID.randomUUID();
+
+        mockMvc.perform(delete("/api/v1/admin/users/" + id)
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
     }
 }

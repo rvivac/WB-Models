@@ -81,6 +81,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/i18n/**", "/api/v1/public/i18n/**", "/public/i18n/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/storage/local/**", "/api/v1/storage/local/**").permitAll()
 
+                        // Endpoints de gestão de usuários restritos exclusivamente a WEBMASTER e SUPER_ADMIN (ADM-018)
+                        .requestMatchers("/admin/users/**", "/api/v1/admin/users/**").hasAnyRole("WEBMASTER", "SUPER_ADMIN")
+
                         // Endpoints protegidos (Gestão e Backoffice)
                         .requestMatchers("/admin/**", "/api/v1/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN", "CONTENT_ADMIN", "WEBMASTER", "SCOUT")
                         .anyRequest().authenticated()

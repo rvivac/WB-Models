@@ -25,11 +25,13 @@ export class AdminUsersComponent implements OnInit {
   readonly isCreateModalOpen = signal<boolean>(false);
   readonly isRoleModalOpen = signal<boolean>(false);
   readonly isSuccessPasswordModalOpen = signal<boolean>(false);
+  readonly isDeleteModalOpen = signal<boolean>(false);
 
   // Estados temporários
   readonly createdTempPassword = signal<string>('');
   readonly createdUserEmail = signal<string>('');
   readonly selectedUserForRole = signal<AdminUserItem | null>(null);
+  readonly userToDelete = signal<AdminUserItem | null>(null);
   readonly copiedPassword = signal<boolean>(false);
 
   // Formulário de Criação
@@ -136,6 +138,13 @@ export class AdminUsersComponent implements OnInit {
     if (!user) return;
 
     const newRole = this.changeRoleForm.value.role;
+
+    if (this.isCurrentUser(user) && (user.role === 'WEBMASTER' || user.role === 'SUPER_ADMIN') && newRole !== user.role) {
+      this.errorMessage.set('Operação bloqueada: Não é permitido rebaixar seu próprio papel de Webmaster.');
+      setTimeout(() => this.errorMessage.set(null), 4000);
+      return;
+    }
+
     this.isLoading.set(true);
     this.errorMessage.set(null);
 
@@ -154,8 +163,45 @@ export class AdminUsersComponent implements OnInit {
     });
   }
 
+  openDeleteModal(user: AdminUserItem): void {
+    if (this.isCurrentUser(user)) {
+      this.errorMessage.set('Por segurança, você não pode excluir seu próprio usuário logado.');
+      setTimeout(() => this.errorMessage.set(null), 4000);
+      return;
+    }
+    this.userToDelete.set(user);
+    this.isDeleteModalOpen.set(true);
+  }
+
+  closeDeleteModal(): void {
+    this.isDeleteModalOpen.set(false);
+    this.userToDelete.set(null);
+  }
+
+  confirmDeleteUser(): void {
+    const user = this.userToDelete();
+    if (!user) return;
+
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+
+    this.adminUserService.deleteUser(user.id).subscribe({
+      next: () => {
+        this.isLoading.set(false);
+        this.closeDeleteModal();
+        this.successMessage.set(`Administrador ${user.name} excluído com sucesso.`);
+        setTimeout(() => this.successMessage.set(null), 4000);
+        this.loadUsers();
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        this.errorMessage.set(err?.error?.detail || 'Erro ao excluir administrador.');
+      }
+    });
+  }
+
   toggleStatus(user: AdminUserItem): void {
-    if (user.email === this.currentAdminEmail) {
+    if (this.isCurrentUser(user)) {
       this.errorMessage.set('Por segurança, você não pode desativar seu próprio usuário logado.');
       setTimeout(() => this.errorMessage.set(null), 4000);
       return;

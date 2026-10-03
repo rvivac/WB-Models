@@ -19,10 +19,10 @@ public class DataInitializer implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
-    @Value("${app.security.initial-admin.name:Administrador WB Scouting}")
+    @Value("${app.security.initial-admin.name:Webmaster WB Agency}")
     private String defaultName;
 
-    @Value("${app.security.initial-admin.email:admin@wbscouting.com}")
+    @Value("${app.security.initial-admin.email:webmaster@wbagency.com.br}")
     private String defaultEmail;
 
     @Value("${app.security.initial-admin.password:Admin@WbScouting2026!}")
@@ -39,7 +39,7 @@ public class DataInitializer implements CommandLineRunner {
                     .name(defaultName)
                     .email(defaultEmail.trim().toLowerCase())
                     .passwordHash(passwordEncoder.encode(defaultPassword))
-                    .role(AdminRole.SUPER_ADMIN)
+                    .role(AdminRole.WEBMASTER)
                     .isActive(true)
                     .build();
 

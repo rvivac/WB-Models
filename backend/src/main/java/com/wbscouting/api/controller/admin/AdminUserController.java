@@ -71,4 +71,13 @@ public class AdminUserController {
         AdminUserResponseDto response = adminUserService.updateRole(id, request.getRole(), email);
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteAdmin(
+            @PathVariable UUID id,
+            java.security.Principal principal) {
+        String email = resolveEmail(principal);
+        adminUserService.deleteSecondaryAdmin(id, email);
+        return ResponseEntity.noContent().build();
+    }
 }

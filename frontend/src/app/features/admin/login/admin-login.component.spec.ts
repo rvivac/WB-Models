@@ -60,7 +60,7 @@ describe('AdminLoginComponent', () => {
     expect(emailControl?.valid).toBeFalse();
     expect(passwordControl?.valid).toBeFalse();
 
-    emailControl?.setValue('admin@wbscouting.com');
+    emailControl?.setValue('webmaster@wbagency.com.br');
     passwordControl?.setValue('password123');
     expect(component.loginForm.valid).toBeTrue();
   });
@@ -69,12 +69,12 @@ describe('AdminLoginComponent', () => {
     authServiceSpy.login.and.returnValue(
       of({
         token: 'test-token',
-        user: { name: 'Admin', email: 'admin@wbscouting.com', role: 'ADMIN' }
+        user: { name: 'Admin', email: 'webmaster@wbagency.com.br', role: 'ADMIN' }
       })
     );
 
     component.loginForm.setValue({
-      email: 'admin@wbscouting.com',
+      email: 'webmaster@wbagency.com.br',
       password: 'password123',
       rememberMe: false
     });
@@ -82,7 +82,7 @@ describe('AdminLoginComponent', () => {
     component.onSubmit();
 
     expect(authServiceSpy.login).toHaveBeenCalledWith({
-      email: 'admin@wbscouting.com',
+      email: 'webmaster@wbagency.com.br',
       password: 'password123'
     });
     expect(router.navigateByUrl).toHaveBeenCalledWith('/admin/candidatos');
@@ -97,12 +97,12 @@ describe('AdminLoginComponent', () => {
     authServiceSpy.login.and.returnValue(
       of({
         token: 'test-token',
-        user: { name: 'Admin', email: 'admin@wbscouting.com', role: 'ADMIN' }
+        user: { name: 'Admin', email: 'webmaster@wbagency.com.br', role: 'ADMIN' }
       })
     );
 
     component.loginForm.setValue({
-      email: 'admin@wbscouting.com',
+      email: 'webmaster@wbagency.com.br',
       password: 'password123',
       rememberMe: false
     });
@@ -117,7 +117,7 @@ describe('AdminLoginComponent', () => {
     authServiceSpy.login.and.returnValue(
       of({
         token: 'test-token',
-        user: { name: 'Admin', email: 'admin@wbscouting.com', role: 'ADMIN' }
+        user: { name: 'Admin', email: 'webmaster@wbagency.com.br', role: 'ADMIN' }
       })
     );
 

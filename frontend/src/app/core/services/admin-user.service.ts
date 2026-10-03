@@ -62,4 +62,8 @@ export class AdminUserService {
   updateRole(id: string, role: string): Observable<AdminUserItem> {
     return this.http.patch<AdminUserItem>(`${this.baseUrl}/${id}/role`, { role });
   }
+
+  deleteUser(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }

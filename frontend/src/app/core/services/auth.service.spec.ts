@@ -48,15 +48,15 @@ describe('AuthService', () => {
     const payload = btoa(JSON.stringify({ exp: mockExp }));
     const testJwt = `${header}.${payload}.sig`;
 
-    const credentials = { email: 'admin@wbscouting.com', password: 'secretpassword' };
+    const credentials = { email: 'webmaster@wbagency.com.br', password: 'secretpassword' };
     const mockResponse = {
       token: testJwt,
       refreshToken: 'refresh-123',
       user: {
         id: 'admin-1',
         name: 'Carlos Booker',
-        email: 'admin@wbscouting.com',
-        role: 'ADMIN'
+        email: 'webmaster@wbagency.com.br',
+        role: 'WEBMASTER'
       }
     };
 
@@ -73,17 +73,35 @@ describe('AuthService', () => {
     req.flush(mockResponse);
   });
 
-  it('should handle mock fallback for local testing when backend is offline (status 0)', () => {
-    const credentials = { email: 'admin@wbscouting.com', password: 'admin123' };
+  it('should handle mock fallback for local testing with webmaster credentials when backend is offline', () => {
+    const credentials = { email: 'webmaster@wbagency.com.br', password: 'admin123' };
 
     service.login(credentials).subscribe((res) => {
       expect(res).toBeTruthy();
       expect(service.isAuthenticated()).toBeTrue();
-      expect(service.currentUser()?.email).toBe('admin@wbscouting.com');
+      expect(service.currentUser()?.email).toBe('webmaster@wbagency.com.br');
+      expect(service.currentUser()?.role).toBe('WEBMASTER');
     });
 
     const req = httpTesting.expectOne(`${environment.apiUrl}/auth/login`);
     req.flush('Network Error', { status: 0, statusText: 'Unknown Error' });
+  });
+
+  it('should reject legacy admin@wbscouting.com in offline mock fallback', () => {
+    const credentials = { email: 'admin@wbscouting.com', password: 'admin123' };
+    let errorThrown = false;
+
+    service.login(credentials).subscribe({
+      next: () => fail('Should not authenticate legacy email'),
+      error: (err) => {
+        errorThrown = true;
+        expect(err.status).toBe(0);
+      }
+    });
+
+    const req = httpTesting.expectOne(`${environment.apiUrl}/auth/login`);
+    req.flush('Network Error', { status: 0, statusText: 'Unknown Error' });
+    expect(errorThrown).toBeTrue();
   });
 
   it('should execute secureLogout by notifying backend, purging storage, and replacing url', () => {

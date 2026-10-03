@@ -157,6 +157,31 @@
               </td>
             </tr>
 
+            <!-- 7. Segurança: Gestão de Usuários & Administradores (Exclusivo Webmaster) -->
+            @if (isWebmasterOrSuperAdmin) {
+              <tr class="hover:bg-[#FBFBF9] transition-colors group">
+                <td class="align-top">
+                  <span class="sector-badge" style="background: #222624; color: #FFFFFF; border-color: #222624;">
+                    Segurança &bull; Master
+                  </span>
+                  <div class="module-name group-hover:text-[#4B584E] transition-colors">
+                    <a routerLink="/admin/usuarios" class="hover:underline">Gestão de Administradores</a>
+                  </div>
+                </td>
+                <td class="align-middle">
+                  <p class="module-desc">
+                    Controle exclusivo de contas, permissões, ativação, desativação e privilégios da equipe.
+                  </p>
+                </td>
+                <td class="align-middle text-right">
+                  <a routerLink="/admin/usuarios" class="module-action font-semibold">
+                    <span>Gerenciar</span>
+                    <span class="arrow">&rarr;</span>
+                  </a>
+                </td>
+              </tr>
+            }
+
           </tbody>
         </table>
       </div>
@@ -226,6 +251,11 @@
           <a routerLink="/admin/content" class="btn btn-ghost w-full text-center">
             Atualizar Vídeo Institucional
           </a>
+          @if (isWebmasterOrSuperAdmin) {
+            <a routerLink="/admin/usuarios" class="btn btn-outline w-full text-center" style="border-color: #222624; color: #222624;">
+              Gestão de Administradores
+            </a>
+          }
         </div>
       </div>
     </div>

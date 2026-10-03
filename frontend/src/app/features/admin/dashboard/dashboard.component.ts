@@ -26,6 +26,11 @@ export class DashboardComponent {
     { name: 'Beatriz Vasques', age: 17, height: '176 cm', city: 'Santos - SP', date: '16/09/2026', status: 'NOVO' }
   ]);
 
+  get isWebmasterOrSuperAdmin(): boolean {
+    const role = (this.authService.currentUser()?.role || '').toUpperCase();
+    return role === 'WEBMASTER' || role === 'SUPER_ADMIN';
+  }
+
   logout(): void {
     this.authService.logout();
   }

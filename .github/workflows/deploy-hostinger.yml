@@ -1,5 +1,5 @@
-# WB Agency - Pipeline de Deploy Hostinger (Angular 18 -> public_html via FTP)
-# Deploy trigger: 2026-10-03T15:35:00
+# WB Agency - Pipeline de Deploy Hostinger (Angular 18 -> domains/wbagency.com.br/public_html via FTP)
+# Deploy trigger: 2026-10-03T15:40:00
 name: Deploy Frontend para Hostinger
 
 on:
@@ -84,5 +84,5 @@ EOF
           port: 21
           timeout: 300000
           local-dir: ./frontend/dist/frontend/browser/
-          server-dir: ${{ secrets.FTP_SERVER_DIR || './' }}
+          server-dir: ${{ secrets.FTP_SERVER_DIR || 'domains/wbagency.com.br/public_html/' }}
 

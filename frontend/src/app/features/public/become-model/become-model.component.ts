@@ -49,9 +49,10 @@ export class BecomeModelComponent implements OnInit {
   get displayHeaderTitle(): string {
     if (this.translationService.currentLang() === 'en') {
       const translated = this.translationService.translate('apply_page.header_title');
-      if (translated && translated !== 'apply_page.header_title') {
+      if (translated && translated !== 'apply_page.header_title' && translated !== 'Quero ser Modelo' && translated !== 'QUERO SER MODELO') {
         return translated;
       }
+      return 'Be a Model';
     }
     return this.headerTitle;
   }
@@ -59,9 +60,10 @@ export class BecomeModelComponent implements OnInit {
   get displayHeaderDescription(): string {
     if (this.translationService.currentLang() === 'en') {
       const translated = this.translationService.translate('apply_page.header_description');
-      if (translated && translated !== 'apply_page.header_description') {
+      if (translated && translated !== 'apply_page.header_description' && !translated.startsWith('Se você deseja')) {
         return translated;
       }
+      return 'If you wish to join the WB Agency casting, please review the information below: fill out the application form and upload your photos for our digital evaluation.';
     }
     return this.headerDescription;
   }
@@ -80,9 +82,16 @@ export class BecomeModelComponent implements OnInit {
 
   getFaqQuestion(item: ApplyFaq, index: number): string {
     if (this.translationService.currentLang() === 'en') {
+      // 1. Semantic 1-to-1 question match (ensures identical questions in PT and EN)
+      const matched = this.matchFaqTranslation(item.question, item.answer);
+      if (matched?.question) {
+        return matched.question;
+      }
+
+      // 2. Index-based translation key fallback
       const key = `apply_page.faq_${index + 1}_q`;
       const translated = this.translationService.translate(key);
-      if (translated && translated !== key) {
+      if (translated && translated !== key && translated !== item.question) {
         return translated;
       }
     }
@@ -91,13 +100,147 @@ export class BecomeModelComponent implements OnInit {
 
   getFaqAnswer(item: ApplyFaq, index: number): string {
     if (this.translationService.currentLang() === 'en') {
+      // 1. Semantic 1-to-1 answer match
+      const matched = this.matchFaqTranslation(item.question, item.answer);
+      if (matched?.answer) {
+        return matched.answer;
+      }
+
+      // 2. Index-based translation key fallback
       const key = `apply_page.faq_${index + 1}_a`;
       const translated = this.translationService.translate(key);
-      if (translated && translated !== key) {
+      if (translated && translated !== key && translated !== item.answer) {
         return translated;
       }
     }
     return item.answer;
+  }
+
+  /**
+   * Intelligently resolves English translations based on question content and thematic keywords.
+   * Guarantees that every Portuguese FAQ question maps to its exact corresponding English question.
+   */
+  private matchFaqTranslation(question: string = '', answer: string = ''): { question: string; answer: string } | null {
+    const normQ = (question || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+    // 1. Production FAQ 1: Ideal Measurements / Medidas Ideais
+    if (normQ.includes('medida')) {
+      return {
+        question: 'What are the ideal measurements for the fashion and advertising industry?',
+        answer: 'There are no specific or fixed measurements. What matters most is having a striking personality, attitude, and a genuine passion to be a model.'
+      };
+    }
+
+    // 2. Production FAQ 2: Minimum Height / Altura Mínima
+    if (normQ.includes('altura') || normQ.includes('estatura')) {
+      return {
+        question: 'Is a minimum height required?',
+        answer: 'In the fashion and advertising market, this varies greatly. We evaluate all profiles, regardless of height.'
+      };
+    }
+
+    // 3. Production FAQ 3: How to apply / Digital evaluation / Primeiros Passos
+    if (normQ.includes('primeiros passos') || normQ.includes('avaliacao digital') || (normQ.includes('quero ser modelo') && normQ.includes('como'))) {
+      return {
+        question: 'I want to be a model! How do I get a digital evaluation? What should my first steps be?',
+        answer: 'First, correctly fill out all your information and measurements in the form below, keep your Instagram and TikTok open for everyone to view, and include all photos. Regardless of the outcome, everyone will receive an email response. If the feedback is positive, we will guide you through the next steps.'
+      };
+    }
+
+    // 4. Production FAQ 4: Photos / Book profissional / Fotos caseiras
+    if (normQ.includes('essas fotos') || (normQ.includes('book') && (normQ.includes('foto') || normQ.includes('preciso ter')))) {
+      return {
+        question: 'What should these photos look like? Do I need a professional book?',
+        answer: 'You do not need to pay for a professional portfolio/book. We prefer natural photos taken with a smartphone. Avoid: selfies, back-facing photos, sunglasses, or other accessories.\n\nTo take good photos, find a neutral-colored wall, during the day with natural light, no makeup, no photo editing, and no filters – we want to see your natural beauty. Wear a basic plain white or black t-shirt and jeans (heels for female applicants).\n\nMake sure to take photos:\n• Full-body and half-body;\n• Profile (side angle);\n• Close-up of your face – smiling and without smiling.'
+      };
+    }
+
+    // 5. Production FAQ 5: Starting age / A partir de qual idade posso trabalhar
+    if (normQ.includes('qual idade') || normQ.includes('a partir de qual idade') || normQ.includes('idade posso trabalhar')) {
+      return {
+        question: 'At what age can I work as a professional model?',
+        answer: 'In the past it was common to see models starting at age 13 or 14, but the industry becomes more professional each year, which is why we do not represent children.\n\nThe Brazilian fashion market, in accordance with labor legislation, requires professional models to be at least 16 years old to work in any advertising campaign, photos, films, runway shows… In Brazil, emancipation is required for anyone aged 16 to 17 under labor court legislation.'
+      };
+    }
+
+    // 6. Production FAQ 6: Agency evaluation fee / Preciso pagar taxa
+    if (normQ.includes('taxa') || (normQ.includes('pagar') && normQ.includes('avaliacao'))) {
+      return {
+        question: 'Do I need to pay any fee for an agency evaluation?',
+        answer: 'No, simply submit your details, measurements, and photos, and wait for your digital evaluation feedback.'
+      };
+    }
+
+    // 7. Production FAQ 7: Need to live in SP / Preciso morar em SP
+    if (normQ.includes('morar em sp') || normQ.includes('preciso morar') || (normQ.includes('morar') && normQ.includes('sp'))) {
+      return {
+        question: 'Do I need to live in São Paulo?',
+        answer: 'The main market clients are located in São Paulo – and the largest fashion week in Latin America takes place in the city. Therefore, being closer to this market is an advantage.'
+      };
+    }
+
+    // 8. Legacy / Fallback FAQ: Costs / Fees / Gratuito
+    if (normQ.includes('custo') || normQ.includes('pago') || normQ.includes('gratuito') || normQ.includes('cobran')) {
+      const q = this.translationService.translate('apply_page.faq_1_q');
+      const a = this.translationService.translate('apply_page.faq_1_a');
+      return {
+        question: (q && q !== 'apply_page.faq_1_q') ? q : 'Is there any cost for application or evaluation?',
+        answer: (a && a !== 'apply_page.faq_1_a') ? a : 'No. WB Agency never charges any fees for applications, profile evaluations, video tests, or initial representation. Our scouting process is 100% free of charge. Beware of anyone asking for payments on our behalf.'
+      };
+    }
+
+    // 9. Legacy / Fallback FAQ: Polaroids / Fotos enviadas
+    if (normQ.includes('polaroid') || normQ.includes('fotos enviadas')) {
+      return {
+        question: 'What should the polaroids and photos look like?',
+        answer: 'Photos should be as natural as possible: shot in good daytime natural light, against a clean neutral background, with no heavy makeup, no social media filters, no sunglasses, and no hats or accessories covering your face. Basic neutral-colored clothing is recommended.'
+      };
+    }
+
+    // 10. Legacy / Fallback FAQ: Minors / Menores de 18 anos
+    if (normQ.includes('menor') || normQ.includes('18 anos') || normQ.includes('responsavel')) {
+      return {
+        question: 'Can applicants under 18 years old apply?',
+        answer: 'Yes. WB Agency develops new talents starting from age 13. For applicants under 18 years old, parental/legal guardian consent and information (full name, tax ID/CPF, phone, and email) are strictly required.'
+      };
+    }
+
+    // 11. Legacy / Fallback FAQ: Results / Retorno / Prazo
+    if (normQ.includes('resultado') || normQ.includes('resposta') || normQ.includes('retorno') || normQ.includes('prazo') || normQ.includes('quando saberei')) {
+      return {
+        question: 'How and when will I know the evaluation results?',
+        answer: 'Our casting directors review all submitted dossiers. Due to high submission volume, our team will get in touch within 5 business days if your profile fits our current commercial, fashion, or editorial agency demands.'
+      };
+    }
+
+    // 12. Extra FAQ: Experiência prévia / Cursos
+    if (normQ.includes('experiencia') || normQ.includes('curso') || normQ.includes('escola') || normQ.includes('iniciante')) {
+      return {
+        question: 'Do I need previous modeling experience or school certification?',
+        answer: 'No previous experience or modeling course certification is required. WB Agency\'s scouting focuses on discovering raw, authentic talent and providing comprehensive career mentorship, runway training, and editorial direction.'
+      };
+    }
+
+    // 13. Extra FAQ: Fora de SP / Exterior
+    if (normQ.includes('fora de sao paulo') || normQ.includes('exterior') || normQ.includes('outro estado')) {
+      return {
+        question: 'Can I apply if I live outside São Paulo or abroad?',
+        answer: 'Yes, we evaluate applicants from all Brazilian states and internationally. The preliminary screening is completely online. If approved, our team coordinates the logistics for test shoots and meetings based on your location.'
+      };
+    }
+
+    // 14. Extra FAQ: Internacional / Contratos
+    if (normQ.includes('internacional') || normQ.includes('contrato') || normQ.includes('exclusividade') || normQ.includes('agenciamento')) {
+      return {
+        question: 'How does international representation work?',
+        answer: 'WB Agency maintains strategic partnerships with top fashion agencies across Paris, Milan, New York, and London. We manage international placement through transparent contracts, prioritizing talent protection and long-term career growth.'
+      };
+    }
+
+    return null;
   }
 
   get applyForm(): FormGroup {

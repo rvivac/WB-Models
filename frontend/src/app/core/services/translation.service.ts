@@ -4,10 +4,16 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of } from 'rxjs';
 
 import ptTranslations from '../../../assets/i18n/pt.json';
+import enTranslations from '../../../assets/i18n/en.json';
 
 export type SupportedLanguage = 'pt' | 'en';
 
 const STORAGE_KEY = 'wb_scouting_lang';
+
+const DEFAULT_DICTIONARIES: Record<SupportedLanguage, Record<string, any>> = {
+  pt: ptTranslations as Record<string, any>,
+  en: enTranslations as Record<string, any>
+};
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +24,9 @@ export class TranslationService {
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   readonly currentLang = signal<SupportedLanguage>(this.getInitialLanguage());
-  readonly translations = signal<Record<string, any>>(ptTranslations as Record<string, any>);
+  readonly translations = signal<Record<string, any>>(
+    DEFAULT_DICTIONARIES[this.getInitialLanguage()] || ptTranslations
+  );
 
   constructor() {}
 
@@ -40,6 +48,8 @@ export class TranslationService {
     }
 
     this.currentLang.set(lang);
+    // Instant synchronous switch to bundled translations (zero delay / flicker)
+    this.translations.set(DEFAULT_DICTIONARIES[lang] || ptTranslations);
 
     if (this.isBrowser) {
       try {
@@ -72,9 +82,21 @@ export class TranslationService {
     }
 
     if (typeof current !== 'string') {
-      // Fallback para o dicionário padrão ptTranslations caso a chave não exista no idioma atual
-      if (dict !== ptTranslations) {
-        let fallbackCurrent: any = ptTranslations;
+      const activeLang = this.currentLang();
+      const bundledDict = DEFAULT_DICTIONARIES[activeLang] || ptTranslations;
+
+      let fallbackCurrent: any = bundledDict;
+      for (const segment of segments) {
+        if (fallbackCurrent && typeof fallbackCurrent === 'object' && segment in fallbackCurrent) {
+          fallbackCurrent = fallbackCurrent[segment];
+        } else {
+          fallbackCurrent = undefined;
+          break;
+        }
+      }
+
+      if (typeof fallbackCurrent !== 'string' && activeLang !== 'pt') {
+        fallbackCurrent = ptTranslations;
         for (const segment of segments) {
           if (fallbackCurrent && typeof fallbackCurrent === 'object' && segment in fallbackCurrent) {
             fallbackCurrent = fallbackCurrent[segment];
@@ -83,16 +105,18 @@ export class TranslationService {
             break;
           }
         }
-        if (typeof fallbackCurrent === 'string') {
-          let fallbackResult = fallbackCurrent;
-          if (params) {
-            Object.entries(params).forEach(([placeholder, value]) => {
-              fallbackResult = fallbackResult.replace(new RegExp(`\\{${placeholder}\\}`, 'g'), String(value));
-            });
-          }
-          return fallbackResult;
-        }
       }
+
+      if (typeof fallbackCurrent === 'string') {
+        let fallbackResult = fallbackCurrent;
+        if (params) {
+          Object.entries(params).forEach(([placeholder, value]) => {
+            fallbackResult = fallbackResult.replace(new RegExp(`\\{${placeholder}\\}`, 'g'), String(value));
+          });
+        }
+        return fallbackResult;
+      }
+
       return key;
     }
 
@@ -120,16 +144,17 @@ export class TranslationService {
     return this.http.get<Record<string, any>>(`/assets/i18n/${lang}.json`).pipe(
       tap((data) => {
         if (data && Object.keys(data).length > 0) {
-          this.translations.set(data);
+          this.translations.set({
+            ...DEFAULT_DICTIONARIES[lang],
+            ...data
+          });
         }
       }),
       catchError((error) => {
-        console.error(`Failed to load translations for '${lang}'`, error);
-        if (lang === 'pt') {
-          this.translations.set(ptTranslations as Record<string, any>);
-          return of(ptTranslations as Record<string, any>);
-        }
-        return of({});
+        console.warn(`Failed to load external translations for '${lang}', using bundled translations:`, error);
+        const fallback = DEFAULT_DICTIONARIES[lang] || ptTranslations;
+        this.translations.set(fallback);
+        return of(fallback);
       })
     );
   }

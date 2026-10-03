@@ -1,5 +1,5 @@
 # WB Agency - Pipeline de Deploy Hostinger (Angular 18 -> public_html via FTP)
-# Deploy trigger: 2026-10-02T11:08:15
+# Deploy trigger: 2026-10-03T11:50:00
 name: Deploy Frontend para Hostinger
 
 on:

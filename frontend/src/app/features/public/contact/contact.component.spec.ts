@@ -87,18 +87,23 @@ describe('ContactComponent (SITE-004 Anti-Scraping & CyberSecurity)', () => {
   });
 
   describe('Contact Channels Cards', () => {
-    it('should render all 3 distinct contact cards (Casting, Bookers, Social)', () => {
+    it('should render the simplified Contatos card with all direct channels', () => {
       const compiled = fixture.nativeElement as HTMLElement;
-      expect(compiled.querySelector('#card-casting')).toBeTruthy();
       expect(compiled.querySelector('#card-bookers')).toBeTruthy();
-      expect(compiled.querySelector('#card-instagram')).toBeTruthy();
+      expect(compiled.querySelector('#btn-secure-whatsapp')).toBeTruthy();
+      expect(compiled.querySelector('#btn-secure-phone')).toBeTruthy();
+      expect(compiled.querySelector('#btn-secure-email')).toBeTruthy();
+      expect(compiled.querySelector('#btn-secure-instagram')).toBeTruthy();
     });
 
-    it('should provide casting redirection to /seja-modelo', () => {
+    it('should trigger openPhone() on Phone button click', () => {
+      const spy = spyOn(secureContactService, 'openPhone');
       const compiled = fixture.nativeElement as HTMLElement;
-      const applyBtn = compiled.querySelector('#btn-apply-casting') as HTMLAnchorElement;
-      expect(applyBtn).toBeTruthy();
-      expect(applyBtn.getAttribute('routerLink')).toBe('/seja-modelo');
+      const phoneBtn = compiled.querySelector('#btn-secure-phone') as HTMLButtonElement;
+      expect(phoneBtn).toBeTruthy();
+
+      phoneBtn.click();
+      expect(spy).toHaveBeenCalled();
     });
 
     it('should trigger openWhatsApp() on WhatsApp button click', () => {

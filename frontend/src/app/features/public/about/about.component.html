@@ -25,24 +25,8 @@
 
     <!-- Conteúdo Principal do Manifesto -->
     <section class="about-content-section">
-      <div class="content-grid">
-        <!-- Coluna de Texto Principal (CMS) -->
-        <div class="text-column">
-          <p class="about-body-text">{{ aboutContent().body }}</p>
-        </div>
-
-        <!-- Coluna de Pilares Estratégicos -->
-        <div class="pillars-column">
-          @for (pillar of pillars(); track pillar.order || $index) {
-            <div class="pillar-card">
-              <span class="pillar-number">{{ (pillar.order < 10 ? '0' + pillar.order : pillar.order) || '0' + ($index + 1) }}</span>
-              <div class="pillar-details">
-                <h3 class="pillar-heading">{{ pillar.titulo }}</h3>
-                <p class="pillar-desc">{{ pillar.descricao }}</p>
-              </div>
-            </div>
-          }
-        </div>
+      <div class="text-column">
+        <p class="about-body-text">{{ aboutContent().body }}</p>
       </div>
     </section>
 

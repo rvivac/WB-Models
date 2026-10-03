@@ -73,19 +73,9 @@
 .about-content-section {
   padding: 0 0 4rem 0;
 
-  .content-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 3.5rem;
-
-    @media (min-width: 992px) {
-      grid-template-columns: 1.25fr 1fr;
-      gap: 5rem;
-      align-items: start;
-    }
-  }
-
   .text-column {
+    max-width: 800px;
+
     .about-body-text {
       font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, sans-serif);
       font-size: 1.125rem;
@@ -93,56 +83,6 @@
       color: var(--text-secondary, #444B46);
       white-space: pre-line;
       margin: 0;
-    }
-  }
-
-  .pillars-column {
-    display: flex;
-    flex-direction: column;
-    gap: 1.75rem;
-
-    .pillar-card {
-      display: flex;
-      gap: 1.25rem;
-      align-items: flex-start;
-      padding: 1.5rem;
-      background-color: var(--bg-secondary, #FBFBF9);
-      border: 1px solid var(--border-subtle, #E8EBE8);
-      border-radius: 0;
-      transition: all 0.25s ease;
-
-      &:hover {
-        border-color: var(--gold-light, #C5A880);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-      }
-
-      .pillar-number {
-        font-family: var(--font-serif, "Cormorant Garamond", Georgia, serif);
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--gold-light, #C5A880);
-        line-height: 1;
-        padding-top: 0.15rem;
-      }
-
-      .pillar-details {
-        .pillar-heading {
-          font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, sans-serif);
-          font-size: 0.95rem;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          color: var(--text-primary, #222624);
-          margin: 0 0 0.4rem 0;
-        }
-
-        .pillar-desc {
-          font-size: 0.875rem;
-          color: var(--text-secondary, #5F6661);
-          line-height: 1.55;
-          margin: 0;
-        }
-      }
     }
   }
 }

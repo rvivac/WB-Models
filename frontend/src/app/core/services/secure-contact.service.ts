@@ -112,6 +112,11 @@ export class SecureContactService {
     };
   }
 
+  openPhone(): void {
+    const raw = this._phone().replace(/[^\d+]/g, '');
+    window.location.href = `tel:${raw}`;
+  }
+
   openMail(): void {
     const target = this._email();
     window.location.href = `mailto:${target}?subject=Contato%20Comercial%20-%20WB%20Agency`;

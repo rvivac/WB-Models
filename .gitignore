@@ -1,6 +1,7 @@
 # Node & Angular
 **/node_modules/
 **/dist/
+deploy-wbagency/
 **/.angular/
 frontend/.angular/cache
 npm-debug.log*

@@ -90,8 +90,30 @@
 }
 
 // -------------------------------------------------------------
-// 1. Grid de Cartões de Canais Oficiais
-// -------------------------------------------------------------
+.channels-grid,
+.contacts-single-section {
+  max-width: 860px;
+  margin: 0 auto 3.5rem auto;
+}
+
+.card-contacts-unified {
+  padding: 2.25rem;
+
+  @media (min-width: 768px) {
+    padding: 2.75rem;
+  }
+}
+
+.contacts-grid-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .channels-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -427,6 +449,24 @@
     }
   }
 
+  // Estilo específico do Telefone
+  &.btn-phone {
+    .btn-protected-icon {
+      background: var(--wb-primary-subtle);
+      color: var(--wb-primary);
+      border: 1px solid rgba(75, 88, 78, 0.2);
+    }
+
+    &:hover {
+      border-color: var(--wb-primary);
+
+      .btn-click-hint {
+        color: var(--wb-primary);
+        transform: translateX(3px);
+      }
+    }
+  }
+
   // Estilo específico do E-mail
   &.btn-email {
     .btn-protected-icon {
@@ -440,6 +480,24 @@
 
       .btn-click-hint {
         color: var(--wb-primary);
+        transform: translateX(3px);
+      }
+    }
+  }
+
+  // Estilo específico do Instagram
+  &.btn-instagram {
+    .btn-protected-icon {
+      background: rgba(225, 48, 108, 0.08);
+      color: #c13584;
+      border: 1px solid rgba(225, 48, 108, 0.2);
+    }
+
+    &:hover {
+      border-color: #c13584;
+
+      .btn-click-hint {
+        color: #c13584;
         transform: translateX(3px);
       }
     }

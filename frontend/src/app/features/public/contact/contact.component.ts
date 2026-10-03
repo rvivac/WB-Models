@@ -47,6 +47,10 @@ export class ContactComponent implements OnInit {
     this.secureContact.openWhatsApp();
   }
 
+  onPhoneClick(): void {
+    this.secureContact.openPhone();
+  }
+
   onMailClick(): void {
     this.secureContact.openMail();
   }

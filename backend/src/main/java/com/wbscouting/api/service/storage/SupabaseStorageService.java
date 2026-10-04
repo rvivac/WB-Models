@@ -51,6 +51,10 @@ public class SupabaseStorageService implements StorageService {
             "video/webm"
     );
 
+    public static final Set<String> ALLOWED_PDF_TYPES = Set.of(
+            "application/pdf"
+    );
+
     @Override
     public String uploadFile(String bucket, String path, MultipartFile file) {
         log.info("Iniciando upload de arquivo para bucket='{}', path='{}'", bucket, path);
@@ -425,36 +429,56 @@ public class SupabaseStorageService implements StorageService {
         // Mapeamento dos limites e validação estrita por bucket
         if ("site-assets".equalsIgnoreCase(bucket)) {
             if (fileSize > MAX_SIZE_SITE_ASSETS) {
+                final double maxMb = MAX_SIZE_SITE_ASSETS / (1024.0 * 1024.0);
                 throw new FileSizeExceededException(String.format(
-                        "O arquivo excede o limite máximo permitido de 25 MB para o bucket 'site-assets'. Tamanho enviado: %.2f MB",
-                        fileSize / (1024.0 * 1024.0)));
+                        "O arquivo excede o limite máximo permitido de %.0f MB para o bucket 'site-assets'. Tamanho enviado: %.2f MB",
+                        maxMb, fileSize / (1024.0 * 1024.0)));
             }
-            boolean isAllowed = ALLOWED_IMAGE_TYPES.contains(contentType) || ALLOWED_VIDEO_TYPES.contains(contentType);
+            boolean isAllowed = ALLOWED_IMAGE_TYPES.contains(contentType)
+                    || ALLOWED_VIDEO_TYPES.contains(contentType)
+                    || ALLOWED_PDF_TYPES.contains(contentType);
             if (!isAllowed) {
                 throw new InvalidFileException(String.format(
-                        "Tipo de arquivo '%s' não permitido para o bucket 'site-assets'. Permitidos: JPEG, PNG, WEBP, MP4, WEBM.",
+                        "Tipo de arquivo '%s' não permitido para o bucket 'site-assets'. Permitidos: Imagens (JPEG, PNG, WEBP), Vídeos (MP4, WEBM) e PDF.",
                         contentType));
             }
         } else if ("models-media".equalsIgnoreCase(bucket)) {
             if (fileSize > MAX_SIZE_MODELS_MEDIA) {
+                final double maxMb = MAX_SIZE_MODELS_MEDIA / (1024.0 * 1024.0);
                 throw new FileSizeExceededException(String.format(
-                        "O arquivo excede o limite máximo permitido de 8 MB para o bucket 'models-media'. Tamanho enviado: %.2f MB",
-                        fileSize / (1024.0 * 1024.0)));
+                        "O arquivo excede o limite máximo permitido de %.0f MB para o bucket 'models-media'. Tamanho enviado: %.2f MB",
+                        maxMb, fileSize / (1024.0 * 1024.0)));
             }
-            if (!ALLOWED_IMAGE_TYPES.contains(contentType)) {
+            // 🟢 PDF PERMITIDO APENAS se o path for do composite (nao aceita PDF no book fotográfico)
+            boolean isCompositePath = (path != null) && path.toLowerCase().contains("/composite/");
+            boolean isAllowedType = ALLOWED_IMAGE_TYPES.contains(contentType)
+                    || (isCompositePath && ALLOWED_PDF_TYPES.contains(contentType));
+            if (!isAllowedType) {
+                if (!ALLOWED_IMAGE_TYPES.contains(contentType) && !ALLOWED_PDF_TYPES.contains(contentType)) {
+                    throw new InvalidFileException(String.format(
+                            "Tipo de arquivo '%s' não permitido para o bucket 'models-media'. " +
+                            "Para Book & Polaroids são aceitas apenas imagens (JPEG, PNG, WEBP). " +
+                            "Para o Composite Oficial (pasta /composite/) são aceitos PDF e Imagens (JPEG, PNG, WEBP).",
+                            contentType));
+                }
+                // Chegou aqui: eh PDF mas nao esta na pasta /composite/
                 throw new InvalidFileException(String.format(
-                        "Tipo de arquivo '%s' não permitido para o bucket 'models-media'. Apenas imagens JPEG, PNG e WEBP são aceitas.",
+                        "Arquivo PDF detectado (tipo '%s') enviado para o path não permitido. " +
+                        "PDFs de modelos SÃO ACEITOS APENAS no Composite Oficial (pasta '/composite/'). " +
+                        "Para o acervo fotográfico do Book & Polaroids envie apenas imagens JPEG, PNG ou WEBP.",
                         contentType));
             }
         } else if ("candidates-uploads".equalsIgnoreCase(bucket)) {
             if (fileSize > MAX_SIZE_CANDIDATES_UPLOADS) {
+                final double maxMb = MAX_SIZE_CANDIDATES_UPLOADS / (1024.0 * 1024.0);
                 throw new FileSizeExceededException(String.format(
-                        "O arquivo excede o limite máximo permitido de 5 MB para o bucket 'candidates-uploads'. Tamanho enviado: %.2f MB",
-                        fileSize / (1024.0 * 1024.0)));
+                        "O arquivo excede o limite máximo permitido de %.0f MB para o bucket 'candidates-uploads'. Tamanho enviado: %.2f MB",
+                        maxMb, fileSize / (1024.0 * 1024.0)));
             }
             if (!ALLOWED_IMAGE_TYPES.contains(contentType)) {
                 throw new InvalidFileException(String.format(
-                        "Tipo de arquivo '%s' não permitido para o bucket 'candidates-uploads'. Apenas imagens JPEG, PNG e WEBP são aceitas.",
+                        "Tipo de arquivo '%s' não permitido para o bucket 'candidates-uploads'. " +
+                        "Apenas imagens JPEG, PNG e WEBP são aceitas no formulário de cadastro de candidatas.",
                         contentType));
             }
         } else {

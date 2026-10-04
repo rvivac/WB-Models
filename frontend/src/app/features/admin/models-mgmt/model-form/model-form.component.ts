@@ -150,7 +150,7 @@ export class ModelFormComponent implements OnInit {
     files.forEach((file, idx) => {
       // Marca previa temporaria como isUploading=true (feedback visual)
       const previews = this.galleryPhotos();
-      const tempPhoto = previews.find(p => p.id.startsWith('temp-') && !(p as any).__uploadStarted);
+      const tempPhoto = previews.find(p => p?.id && p.id.startsWith('temp-') && !(p as any).__uploadStarted);
       if (tempPhoto) {
         tempPhoto.isUploading = true;
         tempPhoto.uploadProgress = 1;
@@ -164,7 +164,7 @@ export class ModelFormComponent implements OnInit {
           } else if (ev.type === HttpEventType.Response && ev.body) {
             const saved = ev.body;
             // Remove a previa temporaria temp-
-            let galeriaNova = this.galleryPhotos().filter(p => !(p.id.startsWith('temp-')));
+            let galeriaNova = this.galleryPhotos().filter(p => !(p?.id && p.id.startsWith('temp-')));
             // Insere foto REAL do banco
             const fotoReal: GalleryPhoto = {
               id: saved.id,

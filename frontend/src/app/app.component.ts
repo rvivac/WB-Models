@@ -5,13 +5,16 @@ import { filter, map } from 'rxjs/operators';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { AdminHeaderComponent } from './shared/components/admin-header/admin-header.component';
-import { AdminVersionBadgeComponent } from './shared/components/admin-version-badge/admin-version-badge.component';
 import { AuthService } from './core/services/auth.service';
+
+// TODO: Crie o arquivo src/app/shared/components/admin-version-badge/admin-version-badge.component.ts
+//       Depois remova os comentarios abaixo e re-adicione no imports[] + no template.
+// import { AdminVersionBadgeComponent } from './shared/components/admin-version-badge/admin-version-badge.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterModule, HeaderComponent, FooterComponent, AdminHeaderComponent, AdminVersionBadgeComponent],
+  imports: [RouterModule, HeaderComponent, FooterComponent, AdminHeaderComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })

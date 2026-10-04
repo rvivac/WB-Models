@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "prebuild": "node -e \"(async()=>{const e=require('child_process'),t=require('fs'),i='src/environments/version.ts';function r(c){try{return e.execSync(c,{encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim()}catch{return''}}const n=r('git rev-parse HEAD')||'dev-local';const o=r('git rev-parse --short HEAD')||'dev';const s=r('git rev-parse --abbrev-ref HEAD')||'local';const a=new Date().toISOString();const d=`/** * Arquivo GERADO AUTOMATICAMENTE por prebuild package.json * NAO EDITE MANUALMENTE. */\nexport const APP_VERSION = {\n  commit: '${n}',\n  short: '${o}',\n  branch: '${s}',\n  buildDate: '${a}',\n};\n`;t.mkdirSync('src/environments',{recursive:true});t.writeFileSync(i,d,'utf8');console.log('[prebuild] version.ts atualizado: commit='+o);})();\"",
+    "prebuild": "node scripts/prebuild-version.js",
     "build": "ng build",
     "build:prod": "ng build --configuration production",
     "build:hostinger": "powershell -ExecutionPolicy Bypass -File ../scripts/prepare-hostinger-bundle.ps1",

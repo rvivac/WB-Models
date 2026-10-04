@@ -22,7 +22,12 @@ export class HomeFeaturedModelsComponent implements OnInit {
   readonly skeletonArray = [1, 2, 3, 4, 5, 6, 7, 8];
 
   // Imagem de fallback de alta moda caso o modelo não possua coverImageUrl configurada
-  readonly defaultCoverImage = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop';
+  // ou se a imagem retornar erro HTTP 400/404/403 (URL incompleta, bucket indisponivel, etc)
+  readonly defaultCoverImage =
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=900&auto=format&fit=crop';
+
+  // Guardamos IDs dos modelos cuja imagem falhou no carregamento (usa fallback placeholder)
+  readonly brokenImageIds = signal<Set<string>>(new Set());
 
   ngOnInit(): void {
     this.loadFeatured();
@@ -31,6 +36,7 @@ export class HomeFeaturedModelsComponent implements OnInit {
   loadFeatured(): void {
     this.isLoading.set(true);
     this.hasError.set(false);
+    this.brokenImageIds.set(new Set());
 
     this.publicModelService.getFeaturedModels(8).subscribe({
       next: (response) => {
@@ -46,9 +52,36 @@ export class HomeFeaturedModelsComponent implements OnInit {
     });
   }
 
+  /**
+   * Chamado pelo (error) da tag <img> do modelo quando a imagem falha
+   * (ex: URL incompleta, bucket indisponivel, HTTP 400).
+   * Marca o modelo como "falhou" para trocar pro placeholder Unsplash.
+   */
+  onCoverError(modelId: string): void {
+    if (!modelId) return;
+    this.brokenImageIds.update(prev => {
+      const nxt = new Set(prev);
+      nxt.add(modelId);
+      return nxt;
+    });
+  }
+
   getCoverImage(model: ModelCardPublicDto): string {
-    return model.coverImageUrl && model.coverImageUrl.trim() !== ''
-      ? model.coverImageUrl
-      : this.defaultCoverImage;
+    // 1) Se a imagem já falhou para este modelo, usa placeholder direto
+    if (model?.id && this.brokenImageIds().has(model.id)) {
+      return this.defaultCoverImage;
+    }
+    // 2) Se tem coverImageUrl e não parece vazia / incompleta
+    if (model?.coverImageUrl && model.coverImageUrl.trim() !== '') {
+      const url = model.coverImageUrl.trim();
+      // Protecao: URLs incompletas (ex: "/public/models-media/" sem path de arquivo)
+      // nao terminam com / ou tem o caminho menor que 30 chars apos o bucket = usamos fallback
+      if (url.endsWith('/') || url.length < 40) {
+        return this.defaultCoverImage;
+      }
+      return url;
+    }
+    // 3) Fallback final: placeholder editorial.
+    return this.defaultCoverImage;
   }
 }

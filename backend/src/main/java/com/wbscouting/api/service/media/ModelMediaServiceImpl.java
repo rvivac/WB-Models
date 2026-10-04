@@ -95,7 +95,9 @@ public class ModelMediaServiceImpl implements ModelMediaService {
         String safePublicUrl = storageService.resolvePublicUrlFromFields(bucket, uploadedPath, rawPublicUrl);
         if (!java.util.Objects.equals(rawPublicUrl, safePublicUrl)) {
             log.warn("[uploadMedia] Fallback URL ativado. modelId={}, mediaType={}, rawURL={}, safeURL={}",
-                    modelId, mediaType, truncate(rawPublicUrl, 80), truncate(safePublicUrl, 120));
+                    modelId, mediaType,
+                    org.springframework.util.StringUtils.truncate(rawPublicUrl == null ? "null" : rawPublicUrl, 80),
+                    org.springframework.util.StringUtils.truncate(safePublicUrl == null ? "null" : safePublicUrl, 120));
         }
 
         // Bust cache -> garante que a foto NOVA apareça INSTANTANEAMENTE no site público,

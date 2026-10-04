@@ -97,13 +97,44 @@ public class PublicModelServiceImpl implements PublicModelService {
     }
 
     private String resolveCoverImageUrl(Model model) {
-        // 1. Foto primaria do cadastro (validando URL completa)
+        // 1. Foto primaria do cadastro (validando URL completa + FALLBACK se incompleta!)
         String primary = model.getPrimaryPhotoUrl();
         if (StringUtils.hasText(primary)) {
             String modelsMediaBucket = storageService.getProperties().resolveBucketModelsMedia();
-            boolean ok = primary.contains(modelsMediaBucket + "/")
-                    && primary.lastIndexOf(modelsMediaBucket + "/") + modelsMediaBucket.length() + 1 < primary.length();
-            if (ok) return primary;
+            // a) URL parece OK (possui caminho do arquivo apos o bucket) -> retorna direto
+            boolean pareceCompleta = primary.contains(modelsMediaBucket + "/")
+                    && primary.lastIndexOf(modelsMediaBucket + "/") + modelsMediaBucket.length() + 1 < primary.length()
+                    && !primary.endsWith("/");
+            if (pareceCompleta) return primary;
+
+            // b) URL incompleta ou suspeita? TENTA FALLBACK: remontar usando filePath de qualquer modelMedia
+            // (usa o helper resolvePublicUrlFromFields criado ontem, nunca mais da HTTP 400)
+            String filePathGuess = null;
+            if (model.getMedia() != null && !model.getMedia().isEmpty()) {
+                for (ModelMedia m : model.getMedia()) {
+                    if (Boolean.TRUE.equals(m.getIsActive()) && Boolean.TRUE.equals(m.getIsCover())) {
+                        filePathGuess = m.getFilePath();
+                        break;
+                    }
+                }
+                if (filePathGuess == null) {
+                    // Se nenhuma capa marcada, usa primeira BOOK ou primeira ativa
+                    for (ModelMedia m : model.getMedia()) {
+                        if (Boolean.TRUE.equals(m.getIsActive()) && m.getMediaType() == MediaType.BOOK) {
+                            filePathGuess = m.getFilePath(); break;
+                        }
+                    }
+                    if (filePathGuess == null) {
+                        for (ModelMedia m : model.getMedia()) {
+                            if (Boolean.TRUE.equals(m.getIsActive())) { filePathGuess = m.getFilePath(); break; }
+                        }
+                    }
+                }
+            }
+            String remontada = storageService.resolvePublicUrlFromFields(modelsMediaBucket, filePathGuess, primary);
+            if (StringUtils.hasText(remontada) && !remontada.endsWith("/") && remontada.length() > 40) {
+                return remontada;
+            }
         }
 
         if (model.getMedia() != null && !model.getMedia().isEmpty()) {

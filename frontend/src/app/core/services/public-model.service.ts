@@ -361,30 +361,46 @@ export class PublicModelService {
   }
 
   /**
-   * Busca modelos em destaque (Stars) para a Home Page.
-   * Caso não haja modelos marcados como Star, busca os modelos ativos mais recentes.
-   * Em caso de falha da API (ex: GitHub Pages estático), utiliza os dados de mock.
+   * Busca modelos em DESTAQUE DA VITRINE HOME (campo isFeaturedHome=true).
+   * Endpoint: /public/models/featured
+   * (NÃO confundir com isStar: Star = modelo destaque de carreira.
+   *                isFeaturedHome = aparece ou não na VITRINE INICIAL)
+   *
+   * O backend retorna LIST<ModelCardPublicDto> DIRETA (sem paginação).
+   * Mantemos compatibilidade PageResponseDto { content } para os componentes.
+   * Fallback 1: se /featured vazio, pega os STARS (isStar=true).
+   * Fallback 2: falha de rede, usa catalogo estático mock.
    */
   getFeaturedModels(limit: number = 8): Observable<PageResponseDto<ModelCardPublicDto>> {
-    return this.api.get<PageResponseDto<ModelCardPublicDto>>('/public/models', {
-      isStar: true,
-      size: limit,
-      page: 0
-    }).pipe(
-      switchMap(response => {
-        // Se a busca por Stars retornar modelos, retorna a resposta
-        if (response && response.content && response.content.length > 0) {
-          return of(response);
+    return this.api.get<ModelCardPublicDto[]>('/public/models/featured').pipe(
+      switchMap(featuredArray => {
+        const items = (featuredArray || []).slice(0, limit);
+        if (items.length > 0) {
+          return of({
+            content: items,
+            pageNumber: 0,
+            pageSize: limit,
+            totalElements: items.length,
+            totalPages: 1,
+            isLast: true
+          } as PageResponseDto<ModelCardPublicDto>);
         }
-        // Fallback: busca modelos ativos em geral para garantir apresentação visual rica
+        // Fallback 1: nenhum marcado como Featured Home → utiliza STARS (isStar=true)
         return this.api.get<PageResponseDto<ModelCardPublicDto>>('/public/models', {
+          isStar: true,
           size: limit,
           page: 0
         });
       }),
       catchError(err => {
-        console.warn('Falha ao carregar modelos em destaque da API pública, utilizando catálogo estático de fallback:', err);
-        return of(this.getMockPageResponse({ isStar: true, size: limit, page: 0 }));
+        console.warn('[public-model] Falha em /public/models/featured, utilizando fallback isStar=true e/ou mock:', err);
+        // Fallback 2: tenta catalogo /models?isStar=true, depois mock.
+        return this.api.get<PageResponseDto<ModelCardPublicDto>>('/public/models', { isStar: true, size: limit, page: 0 }).pipe(
+          catchError(err2 => {
+            console.warn('[public-model] /public/models também falhou, utilizando catálogo estático mock:', err2);
+            return of(this.getMockPageResponse({ isStar: true, size: limit, page: 0 }));
+          })
+        );
       })
     );
   }

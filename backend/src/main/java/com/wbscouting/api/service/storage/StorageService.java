@@ -33,6 +33,18 @@ public interface StorageService {
     String getPublicUrl(String bucket, String path);
 
     /**
+     * Helper FALLBACK para URLs públicas gravadas incompletas no banco (ex: "/public/models-media/" sem path).
+     * Remonta a URL combinando bucket + filePath real do objeto quando a fileUrl do banco estiver quebrada.
+     * Também impede URLs que terminem com "/" (inválidas, causam HTTP 400).
+     *
+     * @param bucket Nome do bucket (ex: models-media)
+     * @param filePath Caminho relativo do arquivo no bucket (coluna file_path da model_media)
+     * @param fileUrlFromDb Valor cru salvo na coluna file_url (pode ser null ou incompleto)
+     * @return URL pública final válida, ou null se não houver informação suficiente.
+     */
+    String resolvePublicUrlFromFields(String bucket, String filePath, String fileUrlFromDb);
+
+    /**
      * Gera uma Signed URL com expiração temporal para acesso autenticado a objetos privados.
      * Aplicável primordialmente ao bucket privado 'candidates-uploads' (conformidade LGPD).
      *

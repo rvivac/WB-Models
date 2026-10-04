@@ -55,6 +55,8 @@
                 [alt]="'Fotografia de editorial do modelo ' + model.stageName" 
                 class="model-image" 
                 loading="lazy" 
+                (error)="onCoverError(model.id)"
+                fetchpriority="auto"
               />
 
               <!-- Badge Minimalista de Star -->

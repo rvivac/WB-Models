@@ -1,13 +1,24 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpEventType, HttpParams } from '@angular/common/http';
 import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { GalleryPhoto } from '../../shared/models/gallery.model';
 import {
   AdminModelFilterParams,
   AdminModelPageResponse,
   ModelAdminItem,
   ModelFormData
 } from '../../shared/models/admin-model.interface';
+
+export interface MediaUploadedResult {
+  id: string;
+  fileUrl: string;
+  filePath: string;
+  mediaType: 'BOOK' | 'POLAROID';
+  displayOrder: number;
+  isCover: boolean;
+  isActive: boolean;
+}
 
 const MOCK_MODELS_STORAGE_KEY = 'wb_agency_admin_models_mock';
 
@@ -189,6 +200,82 @@ export class AdminModelService {
         console.warn(`Backend offline ao remover modelo ${id}:`, err);
         this.removeLocalMock(id);
         return of(void 0);
+      })
+    );
+  }
+
+  /**
+   * Obtém a galeria de fotos REAL do modelo (tabela model_media).
+   * Remove a galeria de placeholders hardcoded (samplePhotos) que faziam
+   * as fotos "sumirem" após recarregar a página.
+   */
+  getModelMedia(modelId: string): Observable<GalleryPhoto[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${modelId}/media`).pipe(
+      map(items => items.map((item, idx) => ({
+        id: String(item.id),
+        url: item.fileUrl + (item.fileUrl && !item.fileUrl.includes('?v=') ? '?v=' + Math.floor(Date.now() / 3600_000) : ''),
+        filePath: item.filePath ?? '',
+        category: (item.mediaType === 'POLAROID' ? 'POLAROID' : 'BOOK') as 'BOOK' | 'POLAROID',
+        orderIndex: Number(item.displayOrder ?? idx),
+        isCover: Boolean(item.isCover),
+        isActive: Boolean(item.isActive ?? true),
+        isUploaded: true
+      }))),
+      catchError((err) => {
+        console.warn(`Backend offline para obter midias do modelo ${modelId}. Retornando galeria vazia:`, err);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Faz upload REAL de UMA foto para Supabase via Backend.
+   * Usa FormData: file + mediaType + isCover.
+   * Retorna Observable de HttpEvent para conseguir progress bar no grid.
+   */
+  uploadModelMedia(
+    modelId: string,
+    file: File,
+    mediaType: 'BOOK' | 'POLAROID' = 'BOOK',
+    isCover: boolean = false
+  ): Observable<HttpEvent<MediaUploadedResult>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('mediaType', mediaType);
+    if (isCover) formData.append('isCover', 'true');
+
+    return this.http.post<MediaUploadedResult>(
+      `${this.apiUrl}/${modelId}/media`,
+      formData,
+      {
+        reportProgress: true,
+        observe: 'events'
+      }
+    );
+  }
+
+  /**
+   * Exclui uma midia do modelo (storage Supabase + tabela model_media).
+   */
+  deleteModelMedia(modelId: string, mediaId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${modelId}/media/${mediaId}`).pipe(
+      catchError((err) => {
+        console.warn(`Backend offline excluir midia ${mediaId}:`, err);
+        return of(void 0);
+      })
+    );
+  }
+
+  /**
+   * Define a FOTO DE CAPA do modelo (PATCH: is_cover = true nesta midia,
+   * false nas demais, e sincroniza primary_photo_url na tabela models).
+   */
+  setModelCover(modelId: string, mediaId: string): Observable<MediaUploadedResult> {
+    return this.http.patch<MediaUploadedResult>(`${this.apiUrl}/${modelId}/media/${mediaId}/cover`, {}).pipe(
+      tap(_ => console.info(`[admin-model] Nova capa definida: model=${modelId}, media=${mediaId}`)),
+      catchError((err) => {
+        console.error(`Erro ao definir capa model=${modelId} media=${mediaId}:`, err);
+        return throwError(() => err);
       })
     );
   }

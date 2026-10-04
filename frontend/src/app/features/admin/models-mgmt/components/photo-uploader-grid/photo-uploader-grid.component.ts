@@ -80,56 +80,89 @@ export class PhotoUploaderGridComponent {
     if (validFiles.length > 0) {
       this.fileUploaded.emit(validFiles);
 
-      // Gera pré-visualização local imediata para feedback instantâneo
-      validFiles.forEach((file) => {
-        const objectUrl = URL.createObjectURL(file);
-        const newPhoto: GalleryPhoto = {
-          id: 'temp-' + Math.random().toString(36).substring(2, 9),
-          url: objectUrl,
-          category: 'BOOK',
-          orderIndex: this.photos.length,
-          isCover: this.photos.length === 0,
-          file,
-          uploadProgress: 100,
-          isUploading: false
-        };
-        this.photos.push(newPhoto);
-      });
+      // ============================================================
+      // IMUTABILIDADE: Cria NOVO array com spread operator (NÃO muta input)
+      // ============================================================
+      const novas: GalleryPhoto[] = validFiles.map((file, idx) => ({
+        id: 'temp-' + Math.random().toString(36).substring(2, 9),
+        url: URL.createObjectURL(file),
+        category: 'BOOK',
+        orderIndex: this.photos.length + idx,
+        isCover: this.photos.length === 0 && idx === 0,
+        file,
+        uploadProgress: 1,
+        isUploading: true
+      }));
 
-      this.updateOrderIndices();
+      // Novo array (imutavel) + atualiza indices + emite para o pai:
+      let novaLista = [...this.photos, ...novas];
+      novaLista = this._applyOrderAndCover(novaLista);
+      this.photosChange.emit(novaLista);
     }
   }
 
   onReorder(event: CdkDragDrop<GalleryPhoto[]>): void {
-    moveItemInArray(this.photos, event.previousIndex, event.currentIndex);
-    this.updateOrderIndices();
+    let lista = [...this.photos];
+    moveItemInArray(lista, event.previousIndex, event.currentIndex);
+    lista = this._applyOrderAndCover(lista);
+    this.photosChange.emit(lista);
   }
 
   setAsCover(index: number): void {
-    if (index >= 0 && index < this.photos.length) {
-      const [target] = this.photos.splice(index, 1);
-      this.photos.unshift(target);
-      this.updateOrderIndices();
-    }
+    if (index < 0 || index >= this.photos.length) return;
+    let lista = [...this.photos];
+    const [target] = lista.splice(index, 1);
+    lista.unshift(target);
+    lista = this._applyOrderAndCover(lista);
+    this.photosChange.emit(lista);
   }
 
   removePhoto(index: number): void {
-    if (index >= 0 && index < this.photos.length) {
-      this.photos.splice(index, 1);
-      this.updateOrderIndices();
-    }
+    if (index < 0 || index >= this.photos.length) return;
+    let lista = this.photos.filter((_, i) => i !== index);
+    lista = this._applyOrderAndCover(lista);
+    this.photosChange.emit(lista);
   }
 
   toggleCategory(photo: GalleryPhoto): void {
-    photo.category = photo.category === 'BOOK' ? 'POLAROID' : 'BOOK';
-    this.photosChange.emit(this.photos);
+    const idx = this.photos.findIndex(p => p.id === photo.id);
+    if (idx < 0) return;
+    let lista = [...this.photos];
+    lista[idx] = { ...lista[idx], category: lista[idx].category === 'BOOK' ? 'POLAROID' : 'BOOK' };
+    this.photosChange.emit(lista);
   }
 
   updateOrderIndices(): void {
+    // Mantido apenas para compatibilidade com código antigo.
+    // Use _applyOrderAndCover (imutavel) agora.
     this.photos.forEach((photo, idx) => {
       photo.orderIndex = idx;
       photo.isCover = idx === 0;
     });
     this.photosChange.emit([...this.photos]);
+  }
+
+  /**
+   * Helper IMUTAVEL. Recebe lista, retorna NOVA lista com:
+   * - orderIndex sequencial 0..N
+   * - Exatamente UMA foto como isCover (sempre a de posicao 0)
+   */
+  private _applyOrderAndCover(lista: GalleryPhoto[]): GalleryPhoto[] {
+    if (lista.length === 0) return [];
+    const nova = lista.map((p, idx) => ({
+      ...p,
+      orderIndex: idx,
+      isCover: idx === 0 ? true : false
+    }));
+    return nova;
+  }
+
+  /**
+   * trackBy para *ngFor de fotos: previne que Angular recrie
+   * TODO o DOM quando a galeria sofre pequenas alteracoes.
+   * (Performance + evita "flicker" / desaparecimento de previews temporarios)
+   */
+  trackByPhotoId(index: number, item: GalleryPhoto): string {
+    return item.id + '-' + (item.orderIndex ?? index);
   }
 }

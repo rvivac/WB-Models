@@ -16,6 +16,7 @@ import {
   Validators
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { HttpEventType } from '@angular/common/http';
 import { AdminModelService } from '../../../../core/services/admin-model.service';
 import {
   ModelAdminItem,
@@ -139,7 +140,68 @@ export class ModelFormComponent implements OnInit {
   }
 
   onFilesUploaded(files: File[]): void {
-    this.showToast(`${files.length} arquivo(s) adicionado(s) ao acervo.`, 'success');
+    this.showToast(`${files.length} arquivo(s) selecionado(s). Fazendo upload via Backend para o Supabase...`, 'success');
+    const current = this.modelId();
+    if (!current) {
+      this.showToast('Primeiro salve os DADOS BÁSICOS do modelo (modelo novo ainda sem ID no banco). Depois envie as fotos.', 'error');
+      return;
+    }
+
+    files.forEach((file, idx) => {
+      // Marca previa temporaria como isUploading=true (feedback visual)
+      const previews = this.galleryPhotos();
+      const tempPhoto = previews.find(p => p.id.startsWith('temp-') && !(p as any).__uploadStarted);
+      if (tempPhoto) {
+        tempPhoto.isUploading = true;
+        tempPhoto.uploadProgress = 1;
+        (tempPhoto as any).__uploadStarted = true;
+      }
+
+      this.adminModelService.uploadModelMedia(current, file, 'BOOK', false).subscribe({
+        next: (ev) => {
+          if (ev.type === HttpEventType.UploadProgress && ev.total && tempPhoto) {
+            tempPhoto.uploadProgress = Math.round((100 * ev.loaded) / ev.total);
+          } else if (ev.type === HttpEventType.Response && ev.body) {
+            const saved = ev.body;
+            // Remove a previa temporaria temp-
+            let galeriaNova = this.galleryPhotos().filter(p => !(p.id.startsWith('temp-')));
+            // Insere foto REAL do banco
+            const fotoReal: GalleryPhoto = {
+              id: saved.id,
+              url: saved.fileUrl + (saved.fileUrl.includes('?v=') ? '' : ('?v=' + Math.floor(Date.now() / 3600_000))),
+              filePath: saved.filePath,
+              category: saved.mediaType as any,
+              orderIndex: galeriaNova.length,
+              isCover: saved.isCover || galeriaNova.length === 0,
+              isActive: true,
+              isUploaded: true,
+              isUploading: false,
+              uploadProgress: 100
+            };
+            galeriaNova = [...galeriaNova, fotoReal];
+            // Se for a primeira foto, torna ela capa automaticamente
+            if (galeriaNova.length === 1) {
+              galeriaNova[0].isCover = true;
+            } else if (!galeriaNova.some(p => p.isCover)) {
+              galeriaNova[0].isCover = true;
+            }
+            galeriaNova.forEach((p, i) => { p.orderIndex = i; });
+
+            this.galleryPhotos.set(galeriaNova);
+            const cover = galeriaNova.find(p => p.isCover) || galeriaNova[0];
+            if (cover) this.modelForm.patchValue({ primaryPhotoUrl: cover.url });
+
+            this.showToast(`✅ Foto ${idx + 1}/${files.length} enviada com sucesso (já está salva no banco)`, 'success');
+          }
+        },
+        error: (err) => {
+          if (tempPhoto) { tempPhoto.isUploading = false; tempPhoto.uploadProgress = 0; }
+          const msg = err?.error?.detail || err?.error?.message || `Falha ao enviar foto ${idx + 1}. Verifique tamanho e tipo.`;
+          this.showToast(msg, 'error');
+          console.error('Erro upload foto idx=' + idx, err);
+        }
+      });
+    });
   }
 
   loadModelData(id: string): void {

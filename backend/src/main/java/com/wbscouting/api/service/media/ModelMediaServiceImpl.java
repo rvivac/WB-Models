@@ -85,13 +85,29 @@ public class ModelMediaServiceImpl implements ModelMediaService {
 
         // Upload físico no bucket Supabase Storage
         String uploadedPath = storageService.uploadFile(bucket, storagePath, file);
-        String publicUrl = storageService.getPublicUrl(bucket, uploadedPath);
+        String rawPublicUrl = storageService.getPublicUrl(bucket, uploadedPath);
 
-        // Persistência do registro JPA
+        // ============================================================
+        // PROTECAO INCONDICIONAL: GARANTE QUE A URL SALVA NO BANCO É VÁLIDA!
+        // Se o storage retornar URL incompleta (ex: termina com "/public/models-media/" sem path)
+        // o helper resolvePublicUrlFromFields remonta a URL correta a partir de bucket + uploadedPath.
+        // ============================================================
+        String safePublicUrl = storageService.resolvePublicUrlFromFields(bucket, uploadedPath, rawPublicUrl);
+        if (!java.util.Objects.equals(rawPublicUrl, safePublicUrl)) {
+            log.warn("[uploadMedia] Fallback URL ativado. modelId={}, mediaType={}, rawURL={}, safeURL={}",
+                    modelId, mediaType, truncate(rawPublicUrl, 80), truncate(safePublicUrl, 120));
+        }
+
+        // Bust cache -> garante que a foto NOVA apareça INSTANTANEAMENTE no site público,
+        // evitando cache HTTP 404 do browser/Supabase por 1h. (vence a cada hora)
+        String bustCache = "?v=" + (System.currentTimeMillis() / 3_600_000L);
+        String displayUrl = safePublicUrl + bustCache;
+
+        // Persistência do registro JPA (grava URL SEGURA, garantida válida)
         ModelMedia media = ModelMedia.builder()
                 .model(model)
                 .mediaType(mediaType)
-                .fileUrl(publicUrl)
+                .fileUrl(safePublicUrl)
                 .filePath(uploadedPath)
                 .displayOrder(nextOrder)
                 .isCover(isCover)
@@ -100,13 +116,13 @@ public class ModelMediaServiceImpl implements ModelMediaService {
 
         ModelMedia savedMedia = modelMediaRepository.save(media);
 
-        // Se for capa, sincroniza a foto principal do modelo
+        // Se for capa, sincroniza a foto principal do modelo (também com URL segura + bust cache)
         if (isCover) {
-            model.setPrimaryPhotoUrl(publicUrl);
+            model.setPrimaryPhotoUrl(displayUrl);
             modelRepository.save(model);
         }
 
-        log.info("Mídia cadastrada com sucesso: id='{}', modelId='{}', url='{}'", savedMedia.getId(), modelId, publicUrl);
+        log.info("Mídia cadastrada com sucesso: id='{}', modelId='{}', url='{}'", savedMedia.getId(), modelId, safePublicUrl);
         return toDto(savedMedia);
     }
 

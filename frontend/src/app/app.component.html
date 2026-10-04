@@ -12,6 +12,33 @@
   <app-footer></app-footer>
 }
 
-<!-- TODO: Criar arquivo src/app/shared/components/admin-version-badge/admin-version-badge.component.ts -->
-<!-- Depois de criar o arquivo, DESCOMENTE a linha abaixo: -->
-<!-- <app-admin-version-badge></app-admin-version-badge> -->
+<!-- ============================================================
+     BADGE DE COMMIT DISCRETO (canto inferior direito)
+     Soh exibido em rotas /admin (webmaster / area restrita)
+     Clique 1x : mostra detalhes (commit completo / branch / data build)
+     Clique 2x : copia commit hash COMPLETO para area de transferencia
+     Idle: opacidade 8% (nao atrapalha). Hover/foco: 100%
+============================================================ -->
+@if (isAdminRoute()) {
+  <div
+    class="wb-admin-version"
+    role="status"
+    tabindex="0"
+    [title]="vTooltip()"
+    (click)="_wb_toggleCommitToast()"
+    (dblclick)="_wb_copyCommit()"
+    (keydown.enter)="_wb_copyCommit()"
+  >
+    <span class="dot" [class.prod]="vIsProd()" [class.dev]="!vIsProd()"></span>
+    <code>{{ '@' + vcommitShort() }}</code>
+  </div>
+
+  @if (vShowToast()) {
+    <div class="wb-admin-version-toast">
+      <div class="row"><strong>Commit:</strong> <code>{{ vcommitFull() }}</code></div>
+      <div class="row"><strong>Branch:</strong> <span>{{ vbranch() }}</span></div>
+      <div class="row"><strong>Build:</strong> <span>{{ vbuildPretty() }}</span></div>
+      <div class="row"><em>{{ vCopied() ? ('\u2705 Hash copiado para a area de transferencia!') : ('\uD83D\uDCA1 Dobre clique para copiar o commit completo') }}</em></div>
+    </div>
+  }
+}

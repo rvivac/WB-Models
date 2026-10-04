@@ -7,9 +7,15 @@ export interface ModelCardPublicDto {
   stageName: string;
   gender: 'FEMALE' | 'MALE';
   coverImageUrl?: string;
+  /** Caminho absoluto do arquivo no Storage (ex: "models-media/eve-duppre/abc-cover.jpg"). Usado APENAS como FALLBACK caso coverImageUrl esteja incompleta (HTTP 400 Supabase). */
+  filePath?: string;
+  /** @deprecated Use filePath. Mantido para compatibilidade com DTOs legados. */
+  storagePath?: string;
   heightCm?: number;
   city?: string;
   isStar?: boolean;
+  isFeaturedHome?: boolean;
+  featuredOrder?: number;
 }
 
 export interface PageResponseDto<T> {
@@ -305,6 +311,67 @@ export class PublicModelService {
   private readonly api = inject(ApiService);
 
   /**
+   * Helper ANTI-FRACO para foto de capa dos cards.
+   * Resolve 2 problemas que faziam Eve Duppre NAO APARECER foto 1 na Home:
+   *   1) coverImageUrl incompleta (ex: "/public/models-media/" SEM path do arquivo) -> HTTP 400 no Supabase
+   *   2) coverImageUrl nula / vazia
+   * Solucao: se URL parecer incompleta (ou terminando em /, ou comprimento curto, ou sem path objeto),
+   *          concatena filePath no final.
+   * Sempre adiciona bust-cache ?v=epochHour para aparecer imediatamente novas fotos no publico.
+   */
+  private _resolveCoverForCard(card: ModelCardPublicDto | any): ModelCardPublicDto {
+    if (!card) return card;
+    const filePath = (card as any).filePath || (card as any).storagePath || '';
+    let rawUrl = (card.coverImageUrl || '').trim();
+
+    // 1) Se URL vazia MAS temos filePath -> remontar usando base padrao Storage Supabase Public
+    if (!rawUrl && filePath) {
+      rawUrl = `https://zmpqmdizqgnpnirqiufq.supabase.co/storage/v1/object/public/models-media/${filePath.replace(/^\//, '')}`;
+    }
+    // 2) Se URL parece INCOMPLETA (sem protocolo, termina com /, length curto mas temos filePath)
+    const seemsIncomplete = !rawUrl.startsWith('http')
+      || rawUrl.endsWith('/')
+      || (filePath && rawUrl.length < 40 && !rawUrl.includes(filePath.substring(filePath.lastIndexOf('/') + 1)));
+
+    if (seemsIncomplete && filePath) {
+      const pathClean = filePath.replace(/^\//, '');
+      if (rawUrl && !rawUrl.startsWith('http')) {
+        // URL tipo: /storage/v1/object/public/models-media/ ou /public/models-media/
+        if (rawUrl.includes('/models-media/') && !rawUrl.includes(pathClean)) {
+          const base = rawUrl.endsWith('/') ? rawUrl : (rawUrl + '/');
+          rawUrl = (base.startsWith('http') ? '' : 'https://zmpqmdizqgnpnirqiufq.supabase.co') + (base + pathClean).replace(/([^:]\/)\/+/g, '$1');
+        } else if (!rawUrl.includes(pathClean)) {
+          rawUrl = `https://zmpqmdizqgnpnirqiufq.supabase.co/storage/v1/object/public/models-media/${pathClean}`;
+        }
+      } else if (!rawUrl) {
+        rawUrl = `https://zmpqmdizqgnpnirqiufq.supabase.co/storage/v1/object/public/models-media/${pathClean}`;
+      }
+    }
+    // 3) Bust cache (forca navegador baixar foto nova dentro de 1h)
+    if (rawUrl) {
+      const sep = rawUrl.includes('?') ? '&' : '?';
+      rawUrl = rawUrl + sep + 'v=' + Math.floor(Date.now() / 3_600_000);
+    }
+    return { ...card, coverImageUrl: rawUrl || undefined };
+  }
+
+  /**
+   * Aplica _resolveCoverForCard() em TODO array de cards (vitrine/casting/gender).
+   */
+  private _applyCoverFallbacks<T extends ModelCardPublicDto>(items: T[]): T[] {
+    if (!items || items.length === 0) return items;
+    return items.map(m => this._resolveCoverForCard(m) as T);
+  }
+
+  /**
+   * Aplica em PageResponseDto (casting) sem perder a paginação.
+   */
+  private _applyCoverFallbacksPage<T extends ModelCardPublicDto>(page: PageResponseDto<T>): PageResponseDto<T> {
+    if (!page) return page;
+    return { ...page, content: this._applyCoverFallbacks(page.content || []) };
+  }
+
+  /**
    * Constrói resposta paginada e filtrada a partir da base estática de modelos.
    */
   getMockPageResponse(params?: ModelFilterParams): PageResponseDto<ModelCardPublicDto> {
@@ -374,7 +441,7 @@ export class PublicModelService {
   getFeaturedModels(limit: number = 8): Observable<PageResponseDto<ModelCardPublicDto>> {
     return this.api.get<ModelCardPublicDto[]>('/public/models/featured').pipe(
       switchMap(featuredArray => {
-        const items = (featuredArray || []).slice(0, limit);
+        const items = this._applyCoverFallbacks((featuredArray || [])).slice(0, limit);
         if (items.length > 0) {
           return of({
             content: items,
@@ -390,15 +457,16 @@ export class PublicModelService {
           isStar: true,
           size: limit,
           page: 0
-        });
+        }).pipe(map(p => this._applyCoverFallbacksPage(p)));
       }),
       catchError(err => {
         console.warn('[public-model] Falha em /public/models/featured, utilizando fallback isStar=true e/ou mock:', err);
         // Fallback 2: tenta catalogo /models?isStar=true, depois mock.
         return this.api.get<PageResponseDto<ModelCardPublicDto>>('/public/models', { isStar: true, size: limit, page: 0 }).pipe(
+          map(p => this._applyCoverFallbacksPage(p)),
           catchError(err2 => {
             console.warn('[public-model] /public/models também falhou, utilizando catálogo estático mock:', err2);
-            return of(this.getMockPageResponse({ isStar: true, size: limit, page: 0 }));
+            return of(this._applyCoverFallbacksPage(this.getMockPageResponse({ isStar: true, size: limit, page: 0 })));
           })
         );
       })
@@ -434,9 +502,10 @@ export class PublicModelService {
     }
 
     return this.api.get<PageResponseDto<ModelCardPublicDto>>('/public/models', cleanParams).pipe(
+      map(p => this._applyCoverFallbacksPage(p)),
       catchError(err => {
         console.warn('Falha ao buscar casting da API pública, utilizando catálogo estático de fallback:', err);
-        return of(this.getMockPageResponse(params));
+        return of(this._applyCoverFallbacksPage(this.getMockPageResponse(params)));
       })
     );
   }

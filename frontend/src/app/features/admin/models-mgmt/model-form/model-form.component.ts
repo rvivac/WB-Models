@@ -115,6 +115,115 @@ export class ModelFormComponent implements OnInit {
     return parts.length > 0 ? parts.join(' • ') : 'Medidas não informadas';
   });
 
+  // ============================================================
+  // 🟢 CORREÇÃO: FOTO DE CAPA APARECER NO CARD PREVIEW EDITORIAL (TOPO)
+  // Se primaryPhotoUrl estiver incompleta / vazia / HTTP 400, cai
+  // para a PRIMEIRA FOTO MARCADA COMO CAPA NA GALERIA REAL (ou a primeira
+  // da lista, se nenhuma marcada). Nunca mais placeholder WB sozinho.
+  // ============================================================
+  private readonly _forcarRerenderCapa = signal<number>(0);
+
+  readonly fotoCapaPreviewSafe = computed<string | null>(() => {
+    this._forcarRerenderCapa(); // dependencia de trigger
+    return this._resolveCapaParaPreview(
+      this.modelForm.get('primaryPhotoUrl')?.value,
+      this.galleryPhotos() || []
+    );
+  });
+
+  onErroCarregarCapaPreview(): void {
+    // Se navegador retornou erro ao carregar (HTTP 400 bucket, URL incompleta)
+    // força nova computação e escreve fallback explícito para 1a foto da galeria
+    console.warn('[Capa Preview] Falha ao carregar primaryPhotoUrl. Usando fallback da galeria REAL.');
+    const galeria = this.galleryPhotos() || [];
+    if (galeria.length > 0) {
+      const capaGaleria = galeria.find(p => Boolean(p.isCover)) || galeria[0];
+      if (capaGaleria?.url) {
+        // Patch direto e força rerender
+        this.modelForm.patchValue({ primaryPhotoUrl: capaGaleria.url }, { emitEvent: true });
+        this._forcarRerenderCapa.update(n => n + 1);
+      }
+    }
+  }
+
+  /**
+   * Helper monta URL FINAL segura para o avatar-preview do topo do admin.
+   * 1) Se primaryPhotoUrl parecer completa, usa.
+   * 2) Se incompleta ou vazia, usa 1a foto marcada isCover=true na galeria REAL.
+   * 3) Senao, usa a 1a foto da galeria.
+   * 4) Usa filePath para remontar se necessário (igual helpers de capa em outros services).
+   */
+  private _resolveCapaParaPreview(primaryRaw: any, galeria: GalleryPhoto[]): string | null {
+    const SUPABASE_BASE = 'https://zmpqmdizqgnpnirqiufq.supabase.co/storage/v1/object/public/models-media';
+    const bust = '?v=' + Math.floor(Date.now() / 3_600_000);
+
+    // Helper interno valida se uma URL parece OK
+    const pareceOK = (u: string) => {
+      if (!u) return false;
+      const s = String(u).trim();
+      if (!s.startsWith('http')) return false;
+      if (s.length < 40) return false;
+      if (s.endsWith('/models-media/') || s.endsWith('/models-media')) return false;
+      if (s.endsWith('/')) return false;
+      return true;
+    };
+    // Helper interno: aplica fallback filePath se URL vier incompleta
+    const remontarSePrecisar = (urlIn: string, fp?: string): string => {
+      if (!urlIn) return '';
+      let u = String(urlIn).trim();
+      let caminho = fp || '';
+      // Caso 1: parece completa
+      if (pareceOK(u)) {
+        return u + (u.includes('?v=') ? '' : bust);
+      }
+      // Caso 2: URL vazia, mas temos filePath
+      if ((!u || u.length < 10) && caminho) {
+        const clean = caminho.replace(/^\//, '');
+        return `${SUPABASE_BASE}/${clean}${bust}`;
+      }
+      // Caso 3: URL veio tipo /public/models-media/ sem path
+      if (u.includes('/models-media') && caminho) {
+        const clean = caminho.replace(/^\//, '');
+        if (!u.includes(clean)) {
+          let base = u.substring(0, u.indexOf('/models-media') + '/models-media'.length);
+          base = base.startsWith('http') ? base : SUPABASE_BASE;
+          return `${base}/${clean}${bust}`.replace(/([^:]\/)\/+/g, '$1');
+        }
+      }
+      // Retorna o que der ou null
+      if (u && pareceOK(u + '/fix')) return u + bust;
+      return u ? (u + bust) : '';
+    };
+
+    // 1) Tenta primaryPhotoUrl primeiro
+    if (pareceOK(String(primaryRaw || '').trim())) {
+      return String(primaryRaw).trim() + (String(primaryRaw).includes('?v=') ? '' : bust);
+    }
+    // 2) Se chegou aqui, a primary nao serve. Usa galeria REAL.
+    if (galeria && galeria.length > 0) {
+      const capa = galeria.find(p => Boolean(p.isCover)) || galeria[0];
+      if (capa) {
+        if (pareceOK(String(capa.url || ''))) {
+          return String(capa.url).trim() + (String(capa.url).includes('?v=') ? '' : bust);
+        }
+        // Tenta remontar usando filePath da propria foto da galeria
+        const remontada = remontarSePrecisar(String(capa.url || ''), String(capa.filePath || (capa as any).storagePath || ''));
+        if (remontada && pareceOK(remontada.split('?')[0])) return remontada;
+        // Ultimo recurso: se a foto da galeria parecer carregar, usa como esta
+        if (capa.url) return String(capa.url);
+      }
+    }
+    // 3) Ultima tentativa: remontar primary com filePath do modelo se existir em algum lugar
+    const prim = String(primaryRaw || '').trim();
+    if (prim) return remontarSePrecisar(prim) || null;
+    // Nenhuma foto: retorna null (placeholder WB aparece no template, que eh aceitavel)
+    return null;
+  }
+
+  private _atualizaFotoCapaPreviewDisparo(): void {
+    this._forcarRerenderCapa.update(n => n + 1);
+  }
+
   ngOnInit(): void {
     // Sincroniza sinal reativo e cálculo de idade a cada mudança no formulário
     this.modelForm.valueChanges.subscribe((val) => {
@@ -187,8 +296,12 @@ export class ModelFormComponent implements OnInit {
     // 🔴 DETECCAO UNIVERSAL: apagar 1, 10, 50 fotos, QUALQUER METODO. Tudo entra no pending.
     this.detectIdsRemovedFromDatabase(updatedPhotos || []);
     if (!updatedPhotos || updatedPhotos.length === 0) {
+      this._atualizaFotoCapaPreviewDisparo(); // Forca atualizar mesmo que galeria ficou vazia (placeholder WB)
       return;
     }
+
+    // 🔴 Dispara atualizacao da FOTO DE CAPA no card preview topo
+    this._atualizaFotoCapaPreviewDisparo();
 
     const coverPhoto = updatedPhotos.find((p) => Boolean(p.isCover)) || updatedPhotos[0];
     if (coverPhoto?.url) {
@@ -251,6 +364,7 @@ export class ModelFormComponent implements OnInit {
           // Seta state vazio para IDs originais do banco + zera pendentes
           this.originalMediaIds.set(new Set());
           this.pendingDeleteIds.set(new Set());
+          this._atualizaFotoCapaPreviewDisparo(); // Sem fotos: mostra placeholder WB (sem falha)
           return;
         }
 
@@ -275,13 +389,14 @@ export class ModelFormComponent implements OnInit {
         }
         this.originalMediaIds.set(reais);
         this.pendingDeleteIds.set(new Set()); // zera lista pendente (recarregou tudo)
-        this.pendingDeleteIds.set(new Set());
 
         // Sync final: se tiver capa real, atualiza campo primaryPhotoUrl do form
         const realCover = normalized.find(p => Boolean(p.isCover)) || normalized[0];
         if (realCover?.url) {
           this.modelForm.patchValue({ primaryPhotoUrl: realCover.url });
         }
+        // 🟢 Atualiza card preview topo com FOTO REAL de capa
+        this._atualizaFotoCapaPreviewDisparo();
       })
     );
   }

@@ -3,8 +3,8 @@
  * NAO EDITE MANUALMENTE. Atualizado SEMPRE antes do ng build.
  */
 export const APP_VERSION = {
-  commit: "4aaaaa5462da813045c1f5f6b7b6877c0b99d914",
-  short: "4aaaaa5",
+  commit: "233142a2fc1346532cb1bf132673bad6f4401723",
+  short: "233142a",
   branch: "main",
-  buildDate: "2026-10-04T22:41:03.229Z"
+  buildDate: "2026-10-04T22:53:37.122Z"
 };

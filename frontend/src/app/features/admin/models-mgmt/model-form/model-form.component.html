@@ -49,14 +49,19 @@
   <!-- Card de Pré-visualização Dinâmica (Live Editorial Preview) -->
   <div class="editorial-preview-card" [class.preview-star]="modelForm.get('isStar')?.value">
     <div class="preview-avatar-wrapper">
-      @if (modelForm.get('primaryPhotoUrl')?.value) {
+      <!-- 🟢 CORREÇÃO: Usa fotoCapaPreviewSafe() que remonta URL incompleta ou cai na 1a FOTO DA GALERIA REAL -->
+      @if (fotoCapaPreviewSafe()) {
         <img
-          [src]="modelForm.get('primaryPhotoUrl')?.value"
-          [alt]="modelForm.get('stageName')?.value || 'Preview'"
+          [src]="fotoCapaPreviewSafe()!"
+          [alt]="modelForm.get('stageName')?.value || 'Preview da foto de capa do modelo'"
           class="preview-avatar"
+          (error)="onErroCarregarCapaPreview()"
+          loading="eager"
+          decoding="async"
         />
       } @else {
-        <div class="preview-avatar-placeholder">
+        <!-- Placeholder WB so aparece SE NAO TIVER NENHUMA FOTO NO BANCO (condicao extrema) -->
+        <div class="preview-avatar-placeholder" title="Nenhuma foto de capa informada. Envie uma foto na seção 03 abaixo." role="img" aria-label="PlaceHolder da agência WB, nenhuma foto de capa foi enviada ainda.">
           <span>WB</span>
         </div>
       }

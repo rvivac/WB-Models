@@ -12,6 +12,7 @@ import com.wbscouting.api.exception.ResourceNotFoundException;
 import com.wbscouting.api.repository.ModelMediaRepository;
 import com.wbscouting.api.repository.ModelRepository;
 import com.wbscouting.api.repository.specification.ModelSpecification;
+import com.wbscouting.api.service.storage.SupabaseStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -38,6 +39,16 @@ public class PublicModelServiceImpl implements PublicModelService {
     private final ModelRepository modelRepository;
     private final ModelMediaRepository modelMediaRepository;
     private final PublicModelDetailService publicModelDetailService;
+    private final SupabaseStorageService storageService;
+
+    // Helper: resolve URL PUBLICA de uma ModelMedia usando file_path se file_url incompleto
+    private String resolveMediaUrlPublic(ModelMedia media) {
+        if (media == null) return null;
+        return storageService.resolvePublicUrlFromFields(
+                storageService.getProperties().resolveBucketModelsMedia(),
+                media.getFilePath(),
+                media.getFileUrl());
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -86,24 +97,35 @@ public class PublicModelServiceImpl implements PublicModelService {
     }
 
     private String resolveCoverImageUrl(Model model) {
-        if (StringUtils.hasText(model.getPrimaryPhotoUrl())) {
-            return model.getPrimaryPhotoUrl();
+        // 1. Foto primaria do cadastro (validando URL completa)
+        String primary = model.getPrimaryPhotoUrl();
+        if (StringUtils.hasText(primary)) {
+            String modelsMediaBucket = storageService.getProperties().resolveBucketModelsMedia();
+            boolean ok = primary.contains(modelsMediaBucket + "/")
+                    && primary.lastIndexOf(modelsMediaBucket + "/") + modelsMediaBucket.length() + 1 < primary.length();
+            if (ok) return primary;
         }
 
         if (model.getMedia() != null && !model.getMedia().isEmpty()) {
+            // 2. isCover=true
             for (ModelMedia m : model.getMedia()) {
-                if (Boolean.TRUE.equals(m.getIsActive()) && Boolean.TRUE.equals(m.getIsCover()) && StringUtils.hasText(m.getFileUrl())) {
-                    return m.getFileUrl();
+                if (Boolean.TRUE.equals(m.getIsActive()) && Boolean.TRUE.equals(m.getIsCover())) {
+                    String url = resolveMediaUrlPublic(m);
+                    if (StringUtils.hasText(url)) return url;
                 }
             }
+            // 3. Primeira BOOK
             for (ModelMedia m : model.getMedia()) {
-                if (Boolean.TRUE.equals(m.getIsActive()) && m.getMediaType() == MediaType.BOOK && StringUtils.hasText(m.getFileUrl())) {
-                    return m.getFileUrl();
+                if (Boolean.TRUE.equals(m.getIsActive()) && m.getMediaType() == MediaType.BOOK) {
+                    String url = resolveMediaUrlPublic(m);
+                    if (StringUtils.hasText(url)) return url;
                 }
             }
+            // 4. Primeira ativa (qualquer)
             for (ModelMedia m : model.getMedia()) {
-                if (Boolean.TRUE.equals(m.getIsActive()) && StringUtils.hasText(m.getFileUrl())) {
-                    return m.getFileUrl();
+                if (Boolean.TRUE.equals(m.getIsActive())) {
+                    String url = resolveMediaUrlPublic(m);
+                    if (StringUtils.hasText(url)) return url;
                 }
             }
         }

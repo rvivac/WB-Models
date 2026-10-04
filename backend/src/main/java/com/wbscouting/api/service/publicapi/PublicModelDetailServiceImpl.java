@@ -8,6 +8,7 @@ import com.wbscouting.api.enums.MediaType;
 import com.wbscouting.api.exception.ResourceNotFoundException;
 import com.wbscouting.api.repository.ModelMediaRepository;
 import com.wbscouting.api.repository.ModelRepository;
+import com.wbscouting.api.service.storage.SupabaseStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,22 @@ public class PublicModelDetailServiceImpl implements PublicModelDetailService {
 
     private final ModelRepository modelRepository;
     private final ModelMediaRepository modelMediaRepository;
+    private final SupabaseStorageService storageService;
+
+    // Helper: constroi ModelMediaPublicItemDto com URL validada e completa quando
+    // fileUrl estiver vazio / incompleto (bug JPA storagePath antigo).
+    private ModelMediaPublicItemDto buildMediaItem(ModelMedia m) {
+        String bucket = MediaType.COMPOSITE == m.getMediaType()
+                ? storageService.getProperties().resolveBucketSiteAssets()
+                : storageService.getProperties().resolveBucketModelsMedia();
+        String url = storageService.resolvePublicUrlFromFields(bucket, m.getFilePath(), m.getFileUrl());
+        return ModelMediaPublicItemDto.builder()
+                .id(m.getId())
+                .fileUrl(url)
+                .displayOrder(m.getDisplayOrder())
+                .isCover(m.getIsCover())
+                .build();
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -43,12 +60,7 @@ public class PublicModelDetailServiceImpl implements PublicModelDetailService {
 
         for (ModelMedia m : mediaList) {
             if (Boolean.TRUE.equals(m.getIsActive())) {
-                ModelMediaPublicItemDto item = ModelMediaPublicItemDto.builder()
-                        .id(m.getId())
-                        .fileUrl(m.getFileUrl())
-                        .displayOrder(m.getDisplayOrder())
-                        .isCover(m.getIsCover())
-                        .build();
+                ModelMediaPublicItemDto item = buildMediaItem(m);
 
                 if (m.getMediaType() == MediaType.BOOK) {
                     bookPhotos.add(item);

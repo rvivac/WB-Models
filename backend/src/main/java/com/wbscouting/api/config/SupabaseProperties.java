@@ -109,6 +109,7 @@ public class SupabaseProperties {
         private boolean localFallback = false;
         private String localDir = "uploads";
         private String localBaseUrl = "http://localhost:8080";
+        private String publicBaseUrl;
     }
 
     @Getter

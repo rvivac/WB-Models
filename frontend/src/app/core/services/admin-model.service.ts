@@ -67,6 +67,7 @@ export class AdminModelService {
    */
   getModelById(id: string): Observable<ModelAdminItem> {
     return this.http.get<ModelAdminItem>(`${this.apiUrl}/${id}`).pipe(
+      map(m => this._resolveAdminCoverUrl(m)),
       catchError((err) => {
         console.warn(`Backend offline para obter modelo ${id}. Buscando no Mock Local:`, err);
         const found = this.getMockList().find((m) => m.id === id);
@@ -83,6 +84,7 @@ export class AdminModelService {
    */
   createModel(data: ModelFormData): Observable<ModelAdminItem> {
     return this.http.post<ModelAdminItem>(this.apiUrl, data).pipe(
+      map(m => this._resolveAdminCoverUrl(m)),
       tap((created) => this.upsertLocalMock(created)),
       catchError((err) => {
         console.warn('Backend offline ao cadastrar modelo. Salvando no Mock Local:', err);
@@ -105,6 +107,7 @@ export class AdminModelService {
    */
   updateModel(id: string, data: ModelFormData): Observable<ModelAdminItem> {
     return this.http.put<ModelAdminItem>(`${this.apiUrl}/${id}`, data).pipe(
+      map(m => this._resolveAdminCoverUrl(m)),
       tap((updated) => this.upsertLocalMock(updated)),
       catchError((err) => {
         console.warn(`Backend offline ao atualizar modelo ${id}. Atualizando no Mock Local:`, err);
@@ -131,6 +134,7 @@ export class AdminModelService {
    */
   updateStar(id: string, isStar: boolean): Observable<ModelAdminItem> {
     return this.http.patch<ModelAdminItem>(`${this.apiUrl}/${id}/star`, { isStar }).pipe(
+      map(m => this._resolveAdminCoverUrl(m)),
       tap((updated) => this.upsertLocalMock(updated)),
       catchError((err) => {
         console.warn(`Backend offline ao alternar Star para ${id}:`, err);
@@ -152,6 +156,7 @@ export class AdminModelService {
    */
   updateStatus(id: string, isActive: boolean): Observable<ModelAdminItem> {
     return this.http.patch<ModelAdminItem>(`${this.apiUrl}/${id}/status`, { isActive }).pipe(
+      map(m => this._resolveAdminCoverUrl(m)),
       tap((updated) => this.upsertLocalMock(updated)),
       catchError((err) => {
         console.warn(`Backend offline ao alternar Status para ${id}:`, err);
@@ -173,6 +178,7 @@ export class AdminModelService {
    */
   updateFeatured(id: string, isFeaturedHome: boolean, featuredOrder?: number | null): Observable<ModelAdminItem> {
     return this.http.patch<ModelAdminItem>(`${this.apiUrl}/${id}/featured`, { isFeaturedHome, featuredOrder }).pipe(
+      map(m => this._resolveAdminCoverUrl(m)),
       tap((updated) => this.upsertLocalMock(updated)),
       catchError((err) => {
         console.warn(`Backend offline ao alternar Destaque para ${id}:`, err);
@@ -341,11 +347,64 @@ export class AdminModelService {
 
   // --- Métodos de Normalização e Mocking Local ---
 
+  /**
+   * Helper ANTI-FRAGIL para foto de capa na tela ADMIN "Casting & Stars".
+   * Resolve bug: fotos apareciam no SITE PUBLICO (PublicModelService tinha fallback)
+   * mas NÃO APARECIAM no Admin.
+   *
+   * Motivo: primaryPhotoUrl gravada incompleta no banco (ex: "/public/models-media/"
+   * SEM o path do arquivo) causa HTTP 400 no Storage Supabase.
+   *
+   * Solução IDENTICA ao PublicModelService._resolveCoverForCard:
+   * 1. Usa filePath/storagePath para REMONTAR URL publica valida
+   * 2. Bust-cache ?v=epochHour
+   */
+  private _resolveAdminCoverUrl(m: ModelAdminItem | any): ModelAdminItem {
+    if (!m) return m;
+    const filePath = (m as any).filePath || (m as any).storagePath || '';
+    let rawUrl = (m.primaryPhotoUrl || '').trim();
+
+    // 1) URL vazia MAS temos filePath -> remontar
+    if (!rawUrl && filePath) {
+      const clean = filePath.replace(/^\//, '');
+      rawUrl = `https://zmpqmdizqgnpnirqiufq.supabase.co/storage/v1/object/public/models-media/${clean}`;
+    }
+    // 2) URL incompleta detectada: termina com /, length curto mas temos filePath
+    const seemsIncomplete = !rawUrl.startsWith('http')
+      || rawUrl.endsWith('/')
+      || (filePath && rawUrl.length < 40 && !rawUrl.includes(filePath.substring(filePath.lastIndexOf('/') + 1)));
+
+    if (seemsIncomplete && filePath) {
+      const clean = filePath.replace(/^\//, '');
+      if (rawUrl && !rawUrl.startsWith('http')) {
+        if (rawUrl.includes('/models-media/') && !rawUrl.includes(clean)) {
+          const base = rawUrl.endsWith('/') ? rawUrl : (rawUrl + '/');
+          const prefix = base.startsWith('http') ? '' : 'https://zmpqmdizqgnpnirqiufq.supabase.co';
+          rawUrl = (prefix + base + clean).replace(/([^:]\/)\/+/g, '$1');
+        } else if (!rawUrl.includes(clean)) {
+          rawUrl = `https://zmpqmdizqgnpnirqiufq.supabase.co/storage/v1/object/public/models-media/${clean}`;
+        }
+      } else if (!rawUrl) {
+        rawUrl = `https://zmpqmdizqgnpnirqiufq.supabase.co/storage/v1/object/public/models-media/${clean}`;
+      }
+    }
+    // 3) Bust cache forçado (mantem foto nova aparecendo em 1h)
+    if (rawUrl) {
+      rawUrl = rawUrl + (rawUrl.includes('?') ? '&' : '?') + 'v=' + Math.floor(Date.now() / 3_600_000);
+    }
+    return { ...m, primaryPhotoUrl: rawUrl || m.primaryPhotoUrl };
+  }
+
+  private _applyCoverAll(items: ModelAdminItem[]): ModelAdminItem[] {
+    if (!items || items.length === 0) return items;
+    return items.map(x => this._resolveAdminCoverUrl(x));
+  }
+
   private normalizePageResponse(res: any): AdminModelPageResponse {
     if (!res) {
       return { content: [], totalElements: 0, totalPages: 0, size: 20, number: 0 };
     }
-    const content = res.content || (Array.isArray(res) ? res : []);
+    const content = this._applyCoverAll(res.content || (Array.isArray(res) ? res : []));
     return {
       content,
       totalElements: res.totalElements ?? content.length,
@@ -378,6 +437,8 @@ export class AdminModelService {
           (m.nationality && m.nationality.toLowerCase().includes(q))
       );
     }
+    // APLICA FALLBACK de foto capa (igual resposta real do backend)
+    list = this._applyCoverAll(list);
 
     const page = filters.page ?? 0;
     const size = filters.size ?? 20;

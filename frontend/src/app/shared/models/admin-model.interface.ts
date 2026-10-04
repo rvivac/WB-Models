@@ -9,6 +9,15 @@ export interface ModelAdminItem {
   featuredOrder?: number | null;
   isActive: boolean;
   primaryPhotoUrl?: string | null;
+  /**
+   * Caminho do arquivo no Storage Supabase.
+   * USO EXCLUSIVO COMO FALLBACK caso primaryPhotoUrl venha incompleta
+   * (ex: /public/models-media/ sem path do objeto → causa HTTP 400).
+   * Nao utilizar diretamente para exibir na UI: sempre use primaryPhotoUrl.
+   */
+  filePath?: string | null;
+  /** @deprecated Use filePath. Mantido para compatibilidade DTOs legados. */
+  storagePath?: string | null;
   instagramUrl?: string | null;
   birthDate?: string | null;
   heightCm?: number | null;

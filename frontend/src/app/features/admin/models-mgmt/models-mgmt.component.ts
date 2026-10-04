@@ -34,6 +34,24 @@ export class ModelsMgmtComponent implements OnInit {
   // Toast
   readonly toast = signal<{ message: string; type: 'success' | 'error' } | null>(null);
 
+  /**
+   * IDs dos modelos cuja miniatura de foto falhou ao carregar.
+   * O fallback sera exibido (quadrado "WB") em vez do icone de imagem quebrada.
+   * Resolve bug: fotos apareciam no Publico, mas apareciam quebradas no Admin.
+   */
+  readonly brokenPhotoIds = signal<Set<string>>(new Set());
+
+  /** Marca ID do modelo como teve erro de foto, forca placeholder cinza. */
+  onThumbError(modelId: string): void {
+    if (!modelId) return;
+    this.brokenPhotoIds.update(s => new Set(s).add(modelId));
+  }
+
+  /** @returns true se a miniatura deve pular o <img> e usar fallback "WB". */
+  hasBrokenThumb(modelId: string): boolean {
+    return !modelId || this.brokenPhotoIds().has(modelId);
+  }
+
   ngOnInit(): void {
     this.loadModels();
   }

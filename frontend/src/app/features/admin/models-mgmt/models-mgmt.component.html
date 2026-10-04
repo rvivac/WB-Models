@@ -119,10 +119,18 @@
                 <!-- Coluna: Modelo (Foto + Nome) -->
                 <td class="model-profile-cell">
                   <div class="model-thumb">
-                    @if (model.primaryPhotoUrl) {
-                      <img [src]="model.primaryPhotoUrl" [alt]="model.stageName" />
+                    @if (model.primaryPhotoUrl && !hasBrokenThumb(model.id)) {
+                      <img
+                        [src]="model.primaryPhotoUrl"
+                        [alt]="'Miniatura do modelo ' + model.stageName"
+                        loading="lazy"
+                        decoding="async"
+                        (error)="onThumbError(model.id)"
+                      />
                     } @else {
-                      <div class="thumb-fallback">WB</div>
+                      <div class="thumb-fallback" [title]="model.primaryPhotoUrl ? 'Foto indisponivel. Clique em Editar para re-enviar.' : 'Sem foto cadastrada. Clique em Editar para enviar.'">
+                        WB
+                      </div>
                     }
                   </div>
                   <div>

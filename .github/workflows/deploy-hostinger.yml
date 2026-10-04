@@ -40,47 +40,80 @@ jobs:
       - name: Compilar Angular em Produção
         run: npm run build -- --configuration production
 
-      - name: Garantir fallback SPA + CORS + Cache + Ignore (.htaccess / .git-ftp-ignore)
+      - name: Garantir fallback SPA + Ignore (.htaccess / .git-ftp-ignore)
         run: |
           DIST_DIR="dist/frontend/browser"
           if [ ! -d "$DIST_DIR" ]; then
-            echo "ERRO: $DIST_DIR não existe. Build falhou."
+            echo "ERRO CRÍTICO: Build Angular NÃO GEROU $DIST_DIR!"
             exit 1
           fi
           cp "$DIST_DIR/index.html" "$DIST_DIR/404.html"
-          echo "--- Gerando .htaccess (.htaccess completo Hostinger) ---"
-          cat > "$DIST_DIR/.htaccess" <<HTACCESS_EOF
-DirectoryIndex index.html index.php
-<IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteBase /
-  RewriteRule ^index\.html$ - [L]
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /index.html [L]
-</IfModule>
-HTACCESS_EOF
-          echo "--- Gerando .git-ftp-ignore (não deleta assets grandes no servidor) ---"
-          cat > "$DIST_DIR/.git-ftp-ignore" <<FTPIGNORE_EOF
-# NUNCA apague os arquivos abaixo no servidor Hostinger
-assets/videos/
-assets/images/
-assets/i18n/
-*.mp4
-*.jpg
-*.jpeg
-*.png
-*.webp
-*.avif
-*.ico
-*.svg
-*.woff2
-*.woff
-sitemap.xml
-robots.txt
-*.php
-FTPIGNORE_EOF
-          ls -la "$DIST_DIR/.htaccess" "$DIST_DIR/.git-ftp-ignore"
+
+          # --------------------------------------------------------------------------
+          # 1) ESCREVE .htaccess (roteamento SPA Angular + mínimo)
+          #    OBS: Usamos printf '%s\n' AQUI para EVITAR CUALQUER ERRO DE YAML
+          #    com HEREDOC contendo tags <IfModule...> que confundem parser.
+          # --------------------------------------------------------------------------
+          echo "--- [1/2] Escrevendo .htaccess ---"
+          printf '%s\n' \
+            'DirectoryIndex index.html index.php' \
+            '' \
+            '<IfModule mod_rewrite.c>' \
+            '  RewriteEngine On' \
+            '  RewriteBase /' \
+            '  RewriteRule ^index\.html$ - [L]' \
+            '  RewriteCond %{REQUEST_FILENAME} !-f' \
+            '  RewriteCond %{REQUEST_FILENAME} !-d' \
+            '  RewriteRule . /index.html [L]' \
+            '</IfModule>' \
+            > "$DIST_DIR/.htaccess"
+
+          # --------------------------------------------------------------------------
+          # 2) ESCREVE .git-ftp-ignore (NÃO APAGAR assets grandes no servidor)
+          # --------------------------------------------------------------------------
+          echo "--- [2/2] Escrevendo .git-ftp-ignore ---"
+          printf '%s\n' \
+            '# Arquivos / pastas QUE NÃO DEVEM SER APAGADOS NO SERVIDOR HOSTINGER (FTP-Deploy-Action)' \
+            '# ==========================================================' \
+            '# Medida de seguranca: evita que videos, logos, imagens e' \
+            '# conteudos enviados manualmente (via File Manager) sejam' \
+            '# deletados acidentalmente em deploy de CSS/JS novo.' \
+            '# ==========================================================' \
+            '' \
+            '# ASSETS GRANDES NAO COMPACTAVEIS (imagens/video/fontes)' \
+            'assets/videos/' \
+            'assets/images/' \
+            'assets/i18n/' \
+            '*.mp4' \
+            '*.webm' \
+            '*.jpg' \
+            '*.jpeg' \
+            '*.png' \
+            '*.gif' \
+            '*.webp' \
+            '*.avif' \
+            '*.svg' \
+            '*.ico' \
+            '*.woff2' \
+            '*.woff' \
+            '*.ttf' \
+            '' \
+            '# ARQUIVOS GERENCIADOS PELO PAINEL / SEO' \
+            'sitemap.xml' \
+            'sitemap_index.xml' \
+            'robots.txt' \
+            '.well-known/' \
+            '' \
+            '# ARQUIVOS DE DIAGNOSTICO (criados manualmente no File Manager)' \
+            '*.php' \
+            > "$DIST_DIR/.git-ftp-ignore"
+
+          # --------------------------------------------------------------------------
+          # 3) VALIDA QUE OS DOIS ARQUIVOS FORAM GERADOS
+          # --------------------------------------------------------------------------
+          echo "--- Validando arquivos gerados ---"
+          ( ls -la "$DIST_DIR/.htaccess" && echo "== .htaccess OK ($(wc -l < $DIST_DIR/.htaccess) linhas) ==" && cat "$DIST_DIR/.htaccess" && echo ) || exit 2
+          ( ls -la "$DIST_DIR/.git-ftp-ignore" && echo "== .git-ftp-ignore OK ($(wc -l < $DIST_DIR/.git-ftp-ignore) linhas) ==" && cat "$DIST_DIR/.git-ftp-ignore" && echo ) || exit 3
 
       - name: Validar e Garantir Presença dos Assets no Pacote de Deploy
         run: |

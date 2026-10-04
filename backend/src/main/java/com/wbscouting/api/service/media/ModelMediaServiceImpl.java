@@ -360,14 +360,33 @@ public class ModelMediaServiceImpl implements ModelMediaService {
     }
 
     private MediaUploadResponseDto toDto(ModelMedia media) {
+        // ============================================================
+        // PROTECAO CONSISTENCIA: ADMIN === PUBLICO
+        // Perfil publico usava storageService.resolvePublicUrlFromFields
+        // para remontar URLs incompletas.
+        // Admin NAO usava. Por isso foto nova Eve aparecia no publico
+        // e NAO aparecia no painel.
+        // Aplicamos exatamente a mesma logica aqui.
+        // ============================================================
+        String bucket = supabaseProperties.resolveBucketModelsMedia();
+        String rawUrl = media.getFileUrl();
+        String filePath = media.getFilePath();
+        String safeUrl = storageService.resolvePublicUrlFromFields(bucket, filePath, rawUrl);
+
+        // Bust cache de 1 hora (forca navegador carregar midia nova, evita HTTP 404 cache antigo)
+        if (safeUrl != null && !safeUrl.isBlank() && !safeUrl.contains("?v=")) {
+            safeUrl = safeUrl + "?v=" + (System.currentTimeMillis() / 3_600_000L);
+        }
+
         return MediaUploadResponseDto.builder()
                 .id(media.getId())
                 .modelId(media.getModel().getId())
                 .mediaType(media.getMediaType())
-                .fileUrl(media.getFileUrl())
+                .fileUrl(safeUrl)
                 .filePath(media.getFilePath())
                 .displayOrder(media.getDisplayOrder())
                 .isCover(media.getIsCover())
+                .isActive(Boolean.TRUE.equals(media.getIsActive()))
                 .createdAt(media.getCreatedAt())
                 .build();
     }

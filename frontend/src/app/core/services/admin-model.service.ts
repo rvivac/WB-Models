@@ -208,24 +208,83 @@ export class AdminModelService {
    * Obtém a galeria de fotos REAL do modelo (tabela model_media).
    * Remove a galeria de placeholders hardcoded (samplePhotos) que faziam
    * as fotos "sumirem" após recarregar a página.
+   *
+   * Corrige BUG CRITICO: caso o backend devolva fileUrl INCOMPLETA ou
+   * em branco (gravacoes antigas), montamos a URL combinando-a com
+   * filePath (caminho real do objeto no bucket Supabase).
+   * LOGICA IDENTICA ao Backend Java resolvePublicUrlFromFields.
    */
   getModelMedia(modelId: string): Observable<GalleryPhoto[]> {
     return this.http.get<any[]>(`${this.apiUrl}/${modelId}/media`).pipe(
-      map(items => items.map((item, idx) => ({
-        id: String(item.id),
-        url: item.fileUrl + (item.fileUrl && !item.fileUrl.includes('?v=') ? '?v=' + Math.floor(Date.now() / 3600_000) : ''),
-        filePath: item.filePath ?? '',
-        category: (item.mediaType === 'POLAROID' ? 'POLAROID' : 'BOOK') as 'BOOK' | 'POLAROID',
-        orderIndex: Number(item.displayOrder ?? idx),
-        isCover: Boolean(item.isCover),
-        isActive: Boolean(item.isActive ?? true),
-        isUploaded: true
-      }))),
+      map(items => (items || []).map((item, idx) => {
+        const rawFileUrl = typeof item.fileUrl === 'string' ? item.fileUrl.trim() : '';
+        const filePath = typeof item.filePath === 'string' ? item.filePath.trim() : '';
+        const safeUrl = this._resolveSafeMediaUrl(filePath, rawFileUrl);
+        const finalUrl = safeUrl + (safeUrl && !safeUrl.includes('?v=') ? '?v=' + Math.floor(Date.now() / 3600_000) : '');
+
+        const mediaType = String(item.mediaType || 'BOOK').toUpperCase();
+        const isPolaroid = mediaType.includes('POLAROID')
+          || mediaType === 'POLAROID_FRONT'
+          || mediaType === 'POLAROID_SIDE'
+          || mediaType === 'POLAROID_BODY';
+
+        return {
+          id: String(item.id),
+          url: finalUrl,
+          filePath: filePath,
+          category: (isPolaroid ? 'POLAROID' : 'BOOK') as 'BOOK' | 'POLAROID',
+          orderIndex: Number(item.displayOrder ?? idx),
+          isCover: Boolean(item.isCover),
+          isActive: Boolean(item.isActive ?? true),
+          isUploaded: true
+        };
+      })),
       catchError((err) => {
         console.warn(`Backend offline para obter midias do modelo ${modelId}. Retornando galeria vazia:`, err);
         return of([]);
       })
     );
+  }
+
+  /**
+   * Fallback frontal para resolver URLs incompletas no Admin.
+   * Estrategia 100% igual ao Backend Java resolvePublicUrlFromFields:
+   * - Se rawFileUrl estiver vazia ou incompleta (sem filePath incluido ou termina /)
+   *   Concatena bucket base + filePath para montar URL funcional.
+   *
+   * NOTA: No frontend NAO temos armazenado o baseURL do bucket de forma facil
+   * (para evitar duplicidade de configuracao), aplicamos heuristica robusta:
+   * Se a URL nao contem arquivo (terminar com / ou length < 40 caracteres) usamos
+   * a rawFileUrl como base + filePath concatenado. Caso nada funcione, retornamos
+   * a rawFileUrl original (sem piorar o cenario).
+   */
+  private _resolveSafeMediaUrl(filePath: string, rawFileUrl: string): string {
+    if (!rawFileUrl && !filePath) return '';
+    if (!rawFileUrl) rawFileUrl = '';
+    if (!filePath) filePath = '';
+
+    // Caso 1: URL parece completa (nao termina com / e tem tamanho suficiente).
+    if (rawFileUrl.length >= 40 && !rawFileUrl.endsWith('/') && (!filePath || rawFileUrl.includes(filePath))) {
+      return rawFileUrl;
+    }
+
+    // Caso 2: URL parece incompleta ou falta path.
+    // Tentamos remover duplicados antes de concatenar.
+    let base = rawFileUrl;
+    if (base.endsWith('/')) base = base.substring(0, base.length - 1);
+
+    if (!filePath) {
+      return rawFileUrl; // nada mais podemos fazer
+    }
+
+    // Evita duplicar path ex: /public/models-media/models-media/abc
+    const safeFilePath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+    if (base && safeFilePath && (base + '/' + safeFilePath).length >= 30) {
+      return base + '/' + safeFilePath;
+    }
+
+    // Fallback final: devolve o que tivermos
+    return rawFileUrl || (safeFilePath ? safeFilePath : '');
   }
 
   /**

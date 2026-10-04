@@ -351,7 +351,10 @@ public class ModelMediaServiceImpl implements ModelMediaService {
             );
         } catch (com.wbscouting.api.exception.StorageException stEx) {
             log.error("[COMPOSITE UPLOAD] StorageException (timeout, auth, rede). ModelId={}.", modelId, stEx);
-            if (stEx.getStatusCode() != null && (stEx.getStatusCode().is5xxServerError() || stEx.getStatusCode() == org.springframework.http.HttpStatus.GATEWAY_TIMEOUT)) {
+            // ☑️ Correcao getter: StorageException tem campo 'status' (private final HttpStatus status) lombok @Getter = getStatus()
+            //    Nome errado anterior getStatusCode() quebrou maven build.
+            org.springframework.http.HttpStatus st = stEx.getStatus();
+            if (st != null && (st.is5xxServerError() || st == org.springframework.http.HttpStatus.GATEWAY_TIMEOUT)) {
                 throw new IllegalStateException(
                     "Ocorreu um timeout ou falha temporária de conexão ao enviar o composite para o armazenamento na nuvem. " +
                     "Tente novamente em alguns segundos. Detalhe: " + (stEx.getMessage() != null ? stEx.getMessage() : "")

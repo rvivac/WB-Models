@@ -270,18 +270,43 @@ public class ModelMediaServiceImpl implements ModelMediaService {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("O arquivo do composite não pode estar vazio.");
         }
-        if (file.getSize() > 25 * 1024 * 1024) {
-            throw new IllegalArgumentException("O arquivo do composite excede o limite máximo permitido de 25 MB.");
+
+        // 🔴 CORREÇÃO DE LIMITE: 30 MB (compatível com storage.validateUpload, evitava FileSizeExceededException silenciosa)
+        final long MAX_SIZE_30_MB = 30L * 1024 * 1024;
+        long fileSize = file.getSize();
+        log.info("[COMPOSITE UPLOAD] modelId={}, originalFilename='{}', contentType='{}', size={} bytes ({})",
+                modelId, file.getOriginalFilename(), file.getContentType(), fileSize,
+                fileSize > 0 ? (fileSize / 1_048_576L) + " MB" : "desconhecido");
+
+        if (fileSize > MAX_SIZE_30_MB) {
+            double mbReal = Math.round((fileSize / (1024.0 * 1024.0)) * 10.0) / 10.0;
+            throw new IllegalArgumentException(
+                "Arquivo do composite muito grande: " + mbReal + " MB. " +
+                "O limite máximo permitido é 30 MB. Compacte o PDF ou envie uma imagem JPG/PNG menor."
+            );
         }
 
+        // 🔴 VALIDAÇÃO MIME BRANDA (respeita extensao se MIME for application/octet-stream / vazio)
         String contentType = file.getContentType();
         String originalFilename = file.getOriginalFilename() != null ? file.getOriginalFilename().toLowerCase() : "";
-        boolean isPdf = (contentType != null && contentType.equalsIgnoreCase("application/pdf")) || originalFilename.endsWith(".pdf");
-        boolean isImage = (contentType != null && (contentType.equalsIgnoreCase("image/jpeg") || contentType.equalsIgnoreCase("image/png") || contentType.equalsIgnoreCase("image/webp")))
-                || originalFilename.endsWith(".jpg") || originalFilename.endsWith(".jpeg") || originalFilename.endsWith(".png") || originalFilename.endsWith(".webp");
+
+        boolean isPdf = originalFilename.endsWith(".pdf")
+            || (contentType != null && contentType.equalsIgnoreCase("application/pdf"));
+        boolean isImage = originalFilename.endsWith(".jpg") || originalFilename.endsWith(".jpeg")
+            || originalFilename.endsWith(".png") || originalFilename.endsWith(".webp") || originalFilename.endsWith(".heic")
+            || (contentType != null && (
+                contentType.equalsIgnoreCase("image/jpeg") || contentType.equalsIgnoreCase("image/png")
+                || contentType.equalsIgnoreCase("image/webp") || contentType.equalsIgnoreCase("image/heic")
+             ));
 
         if (!isPdf && !isImage) {
-            throw new IllegalArgumentException("Formato inválido. Os formatos permitidos para o composite são: PDF, JPG, PNG e WEBP.");
+            String detalheContentType = (contentType == null || contentType.isBlank() || contentType.equalsIgnoreCase("application/octet-stream"))
+                ? " (o navegador não informou o tipo de arquivo, e a extensão não é PDF/JPG/PNG/WEBP)"
+                : " (tipo detectado: " + contentType + ")";
+            throw new IllegalArgumentException(
+                "Formato de arquivo do composite inválido." + detalheContentType +
+                ". Os formatos permitidos são: PDF, JPG, PNG e WEBP."
+            );
         }
 
         Model model = modelRepository.findById(modelId)
@@ -295,8 +320,9 @@ public class ModelMediaServiceImpl implements ModelMediaService {
             ModelMedia oldComp = existingComposite.get();
             try {
                 storageService.deleteFile(bucket, oldComp.getFilePath());
+                log.info("[COMPOSITE UPLOAD] Removido composite anterior. ModelId={}, oldPath={}", modelId, oldComp.getFilePath());
             } catch (Exception e) {
-                log.warn("Falha ao remover arquivo do composite anterior do storage: {}", e.getMessage());
+                log.warn("Falha ao remover arquivo do composite anterior do storage: {}. Continuando mesmo assim (orphan safe).", e.getMessage());
             }
             modelMediaRepository.delete(oldComp);
             modelMediaRepository.flush();
@@ -304,7 +330,44 @@ public class ModelMediaServiceImpl implements ModelMediaService {
 
         String originalName = sanitizeFilename(file.getOriginalFilename());
         String filename = "models/" + modelId + "/composite/" + UUID.randomUUID() + "-" + originalName;
-        String publicUrl = storageService.uploadFile(bucket, filename, file);
+
+        // 🔴 TRATAMENTO ESPECÍFICO DE TODAS AS EXCEÇÕES DO UPLOAD (mensagens amigáveis em PT-BR)
+        String publicUrl;
+        try {
+            publicUrl = storageService.uploadFile(bucket, filename, file);
+        } catch (com.wbscouting.api.exception.FileSizeExceededException fsEx) {
+            // Caso chegue aqui mesmo com a validacao de cima (limite mudado no storage, etc)
+            double mbReal = Math.round((fileSize / (1024.0 * 1024.0)) * 10.0) / 10.0;
+            log.error("[COMPOSITE UPLOAD] FileSizeExceededException mesmo apos validacao. ModelId={}, size={} MB", modelId, mbReal, fsEx);
+            throw new IllegalArgumentException(
+                "Arquivo do composite muito grande: " + mbReal + " MB. Limite 30 MB. " +
+                (fsEx.getMessage() != null ? "Detalhe: " + fsEx.getMessage() : "")
+            );
+        } catch (com.wbscouting.api.exception.InvalidFileException ivfEx) {
+            log.warn("[COMPOSITE UPLOAD] InvalidFileException. ModelId={}.", modelId, ivfEx);
+            throw new IllegalArgumentException(
+                "Não foi possível ler o arquivo do composite. Ele pode estar corrompido ou ser um tipo não suportado. " +
+                "Tente baixar o arquivo novamente e reenviar. Detalhe: " + (ivfEx.getMessage() != null ? ivfEx.getMessage() : "")
+            );
+        } catch (com.wbscouting.api.exception.StorageException stEx) {
+            log.error("[COMPOSITE UPLOAD] StorageException (timeout, auth, rede). ModelId={}.", modelId, stEx);
+            if (stEx.getStatusCode() != null && (stEx.getStatusCode().is5xxServerError() || stEx.getStatusCode() == org.springframework.http.HttpStatus.GATEWAY_TIMEOUT)) {
+                throw new IllegalStateException(
+                    "Ocorreu um timeout ou falha temporária de conexão ao enviar o composite para o armazenamento na nuvem. " +
+                    "Tente novamente em alguns segundos. Detalhe: " + (stEx.getMessage() != null ? stEx.getMessage() : "")
+                );
+            }
+            throw new IllegalStateException(
+                "Não foi possível enviar o composite para o armazenamento na nuvem. " +
+                "Detalhe: " + (stEx.getMessage() != null ? stEx.getMessage() : "Erro de comunicação.")
+            );
+        } catch (Exception ex) {
+            log.error("[COMPOSITE UPLOAD] Erro GENERICO inesperado ao enviar composite. ModelId={}.", modelId, ex);
+            throw new IllegalStateException(
+                "Ocorreu um erro inesperado ao processar o composite. " +
+                "Detalhe: " + (ex.getMessage() != null ? ex.getMessage() : "Erro desconhecido.")
+            );
+        }
 
         ModelMedia media = ModelMedia.builder()
                 .model(model)
@@ -317,6 +380,7 @@ public class ModelMediaServiceImpl implements ModelMediaService {
                 .build();
 
         ModelMedia saved = modelMediaRepository.save(media);
+        log.info("[COMPOSITE UPLOAD] SUCESSO. ModelId={}, finalPath={}, urlSize={} chars", modelId, filename, publicUrl != null ? publicUrl.length() : 0);
         return toCompositeDto(saved, originalName, file.getSize());
     }
 

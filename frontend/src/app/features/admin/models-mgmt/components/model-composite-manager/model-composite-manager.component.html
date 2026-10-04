@@ -95,10 +95,10 @@
       <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
     </svg>
     <p class="text-xs uppercase tracking-[0.2em] font-sans text-[#222624] font-medium">Arraste o arquivo do Composite aqui ou selecione</p>
-    <p class="text-[11px] text-[#5F6661] mt-1">Formatos aceitos: PDF, JPG, PNG até 25MB</p>
+    <p class="text-[11px] text-[#5F6661] mt-1">Formatos aceitos: PDF, JPG, PNG, WEBP até 30 MB</p>
   </div>
 
-  <input #fileInput type="file" accept="application/pdf,image/jpeg,image/png,image/webp" class="hidden" (change)="onFileSelected($event)">
+  <input #fileInput type="file" accept="application/pdf,image/jpeg,image/png,image/webp,.pdf,.jpg,.jpeg,.png,.webp" class="hidden" (change)="onFileSelected($event)">
 
   <!-- Progresso de Upload -->
   <div *ngIf="isUploading" class="space-y-2 upload-progress-wrap">
@@ -109,6 +109,13 @@
     <div class="w-full bg-[#E8EBE8] h-1 progress-track">
       <div class="bg-[#4B584E] h-1 transition-all duration-200 progress-bar" [style.width.%]="uploadProgress"></div>
     </div>
+  </div>
+
+  <!-- MENSAGEM DE ERRO DO BACKEND (Nao mais alert! Mostra detalhe exato: tamanho, formato, timeout) -->
+  <div *ngIf="errorMessage" role="alert" aria-live="polite" class="border-l-4 border-red-700 bg-red-50 text-red-900 px-4 py-3 rounded-sm text-xs tracking-wide space-y-1 shadow-sm">
+    <p class="font-semibold uppercase tracking-[0.18em] text-[10px] text-red-800">⚠️ Problema ao processar o composite</p>
+    <p class="whitespace-pre-line break-words">{{ errorMessage }}</p>
+    <p class="text-[10px] text-red-700/80 mt-1">Dica: Se for PDF muito grande, compacte em <em>smallpdf.com/compress-pdf</em> e reenvie. Erros de timeout reenvie em 30s (cold start Render Free).</p>
   </div>
 
 </div>

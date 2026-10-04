@@ -35,9 +35,9 @@ public class SupabaseStorageService implements StorageService {
     }
 
     // Limites de tamanho em bytes conforme especificação dos buckets
-    public static final long MAX_SIZE_SITE_ASSETS = 25L * 1024 * 1024;        // 25 MB
-    public static final long MAX_SIZE_MODELS_MEDIA = 8L * 1024 * 1024;        // 8 MB
-    public static final long MAX_SIZE_CANDIDATES_UPLOADS = 5L * 1024 * 1024;  // 5 MB
+    public static final long MAX_SIZE_SITE_ASSETS = 30L * 1024 * 1024;        // 30 MB (banners, logos, PDFs institucionais, composites publicitarios)
+    public static final long MAX_SIZE_MODELS_MEDIA = 30L * 1024 * 1024;       // 30 MB (Fotos Book, Polas HD + COMPOSITE PDF export InDesign)
+    public static final long MAX_SIZE_CANDIDATES_UPLOADS = 15L * 1024 * 1024; // 15 MB (Fotos WhatsApp/Instagram enviadas por candidatas)
 
     // Conjuntos de MIME Types permitidos por tipo de mídia
     public static final Set<String> ALLOWED_IMAGE_TYPES = Set.of(

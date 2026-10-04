@@ -46,7 +46,7 @@ export class ModelCompositeManagerComponent implements OnInit {
   errorMessage: string | null = null;
 
   private readonly allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
-  private readonly maxSizeBytes = 25 * 1024 * 1024; // 25 MB
+  private readonly maxSizeBytes = 30 * 1024 * 1024; // 🟢 30 MB (alinhado com storage.validateUpload. Composite PDF InDesign = 10-25 MB normal)
   private readonly SUPABASE_PUBLIC_STORAGE_BASE = 'https://zmpqmdizqgnpnirqiufq.supabase.co/storage/v1/object/public/models-media';
 
   /** @returns placeholder data URL (sem rede) se a previa da imagem composite quebrar. */
@@ -121,6 +121,7 @@ export class ModelCompositeManagerComponent implements OnInit {
   }
 
   onFileSelected(event: Event): void {
+    this.errorMessage = null;
     const target = event.target as HTMLInputElement;
     if (target.files && target.files.length > 0) {
       this.uploadComposite(target.files[0]);
@@ -131,6 +132,7 @@ export class ModelCompositeManagerComponent implements OnInit {
   onDrop(event: DragEvent): void {
     event.preventDefault();
     this.isDragging = false;
+    this.errorMessage = null;
     if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
       this.uploadComposite(event.dataTransfer.files[0]);
     }
@@ -148,14 +150,18 @@ export class ModelCompositeManagerComponent implements OnInit {
 
   uploadComposite(file: File): void {
     this.errorMessage = null;
+    this.compositeBrokenPreview.set(false);
 
+    // 🟢 VALIDACAO MIME BRANDA: (nao rejeita application/octet-stream / vazio se extensao eh conhecida)
     if (!this.isValidFileType(file)) {
-      alert('Formato de arquivo inválido. Formatos permitidos: PDF, JPG, PNG e WEBP.');
+      const ext = (file.name.toLowerCase().split('.').pop() || 'desconhecida').toUpperCase();
+      this.errorMessage = `❌ Formato de arquivo inválido: ${ext}. Tipos aceitos: PDF, JPG, PNG e WEBP.`;
       return;
     }
 
     if (file.size > this.maxSizeBytes) {
-      alert('O arquivo selecionado excede o limite máximo permitido de 25MB.');
+      const realMb = (file.size / (1024 * 1024)).toFixed(1);
+      this.errorMessage = `❌ Arquivo muito grande: ${realMb} MB. Limite máximo permitido é 30 MB. Compacte o PDF ou envie uma imagem menor.`;
       return;
     }
 
@@ -178,24 +184,64 @@ export class ModelCompositeManagerComponent implements OnInit {
           this.composite = created;
           this.compositeSafeFileUrl = created ? this._resolveSafeCompositeUrl(created) : null;
           this.compositeBrokenPreview.set(false);
+          this.errorMessage = null;
           this.isUploading = false;
           this.uploadProgress = 0;
         }
       },
-      error: () => {
-        alert('Falha ao processar o upload do Composite. Tente novamente.');
+      error: (err: any) => {
+        // 🔴 TRATAMENTO ESPECIFICO DE ERRO: LER O JSON DO BACKEND (NAO MAIS MENSAGEM GENERICA)
         this.isUploading = false;
+        this.uploadProgress = 0;
+
+        // Extrai detalhes do RFC 7807 Problem Details ou mensagem custom
+        const detail = err?.error?.detail || err?.error?.message || err?.statusText || 'Erro desconhecido';
+        const status: number = err?.status || 0;
+
+        let msg = '';
+        const detalheLower = String(detail).toLowerCase();
+
+        if (status === 401) {
+          msg = '🔐 Sua sessão expirou. Por favor, faça login novamente no painel Admin e reenvie o composite.';
+        } else if (status === 403) {
+          msg = '🚫 Permissão negada. Sua conta não tem permissão para atualizar composites.';
+        } else if (status === 404) {
+          msg = '⚠️ Modelo não encontrado no banco de dados. Recarregue a página (F5) e tente novamente.';
+        } else if (status === 413 || detalheLower.includes('muito grande') || detalheLower.includes('limite') || detalheLower.includes('mb') || detalheLower.includes('excede')) {
+          const realMb = (file.size / (1024 * 1024)).toFixed(1);
+          msg = `❌ Arquivo muito grande: ${realMb} MB. Limite 30 MB. Compacte o PDF (ex: SmallPDF) e reenvie. Detalhe: ${detail}.`;
+        } else if (status === 400 || detalheLower.includes('formato') || detalheLower.includes('inválido') || detalheLower.includes('invalido') || detalheLower.includes('permitidos')) {
+          msg = `❌ Formato inválido. ${detail}. Aceitos: PDF, JPG, PNG, WEBP.`;
+        } else if (status === 409) {
+          msg = `⚠️ Conflito ao salvar composite. Tente novamente. Detalhe: ${detail}.`;
+        } else if (status === 502 || status === 504 || status === 503 || detalheLower.includes('timeout') || detalheLower.includes('conexão') || detalheLower.includes('conexao') || detalheLower.includes('nuvem')) {
+          msg = `🌐 Falha temporária na conexão com o armazenamento na nuvem (Render / Supabase cold-start ou alta demanda). Tente novamente em 30 segundos. Detalhe: ${detail}.`;
+        } else if (status >= 500) {
+          msg = `🔥 Erro interno no servidor (HTTP ${status}). A equipe WB foi notificada automaticamente. Detalhe: ${detail}.`;
+        } else {
+          msg = `❌ Falha ao processar o upload do Composite. Detalhe: ${detail} (Status HTTP ${status}).`;
+        }
+
+        this.errorMessage = msg;
+        console.error('[Composite Manager] Erro tratado. Status:', status, 'Detail:', detail, 'Full err:', err);
       }
     });
   }
 
   removeComposite(): void {
+    this.errorMessage = null;
     if (confirm('Tem certeza de que deseja remover o Composite oficial deste modelo?')) {
       this.http.delete(`${environment.apiUrl}/admin/models/${this.modelId}/composite`).subscribe({
         next: () => {
           this.composite = null;
+          this.compositeSafeFileUrl = null;
+          this.compositeBrokenPreview.set(false);
+          this.errorMessage = null;
         },
-        error: () => alert('Erro ao excluir composite.')
+        error: (err) => {
+          const detail = err?.error?.detail || err?.statusText || 'Erro desconhecido';
+          this.errorMessage = `❌ Erro ao excluir composite: ${detail}.`;
+        }
       });
     }
   }
@@ -209,10 +255,18 @@ export class ModelCompositeManagerComponent implements OnInit {
   }
 
   private isValidFileType(file: File): boolean {
-    if (this.allowedMimeTypes.includes(file.type.toLowerCase())) {
+    const mime = file.type?.toLowerCase() || '';
+    if (this.allowedMimeTypes.includes(mime)) {
       return true;
     }
+    // 🟢 MIME BRANDO: Nao rejeita application/octet-stream ou vazio se extensao for PDF/JPG.
+    // WhatsApp baixado no Windows, navegador antigo ou PDF assinado digitalmente frequentemente vem assim.
     const name = file.name.toLowerCase();
-    return name.endsWith('.pdf') || name.endsWith('.jpg') || name.endsWith('.jpeg') || name.endsWith('.png') || name.endsWith('.webp');
+    return name.endsWith('.pdf')
+      || name.endsWith('.jpg')
+      || name.endsWith('.jpeg')
+      || name.endsWith('.png')
+      || name.endsWith('.webp')
+      || name.endsWith('.heic'); // Backend vai recusar HEIC, mas a mensagem de erro sera especifica.
   }
 }

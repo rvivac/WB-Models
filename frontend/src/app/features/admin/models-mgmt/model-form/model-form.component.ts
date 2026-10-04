@@ -17,6 +17,8 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpEventType } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { switchMap, map, tap, catchError } from 'rxjs/operators';
 import { AdminModelService } from '../../../../core/services/admin-model.service';
 import {
   ModelAdminItem,
@@ -133,81 +135,94 @@ export class ModelFormComponent implements OnInit {
 
   onPhotosChanged(updatedPhotos: GalleryPhoto[]): void {
     this.galleryPhotos.set(updatedPhotos);
-    if (updatedPhotos.length > 0) {
-      const coverPhoto = updatedPhotos.find((p) => p.isCover) || updatedPhotos[0];
+    if (!updatedPhotos || updatedPhotos.length === 0) {
+      return;
+    }
+    const coverPhoto = updatedPhotos.find((p) => Boolean(p.isCover)) || updatedPhotos[0];
+    if (coverPhoto?.url) {
       this.modelForm.patchValue({ primaryPhotoUrl: coverPhoto.url });
+    }
+
+    // Se a foto marcada como capa tem ID REAL (nao eh previa temp-), chamar endpoint setModelCover
+    // para PERSISTIR isCover=true na tabela model_media + sincronizar primary_photo_url models.
+    const idAtual = this.modelId();
+    const coverComId = updatedPhotos.find((p) => Boolean(p.isCover) && Boolean(p.id) && !String(p.id).startsWith('temp-'));
+    if (idAtual && coverComId && coverComId.id) {
+      this.adminModelService.setModelCover(idAtual, coverComId.id).subscribe({
+        next: (saved) => {
+          console.info('[onPhotosChanged] Capa persistida no banco. mediaId=' + saved.id);
+          // Apos sucesso, recarrega galeria e sincroniza primaryPhotoUrl com valor salvo
+          this._refreshGalleryFromDatabase(idAtual).subscribe(() => {
+            const galAtual = this.galleryPhotos();
+            const capaAtualizada = galAtual.find(x => Boolean(x.isCover)) || galAtual[0];
+            if (capaAtualizada?.url) {
+              this.modelForm.patchValue({ primaryPhotoUrl: capaAtualizada.url });
+            }
+          });
+        },
+        error: (err) => {
+          const msg = err?.error?.detail || err?.error?.message || 'Falha ao salvar nova capa no banco.';
+          console.warn('[onPhotosChanged] setModelCover falhou:', err);
+          this.showToast(msg, 'error');
+        }
+      });
     }
   }
 
-  onFilesUploaded(files: File[]): void {
-    this.showToast(`${files.length} arquivo(s) selecionado(s). Fazendo upload via Backend para o Supabase...`, 'success');
-    const current = this.modelId();
-    if (!current) {
-      this.showToast('Primeiro salve os DADOS BÁSICOS do modelo (modelo novo ainda sem ID no banco). Depois envie as fotos.', 'error');
-      return;
-    }
-
-    files.forEach((file, idx) => {
-      // Marca previa temporaria como isUploading=true (feedback visual)
-      const previews = this.galleryPhotos();
-      const tempPhoto = previews.find(p => p?.id && p.id.startsWith('temp-') && !(p as any).__uploadStarted);
-      if (tempPhoto) {
-        tempPhoto.isUploading = true;
-        tempPhoto.uploadProgress = 1;
-        (tempPhoto as any).__uploadStarted = true;
-      }
-
-      this.adminModelService.uploadModelMedia(current, file, 'BOOK', false).subscribe({
-        next: (ev) => {
-          if (ev.type === HttpEventType.UploadProgress && ev.total && tempPhoto) {
-            tempPhoto.uploadProgress = Math.round((100 * ev.loaded) / ev.total);
-          } else if (ev.type === HttpEventType.Response && ev.body) {
-            const saved = ev.body;
-            // Remove a previa temporaria temp-
-            let galeriaNova = this.galleryPhotos().filter(p => !(p?.id && p.id.startsWith('temp-')));
-            // Insere foto REAL do banco
-            const fotoReal: GalleryPhoto = {
-              id: saved.id,
-              url: saved.fileUrl + (saved.fileUrl.includes('?v=') ? '' : ('?v=' + Math.floor(Date.now() / 3600_000))),
-              filePath: saved.filePath,
-              category: saved.mediaType as any,
-              orderIndex: galeriaNova.length,
-              isCover: saved.isCover || galeriaNova.length === 0,
-              isActive: true,
-              isUploaded: true,
-              isUploading: false,
-              uploadProgress: 100
-            };
-            galeriaNova = [...galeriaNova, fotoReal];
-            // Se for a primeira foto, torna ela capa automaticamente
-            if (galeriaNova.length === 1) {
-              galeriaNova[0].isCover = true;
-            } else if (!galeriaNova.some(p => p.isCover)) {
-              galeriaNova[0].isCover = true;
-            }
-            galeriaNova.forEach((p, i) => { p.orderIndex = i; });
-
-            this.galleryPhotos.set(galeriaNova);
-            const cover = galeriaNova.find(p => p.isCover) || galeriaNova[0];
-            if (cover) this.modelForm.patchValue({ primaryPhotoUrl: cover.url });
-
-            this.showToast(`✅ Foto ${idx + 1}/${files.length} enviada com sucesso (já está salva no banco)`, 'success');
+  /**
+   * Busca a GALERIA REAL do modelo no Backend (tabela model_media),
+   * substitui placeholders hardcoded (samplePhotos) que faziam as 3 fotos
+   * "erradas" aparecerem no Admin enquanto no Publico apareciam 41 corretas.
+   *
+   * Usado SEMPRE:
+   *  - no loadModelData (1a vez abrindo a tela)
+   *  - depois de upload, exclusao, reorder, marcacao de capa.
+   * Garante que Admin tenha a MESMA lista que Publico (1:1).
+   */
+  _refreshGalleryFromDatabase(forModelId: string): Observable<GalleryPhoto[]> {
+    return this.adminModelService.getModelMedia(forModelId).pipe(
+      tap((listaRealOrdenada) => {
+        if (!listaRealOrdenada || listaRealOrdenada.length === 0) {
+          // Fallback: sem nenhuma midia gravada ainda. Apenas usa a capa do formulario se existir.
+          const capa = this.modelForm.get('primaryPhotoUrl')?.value;
+          if (capa) {
+            this.galleryPhotos.set([{
+              id: 'fallback-cover',
+              url: capa,
+              category: 'BOOK',
+              orderIndex: 0,
+              isCover: true
+            }]);
+          } else {
+            this.galleryPhotos.set([]);
           }
-        },
-        error: (err) => {
-          if (tempPhoto) { tempPhoto.isUploading = false; tempPhoto.uploadProgress = 0; }
-          const msg = err?.error?.detail || err?.error?.message || `Falha ao enviar foto ${idx + 1}. Verifique tamanho e tipo.`;
-          this.showToast(msg, 'error');
-          console.error('Erro upload foto idx=' + idx, err);
+          return;
         }
-      });
-    });
+
+        // Garante pelo menos 1 capa (primeira foto se nenhuma for marcada)
+        let normalized = [...listaRealOrdenada].sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0));
+        if (!normalized.some(p => Boolean(p.isCover))) {
+          normalized[0].isCover = true;
+        }
+        normalized.forEach((p, i) => { p.orderIndex = i; });
+
+        this.galleryPhotos.set(normalized);
+
+        // Sync final: se tiver capa real, atualiza campo primaryPhotoUrl do form
+        const realCover = normalized.find(p => Boolean(p.isCover)) || normalized[0];
+        if (realCover?.url) {
+          this.modelForm.patchValue({ primaryPhotoUrl: realCover.url });
+        }
+      })
+    );
   }
 
   loadModelData(id: string): void {
     this.isLoading.set(true);
-    this.adminModelService.getModelById(id).subscribe({
-      next: (model) => {
+    this.adminModelService.getModelById(id).pipe(
+      // PRIMEIRO carrega dados basicos do modelo, DEPOIS busca a GALERIA REAL de midias.
+      // (evita cor de condicao: galeria vinda antes do ID estar pronto)
+      switchMap((model) => {
         this.modelForm.patchValue({
           stageName: model.stageName,
           gender: model.gender,
@@ -229,37 +244,121 @@ export class ModelFormComponent implements OnInit {
           hairColor: model.hairColor || '',
           eyesColor: model.eyesColor || ''
         });
-
-        // Inicializa acervo visual de imagens do modelo
-        const initialGallery: GalleryPhoto[] = [];
-        if (model.primaryPhotoUrl) {
-          initialGallery.push({
-            id: 'photo-cover',
-            url: model.primaryPhotoUrl,
-            category: 'BOOK',
-            orderIndex: 0,
-            isCover: true
-          });
-        }
-        if (model.gender === 'FEMALE') {
-          initialGallery.push(
-            { id: 'p2', url: this.samplePhotos[2], category: 'POLAROID', orderIndex: 1, isCover: false },
-            { id: 'p3', url: this.samplePhotos[4], category: 'BOOK', orderIndex: 2, isCover: false }
-          );
-        } else {
-          initialGallery.push(
-            { id: 'p2', url: this.samplePhotos[3], category: 'POLAROID', orderIndex: 1, isCover: false }
-          );
-        }
-        this.galleryPhotos.set(initialGallery);
-
         this.updateComputedAge(model.birthDate);
+
+        // 🎯 BUSCA A GALERIA REAL (41 fotos Eve). NUNCA MAIS samplePhotos hardcoded.
+        return this._refreshGalleryFromDatabase(id).pipe(map(() => model));
+      })
+    ).subscribe({
+      next: (_modeloFinal) => {
         this.isLoading.set(false);
+        const total = this.galleryPhotos().length;
+        if (total > 0) {
+          this.showToast(`Galeria carregada: ${total} foto(s) reais do banco. Igual ao perfil público.`, 'success');
+        } else {
+          this.showToast('Modelo carregado. Envie as fotos do book / polaroids.', 'success');
+        }
       },
-      error: () => {
-        this.showToast('Erro ao carregar dados do modelo.', 'error');
+      error: (err) => {
         this.isLoading.set(false);
+        const msg = err?.error?.detail || err?.error?.message || 'Erro ao carregar dados do modelo.';
+        this.showToast(msg, 'error');
+        console.error('[loadModelData] ERRO:', err);
       }
+    });
+  }
+
+  onFilesUploaded(files: File[]): void {
+    if (!files || files.length === 0) return;
+    this.showToast(`${files.length} arquivo(s) selecionado(s). Fazendo upload via Backend para o Supabase...`, 'success');
+    const current = this.modelId();
+    if (!current) {
+      this.showToast('Primeiro salve os DADOS BÁSICOS do modelo (modelo novo ainda sem ID no banco). Depois envie as fotos.', 'error');
+      return;
+    }
+
+    let enviadosOk = 0;
+    let falhas = 0;
+
+    const uploadEmSequencia = files.reduce((accPromessa, file, idx) => {
+      // 1) Procura previa temp- correspondente MARCA como UPLOADING (IMUTAVEL)
+      let previews = [...this.galleryPhotos()];
+      let tempIdx = previews.findIndex(p => p?.id && String(p.id).startsWith('temp-') && !(p as any).__uploadStarted);
+      const tempPhoto = tempIdx >= 0 ? { ...previews[tempIdx], _index: tempIdx } : null;
+      if (tempIdx >= 0) {
+        previews[tempIdx] = { ...previews[tempIdx], isUploading: true, uploadProgress: 1 };
+        (previews[tempIdx] as any).__uploadStarted = true;
+        this.galleryPhotos.set([...previews]);
+      }
+
+      // 2) Upload SEQUENCIAL (evita flood HTTP no bucket Supabase)
+      return accPromessa.then(() => new Promise<void>((resolve) => {
+        this.adminModelService.uploadModelMedia(current, file, 'BOOK', false).subscribe({
+          next: (ev) => {
+            if (ev.type === HttpEventType.UploadProgress && ev.total && tempPhoto) {
+              const p = Math.round((100 * ev.loaded) / ev.total);
+              previews = [...this.galleryPhotos()];
+              if (previews[tempPhoto._index]?.id === tempPhoto.id) {
+                previews[tempPhoto._index] = { ...previews[tempPhoto._index], uploadProgress: p };
+                this.galleryPhotos.set([...previews]);
+              }
+            } else if (ev.type === HttpEventType.Response && ev.body) {
+              enviadosOk++;
+              const saved = ev.body;
+              // Remove previa temp- (imutavel) e insere FOTO REAL do banco
+              let galeriaNova = [...this.galleryPhotos()].filter(p => !(p?.id && String(p.id).startsWith('temp-')));
+              const fotoReal: GalleryPhoto = {
+                id: saved.id,
+                url: saved.fileUrl + (saved.fileUrl.includes('?v=') ? '' : ('?v=' + Math.floor(Date.now() / 3_600_000))),
+                filePath: saved.filePath,
+                category: saved.mediaType as any,
+                orderIndex: galeriaNova.length,
+                isCover: saved.isCover || galeriaNova.length === 0,
+                isActive: true,
+                isUploaded: true,
+                isUploading: false,
+                uploadProgress: 100
+              };
+              galeriaNova = [...galeriaNova, fotoReal];
+              if (galeriaNova.length === 1) galeriaNova[0].isCover = true;
+              else if (!galeriaNova.some(p => Boolean(p.isCover))) galeriaNova[0].isCover = true;
+              galeriaNova = galeriaNova.map((p, i) => ({ ...p, orderIndex: i }));
+
+              this.galleryPhotos.set(galeriaNova);
+              const cover = galeriaNova.find(p => Boolean(p.isCover)) || galeriaNova[0];
+              if (cover?.url) this.modelForm.patchValue({ primaryPhotoUrl: cover.url });
+
+              this.showToast(`✅ Foto ${idx + 1}/${files.length} enviada com sucesso (já está salva no banco)`, 'success');
+              resolve();
+            }
+          },
+          error: (err) => {
+            falhas++;
+            if (tempPhoto) {
+              previews = [...this.galleryPhotos()];
+              if (previews[tempPhoto._index]?.id === tempPhoto.id) {
+                previews[tempPhoto._index] = { ...previews[tempPhoto._index], isUploading: false, uploadProgress: 0 };
+                this.galleryPhotos.set([...previews]);
+              }
+            }
+            const msg = err?.error?.detail || err?.error?.message || `Falha ao enviar foto ${idx + 1}. Verifique tamanho e tipo.`;
+            this.showToast(msg, 'error');
+            console.error('Erro upload foto idx=' + idx, err);
+            resolve();
+          }
+        });
+      }));
+    }, Promise.resolve());
+
+    // AO FINAL DE TODOS -> recarrega galeria REAL do banco (sincronia 100% Admin = Perfil Publico)
+    uploadEmSequencia.finally(() => {
+      this._refreshGalleryFromDatabase(current).subscribe(() => {
+        if (falhas === 0) {
+          this.showToast(`📚 Upload concluído (${enviadosOk}/${files.length}). Galeria sincronizada com o banco (idêntica ao perfil público).`, 'success');
+        } else {
+          this.showToast(`${enviadosOk} OK. ${falhas} falha(s). Galeria sincronizada.`, 'error');
+        }
+      });
     });
   }
 

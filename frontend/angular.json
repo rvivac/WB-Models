@@ -55,10 +55,6 @@
                 },
                 "fonts": true
               },
-              "buildOptimizer": true,
-              "sourceMap": false,
-              "namedChunks": false,
-              "extractLicenses": true,
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",

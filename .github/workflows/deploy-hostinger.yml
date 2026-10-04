@@ -40,13 +40,16 @@ jobs:
       - name: Compilar Angular em Produção
         run: npm run build -- --configuration production
 
-      - name: Garantir fallback SPA para rotas (404.html e .htaccess)
+      - name: Garantir fallback SPA + CORS + Cache + Ignore (.htaccess / .git-ftp-ignore)
         run: |
           DIST_DIR="dist/frontend/browser"
-          if [ -d "$DIST_DIR" ]; then
-            cp "$DIST_DIR/index.html" "$DIST_DIR/404.html"
-            # Cria .htaccess para Apache/Hostinger rotear o Angular SPA
-            cat << 'EOF' > "$DIST_DIR/.htaccess"
+          if [ ! -d "$DIST_DIR" ]; then
+            echo "ERRO: $DIST_DIR não existe. Build falhou."
+            exit 1
+          fi
+          cp "$DIST_DIR/index.html" "$DIST_DIR/404.html"
+          echo "--- Gerando .htaccess (.htaccess completo Hostinger) ---"
+          cat > "$DIST_DIR/.htaccess" <<HTACCESS_EOF
 DirectoryIndex index.html index.php
 <IfModule mod_rewrite.c>
   RewriteEngine On
@@ -56,8 +59,28 @@ DirectoryIndex index.html index.php
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule . /index.html [L]
 </IfModule>
-EOF
-          fi
+HTACCESS_EOF
+          echo "--- Gerando .git-ftp-ignore (não deleta assets grandes no servidor) ---"
+          cat > "$DIST_DIR/.git-ftp-ignore" <<FTPIGNORE_EOF
+# NUNCA apague os arquivos abaixo no servidor Hostinger
+assets/videos/
+assets/images/
+assets/i18n/
+*.mp4
+*.jpg
+*.jpeg
+*.png
+*.webp
+*.avif
+*.ico
+*.svg
+*.woff2
+*.woff
+sitemap.xml
+robots.txt
+*.php
+FTPIGNORE_EOF
+          ls -la "$DIST_DIR/.htaccess" "$DIST_DIR/.git-ftp-ignore"
 
       - name: Validar e Garantir Presença dos Assets no Pacote de Deploy
         run: |
@@ -69,38 +92,13 @@ EOF
           fi
           echo "Lista de arquivos e subdiretórios em assets:"
           ls -la "$DIST_DIR/assets"
-          ls -la "$DIST_DIR/assets/i18n"
+          [ -d "$DIST_DIR/assets/i18n" ] && ls -la "$DIST_DIR/assets/i18n" || echo "(sem pasta i18n — usando translation service)"
           ls -la "$DIST_DIR/assets/images"
           ls -la "$DIST_DIR/assets/videos"
           echo "Tamanhos de arquivos críticos (em bytes):"
-          du -b "$DIST_DIR/assets/videos/"*  2>/dev/null || true
+          du -cb "$DIST_DIR/assets/videos/"*  2>/dev/null | tail -1 || true
           du -b "$DIST_DIR/assets/images/hero-poster.jpg" 2>/dev/null || true
           echo "Assets validados com sucesso para o deploy."
-
-      # Evita deleta assets grandes: vídeos, imagens-padrão, logos.
-      # FTP-Deploy-Action só vai delete de CSS/JS/HTML que mudam todo build.
-      - name: Criar .git-ftp-ignore (não APAGAR assets grandes no servidor)
-        run: |
-          DIST_DIR="dist/frontend/browser"
-          cat << 'EOF' > "$DIST_DIR/.git-ftp-ignore"
-# NUNCA apague os arquivos abaixo no servidor Hostinger (eles são grandes e via FTP cai no meio)
-assets/videos/
-assets/images/
-*.mp4
-*.jpg
-*.jpeg
-*.png
-*.webp
-*.avif
-*.ico
-assets/i18n/
-sitemap.xml
-robots.txt
-# Arquivos de diagnóstico manual
-*.php
-EOF
-          echo ".git-ftp-ignore criado em $DIST_DIR/"
-          cat "$DIST_DIR/.git-ftp-ignore"
 
       - name: Enviar arquivos via FTP para a Hostinger (public_html)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -111,14 +109,6 @@ EOF
           protocol: ftp
           port: 21
           timeout: 600000
-          log-level: standard
-          dangerous-clean-slate: false
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/*.php
-          state-name: .wf-ftp-state-hostinger-deploy.json
           local-dir: ./frontend/dist/frontend/browser/
           server-dir: ${{ secrets.FTP_SERVER_DIR || 'domains/wbagency.com.br/public_html/' }}
 

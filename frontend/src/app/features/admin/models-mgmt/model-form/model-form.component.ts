@@ -17,8 +17,8 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpEventType } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { switchMap, map, tap, catchError } from 'rxjs/operators';
+import { Observable, forkJoin, firstValueFrom, of } from 'rxjs';
+import { switchMap, map, tap, catchError, finalize } from 'rxjs/operators';
 import { AdminModelService } from '../../../../core/services/admin-model.service';
 import {
   ModelAdminItem,
@@ -130,14 +130,66 @@ export class ModelFormComponent implements OnInit {
     }
   }
 
-  // Galeria de Fotos Editorial (ADM-006 / EAP 4.2.3)
   readonly galleryPhotos = signal<GalleryPhoto[]>([]);
+  /**
+   * IDs de midias com ID REAL (nao temp-) existentes no banco de dados NO MOMENTO
+   * de carregar a pagina. Usado para detectar o que foi REMOVIDO da grid
+   * (por QUALQUER motivo: botao X, drag-drop, selecao em massa, etc) e adicionar
+   * em pendingDeleteIds.
+   * Funciona para apagar 1 ou 50 fotos, QUANTAS QUISER.
+   */
+  readonly originalMediaIds = signal<Set<string>>(new Set());
+  /**
+   * IDs de midias com id REAL (nao temp-) que o usuario apagou da grid.
+   * Serao EXCLUIDOS DEFINITIVAMENTE do banco model_media + bucket Supabase
+   * SOMENTE ao clicar em SALVAR / ATUALIZAR MODELO.
+   */
+  readonly pendingDeleteIds = signal<Set<string>>(new Set());
+  readonly pendingDeleteCount = computed(() => Array.from(this.pendingDeleteIds()).filter(id => !!id && !String(id).startsWith('temp-')).length);
+
+  /**
+   * Compara a galeria ATUAL com os IDs ORIGINAIS do banco.
+   * TODO ID REAL que existia no original e NAO EXISTE mais na galeria atual
+   * ENTRA em pendingDeleteIds (para exclusao definitiva ao salvar).
+   * Funciona apagar 1, 10 ou 50 fotos ao mesmo tempo.
+   */
+  private detectIdsRemovedFromDatabase(galeriaAtual: GalleryPhoto[]): void {
+    const idsAtuais = new Set(
+      (galeriaAtual || []).filter(p => p?.id && !String(p.id).startsWith('temp-')).map(p => String(p.id))
+    );
+    const novos = new Set(this.pendingDeleteIds());
+    // Todos os IDs ORIGINAIS do banco que FORAM REMOVIDOS da lista atual:
+    for (const originalId of Array.from(this.originalMediaIds())) {
+      if (!idsAtuais.has(originalId)) {
+        novos.add(String(originalId));
+      }
+    }
+    // Se o usuario DEFEZ (volta a foto com ID na lista), remove de pendingDeleteIds:
+    for (const idAtual of Array.from(idsAtuais)) {
+      if (novos.has(idAtual)) {
+        novos.delete(idAtual);
+      }
+    }
+    this.pendingDeleteIds.set(novos);
+  }
+
+  onPhotoRemoved(excluida: GalleryPhoto): void {
+    if (!excluida || !excluida.id) return;
+    if (String(excluida.id).startsWith('temp-')) return;
+    // Evento direto: marca de qualquer jeito, e depois detectIdsRemovedFromDatabase valida.
+    const nova = new Set(this.pendingDeleteIds());
+    nova.add(String(excluida.id));
+    this.pendingDeleteIds.set(nova);
+  }
 
   onPhotosChanged(updatedPhotos: GalleryPhoto[]): void {
-    this.galleryPhotos.set(updatedPhotos);
+    this.galleryPhotos.set(updatedPhotos || []);
+    // 🔴 DETECCAO UNIVERSAL: apagar 1, 10, 50 fotos, QUALQUER METODO. Tudo entra no pending.
+    this.detectIdsRemovedFromDatabase(updatedPhotos || []);
     if (!updatedPhotos || updatedPhotos.length === 0) {
       return;
     }
+
     const coverPhoto = updatedPhotos.find((p) => Boolean(p.isCover)) || updatedPhotos[0];
     if (coverPhoto?.url) {
       this.modelForm.patchValue({ primaryPhotoUrl: coverPhoto.url });
@@ -196,6 +248,9 @@ export class ModelFormComponent implements OnInit {
           } else {
             this.galleryPhotos.set([]);
           }
+          // Seta state vazio para IDs originais do banco + zera pendentes
+          this.originalMediaIds.set(new Set());
+          this.pendingDeleteIds.set(new Set());
           return;
         }
 
@@ -207,6 +262,20 @@ export class ModelFormComponent implements OnInit {
         normalized.forEach((p, i) => { p.orderIndex = i; });
 
         this.galleryPhotos.set(normalized);
+
+        // ==========================================================
+        // POPULA OS IDS REAIS do banco de dados no originalMediaIds.
+        // A PARTIR DAQUI: qualquer remocao (qualquer metodo) sera detectada.
+        // ==========================================================
+        const reais = new Set<string>();
+        for (const photo of normalized) {
+          if (photo?.id && !String(photo.id).startsWith('temp-')) {
+            reais.add(String(photo.id));
+          }
+        }
+        this.originalMediaIds.set(reais);
+        this.pendingDeleteIds.set(new Set()); // zera lista pendente (recarregou tudo)
+        this.pendingDeleteIds.set(new Set());
 
         // Sync final: se tiver capa real, atualiza campo primaryPhotoUrl do form
         const realCover = normalized.find(p => Boolean(p.isCover)) || normalized[0];
@@ -431,44 +500,128 @@ export class ModelFormComponent implements OnInit {
     };
 
     const currentId = this.modelId();
+    // 🔴 Todos os IDs reais a excluir. Nao confia so no click de photoRemoved: usa PENDING + diff original.
+    const todosIdsParaApagar: string[] = Array.from(new Set([
+      ...Array.from(this.pendingDeleteIds()),
+      ...(this.detectIdsRemovedFromDatabase_Collect(this.galleryPhotos()) || [])
+    ])).filter(id => id && !String(id).startsWith('temp-'));
 
-    if (currentId) {
-      this.adminModelService.updateModel(currentId, payload).subscribe({
-        next: (savedModel) => {
-          this.isSaving.set(false);
-          this.showToast('Modelo atualizado com sucesso!', 'success');
-          this.saved.emit(savedModel);
-          setTimeout(() => {
-            if (this.route.snapshot.paramMap.get('id')) {
-              this.router.navigate(['/admin/models']);
-            }
-          }, 600);
-        },
-        error: (err) => {
-          this.isSaving.set(false);
-          const msg = err?.error?.detail || err?.error?.message || 'Falha ao salvar modelo.';
-          this.showToast(msg, 'error');
+    // ============================================================
+    // 1) EXCLUIR DEFINITIVAMENTE TODAS as fotos em lotes de 3 (chunkSize=3).
+    // CADA DELETE tem try/catch INDIVIDUAL: um falhar NAO PARA os outros!
+    // (Requisito do usuario: apagar MUITAS, quantas quiser, 50+ se precisar)
+    // ============================================================
+    const excluirEmLotes = new Promise<{ success: number; failed: number }>((resolveAll) => {
+      if (!currentId || todosIdsParaApagar.length === 0) {
+        resolveAll({ success: 0, failed: 0 });
+        return;
+      }
+      let s = 0;
+      let f = 0;
+      let idx = 0;
+      const total = todosIdsParaApagar.length;
+      // Chunk de 3 em 3 (evita HTTP 429 Too Many Requests no bucket Supabase)
+      const chunkSize = 3;
+      const runChunk = () => {
+        if (idx >= total) {
+          resolveAll({ success: s, failed: f });
+          return;
         }
-      });
-    } else {
-      this.adminModelService.createModel(payload).subscribe({
-        next: (createdModel) => {
-          this.isSaving.set(false);
-          this.showToast('Modelo cadastrado com sucesso!', 'success');
-          this.saved.emit(createdModel);
-          setTimeout(() => {
-            if (this.route.snapshot.paramMap.get('id')) {
-              this.router.navigate(['/admin/models']);
-            }
-          }, 600);
-        },
-        error: (err) => {
-          this.isSaving.set(false);
-          const msg = err?.error?.detail || err?.error?.message || 'Falha ao cadastrar modelo.';
-          this.showToast(msg, 'error');
+        const chunkIds = todosIdsParaApagar.slice(idx, idx + chunkSize);
+        idx += chunkSize;
+        const deleteCalls = chunkIds.map(mediaId =>
+          firstValueFrom(
+            this.adminModelService.deleteModelMedia(currentId, mediaId).pipe(
+              tap(() => { s++; }),
+              catchError((err) => {
+                console.warn('[onSubmit] Falha ao apagar media=' + mediaId, err);
+                f++;
+                return of(void 0);
+              })
+            )
+          )
+        );
+        Promise.all(deleteCalls).finally(() => runChunk());
+      };
+      runChunk();
+    });
+
+    excluirEmLotes.then((resultDelete) => {
+      const { success, failed } = resultDelete;
+      this.pendingDeleteIds.set(new Set()); // zera tudo
+
+      // Toast info de exclusao (se teve pelo menos 1)
+      if (success + failed > 0) {
+        if (failed === 0) {
+          this.showToast(`🗑️ ${success} foto(s) apagada(s) DEFINITIVAMENTE do banco e storage Supabase.`, 'success');
+        } else {
+          this.showToast(`Exclusao: ${success} OK. ${failed} falha(s). Verifique se as fotos de falha ainda existem.`, 'error');
         }
-      });
+      }
+
+      // ============================================================
+      // 2) Gravar o modelo (create ou update)
+      // ============================================================
+      if (currentId) {
+        return firstValueFrom(
+          this.adminModelService.updateModel(currentId, payload).pipe(
+            tap((saved) => {
+              // Após salvar DADOS: recarrega galeria REAL (confirmacao final sincronia 1:1)
+              this._refreshGalleryFromDatabase(currentId).subscribe(() => {
+                this.showToast('✅ Modelo atualizado com sucesso! Exclusoes, se houver, aplicadas.', 'success');
+                this.saved.emit(saved);
+                setTimeout(() => {
+                  if (this.route.snapshot.paramMap.get('id')) {
+                    this.router.navigate(['/admin/models']);
+                  }
+                }, 1500);
+              });
+            })
+          )
+        );
+      } else {
+        return firstValueFrom(
+          this.adminModelService.createModel(payload).pipe(
+            tap((saved) => {
+              this.showToast('✅ Modelo cadastrado com sucesso!', 'success');
+              this.saved.emit(saved);
+              setTimeout(() => {
+                if (this.route.snapshot.url.some(s => s.path === 'new') || this.route.snapshot.paramMap.get('id')) {
+                  this.router.navigate(['/admin/models']);
+                }
+              }, 1000);
+            })
+          )
+        );
+      }
+    }).catch((err) => {
+      this.isSaving.set(false);
+      const msg = err?.error?.detail || err?.error?.message || err?.message || 'Falha geral ao salvar modelo.';
+      this.showToast(msg, 'error');
+      console.error('[onSubmit] Erro geral:', err);
+    }).finally(() => {
+      // Nao executa no final, os subscribe de cima setam ja.
+      // this.isSaving.set(false); -> evitar conflito, ja setado.
+      setTimeout(() => { this.isSaving.set(false); }, 500);
+    });
+  }
+
+  /**
+   * Helper que coleta IDs a APAGAR: compara a galeria atual com os IDs ORIGINAIS
+   * do banco. Retorna array de strings com os IDs que sumiram.
+   * (usado no onSubmit como DUPLA CHECAGEM antes de apagar).
+   */
+  private detectIdsRemovedFromDatabase_Collect(galeriaAtual: GalleryPhoto[]): string[] {
+    const idsAtuais = new Set(
+      (galeriaAtual || []).filter(p => p?.id && !String(p.id).startsWith('temp-')).map(p => String(p.id))
+    );
+    const out: string[] = [];
+    for (const origId of Array.from(this.originalMediaIds())) {
+      if (!idsAtuais.has(origId)) {
+        out.push(String(origId));
+      }
     }
+    return out;
   }
 
   onCancel(): void {

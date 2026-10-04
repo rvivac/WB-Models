@@ -15,6 +15,14 @@ export class PhotoUploaderGridComponent {
   @Output() photosChange = new EventEmitter<GalleryPhoto[]>();
   @Output() fileUploaded = new EventEmitter<File[]>();
   @Output() validationError = new EventEmitter<string>();
+  /**
+   * Evento disparado quando o usuario clica em EXCLUIR FOTO (botao vermelho ✕).
+   * Passa a FOTO QUE FOI REMOVIDA. O pai (model-form) deve:
+   *  - Se photo.id existir e NAO comecar com 'temp-', marcar em pendingDeleteIds para
+   *    EXCLUIR DEFINITIVAMENTE no banco+storage SOB CLIQUE DE SALVAR.
+   *  - Se photo.id comecar com 'temp-' (previa local sem upload), apenas ignorar.
+   */
+  @Output() photoRemoved = new EventEmitter<GalleryPhoto>();
 
   isDraggingOverZone = false;
   selectedCategoryFilter: 'ALL' | 'BOOK' | 'POLAROID' = 'ALL';
@@ -119,8 +127,13 @@ export class PhotoUploaderGridComponent {
 
   removePhoto(index: number): void {
     if (index < 0 || index >= this.photos.length) return;
+    const fotoExcluida = this.photos[index];
     let lista = this.photos.filter((_, i) => i !== index);
     lista = this._applyOrderAndCover(lista);
+    // Emite primeiro a exclusao (para o pai marcar no banco se for real)
+    if (fotoExcluida) {
+      try { this.photoRemoved.emit({ ...fotoExcluida }); } catch { /* no-op */ }
+    }
     this.photosChange.emit(lista);
   }
 

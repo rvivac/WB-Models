@@ -295,7 +295,25 @@
         <span class="section-number">03</span>
         <div>
           <h3 class="section-title font-serif">Acervo Visual: Book & Polaroids</h3>
-          <p class="section-desc">Módulo drag-and-drop para ordenação manual de fotografias, classificação entre Book/Polaroids e definição da capa oficial.</p>
+          <p class="section-desc">Módulo drag-and-drop para ordenação manual de fotografias, classificação entre Book/Polaroids e definição da capa oficial. Para excluir, clique no ✕ vermelho do canto superior direito de cada foto.</p>
+
+          <!-- Aviso: quantas fotos SERAO APAGADAS DEFINITIVAMENTE ao salvar -->
+          @if (pendingDeleteCount() > 0) {
+            <div role="alert" class="mt-3 p-3 rounded border border-amber-400 bg-amber-50 text-[#713f12] text-[12px] leading-snug flex items-start gap-3">
+              <span class="text-amber-600 text-lg leading-none mt-0.5">⚠️</span>
+              <div class="flex-1">
+                <strong class="font-semibold">{{ pendingDeleteCount() }} foto(s) marcada(s) para exclusão PERMANENTE.</strong><br />
+                <span class="opacity-90">
+                  As fotos acima, que você removeu da grid, serão <strong>APAGADAS DEFINITIVAMENTE</strong> do banco de dados model_media e do bucket Supabase Storage somente após clicar em <strong>Atualizar Modelo</strong> no rodapé.
+                  Para desfazer, atualize a página (F5) ou adicione a foto novamente antes de salvar.
+                </span>
+              </div>
+            </div>
+          } @else if (galleryPhotos().length > 0) {
+            <div class="mt-2 text-[11px] text-[#5F6661] opacity-80">
+              💡 Dica: Clique no ✕ vermelho em qualquer foto para marcá-la para exclusão. A exclusão só é confirmada após gravar o formulário.
+            </div>
+          }
         </div>
       </div>
 
@@ -303,6 +321,7 @@
         [photos]="galleryPhotos()"
         (photosChange)="onPhotosChanged($event)"
         (fileUploaded)="onFilesUploaded($event)"
+        (photoRemoved)="onPhotoRemoved($event)"
         (validationError)="showToast($event, 'error')"
       ></app-photo-uploader-grid>
     </section>

@@ -17,8 +17,8 @@ spring:
     name: wb-scouting-api
 
   datasource:
-    # Pooler via porta 6543 com suporte a sslmode=verify-full com validação de CA
-    url: ${DB_URL:jdbc:postgresql://${DB_HOST:aws-0-sa-east-1.pooler.supabase.com}:${DB_PORT:6543}/${DB_NAME:postgres}?sslmode=${DB_SSL_MODE:require}&sslrootcert=${DB_SSL_ROOT_CERT_PATH:/etc/ssl/certs/supabase-ca.crt}&prepareThreshold=0}
+    # Pooler via porta 6543 com suporte a sslmode=verify-full com validação de CA do sistema
+    url: ${DB_URL:jdbc:postgresql://${DB_HOST:aws-0-sa-east-1.pooler.supabase.com}:${DB_PORT:6543}/${DB_NAME:postgres}?sslmode=${DB_SSL_MODE:require}&sslrootcert=${DB_SSL_ROOT_CERT_PATH:/etc/ssl/certs/ca-certificates.crt}&prepareThreshold=0}
     username: ${DB_USERNAME:}
     password: ${DB_PASSWORD:}
     driver-class-name: org.postgresql.Driver
@@ -89,6 +89,9 @@ supabase:
   service-role-key: ${SUPABASE_SERVICE_ROLE_KEY:}
   anon-key: ${SUPABASE_ANON_KEY:}
   storage:
+    # Base URL pública usada para montar URLs diretamente (sem precisar do SDK).
+    # Formato: ${SUPABASE_URL}/storage/v1/object/public
+    public-base-url: ${SUPABASE_STORAGE_PUBLIC_BASE_URL:${SUPABASE_URL:https://your-project-ref.supabase.co}/storage/v1/object/public}
     local-fallback: ${SUPABASE_STORAGE_LOCAL_FALLBACK:false}
     local-dir: ${SUPABASE_STORAGE_LOCAL_DIR:uploads}
     local-base-url: ${SUPABASE_STORAGE_LOCAL_BASE_URL:https://wb-models-1.onrender.com}

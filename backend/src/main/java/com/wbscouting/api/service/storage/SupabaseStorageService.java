@@ -30,6 +30,10 @@ public class SupabaseStorageService implements StorageService {
     private final RestClient supabaseStorageRestClient;
     private final SupabaseProperties supabaseProperties;
 
+    public SupabaseProperties getProperties() {
+        return supabaseProperties;
+    }
+
     // Limites de tamanho em bytes conforme especificação dos buckets
     public static final long MAX_SIZE_SITE_ASSETS = 25L * 1024 * 1024;        // 25 MB
     public static final long MAX_SIZE_MODELS_MEDIA = 8L * 1024 * 1024;        // 8 MB
@@ -184,10 +188,15 @@ public class SupabaseStorageService implements StorageService {
             throw new InvalidFileException("O nome do bucket é obrigatório.");
         }
         if (!StringUtils.hasText(path)) {
-            throw new InvalidFileException("O caminho do arquivo é obrigatório.");
+            log.warn("[SUPABASE STORAGE] getPublicUrl chamado com path NULO/VAZIO para bucket='{}'. URL incompleta será evitada.", bucket);
+            return null;
         }
 
         String normalizedPath = normalizePath(path);
+        if (!StringUtils.hasText(normalizedPath)) {
+            log.warn("[SUPABASE STORAGE] getPublicUrl path vazio apos normalizacao. bucket='{}', entrada='{}'", bucket, path);
+            return null;
+        }
 
         // Se o arquivo foi salvo localmente no fallback, retorna a URL do endpoint local
         String baseDir = (supabaseProperties.getStorage() != null && StringUtils.hasText(supabaseProperties.getStorage().getLocalDir()))
@@ -203,7 +212,35 @@ public class SupabaseStorageService implements StorageService {
         }
 
         String baseUrl = sanitizeBaseUrl(supabaseProperties.getUrl());
-        return String.format("%s/storage/v1/object/public/%s/%s", baseUrl, bucket, normalizedPath);
+        // Garantia extra: path NÃO PODE terminar com '/' (URL incompleta!)
+        while (normalizedPath.endsWith("/")) normalizedPath = normalizedPath.substring(0, normalizedPath.length() - 1);
+        if (!StringUtils.hasText(normalizedPath)) return null;
+
+        String storageBase = (supabaseProperties.getStorage() != null && StringUtils.hasText(supabaseProperties.getStorage().getPublicBaseUrl()))
+                ? sanitizeBaseUrl(supabaseProperties.getStorage().getPublicBaseUrl())
+                : String.format("%s/storage/v1/object/public", baseUrl);
+
+        return String.format("%s/%s/%s", storageBase, bucket, normalizedPath);
+    }
+
+    /**
+     * Helper de correção de URL para casos onde o banco gravou file_url INCOMPLETO ou null
+     * (aconteceu por mapeamento JPA ambíguo storagePath/filePath nas primeiras versões).
+     * Prioridade: (1) fileUrl valido contem nome de arquivo (NAO e so o diretorio do bucket)
+     *            (2) filePath válido (monta a URL pública em tempo real)
+     * Retorna null se ambos forem inválidos.
+     */
+    public String resolvePublicUrlFromFields(String bucket, String filePath, String fileUrlFromDb) {
+        boolean fileUrlPareceValido = StringUtils.hasText(fileUrlFromDb)
+                && fileUrlFromDb.contains(bucket + "/")
+                // Para ser valida, depois do nome do bucket tem que vir ALGUM CARACTERE DE CAMINHO
+                && fileUrlFromDb.lastIndexOf(bucket + "/") + bucket.length() + 1 < fileUrlFromDb.length();
+        if (fileUrlPareceValido) return fileUrlFromDb;
+
+        if (StringUtils.hasText(filePath)) {
+            return getPublicUrl(bucket, filePath);
+        }
+        return null;
     }
 
     @Override

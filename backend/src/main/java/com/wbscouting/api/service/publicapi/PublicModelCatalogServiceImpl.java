@@ -8,6 +8,7 @@ import com.wbscouting.api.enums.GenderType;
 import com.wbscouting.api.enums.MediaType;
 import com.wbscouting.api.repository.ModelMediaRepository;
 import com.wbscouting.api.repository.ModelRepository;
+import com.wbscouting.api.service.storage.SupabaseStorageService;
 import com.wbscouting.api.specification.PublicModelSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,7 @@ public class PublicModelCatalogServiceImpl implements PublicModelCatalogService 
 
     private final ModelRepository modelRepository;
     private final ModelMediaRepository modelMediaRepository;
+    private final SupabaseStorageService storageService;
 
     @Override
     @Transactional(readOnly = true)
@@ -94,31 +96,45 @@ public class PublicModelCatalogServiceImpl implements PublicModelCatalogService 
         return PageResponseDto.from(dtoPage);
     }
 
+    // Helpers de storage para resolver URL inconsistente (bug JPA storagePath antigo)
+    private String resolveMediaUrlPublic(ModelMedia media) {
+        if (media == null) return null;
+        return storageService.resolvePublicUrlFromFields(
+                storageService.getProperties().resolveBucketModelsMedia(),
+                media.getFilePath(),
+                media.getFileUrl());
+    }
+
     private String resolveCoverImageUrl(Model model, List<ModelMedia> modelMedia) {
         // 1. Foto explicitamente marcada como capa (is_cover = true)
         for (ModelMedia m : modelMedia) {
-            if (Boolean.TRUE.equals(m.getIsCover()) && StringUtils.hasText(m.getFileUrl())) {
-                return m.getFileUrl();
+            if (Boolean.TRUE.equals(m.getIsCover())) {
+                String url = resolveMediaUrlPublic(m);
+                if (StringUtils.hasText(url)) return url;
             }
         }
 
         // 2. Primeira foto do tipo BOOK baseada no display_order
         for (ModelMedia m : modelMedia) {
-            if (m.getMediaType() == MediaType.BOOK && StringUtils.hasText(m.getFileUrl())) {
-                return m.getFileUrl();
+            if (m.getMediaType() == MediaType.BOOK) {
+                String url = resolveMediaUrlPublic(m);
+                if (StringUtils.hasText(url)) return url;
             }
         }
 
         // 3. Primeira foto ativa baseada no display_order
         for (ModelMedia m : modelMedia) {
-            if (StringUtils.hasText(m.getFileUrl())) {
-                return m.getFileUrl();
-            }
+            String url = resolveMediaUrlPublic(m);
+            if (StringUtils.hasText(url)) return url;
         }
 
-        // 4. Fallback para foto primária do cadastro
-        if (StringUtils.hasText(model.getPrimaryPhotoUrl())) {
-            return model.getPrimaryPhotoUrl();
+        // 4. Fallback para foto primária do cadastro (validando URL completa!)
+        String primary = model.getPrimaryPhotoUrl();
+        if (StringUtils.hasText(primary)) {
+            String modelsMediaBucket = storageService.getProperties().resolveBucketModelsMedia();
+            boolean pareceValida = primary.contains(modelsMediaBucket + "/")
+                    && primary.lastIndexOf(modelsMediaBucket + "/") + modelsMediaBucket.length() + 1 < primary.length();
+            if (pareceValida) return primary;
         }
 
         return null;

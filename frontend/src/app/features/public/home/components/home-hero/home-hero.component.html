@@ -7,7 +7,12 @@
       loop
       muted
       playsinline
-      preload="metadata"
+      x5-playsinline="true"
+      x-webkit-airplay="allow"
+      webkit-playsinline="yes"
+      disablepictureinpicture
+      disableremoteplayback
+      preload="none"
       class="hero-video absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
       [poster]="heroData().posterImageUrl || 'assets/images/hero-poster.jpg'"
       (loadeddata)="onVideoLoaded()"
@@ -22,7 +27,9 @@
   @if (isVideoError()) {
     <div 
       class="hero-poster-fallback ken-burns absolute inset-0 w-full h-full bg-cover bg-center z-0"
-      [style.background-image]="'url(' + (heroData().posterImageUrl || 'assets/images/hero-poster.jpg') + ')'">
+      [style.background-image]="'url(' + (heroData().posterImageUrl || 'assets/images/hero-poster.jpg') + ')'"
+      fetchpriority="high"
+      decoding="async">
     </div>
   }
 

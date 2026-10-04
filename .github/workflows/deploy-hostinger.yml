@@ -72,7 +72,35 @@ EOF
           ls -la "$DIST_DIR/assets/i18n"
           ls -la "$DIST_DIR/assets/images"
           ls -la "$DIST_DIR/assets/videos"
+          echo "Tamanhos de arquivos críticos (em bytes):"
+          du -b "$DIST_DIR/assets/videos/"*  2>/dev/null || true
+          du -b "$DIST_DIR/assets/images/hero-poster.jpg" 2>/dev/null || true
           echo "Assets validados com sucesso para o deploy."
+
+      # Evita deleta assets grandes: vídeos, imagens-padrão, logos.
+      # FTP-Deploy-Action só vai delete de CSS/JS/HTML que mudam todo build.
+      - name: Criar .git-ftp-ignore (não APAGAR assets grandes no servidor)
+        run: |
+          DIST_DIR="dist/frontend/browser"
+          cat << 'EOF' > "$DIST_DIR/.git-ftp-ignore"
+# NUNCA apague os arquivos abaixo no servidor Hostinger (eles são grandes e via FTP cai no meio)
+assets/videos/
+assets/images/
+*.mp4
+*.jpg
+*.jpeg
+*.png
+*.webp
+*.avif
+*.ico
+assets/i18n/
+sitemap.xml
+robots.txt
+# Arquivos de diagnóstico manual
+*.php
+EOF
+          echo ".git-ftp-ignore criado em $DIST_DIR/"
+          cat "$DIST_DIR/.git-ftp-ignore"
 
       - name: Enviar arquivos via FTP para a Hostinger (public_html)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -82,7 +110,15 @@ EOF
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftp
           port: 21
-          timeout: 300000
+          timeout: 600000
+          log-level: standard
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/*.php
+          state-name: .wf-ftp-state-hostinger-deploy.json
           local-dir: ./frontend/dist/frontend/browser/
           server-dir: ${{ secrets.FTP_SERVER_DIR || 'domains/wbagency.com.br/public_html/' }}
 

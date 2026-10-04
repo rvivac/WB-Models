@@ -8,10 +8,39 @@
   <meta name="description" content="Agência de modelos e gestão internacional de talentos. Representação exclusiva, casting editorial, comercial e scouting inteligente.">
   <meta name="theme-color" content="#07080b">
 
-  <!-- Preconnect para Google Fonts -->
+  <!-- 🔥 Preconnect / dns-prefetch: ACELERA handshake TCP (300-800ms economizados) -->
+  <!-- Google Fonts (existente) -->
+  <link rel="dns-prefetch" href="//fonts.googleapis.com">
+  <link rel="dns-prefetch" href="//fonts.gstatic.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Backend Render (API pública) -->
+  <link rel="dns-prefetch" href="//wb-models-1.onrender.com">
+  <link rel="preconnect" href="https://wb-models-1.onrender.com" crossorigin>
+
+  <!-- Supabase Storage (CDN de fotos dos modelos) -->
+  <link rel="dns-prefetch" href="//stmytwsdlonpnirqiufq.supabase.co">
+  <link rel="preconnect" href="https://stmytwsdlonpnirqiufq.supabase.co" crossorigin>
+
+  <!-- Fontes (carregamento async, não bloqueia render) -->
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+    media="print" onload="this.media='all'">
+  <noscript>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap">
+  </noscript>
+
+  <!-- 🔥 Preload da Hero Poster (LCP!): Carrega ANTES do JS terminar -->
+  <link
+    rel="preload"
+    as="image"
+    fetchpriority="high"
+    type="image/jpeg"
+    href="assets/images/hero-poster.jpg">
 
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>

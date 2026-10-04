@@ -349,9 +349,26 @@ public class ModelMediaServiceImpl implements ModelMediaService {
             }
         }
         String type = name.toLowerCase().endsWith(".pdf") ? "PDF" : "IMAGE";
+        String bucket = supabaseProperties.resolveBucketModelsMedia();
+        String rawFileUrl = media.getFileUrl();
+        String filePath = media.getFilePath();
+
+        // Fallback MESMO de toDto(): resolve URL incompleta (ex: /public/models-media/ sem path)
+        String safePublicUrl = storageService.resolvePublicUrlFromFields(bucket, filePath, rawFileUrl);
+        if (safePublicUrl == null || safePublicUrl.isBlank()) {
+            safePublicUrl = rawFileUrl;
+        }
+        // Bust cache epochHour -> imagem composite enviada hoje aparece imediatamente no admin
+        String finalUrl = safePublicUrl;
+        if (finalUrl != null && !finalUrl.isBlank()) {
+            finalUrl = finalUrl + (finalUrl.contains("?") ? "&" : "?") + "v=" + (System.currentTimeMillis() / 3_600_000L);
+        }
+
         return com.wbscouting.api.dto.media.ModelCompositeResponseDto.builder()
                 .id(media.getId())
-                .fileUrl(media.getFileUrl())
+                .fileUrl(finalUrl)
+                .filePath(filePath)
+                .storagePath(filePath) // alias deprecated
                 .fileName(name)
                 .fileType(type)
                 .fileSizeBytes(sizeBytes != null ? sizeBytes : 0L)
@@ -386,7 +403,6 @@ public class ModelMediaServiceImpl implements ModelMediaService {
                 .filePath(media.getFilePath())
                 .displayOrder(media.getDisplayOrder())
                 .isCover(media.getIsCover())
-                .isActive(Boolean.TRUE.equals(media.getIsActive()))
                 .createdAt(media.getCreatedAt())
                 .build();
     }

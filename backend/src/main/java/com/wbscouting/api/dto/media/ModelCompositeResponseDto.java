@@ -15,6 +15,15 @@ import java.util.UUID;
 public class ModelCompositeResponseDto {
     private UUID id;
     private String fileUrl;
+    /**
+     * Caminho do arquivo no bucket Storage Supabase.
+     * Usado EXCLUSIVAMENTE como FALLBACK no frontend caso fileUrl esteja incompleta
+     * (ex: gravada /public/models-media/ sem path objeto).
+     * Sempre prefira fileUrl para abrir / visualizar.
+     */
+    private String filePath;
+    /** @deprecated Use filePath. Mantido para compatibilidade DTOs legados. */
+    private String storagePath;
     private String fileName;
     private String fileType; // "PDF" | "IMAGE"
     private Long fileSizeBytes;

@@ -59,11 +59,15 @@ public class SupabaseStorageService implements StorageService {
     public String uploadFile(String bucket, String path, MultipartFile file) {
         log.info("Iniciando upload de arquivo para bucket='{}', path='{}'", bucket, path);
 
-        validateUpload(bucket, path, file);
-
+        // 🟢 ORDEM CORRETA AGORA: Normalizar PATH ANTES do validateUpload.
+        // (Bug antigo: validate era chamado com path BRUTO, e apos a validacao normalizava.
+        //  Causava erros de path que comecavam com / ou \ na validacao de /composite/!)
         String normalizedPath = normalizePath(path);
         String contentType = file.getContentType();
         boolean localFallbackEnabled = supabaseProperties.getStorage() != null && supabaseProperties.getStorage().isLocalFallback();
+
+        // 🟢 Validacao agora usa PATH JÁ NORMALIZADO (confiavel)
+        validateUpload(bucket, normalizedPath, file);
 
         // 1. Caso a chave do Supabase não esteja configurada ou seja dummy
         if (!supabaseProperties.isKeyConfigured()) {
@@ -449,23 +453,19 @@ public class SupabaseStorageService implements StorageService {
                         "O arquivo excede o limite máximo permitido de %.0f MB para o bucket 'models-media'. Tamanho enviado: %.2f MB",
                         maxMb, fileSize / (1024.0 * 1024.0)));
             }
-            // 🟢 PDF PERMITIDO APENAS se o path for do composite (nao aceita PDF no book fotográfico)
-            boolean isCompositePath = (path != null) && path.toLowerCase().contains("/composite/");
+            // 🟢 HOTFINAL: models-media ACEITA IMAGENS (Book/Pola) + PDF (Composite) SEMPRE.
+            // A regra de negocio (PDF SOMENTE para composite, nao para book/pola) ja eh
+            // ENFORCADA 100% na camada Service ModelMediaServiceImpl:
+            //   - uploadModelMedia(BOOK/POLAROID) = nao aceita PDF jamais
+            //   - uploadOrReplaceComposite(COMPOSITE) = aceita PDF + imagens
+            // Nao precisamos de validacao DUPLICADA aqui que depende de string /composite/ no path.
             boolean isAllowedType = ALLOWED_IMAGE_TYPES.contains(contentType)
-                    || (isCompositePath && ALLOWED_PDF_TYPES.contains(contentType));
+                    || ALLOWED_PDF_TYPES.contains(contentType);
             if (!isAllowedType) {
-                if (!ALLOWED_IMAGE_TYPES.contains(contentType) && !ALLOWED_PDF_TYPES.contains(contentType)) {
-                    throw new InvalidFileException(String.format(
-                            "Tipo de arquivo '%s' não permitido para o bucket 'models-media'. " +
-                            "Para Book & Polaroids são aceitas apenas imagens (JPEG, PNG, WEBP). " +
-                            "Para o Composite Oficial (pasta /composite/) são aceitos PDF e Imagens (JPEG, PNG, WEBP).",
-                            contentType));
-                }
-                // Chegou aqui: eh PDF mas nao esta na pasta /composite/
                 throw new InvalidFileException(String.format(
-                        "Arquivo PDF detectado (tipo '%s') enviado para o path não permitido. " +
-                        "PDFs de modelos SÃO ACEITOS APENAS no Composite Oficial (pasta '/composite/'). " +
-                        "Para o acervo fotográfico do Book & Polaroids envie apenas imagens JPEG, PNG ou WEBP.",
+                        "Tipo de arquivo '%s' não permitido para o bucket 'models-media'. " +
+                        "Formatos permitidos: Imagens (JPEG, PNG, WEBP) para Acervo Visual Book & Polaroids " +
+                        "e PDF ou Imagens (JPEG, PNG, WEBP) para Composite Oficial.",
                         contentType));
             }
         } else if ("candidates-uploads".equalsIgnoreCase(bucket)) {

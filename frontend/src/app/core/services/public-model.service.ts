@@ -42,6 +42,22 @@ export interface ModelMediaPublicItemDto {
   fileUrl: string;
   displayOrder?: number;
   isCover?: boolean;
+  /** Caminho absoluto do arquivo no Storage (ex: "models-media/eve-duppre/abc-cover.jpg"). Usado APENAS como FALLBACK caso fileUrl esteja incompleta (HTTP 400 Supabase). */
+  filePath?: string;
+  /** @deprecated Use filePath. Mantido para compatibilidade com DTOs legados. */
+  storagePath?: string;
+}
+
+export interface ModelCompositePublicDto {
+  id: string;
+  fileUrl: string;
+  /** Mesmo fallback: usado para remontar URL se fileUrl vier incompleta */
+  filePath?: string;
+  /** @deprecated Use filePath. Mantido para compatibilidade com DTOs legados. */
+  storagePath?: string;
+  fileName?: string;
+  fileType?: 'PDF' | 'IMAGE';
+  fileSizeBytes?: number;
 }
 
 export interface ModelDetailPublicDto {
@@ -68,7 +84,8 @@ export interface ModelDetailPublicDto {
   // Mídias categorizadas
   bookPhotos?: ModelMediaPublicItemDto[];
   polaroids?: ModelMediaPublicItemDto[];
-  composite?: ModelMediaPublicItemDto;
+  /** @deprecated Use composite?.fileUrl. Mantido para DTOs legados. */
+  composite?: ModelCompositePublicDto;
   compositeUrl?: string;
 }
 
@@ -357,6 +374,7 @@ export class PublicModelService {
 
   /**
    * Aplica _resolveCoverForCard() em TODO array de cards (vitrine/casting/gender).
+   * ✅ RECOLOCADO: Era usado em getFeaturedModels() e getModels() para capas dos cards home/casting.
    */
   private _applyCoverFallbacks<T extends ModelCardPublicDto>(items: T[]): T[] {
     if (!items || items.length === 0) return items;
@@ -365,10 +383,104 @@ export class PublicModelService {
 
   /**
    * Aplica em PageResponseDto (casting) sem perder a paginação.
+   * ✅ RECOLOCADO: Também era usado em getFeaturedModels() e getModels().
    */
   private _applyCoverFallbacksPage<T extends ModelCardPublicDto>(page: PageResponseDto<T>): PageResponseDto<T> {
     if (!page) return page;
     return { ...page, content: this._applyCoverFallbacks(page.content || []) };
+  }
+
+  /**
+   * Helper ANTI-URL-INCOMPLETA para MÍDIAS em geral (Book / Polas / Composite).
+   * Mesma logica do _resolveAdminCoverUrl e helper admin.
+   *
+   * Problema: Backend as vezes grava fileUrl incompleta (ex: "/public/models-media/" sem
+   * path do objeto) → HTTP 400 no bucket Supabase. composite?.fileUrl = incompleta → Download
+   * Sedcard 404 + Ver Composite iframe VAZIO.
+   *
+   * Solução: (1) Tenta rawFileUrl se parecer OK (começa com http, tem path objeto razoável).
+   *          (2) Senao, REMONTA do zero usando filePath + base publica padrao Supabase models-media.
+   * Sempre adiciona bust-cache epochHour.
+   */
+  private _resolveSafeMediaUrl(filePath: string | undefined | null, rawFileUrl: string | undefined | null): string {
+    const SUPABASE_PUBLIC_BASE = 'https://zmpqmdizqgnpnirqiufq.supabase.co/storage/v1/object/public/models-media';
+    const cleanPath = ((filePath || '') + '').trim().replace(/^\/+/, '');
+    const urlRaw = (rawFileUrl || '').trim();
+
+    let final: string = '';
+
+    // 1) Usa raw URL se parecer completa e valida:
+    const rawSeemsValid = urlRaw.startsWith('http') && urlRaw.length > 60
+      && !(urlRaw.endsWith('/models-media/') || urlRaw.endsWith('/models-media'));
+
+    if (rawSeemsValid) {
+      final = urlRaw;
+    } else {
+      // 2) Remonta via filePath (garante URL exata pro objeto no bucket)
+      if (cleanPath) {
+        // filePath as vezes JA vem com 'models-media/' no comeco (como prefixo): remover duplicado.
+        const relative = cleanPath.startsWith('models-media/')
+          ? cleanPath.substring('models-media/'.length)
+          : cleanPath;
+        final = `${SUPABASE_PUBLIC_BASE}/${relative}`;
+      } else {
+        // Sem filePath de jeito nenhum: retorna raw mesmo que falhe (nao temos mais dados)
+        final = urlRaw;
+      }
+    }
+
+    // 3) Bust cache: forca navegador baixar a midia nova dentro de 1h
+    if (final && final.length > 0) {
+      const sep = final.includes('?') ? '&' : '?';
+      final = `${final}${sep}v=${Math.floor(Date.now() / 3_600_000)}`;
+    }
+    return final;
+  }
+
+  /**
+   * Aplica _resolveSafeMediaUrl em TODAS as midias do DTO de detalhe.
+   * Resolve de uma vez: bookPhotos, polaroids, composite.
+   */
+  private _applyMediaFallbacksToDetail(m: ModelDetailPublicDto): ModelDetailPublicDto {
+    if (!m) return m;
+    const clone: any = { ...m };
+
+    // 1) Book Photographs
+    if (clone.bookPhotos && Array.isArray(clone.bookPhotos)) {
+      clone.bookPhotos = clone.bookPhotos.map((p: any) => ({
+        ...p,
+        fileUrl: this._resolveSafeMediaUrl((p.filePath ?? p.storagePath), p.fileUrl)
+      }));
+    }
+    // 2) Polaroids
+    if (clone.polaroids && Array.isArray(clone.polaroids)) {
+      clone.polaroids = clone.polaroids.map((p: any) => ({
+        ...p,
+        fileUrl: this._resolveSafeMediaUrl((p.filePath ?? p.storagePath), p.fileUrl)
+      }));
+    }
+    // 3) Composite (OBJETO NOVO, tipo ModelCompositePublicDto)
+    if (clone.composite && typeof clone.composite === 'object') {
+      const c = clone.composite as any;
+      clone.composite = {
+        ...c,
+        fileUrl: this._resolveSafeMediaUrl((c.filePath ?? c.storagePath), c.fileUrl)
+      };
+      // Tambem atualiza campo legado compositeUrl para mesmo valor resolvido:
+      if (!clone.compositeUrl) {
+        clone.compositeUrl = clone.composite.fileUrl;
+      }
+    }
+    // 4) Campo LEGADO compositeUrl solto: se ele existir mas composite.fileUrl nao, resolve tbm:
+    if (clone.compositeUrl && (!clone.composite || !clone.composite.fileUrl)) {
+      clone.compositeUrl = this._resolveSafeMediaUrl((clone.composite?.filePath ?? clone.composite?.storagePath), clone.compositeUrl);
+    }
+    // 5) Garante sempre que compositeUrl = valor MAIS NOVO (para componentes antigos que usam esse campo)
+    if (clone.composite?.fileUrl && clone.compositeUrl !== clone.composite.fileUrl) {
+      clone.compositeUrl = clone.composite.fileUrl;
+    }
+
+    return clone as ModelDetailPublicDto;
   }
 
   /**
@@ -513,9 +625,15 @@ export class PublicModelService {
   /**
    * Consulta os detalhes completos de um modelo ativo pelo ID (UUID).
    * Em caso de falha na requisição, localiza no catálogo mock ou retorna o primeiro modelo.
+   *
+   * 🔥 CORREÇÃO: Aplica _applyMediaFallbacksToDetail em bookPhotos / polaroids / COMPOSITE
+   * antes de entregar os dados ao componente. NUNCA MAIS:
+   *  - Ver Composite VAZIO (iframe com URL incompleta → 400 Supabase)
+   *  - Download Sedcard / Composite → 404 Not Found
    */
   getModelById(id: string): Observable<ModelDetailPublicDto> {
     return this.api.get<ModelDetailPublicDto>(`/public/models/${id}`).pipe(
+      map(rawDto => this._applyMediaFallbacksToDetail(rawDto)),
       catchError(err => {
         console.warn(`Falha ao buscar detalhes do modelo ${id}, utilizando mock de fallback:`, err);
         const found = MOCK_MODELS.find(m => m.id === id) || MOCK_MODELS[0];

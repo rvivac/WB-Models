@@ -362,11 +362,16 @@ public class ModelMediaServiceImpl implements ModelMediaService {
             String publicUrl;
             try {
                 publicUrl = storageService.uploadFile(bucket, filename, file);
-                // 🟢 NULL-SAFETY: se uploadFile retornar null/vazio (fallback local?), usamos filePath como URL relativa
+                // 🛡️ CAMADA ANTI-NOSUCHKEY (1): se uploadFile retornar nula/vazia = falhou sem lancar excecao.
+                //    Interrompemos IMEDIATAMENTE: NÃO gravamos registro no banco que aponta para nada.
                 if (publicUrl == null || publicUrl.isBlank()) {
-                    log.warn("[COMPOSITE UPLOAD] storage.uploadFile retornou URL nula/vazia. Usando fallback de filePath para montar a URL. ModelId={}, filename={}",
+                    log.error("[COMPOSITE UPLOAD] storage.uploadFile retornou nulo/vazio sem lancar excecao. Registro NAO sera gravado para evitar NoSuchKey 404. ModelId={}, filename={}.",
                             modelId, filename);
-                    publicUrl = filename;
+                    throw new IllegalArgumentException(
+                        "Falha interna ao salvar o composite no Storage. O objeto não foi criado no bucket. " +
+                        "Verifique configurações do bucket models-media (MIME types permitidos / RLS policies / Service Role Key) e tente novamente. " +
+                        "Se persistir, remova o composite quebrado, salve o modelo e reenvie o arquivo."
+                    );
                 }
             } catch (com.wbscouting.api.exception.FileSizeExceededException fsEx) {
                 double mbReal = Math.round((fileSize / (1024.0 * 1024.0)) * 10.0) / 10.0;
@@ -382,7 +387,19 @@ public class ModelMediaServiceImpl implements ModelMediaService {
                     "Tente baixar o arquivo novamente e reenviar. Detalhe: " + (ivfEx.getMessage() != null ? ivfEx.getMessage() : "")
                 );
             } catch (com.wbscouting.api.exception.StorageException stEx) {
-                log.error("[COMPOSITE UPLOAD] StorageException (timeout, auth, rede). ModelId={}.", modelId, stEx);
+                log.error("[COMPOSITE UPLOAD] StorageException (timeout, auth, rede, MIME_TYPE). ModelId={}.", modelId, stEx);
+                String rawMsg = stEx.getMessage() != null ? stEx.getMessage().toLowerCase() : "";
+                // 🛡️ CAMADA AJUDA ESPECIFICA: detecta MIME TYPE bloqueado no bucket (415 invalid_mime_type / application/pdf is not supported)
+                if (rawMsg.contains("invalid_mime_type") || rawMsg.contains("application/pdf") || rawMsg.contains("mime type")) {
+                    throw new IllegalArgumentException(
+                        "⚠️ O bucket 'models-media' no Supabase Ainda BLOQUEIA arquivos PDF! " +
+                        "Como corrigir em 30 segundos no Painel Supabase: " +
+                        "1) Storage → bucket models-media → ⚙️ Configurações (engrenagem) → Allowed MIME Types. " +
+                        "2) Adicione a linha: application/pdf e clique em UPDATE BUCKET SETTINGS. " +
+                        "3) Depois: Remova o composite quebrado no Admin, salve, e reenvie o arquivo. " +
+                        "Detalhe técnico do Supabase: " + (stEx.getMessage() != null ? stEx.getMessage() : "")
+                    );
+                }
                 org.springframework.http.HttpStatus st = stEx.getStatus();
                 if (st != null && (st.is5xxServerError() || st == org.springframework.http.HttpStatus.GATEWAY_TIMEOUT)) {
                     throw new IllegalArgumentException(
@@ -393,6 +410,22 @@ public class ModelMediaServiceImpl implements ModelMediaService {
                 throw new IllegalArgumentException(
                     "Não foi possível enviar o composite para o armazenamento na nuvem. " +
                     "Detalhe: " + (stEx.getMessage() != null ? stEx.getMessage() : "Erro de comunicação.")
+                );
+            } catch (Exception exUploadGenerica) {
+                // 🛡️ CAMADA EXTRA ANTI-FRACASSO (MAIS IMPORTANTE DE TODA):
+                // Captura QUALQUER exceção NAO PREVISTA nos catches acima (ex: RestClientException,
+                // RuntimeException, NullPointerException, IllegalArgumentException de validacao interna,
+                // Jackson JSON parsing exception do RestClient, etc).
+                // Interrompe 100% o fluxo: NAO salva model_media quebrado = NUNCA MAIS NoSuchKey.
+                String causa = (exUploadGenerica.getCause() != null && exUploadGenerica.getCause().getMessage() != null)
+                    ? exUploadGenerica.getCause().getMessage() : exUploadGenerica.getMessage();
+                String tipo = exUploadGenerica.getClass().getSimpleName();
+                log.error("[COMPOSITE UPLOAD] Excecao GENERICA nao prevista em storage.uploadFile (interrompendo save anti-NoSuchKey). " +
+                    "ModelId={}, ExceptionType={}, Causa={}.", modelId, tipo, causa, exUploadGenerica);
+                throw new IllegalArgumentException(
+                    "Falha ao enviar composite para o Storage (erro inesperado: " + tipo + "). " +
+                    "Remova o composite quebrado no Admin, salve o modelo, e reenvie o arquivo. " +
+                    "Detalhe técnico: " + (causa != null ? causa : tipo)
                 );
             }
 

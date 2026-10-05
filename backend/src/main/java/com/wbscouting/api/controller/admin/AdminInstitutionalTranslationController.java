@@ -25,6 +25,7 @@ public class AdminInstitutionalTranslationController {
     public static final String SECTION_SCOUTING_GUIDELINES = "SCOUTING_GUIDELINES";
     public static final String SECTION_TERMS_OF_USE = "TERMS_OF_USE";
     public static final String SECTION_PRIVACY_POLICY = "PRIVACY_POLICY";
+    public static final String SECTION_APPLY_HOW_IT_WORKS = "APPLY_HOW_IT_WORKS";
 
     private final SiteContentRepository siteContentRepository;
 
@@ -41,6 +42,11 @@ public class AdminInstitutionalTranslationController {
                         .sectionKey(SECTION_SCOUTING_GUIDELINES)
                         .title("Diretrizes de Scouting (Seja Modelo)")
                         .description("Requisitos técnicos e orientações de submissão")
+                        .build(),
+                SectionSummaryDto.builder()
+                        .sectionKey(SECTION_APPLY_HOW_IT_WORKS)
+                        .title("Próximos Passos Apply (Como Funciona)")
+                        .description("Texto exibido no formulário de candidatura /apply, após o envio bem-sucedido")
                         .build(),
                 SectionSummaryDto.builder()
                         .sectionKey(SECTION_TERMS_OF_USE)
@@ -154,6 +160,7 @@ public class AdminInstitutionalTranslationController {
         return switch (sectionKey) {
             case SECTION_ABOUT_MANIFESTO -> "Manifesto da Agência (Sobre Nós)";
             case SECTION_SCOUTING_GUIDELINES -> "Diretrizes de Scouting (Seja Modelo)";
+            case SECTION_APPLY_HOW_IT_WORKS -> "Próximos Passos Apply (Como Funciona o Scouting)";
             case SECTION_TERMS_OF_USE -> "Termos de Uso & Direitos de Imagem";
             case SECTION_PRIVACY_POLICY -> "Política de Privacidade (LGPD / GDPR)";
             default -> sectionKey;
@@ -200,6 +207,18 @@ public class AdminInstitutionalTranslationController {
                 en.put("headline", "Privacy Policy & Personal Data Protection");
                 en.put("quote", "Strict compliance with LGPD and General Data Protection Regulation (GDPR).");
                 en.put("body", "We collect and process biometric and photographic data exclusively for casting assessment and international booking submissions, with full rights of safe data erasure upon user request.");
+            }
+            case SECTION_APPLY_HOW_IT_WORKS -> {
+                // 🆕 Conteúdo padrão do texto "Próximos Passos • Como Funciona" exibido no /apply apos envio com sucesso.
+                // Headline = título da caixinha (ex: Próximos Passos). Quote ignorado nessa página, mas salvo no payload para futuro.
+                // Body = LISTA com 3 passos separados por ||| (parse no frontend como <ul><li>)
+                pt.put("headline", "Próximos Passos • Como Funciona");
+                pt.put("quote", "Transparência total no processo de avaliação de novos talentos.");
+                pt.put("body", "Nossa diretoria de casting analisa todas as candidaturas em até 5 dias úteis.|||Em caso de compatibilidade de perfil com nosso casting comercial ou fashion, nossa equipe entrará em contato via telefone ou e-mail cadastrado.|||A WB Agency nunca cobra taxas para avaliação de perfil ou agenciamento inicial.");
+
+                en.put("headline", "Next Steps • How It Works");
+                en.put("quote", "Full transparency throughout our new talent evaluation workflow.");
+                en.put("body", "Our casting board reviews every submission within 5 business days.|||When your profile matches our commercial or high fashion rosters, our scouting team contacts you via the phone or email you registered.|||WB Agency never charges assessment fees or upfront agency deposits of any kind.");
             }
             default -> {
                 pt.put("headline", "Título Institucional");

@@ -8,6 +8,27 @@
       </a>
       <span class="text-[#E8EBE8]">|</span>
       <h1 class="text-lg font-serif uppercase tracking-wider text-[#222624]">{{ candidate.fullName }}</h1>
+      <!-- 🆕 PROTOCOLO SCOUTING em destaque (oficial) no topo da ficha -->
+      <a 
+        *ngIf="candidate.protocol"
+        [routerLink]="['/admin/candidaturas', candidate.id]"
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Abrir este dossiê em nova aba (compartilhar com equipe de scouting)"
+        class="flex flex-col items-start justify-center px-3 py-1.5 border border-[#d6bd93] bg-[#FDF8EF] hover:bg-[#F7EEDB] hover:shadow-sm transition-all text-left cursor-pointer group rounded-none"
+      >
+        <div class="flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 text-[#8C6E3F] group-hover:text-[#6f552e] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span class="text-[9px] uppercase tracking-[0.22em] font-sans font-semibold text-[#8C6E3F] group-hover:text-[#6f552e] transition-colors">
+            Protocolo Scouting
+          </span>
+        </div>
+        <span class="text-[11.5px] font-mono font-bold tracking-wider text-[#5a4524] pl-5">
+          {{ candidate.protocol }}
+        </span>
+      </a>
       <span 
         [ngClass]="{
           'bg-[#F4F5F4] text-[#4B584E] border border-[#E8EBE8]': candidate.status === 'PENDING',

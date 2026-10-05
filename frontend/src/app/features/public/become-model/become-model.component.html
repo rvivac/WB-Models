@@ -88,23 +88,37 @@
             <span class="protocol-value">{{ submissionProtocol }}</span>
           </div>
 
-          <!-- Próximos Passos -->
+          <!-- Próximos Passos (CMS Editável no Admin) -->
           <div class="next-steps-card">
-            <h3 class="next-steps-heading">{{ 'apply_page.next_steps_heading' | translate }}</h3>
-            <ul class="editorial-guidelines">
-              <li>
-                <span class="check-bullet">&bull;</span>
-                <span [innerHTML]="'apply_page.step1' | translate"></span>
-              </li>
-              <li>
-                <span class="check-bullet">&bull;</span>
-                <span>{{ 'apply_page.step2' | translate }}</span>
-              </li>
-              <li>
-                <span class="check-bullet">&bull;</span>
-                <span [innerHTML]="'apply_page.step3' | translate"></span>
-              </li>
-            </ul>
+            @if (applyHowItWorks) {
+              <h3 class="next-steps-heading">
+                {{ applyHowItWorks.headline || ('apply_page.next_steps_heading' | translate) }}
+              </h3>
+              <ul class="editorial-guidelines">
+                @for (step of applyHowItWorks.steps; track step) {
+                  <li>
+                    <span class="check-bullet">&bull;</span>
+                    <span [innerHTML]="step"></span>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <h3 class="next-steps-heading">{{ 'apply_page.next_steps_heading' | translate }}</h3>
+              <ul class="editorial-guidelines">
+                <li>
+                  <span class="check-bullet">&bull;</span>
+                  <span [innerHTML]="'apply_page.step1' | translate"></span>
+                </li>
+                <li>
+                  <span class="check-bullet">&bull;</span>
+                  <span>{{ 'apply_page.step2' | translate }}</span>
+                </li>
+                <li>
+                  <span class="check-bullet">&bull;</span>
+                  <span [innerHTML]="'apply_page.step3' | translate"></span>
+                </li>
+              </ul>
+            }
           </div>
 
           <div class="success-actions">

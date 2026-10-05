@@ -24,6 +24,13 @@ export interface AboutManifestoPayload {
   body: string;
 }
 
+export interface ApplyHowItWorksPayload {
+  headline: string;
+  quote: string;
+  /** Passos (parse do body.split('|||')) do campo body do backend */
+  steps: string[];
+}
+
 export interface ContactChannelsPublicDto {
   email: string;
   whatsappNumber: string;
@@ -109,6 +116,26 @@ export class PublicContentService {
     body: 'WB Agency has established itself as an editorial powerhouse dedicated to the comprehensive development of models for premier global fashion markets. Our scouting methodology moves beyond mass standards to foster authentic personal identity, positioning talents at the intersection of high fashion and international relevance.'
   };
 
+  // 🆕 Padrões do texto Próximos Passos Apply (Como Funciona) — fallback quando API não retorna
+  private readonly defaultApplyHowItWorksPt: ApplyHowItWorksPayload = {
+    headline: 'Próximos Passos • Como Funciona',
+    quote: 'Transparência total no processo de avaliação de novos talentos.',
+    steps: [
+      'Nossa diretoria de casting analisa todas as candidaturas em até 5 dias úteis.',
+      'Em caso de compatibilidade de perfil com nosso casting comercial ou fashion, nossa equipe entrará em contato via telefone ou e-mail cadastrado.',
+      'A WB Agency nunca cobra taxas para avaliação de perfil ou agenciamento inicial.'
+    ]
+  };
+  private readonly defaultApplyHowItWorksEn: ApplyHowItWorksPayload = {
+    headline: 'Next Steps • How It Works',
+    quote: 'Full transparency throughout our new talent evaluation workflow.',
+    steps: [
+      'Our casting board reviews every submission within 5 business days.',
+      'When your profile matches our commercial or high fashion rosters, our scouting team contacts you via the phone or email you registered.',
+      'WB Agency never charges assessment fees or upfront agency deposits of any kind.'
+    ]
+  };
+
   getAboutManifestoContent(lang: string = 'pt'): Observable<AboutManifestoPayload> {
     const isEn = lang?.toLowerCase().startsWith('en');
     const fallback = isEn ? this.defaultAboutManifestoEn : this.defaultAboutManifestoPt;
@@ -122,6 +149,28 @@ export class PublicContentService {
           quote: payload['quote'] || fallback.quote,
           body: payload['body'] || fallback.body
         };
+      }),
+      catchError(() => of(fallback))
+    );
+  }
+
+  // 🆕 Helper para o texto Proximos Passos / Como Funciona do Apply (Bilingual CMS editavel)
+  // Retorna headline + quote + steps[] (array pronto para *ngFor <ul><li>).
+  getApplyHowItWorksContent(lang: string = 'pt'): Observable<ApplyHowItWorksPayload> {
+    const isEn = lang?.toLowerCase().startsWith('en');
+    const fallback = isEn ? this.defaultApplyHowItWorksEn : this.defaultApplyHowItWorksPt;
+
+    return this.getContent('APPLY_HOW_IT_WORKS', lang).pipe(
+      map(res => {
+        const payload = res?.payload;
+        if (!payload) return fallback;
+        const headline = payload['headline'] || fallback.headline;
+        const quote = payload['quote'] || fallback.quote;
+        const rawBody = (payload['body'] || '') as string;
+        const steps = rawBody.length > 0 && rawBody.includes('|||')
+          ? rawBody.split('|||').map(s => s.trim()).filter(Boolean)
+          : (rawBody.length > 0 ? [rawBody] : fallback.steps);
+        return { headline, quote, steps };
       }),
       catchError(() => of(fallback))
     );

@@ -37,6 +37,8 @@ export class BilingualContentEditorComponent implements OnInit {
     'ABOUT_MANIFESTO': 'ABOUT_MANIFESTO',
     'SCOUTING': 'SCOUTING_GUIDELINES',
     'SCOUTING_GUIDELINES': 'SCOUTING_GUIDELINES',
+    'APPLY': 'APPLY_HOW_IT_WORKS',
+    'APPLY_HOW_IT_WORKS': 'APPLY_HOW_IT_WORKS',
     'TERMS': 'TERMS_OF_USE',
     'TERMS_OF_USE': 'TERMS_OF_USE',
     'PRIVACY': 'PRIVACY_POLICY',
@@ -210,9 +212,15 @@ export class BilingualContentEditorComponent implements OnInit {
       case 'SCOUTING':
       case 'SCOUTING_GUIDELINES':
         return 'Diretrizes de Scouting';
+      case 'APPLY':
+      case 'APPLY_HOW_IT_WORKS':
+        return 'Próximos Passos Apply (Como Funciona)';
       case 'TERMS':
       case 'TERMS_OF_USE':
-        return 'Termos & Privacidade';
+        return 'Termos de Uso';
+      case 'PRIVACY':
+      case 'PRIVACY_POLICY':
+        return 'Privacidade & LGPD';
       default:
         return 'Conteúdos Bilíngues';
     }
@@ -246,6 +254,22 @@ export class BilingualContentEditorComponent implements OnInit {
           headline: 'Scouting Standards & Submission Guidelines',
           quote: 'Transparency, natural posture, and legal compliance.',
           body: 'For international casting evaluation, we require clean digital polaroids without styling or makeup, captured in natural daylight. Submissions from under-age talents strictly require prior verified parental consent.'
+        }
+      };
+    } else if (canonical === 'APPLY_HOW_IT_WORKS') {
+      // 🆕 Mock fallback para Apply Proximos Passos / Como Funciona (se API falhar offline)
+      this.currentSectionTitle = 'Próximos Passos Apply (Como Funciona)';
+      this.currentContent = {
+        pt: {
+          headline: 'Próximos Passos • Como Funciona',
+          quote: 'Transparência total no processo de avaliação de novos talentos.',
+          // 3 passos separados por ||| => frontend faz split e renderiza <ul><li>
+          body: 'Nossa diretoria de casting analisa todas as candidaturas em até 5 dias úteis.|||Em caso de compatibilidade de perfil com nosso casting comercial ou fashion, nossa equipe entrará em contato via telefone ou e-mail cadastrado.|||A WB Agency nunca cobra taxas para avaliação de perfil ou agenciamento inicial.'
+        },
+        en: {
+          headline: 'Next Steps • How It Works',
+          quote: 'Full transparency throughout our new talent evaluation workflow.',
+          body: 'Our casting board reviews every submission within 5 business days.|||When your profile matches our commercial or high fashion rosters, our scouting team contacts you via the phone or email you registered.|||WB Agency never charges assessment fees or upfront agency deposits of any kind.'
         }
       };
     } else {

@@ -41,6 +41,10 @@ public class SiteContentServiceImpl implements SiteContentService {
                     if ("ABOUT_MANIFESTO".equalsIgnoreCase(sectionKey)) {
                         return createDefaultAboutManifesto();
                     }
+                    // 🆕 Fallback para APPLY_HOW_IT_WORKS: nunca da 404 no /apply
+                    if ("APPLY_HOW_IT_WORKS".equalsIgnoreCase(sectionKey)) {
+                        return createDefaultApplyHowItWorks();
+                    }
                     throw new ResourceNotFoundException("Conteúdo da seção não encontrado: " + sectionKey);
                 });
 
@@ -213,6 +217,27 @@ public class SiteContentServiceImpl implements SiteContentService {
 
         return SiteContent.builder()
                 .sectionKey("ABOUT_MANIFESTO")
+                .payloadPt(pt)
+                .payloadEn(en)
+                .build();
+    }
+
+    // 🆕 Fallback padrão para a seção de Próximos Passos / Como Funciona do Apply.
+    // Idêntico ao conteúdo do i18n (apply_page.step1/2/3) em PT e EN.
+    private SiteContent createDefaultApplyHowItWorks() {
+        Map<String, Object> pt = new HashMap<>();
+        pt.put("headline", "Próximos Passos • Como Funciona");
+        pt.put("quote", "Transparência total no processo de avaliação de novos talentos.");
+        // 3 passos separados por "|||" — o frontend faz split e renderiza <ul><li>
+        pt.put("body", "Nossa diretoria de casting analisa todas as candidaturas em até 5 dias úteis.|||Em caso de compatibilidade de perfil com nosso casting comercial ou fashion, nossa equipe entrará em contato via telefone ou e-mail cadastrado.|||A WB Agency nunca cobra taxas para avaliação de perfil ou agenciamento inicial.");
+
+        Map<String, Object> en = new HashMap<>();
+        en.put("headline", "Next Steps • How It Works");
+        en.put("quote", "Full transparency throughout our new talent evaluation workflow.");
+        en.put("body", "Our casting board reviews every submission within 5 business days.|||When your profile matches our commercial or high fashion rosters, our scouting team contacts you via the phone or email you registered.|||WB Agency never charges assessment fees or upfront agency deposits of any kind.");
+
+        return SiteContent.builder()
+                .sectionKey("APPLY_HOW_IT_WORKS")
                 .payloadPt(pt)
                 .payloadEn(en)
                 .build();

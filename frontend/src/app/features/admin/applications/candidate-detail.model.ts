@@ -35,4 +35,5 @@ export interface CandidateDetail {
   lgpdConsent: boolean;
   lgpdConsentAt: string;
   submittedAt: string;
+  protocol?: string;
 }

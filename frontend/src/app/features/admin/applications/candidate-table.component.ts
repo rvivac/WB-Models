@@ -29,6 +29,7 @@ export interface CandidateApplicationRow {
   photos?: { id: string; url: string; type: string }[];
   createdAt: string;
   photoError?: boolean;
+  protocol?: string;
 }
 
 @Component({
@@ -59,6 +60,84 @@ export class CandidateTableComponent implements OnInit {
 
   sortBy = 'createdAt';
   sortDirection: 'ASC' | 'DESC' = 'DESC';
+
+  // Helper IDENTICO ao CandidateService._resolveCandidatePhotoUrl (stmytwsd projeto CORRETO!)
+  // Resolve URLs de coverPhoto / photos[0].url CRUAS / incompletas / projeto errado (zmpqmdi)
+  // que vem do backend e aparecem na LISTAGEM de candidaturas (tabela).
+  // Se a URL vier invalida: remonta do zero extraindo path relativo. Nunca retorna vazio se houver path.
+  private _resolveCandidatePhotoUrl(rawUrlOrFile: any, fallbackRaw: string | null = null): string {
+    const SUPABASE_PUBLIC_BASE = 'https://stmytwsdlonpnirqiufq.supabase.co/storage/v1/object/public/candidates-uploads';
+    const CORRECT_PROJECT_HOST = 'stmytwsdlonpnirqiufq.supabase.co';
+    const CORRECT_BUCKETS_ALLOWED = new Set(['candidates-uploads', 'models-media', 'site-assets']);
+    let rawUrl = '';
+    let filePath: string = '';
+    if (typeof rawUrlOrFile === 'string') {
+      rawUrl = rawUrlOrFile.trim();
+    } else if (rawUrlOrFile && typeof rawUrlOrFile === 'object') {
+      rawUrl = (rawUrlOrFile.url || rawUrlOrFile.fileUrl || fallbackRaw || '').trim();
+      filePath = ((rawUrlOrFile.filePath || rawUrlOrFile.storagePath || '') + '').trim().replace(/^\/+/, '');
+    }
+    if (!rawUrl && fallbackRaw) rawUrl = fallbackRaw.trim();
+    if (!rawUrl && !filePath) return '';
+
+    const invalid = (u: string): boolean => {
+      if (!u || u.length < 10) return true;
+      if (!u.startsWith('http')) return true;
+      try {
+        const pu = new URL(u);
+        if (pu.hostname && pu.hostname !== CORRECT_PROJECT_HOST) return true;
+        const m = pu.pathname.match(/object\/public\/([^/]+)/);
+        if (m && m[1] && !CORRECT_BUCKETS_ALLOWED.has(m[1])) return true;
+      } catch { return true; }
+      if (/\/(candidates-uploads|models-media)\/?$/.test(u)) return true;
+      if (!/\.(pdf|jpe?g|png|webp|gif|heic|svg)(\?|$)/i.test(u)) return true;
+      return false;
+    };
+
+    let final = '';
+    if (!invalid(rawUrl)) final = rawUrl;
+    else {
+      let relative = '';
+      if (filePath) {
+        const slashIdx = filePath.indexOf('/');
+        relative = (slashIdx >= 0 && CORRECT_BUCKETS_ALLOWED.has(filePath.substring(0, slashIdx)))
+          ? filePath.substring(slashIdx + 1)
+          : filePath;
+      } else if (rawUrl) {
+        try {
+          const pu = new URL(rawUrl);
+          const m = pu.pathname.match(/object\/public\/[^/]+\/(.+)$/);
+          if (m && m[1]) relative = m[1];
+          else {
+            const full = pu.pathname.split('/').filter(Boolean).join('/');
+            const candidatesIdx = full.indexOf('submissions/');
+            if (candidatesIdx >= 0 && /\.(jpe?g|png|webp|heic)/i.test(full)) relative = full.substring(candidatesIdx);
+          }
+        } catch {}
+      }
+      if (relative) {
+        const prefix = (relative.startsWith('submissions/') || relative.startsWith('candidates/'))
+          ? SUPABASE_PUBLIC_BASE
+          : 'https://stmytwsdlonpnirqiufq.supabase.co/storage/v1/object/public/models-media';
+        final = `${prefix}/${relative}`;
+      } else final = rawUrl;
+    }
+
+    if (final) {
+      final = final.replace(/(object\/public\/)(candidates-uploads\/){2,}/g, '$1candidates-uploads/')
+        .replace(/(object\/public\/candidates-uploads\/)\/?candidates-uploads\//g, '$1')
+        .replace(/(?<!:)\/\/+/g, '/').replace('https:/', 'https://');
+      let cleaned = final;
+      if (cleaned.includes('v=')) {
+        cleaned = cleaned
+          .replace(/([?&])v=[^&]*(&|$)/g, (m: any, sep: any, end: any) => (end === '&' ? sep : ''))
+          .replace(/[?&]$/, '');
+      }
+      const sep = cleaned.includes('?') ? '&' : '?';
+      final = `${cleaned}${sep}v=${Math.floor(Date.now() / 3_600_000)}`;
+    }
+    return final;
+  }
 
   ngOnInit(): void {
     this.setupSearchDebounce();
@@ -112,15 +191,43 @@ export class CandidateTableComponent implements OnInit {
     this.http.get<any>(`${environment.apiUrl}/admin/applications`, { params }).subscribe({
       next: (res) => {
         const items = res.content || [];
-        this.applications = items.map((item: any) => ({
-          ...item,
-          fullName: sanitizeCandidateName(item.fullName),
-          city: fixUtf8(item.city),
-          state: fixUtf8(item.state),
-          polaroidsCount: item.photoCount ?? item.polaroidsCount ?? (item.photos ? item.photos.length : 0),
-          coverPhoto: item.coverPhoto || (item.photos && item.photos.length > 0 ? item.photos[0].url : undefined),
-          photoError: false
-        }));
+        this.applications = items.map((item: any) => {
+          // 1) Resolve a FOTO DA CAPA da tabela (miniatura 1ª coluna / placeholder WB):
+          //    Tentativas: coverPhoto (campo dedicado) → se vazio, 1ª foto do array photos[0]
+          //    TUDO passa pelo helper _resolveCandidatePhotoUrl (fallback projeto/bucket stmytwsd correto)
+          const rawCover = item.coverPhoto || (item.photos && item.photos.length > 0 ? item.photos[0] : undefined);
+          const safeCover = this._resolveCandidatePhotoUrl(rawCover);
+
+          // 2) (Opcional mas recomendado): Resolve TODAS as urls do array photos (caso algum preview do hover na tabela)
+          let safePhotos: { id: string; url: string; type: string }[] | undefined = undefined;
+          if (Array.isArray(item.photos) && item.photos.length > 0) {
+            safePhotos = item.photos.map((p: any, idx: number) => ({
+              id: p.id || `p-${idx}`,
+              url: this._resolveCandidatePhotoUrl(p),
+              type: p.type || (idx === 0 ? 'POLAROID_ROSTO' : (idx === 1 ? 'POLAROID_PERFIL' : 'CORPO_INTEIRO'))
+            }));
+          }
+
+          // 3) Campo LEGADO facePhotoUrl (algumas respostas usam esse campo para a 1ª foto):
+          //    Se safeCover ainda for vazio, tenta facePhotoUrl/profil/fullBody com fallback.
+          let finalCover = safeCover;
+          if (!finalCover && item.facePhotoUrl) finalCover = this._resolveCandidatePhotoUrl(item.facePhotoUrl);
+          if (!finalCover && item.profilePhotoUrl) finalCover = this._resolveCandidatePhotoUrl(item.profilePhotoUrl);
+          if (!finalCover && item.fullBodyPhotoUrl) finalCover = this._resolveCandidatePhotoUrl(item.fullBodyPhotoUrl);
+
+          return {
+            ...item,
+            fullName: sanitizeCandidateName(item.fullName),
+            city: fixUtf8(item.city),
+            state: fixUtf8(item.state),
+            polaroidsCount: item.photoCount ?? item.polaroidsCount ?? ((safePhotos?.length || 0) || (item.photos ? item.photos.length : 0)),
+            coverPhoto: finalCover || undefined,
+            photos: safePhotos || item.photos,
+            photoError: false,
+            // 🆕 Protocolo Scouting (WB-YYYYMMDD-XXXX) vindo do backend. Disponivel para link no HTML do card.
+            protocol: (item.protocol || '').toString().trim() || undefined,
+          };
+        });
         this.totalElements = res.totalElements || 0;
         this.totalPages = res.totalPages || 0;
         this.isLoading = false;

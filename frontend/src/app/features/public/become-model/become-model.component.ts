@@ -1,13 +1,15 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { cpfValidator } from '../../../core/validators/cpf.validator';
 import { environment } from '../../../../environments/environment';
 
 import { ApplyFaqService } from '../../../core/services/apply-faq.service';
 import { ApplyFaq } from '../../../shared/models/apply-faq.interface';
+import { PublicContentService, ApplyHowItWorksPayload } from '../../../core/services/public-content.service';
 
 export interface PhotoSlot {
   file: File | null;
@@ -27,11 +29,13 @@ import { TranslationService } from '../../../core/services/translation.service';
   templateUrl: './become-model.component.html',
   styleUrls: ['./become-model.component.scss']
 })
-export class BecomeModelComponent implements OnInit {
+export class BecomeModelComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private http = inject(HttpClient);
   private faqService = inject(ApplyFaqService);
+  private readonly contentSvc = inject(PublicContentService);
   readonly translationService = inject(TranslationService);
+  private langSub?: Subscription;
 
   form!: FormGroup;
   isSubmitting = false;
@@ -40,6 +44,10 @@ export class BecomeModelComponent implements OnInit {
   submitSuccess = false;
   submitError: string | null = null;
   submissionProtocol: string | null = null;
+
+  // 🆕 Texto "Proximos Passos / Como Funciona" vindo do ADMIN Editor (Bilingual CMS).
+  // Se API falhar ou admin nunca salvou, cai para o i18n apply_page.step1/2/3 legado (exatamente o texto hardcoded antigo).
+  applyHowItWorks: ApplyHowItWorksPayload | null = null;
 
   // Cabeçalho Editorial Dinâmico
   headerTitle = 'Quero ser Modelo';
@@ -298,6 +306,18 @@ export class BecomeModelComponent implements OnInit {
     this.initForm();
     this.watchBirthDate();
     this.loadEditorialContent();
+    // 🆕 Se idioma mudar (PT/EN), recarrega o texto do Apply Proximos Passos correspondente.
+    const langSig = this.translationService.getLangSignal?.() ?? this.translationService.currentLang?.();
+    if (typeof langSig === 'function') {
+      try {
+        this.langSub = (langSig as any)?.subscribe?.((l: string) => this.loadApplyHowItWorks(l));
+      } catch { /* sem subscription, carrega so no ngOnInit */ }
+    }
+    this.loadApplyHowItWorks(this.translationService.currentLang?.() || 'pt');
+  }
+
+  ngOnDestroy(): void {
+    this.langSub?.unsubscribe();
   }
 
   private loadEditorialContent(): void {
@@ -314,6 +334,49 @@ export class BecomeModelComponent implements OnInit {
         this.faqs = faqs;
       }
     });
+  }
+
+  // 🆕 Carrega o texto "Proximos Passos / Como Funciona" do Admin Bilingual Editor.
+  // Se API voltar vazio/nulo ou network falhar -> fallback para o i18n apply_page.step1/2/3 antigo (identico texto hardcoded original)
+  private loadApplyHowItWorks(lang: string = 'pt'): void {
+    this.contentSvc.getApplyHowItWorksContent(lang).subscribe(content => {
+      if (!content || content.steps.length === 0) {
+        this.applyHowItWorks = this.fallbackHowItWorksFromI18n(lang);
+      } else {
+        this.applyHowItWorks = content;
+      }
+    }, () => {
+      this.applyHowItWorks = this.fallbackHowItWorksFromI18n(lang);
+    });
+  }
+
+  private fallbackHowItWorksFromI18n(lang: string): ApplyHowItWorksPayload {
+    const t = (key: string) => this.translationService.translate(key);
+    const defaultPt: ApplyHowItWorksPayload = {
+      headline: 'Próximos Passos • Como Funciona',
+      quote: '',
+      steps: [
+        t('apply_page.step1') && t('apply_page.step1') !== 'apply_page.step1'
+          ? t('apply_page.step1')
+          : 'Nossa diretoria de casting analisa todas as candidaturas em até 5 dias úteis.',
+        t('apply_page.step2') && t('apply_page.step2') !== 'apply_page.step2'
+          ? t('apply_page.step2')
+          : 'Em caso de compatibilidade de perfil com nosso casting comercial ou fashion, nossa equipe entrará em contato via telefone ou e-mail cadastrado.',
+        t('apply_page.step3') && t('apply_page.step3') !== 'apply_page.step3'
+          ? t('apply_page.step3')
+          : 'A WB Agency nunca cobra taxas para avaliação de perfil ou agenciamento inicial.'
+      ]
+    };
+    const defaultEn: ApplyHowItWorksPayload = {
+      headline: 'Next Steps • How It Works',
+      quote: '',
+      steps: [
+        'Our casting board reviews every submission within 5 business days.',
+        'When your profile matches our commercial or high fashion rosters, our scouting team contacts you via the phone or email you registered.',
+        'WB Agency never charges assessment fees or upfront agency deposits of any kind.'
+      ]
+    };
+    return lang?.toLowerCase().startsWith('en') ? defaultEn : defaultPt;
   }
 
   private initForm(): void {

@@ -41,6 +41,35 @@ public class Candidate {
     public OffsetDateTime getCreatedAt() { return this.createdAt; }
     public void setPhotos(List<CandidatePhoto> photos) { this.photos = photos; }
 
+    // 🆕 DEMAIS GETTERS (completos) para nao dar mais cannot find symbol em NENHUM DTO:
+    public LocalDate getBirthDate() { return this.birthDate; }
+    public String getGuardianName() { return this.guardianName; }
+    public String getLegalGuardianName() { return this.legalGuardianName; }
+    public String getLegalGuardianContact() { return this.legalGuardianContact; }
+    public String getCity() { return this.city; }
+    public String getState() { return this.state; }
+    public BigDecimal getWeightKg() { return this.weightKg; }
+    public BigDecimal getBustChestCm() { return this.bustChestCm; }
+    public BigDecimal getWaistCm() { return this.waistCm; }
+    public BigDecimal getHipsCm() { return this.hipsCm; }
+    public String getShoeSize() { return this.shoeSize; }
+    public String getDressSize() { return this.dressSize; }
+    public String getInstagramHandle() { return this.instagramHandle; }
+    public String getPortfolioUrl() { return this.portfolioUrl; }
+    public String getTiktokHandle() { return this.tiktokHandle; }
+    public CandidateStatus getStatus() { return this.status; }
+    public String getInternalNotes() { return this.internalNotes; }
+    public OffsetDateTime getUpdatedAt() { return this.updatedAt; }
+    public void setId(UUID id) { this.id = id; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+    public void setEmail(String email) { this.email = email; }
+    public void setPhone(String phone) { this.phone = phone; }
+    public void setAge(Integer age) { this.age = age; }
+    public void setGender(String gender) { this.gender = gender; }
+    public void setHeightCm(BigDecimal heightCm) { this.heightCm = heightCm; }
+    public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
+    public void setUpdatedAt(OffsetDateTime updatedAt) { this.updatedAt = updatedAt; }
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)

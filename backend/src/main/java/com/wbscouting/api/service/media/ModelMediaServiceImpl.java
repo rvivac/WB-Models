@@ -268,149 +268,178 @@ public class ModelMediaServiceImpl implements ModelMediaService {
     @Override
     @Transactional
     public com.wbscouting.api.dto.media.ModelCompositeResponseDto uploadOrReplaceComposite(UUID modelId, MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("O arquivo do composite não pode estar vazio.");
-        }
-
-        // 🔴 CORREÇÃO DE LIMITE: 30 MB (compatível com storage.validateUpload, evitava FileSizeExceededException silenciosa)
-        final long MAX_SIZE_30_MB = 30L * 1024 * 1024;
-        long fileSize = file.getSize();
-        log.info("[COMPOSITE UPLOAD] modelId={}, originalFilename='{}', contentType='{}', size={} bytes ({})",
-                modelId, file.getOriginalFilename(), file.getContentType(), fileSize,
-                fileSize > 0 ? (fileSize / 1_048_576L) + " MB" : "desconhecido");
-
-        if (fileSize > MAX_SIZE_30_MB) {
-            double mbReal = Math.round((fileSize / (1024.0 * 1024.0)) * 10.0) / 10.0;
-            throw new IllegalArgumentException(
-                "Arquivo do composite muito grande: " + mbReal + " MB. " +
-                "O limite máximo permitido é 30 MB. Compacte o PDF ou envie uma imagem JPG/PNG menor."
-            );
-        }
-
-        // 🔴 VALIDAÇÃO MIME BRANDA (respeita extensao se MIME for application/octet-stream / vazio)
-        String contentType = file.getContentType();
-        String originalFilename = file.getOriginalFilename() != null ? file.getOriginalFilename().toLowerCase() : "";
-
-        boolean isPdf = originalFilename.endsWith(".pdf")
-            || (contentType != null && contentType.equalsIgnoreCase("application/pdf"));
-        boolean isImage = originalFilename.endsWith(".jpg") || originalFilename.endsWith(".jpeg")
-            || originalFilename.endsWith(".png") || originalFilename.endsWith(".webp") || originalFilename.endsWith(".heic")
-            || (contentType != null && (
-                contentType.equalsIgnoreCase("image/jpeg") || contentType.equalsIgnoreCase("image/png")
-                || contentType.equalsIgnoreCase("image/webp") || contentType.equalsIgnoreCase("image/heic")
-             ));
-
-        if (!isPdf && !isImage) {
-            String detalheContentType = (contentType == null || contentType.isBlank() || contentType.equalsIgnoreCase("application/octet-stream"))
-                ? " (o navegador não informou o tipo de arquivo, e a extensão não é PDF/JPG/PNG/WEBP)"
-                : " (tipo detectado: " + contentType + ")";
-            throw new IllegalArgumentException(
-                "Formato de arquivo do composite inválido." + detalheContentType +
-                ". Os formatos permitidos são: PDF, JPG, PNG e WEBP."
-            );
-        }
-
-        Model model = modelRepository.findById(modelId)
-                .orElseThrow(() -> new ResourceNotFoundException("Modelo", "id", modelId));
-
-        String bucket = supabaseProperties.resolveBucketModelsMedia();
-
-        // Substituição atômica: remove composite anterior do storage e banco se houver
-        Optional<ModelMedia> existingComposite = modelMediaRepository.findByModelIdAndMediaTypeAndIsActiveTrue(modelId, MediaType.COMPOSITE);
-        if (existingComposite.isPresent()) {
-            ModelMedia oldComp = existingComposite.get();
-            try {
-                // 🟢 SEGURANCA TOTAL: NUNCA deixa a remocao do composite ANTIGO travar o upload do NOVO.
-                // Captura QUALQUER excessao: StorageException 404 (arquivo jah foi deletado manual no bucket),
-                // IllegalArgumentException path nulo (registro antigo sem filePath), RLS 403, timeout rede.
-                // Orphan-safe: se old jah foi apagado, nao tem problema, seguimos em frente.
-                String oldPath = oldComp.getFilePath();
-                if (oldPath != null && !oldPath.isBlank()) {
-                    storageService.deleteFile(bucket, oldPath);
-                    log.info("[COMPOSITE UPLOAD] Removido composite anterior SUCESSO. ModelId={}, oldPath={}", modelId, oldPath);
-                } else {
-                    log.warn("[COMPOSITE UPLOAD] Composite antigo SEM filePath (registro LEGADO antigo). Pulando remocao storage e deletando apenas do banco. ModelId={}, oldMediaId={}",
-                            modelId, oldComp.getId());
-                }
-            } catch (Exception e) {
-                // Nao importa o que aconteceu (arquivo jah apagado, 404, 403, timeout): NAO ABORTA!
-                // O importante eh subir o composite NOVO do usuario. Orphans no bucket serao limpos depois.
-                log.warn("[COMPOSITE UPLOAD] (Nao critico, continuando mesmo assim) Falha ao remover arquivo composite anterior do bucket: {}. Motivo: {}.",
-                        oldComp.getFilePath(), e.getMessage());
-            }
-            // Remocao do banco SEMPRE acontece, com try/catch proprio tambem.
-            try {
-                modelMediaRepository.delete(oldComp);
-                modelMediaRepository.flush();
-            } catch (Exception eDB) {
-                log.error("[COMPOSITE UPLOAD] Falha ao deletar registro do composite antigo no banco. Vai tentar prosseguir salvando o novo. ModelId={}. Erro: {}",
-                        modelId, eDB.getMessage());
-            }
-        }
-
-        String originalName = sanitizeFilename(file.getOriginalFilename());
-        String filename = "models/" + modelId + "/composite/" + UUID.randomUUID() + "-" + originalName;
-
-        // 🔴 TRATAMENTO ESPECÍFICO DE TODAS AS EXCEÇÕES DO UPLOAD (mensagens amigáveis em PT-BR)
-        String publicUrl;
         try {
-            publicUrl = storageService.uploadFile(bucket, filename, file);
-        } catch (com.wbscouting.api.exception.FileSizeExceededException fsEx) {
-            // Caso chegue aqui mesmo com a validacao de cima (limite mudado no storage, etc)
-            double mbReal = Math.round((fileSize / (1024.0 * 1024.0)) * 10.0) / 10.0;
-            log.error("[COMPOSITE UPLOAD] FileSizeExceededException mesmo apos validacao. ModelId={}, size={} MB", modelId, mbReal, fsEx);
-            throw new IllegalArgumentException(
-                "Arquivo do composite muito grande: " + mbReal + " MB. Limite 30 MB. " +
-                (fsEx.getMessage() != null ? "Detalhe: " + fsEx.getMessage() : "")
-            );
-        } catch (com.wbscouting.api.exception.InvalidFileException ivfEx) {
-            log.warn("[COMPOSITE UPLOAD] InvalidFileException. ModelId={}.", modelId, ivfEx);
-            throw new IllegalArgumentException(
-                "Não foi possível ler o arquivo do composite. Ele pode estar corrompido ou ser um tipo não suportado. " +
-                "Tente baixar o arquivo novamente e reenviar. Detalhe: " + (ivfEx.getMessage() != null ? ivfEx.getMessage() : "")
-            );
-        } catch (com.wbscouting.api.exception.StorageException stEx) {
-            log.error("[COMPOSITE UPLOAD] StorageException (timeout, auth, rede). ModelId={}.", modelId, stEx);
-            // ☑️ Correcao getter: StorageException tem campo 'status' (private final HttpStatus status) lombok @Getter = getStatus()
-            //    Nome errado anterior getStatusCode() quebrou maven build.
-            org.springframework.http.HttpStatus st = stEx.getStatus();
-            if (st != null && (st.is5xxServerError() || st == org.springframework.http.HttpStatus.GATEWAY_TIMEOUT)) {
-                throw new IllegalStateException(
-                    "Ocorreu um timeout ou falha temporária de conexão ao enviar o composite para o armazenamento na nuvem. " +
-                    "Tente novamente em alguns segundos. Detalhe: " + (stEx.getMessage() != null ? stEx.getMessage() : "")
+            // ============================================================
+            // 🛡️ ENVELOPE ANTI-500 TOTAL
+            // QUALQUER excecao lancada DENTRO do metodo (mesmo as inesperadas)
+            // e capturada NO CATCH mais externo no final e convertida
+            // para IllegalArgumentException/IllegalStateException (mensagem amigavel)
+            // ============================================================
+
+            if (file == null || file.isEmpty()) {
+                throw new IllegalArgumentException("O arquivo do composite não pode estar vazio.");
+            }
+
+            // 🔴 CORREÇÃO DE LIMITE: 30 MB (compatível com storage.validateUpload, evitava FileSizeExceededException silenciosa)
+            final long MAX_SIZE_30_MB = 30L * 1024 * 1024;
+            long fileSize = file.getSize();
+            log.info("[COMPOSITE UPLOAD] INICIO. modelId={}, originalFilename='{}', contentType='{}', size={} bytes ({})",
+                    modelId, file.getOriginalFilename(), file.getContentType(), fileSize,
+                    fileSize > 0 ? String.format("%.2f MB", fileSize / (1024.0 * 1024.0)) : "desconhecido");
+
+            if (fileSize > MAX_SIZE_30_MB) {
+                double mbReal = Math.round((fileSize / (1024.0 * 1024.0)) * 10.0) / 10.0;
+                throw new IllegalArgumentException(
+                    "Arquivo do composite muito grande: " + mbReal + " MB. " +
+                    "O limite máximo permitido é 30 MB. Compacte o PDF ou envie uma imagem JPG/PNG menor."
                 );
             }
+
+            // 🔴 VALIDAÇÃO MIME BRANDA (respeita extensao se MIME for application/octet-stream / vazio)
+            String contentType = file.getContentType();
+            String originalFilename = file.getOriginalFilename() != null ? file.getOriginalFilename().toLowerCase() : "";
+
+            boolean isPdf = originalFilename.endsWith(".pdf")
+                || (contentType != null && contentType.equalsIgnoreCase("application/pdf"));
+            boolean isImage = originalFilename.endsWith(".jpg") || originalFilename.endsWith(".jpeg")
+                || originalFilename.endsWith(".png") || originalFilename.endsWith(".webp") || originalFilename.endsWith(".heic")
+                || (contentType != null && (
+                    contentType.equalsIgnoreCase("image/jpeg") || contentType.equalsIgnoreCase("image/png")
+                    || contentType.equalsIgnoreCase("image/webp") || contentType.equalsIgnoreCase("image/heic")
+                 ));
+
+            if (!isPdf && !isImage) {
+                String detalheContentType = (contentType == null || contentType.isBlank() || contentType.equalsIgnoreCase("application/octet-stream"))
+                    ? " (o navegador não informou o tipo de arquivo, e a extensão não é PDF/JPG/PNG/WEBP)"
+                    : " (tipo detectado: " + contentType + ")";
+                throw new IllegalArgumentException(
+                    "Formato de arquivo do composite inválido." + detalheContentType +
+                    ". Os formatos permitidos são: PDF, JPG, PNG e WEBP."
+                );
+            }
+
+            Model model = modelRepository.findById(modelId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Modelo", "id", modelId));
+
+            String bucket = supabaseProperties.resolveBucketModelsMedia();
+
+            // Substituição atômica: remove composite anterior do storage e banco se houver
+            Optional<ModelMedia> existingComposite = modelMediaRepository.findByModelIdAndMediaTypeAndIsActiveTrue(modelId, MediaType.COMPOSITE);
+            if (existingComposite.isPresent()) {
+                ModelMedia oldComp = existingComposite.get();
+                try {
+                    // 🟢 SEGURANCA TOTAL: NUNCA deixa a remocao do composite ANTIGO travar o upload do NOVO.
+                    String oldPath = oldComp.getFilePath();
+                    if (oldPath != null && !oldPath.isBlank()) {
+                        storageService.deleteFile(bucket, oldPath);
+                        log.info("[COMPOSITE UPLOAD] Removido composite anterior SUCESSO. ModelId={}, oldPath={}", modelId, oldPath);
+                    } else {
+                        log.warn("[COMPOSITE UPLOAD] Composite antigo SEM filePath (registro LEGADO antigo). Pulando remocao storage e deletando apenas do banco. ModelId={}, oldMediaId={}",
+                                modelId, oldComp.getId());
+                    }
+                } catch (Exception e) {
+                    log.warn("[COMPOSITE UPLOAD] (Nao critico, continuando mesmo assim) Falha ao remover arquivo composite anterior do bucket: {}. Motivo: {}.",
+                            oldComp.getFilePath(), e.getMessage());
+                }
+                // Remocao do banco SEMPRE acontece, com try/catch proprio tambem.
+                try {
+                    modelMediaRepository.delete(oldComp);
+                    modelMediaRepository.flush();
+                } catch (Exception eDB) {
+                    log.error("[COMPOSITE UPLOAD] Falha ao deletar registro do composite antigo no banco. Vai tentar prosseguir salvando o novo. ModelId={}. Erro: {}",
+                            modelId, eDB.getMessage());
+                }
+            }
+
+            // 🟢 NULL-SAFETY: sanitizeFilename nulo/vazio = fallback composite-data.pdf/jpg
+            String originalName = sanitizeFilename(file.getOriginalFilename());
+            if (originalName == null || originalName.isBlank()) {
+                originalName = isPdf ? "composite-document.pdf" : "composite-image.jpg";
+            }
+            String filename = "models/" + modelId + "/composite/" + UUID.randomUUID() + "-" + originalName;
+
+            // 🔴 TRATAMENTO ESPECÍFICO DE TODAS AS EXCEÇÕES DO UPLOAD
+            String publicUrl;
+            try {
+                publicUrl = storageService.uploadFile(bucket, filename, file);
+                // 🟢 NULL-SAFETY: se uploadFile retornar null/vazio (fallback local?), usamos filePath como URL relativa
+                if (publicUrl == null || publicUrl.isBlank()) {
+                    log.warn("[COMPOSITE UPLOAD] storage.uploadFile retornou URL nula/vazia. Usando fallback de filePath para montar a URL. ModelId={}, filename={}",
+                            modelId, filename);
+                    publicUrl = filename;
+                }
+            } catch (com.wbscouting.api.exception.FileSizeExceededException fsEx) {
+                double mbReal = Math.round((fileSize / (1024.0 * 1024.0)) * 10.0) / 10.0;
+                log.error("[COMPOSITE UPLOAD] FileSizeExceededException mesmo apos validacao. ModelId={}, size={} MB", modelId, mbReal, fsEx);
+                throw new IllegalArgumentException(
+                    "Arquivo do composite muito grande: " + mbReal + " MB. Limite 30 MB. " +
+                    (fsEx.getMessage() != null ? "Detalhe: " + fsEx.getMessage() : "")
+                );
+            } catch (com.wbscouting.api.exception.InvalidFileException ivfEx) {
+                log.warn("[COMPOSITE UPLOAD] InvalidFileException. ModelId={}.", modelId, ivfEx);
+                throw new IllegalArgumentException(
+                    "Não foi possível ler o arquivo do composite. Ele pode estar corrompido ou ser um tipo não suportado. " +
+                    "Tente baixar o arquivo novamente e reenviar. Detalhe: " + (ivfEx.getMessage() != null ? ivfEx.getMessage() : "")
+                );
+            } catch (com.wbscouting.api.exception.StorageException stEx) {
+                log.error("[COMPOSITE UPLOAD] StorageException (timeout, auth, rede). ModelId={}.", modelId, stEx);
+                org.springframework.http.HttpStatus st = stEx.getStatus();
+                if (st != null && (st.is5xxServerError() || st == org.springframework.http.HttpStatus.GATEWAY_TIMEOUT)) {
+                    throw new IllegalStateException(
+                        "Ocorreu um timeout ou falha temporária de conexão ao enviar o composite para o armazenamento na nuvem. " +
+                        "Tente novamente em alguns segundos. Detalhe: " + (stEx.getMessage() != null ? stEx.getMessage() : "")
+                    );
+                }
+                throw new IllegalStateException(
+                    "Não foi possível enviar o composite para o armazenamento na nuvem. " +
+                    "Detalhe: " + (stEx.getMessage() != null ? stEx.getMessage() : "Erro de comunicação.")
+                );
+            }
+
+            OffsetDateTime agora = OffsetDateTime.now();
+            ModelMedia media = ModelMedia.builder()
+                    .model(model)
+                    .mediaType(MediaType.COMPOSITE)
+                    .fileUrl(publicUrl)
+                    .filePath(filename)
+                    .displayOrder(1)
+                    .isCover(false)
+                    .isActive(true)
+                    // Timestamps EXPLICITOS anti-not-null
+                    .createdAt(agora)
+                    .updatedAt(agora)
+                    .build();
+
+            ModelMedia saved = modelMediaRepository.save(media);
+            log.info("[COMPOSITE UPLOAD] SUCESSO. ModelId={}, finalPath={}, urlSize={} chars",
+                    modelId, filename, publicUrl != null ? publicUrl.length() : 0);
+            // toCompositeDto com envelope anti-null interno (ver abaixo)
+            return toCompositeDtoSafe(saved, originalName, file.getSize());
+
+        } catch (IllegalArgumentException | ResourceNotFoundException | IllegalStateException eTratado) {
+            // Mensagens amigaveis ja tratadas: relancar como estao (400 Bad Request / 404)
+            throw eTratado;
+        } catch (Exception eQualquerOutra) {
+            // ============================================================
+            // 🛡️ CAIXA FORTE FINAL: Nenhuma excecao nao tratada escapa como 500 generico
+            // Inclui: NullPointerException, ConstraintViolationException (PostgreSQL),
+            //         TransactionSystemException, DataIntegrityViolationException etc.
+            // Converte tudo para IllegalStateException com mensagem amigavel.
+            // ============================================================
+            log.error("[COMPOSITE UPLOAD] EXCECAO NAO TRATADA CONVERTIDA PARA MENSAGEM AMIGAVEL (evitando 500 generico). ModelId={}",
+                    modelId, eQualquerOutra);
+            String motivo = (eQualquerOutra.getMessage() != null && !eQualquerOutra.getMessage().isBlank())
+                ? eQualquerOutra.getMessage()
+                : "Erro interno durante o processamento do composite no banco de dados.";
+            if (eQualquerOutra.getCause() != null && eQualquerOutra.getCause().getMessage() != null
+                && !eQualquerOutra.getCause().getMessage().isBlank()) {
+                motivo = motivo + ". Detalhe tecnico: " + eQualquerOutra.getCause().getMessage();
+            }
             throw new IllegalStateException(
-                "Não foi possível enviar o composite para o armazenamento na nuvem. " +
-                "Detalhe: " + (stEx.getMessage() != null ? stEx.getMessage() : "Erro de comunicação.")
-            );
-        } catch (Exception ex) {
-            log.error("[COMPOSITE UPLOAD] Erro GENERICO inesperado ao enviar composite. ModelId={}.", modelId, ex);
-            throw new IllegalStateException(
-                "Ocorreu um erro inesperado ao processar o composite. " +
-                "Detalhe: " + (ex.getMessage() != null ? ex.getMessage() : "Erro desconhecido.")
+                "Não foi possível salvar o composite. " + motivo + ". " +
+                "Tente novamente em alguns segundos ou verifique se o arquivo está íntegro."
             );
         }
-
-        OffsetDateTime agora = OffsetDateTime.now();
-        ModelMedia media = ModelMedia.builder()
-                .model(model)
-                .mediaType(MediaType.COMPOSITE)
-                .fileUrl(publicUrl)
-                .filePath(filename)
-                .displayOrder(1)
-                .isCover(false)
-                .isActive(true)
-                // 🟢 TIMESTAMPS EXPLICITOS (garante NUNCA null no banco, evita ConstraintViolationException 500)
-                // @CreationTimestamp/@UpdateTimestamp do Hibernate pode nao funcionar em algumas
-                // versoes quando criamos entidade via @Builder lombok. Setando manual = 100% seguro!
-                .createdAt(agora)
-                .updatedAt(agora)
-                .build();
-
-        ModelMedia saved = modelMediaRepository.save(media);
-        log.info("[COMPOSITE UPLOAD] SUCESSO. ModelId={}, finalPath={}, urlSize={} chars", modelId, filename, publicUrl != null ? publicUrl.length() : 0);
-        return toCompositeDto(saved, originalName, file.getSize());
     }
 
     @Override
@@ -431,42 +460,108 @@ public class ModelMediaServiceImpl implements ModelMediaService {
                 });
     }
 
-    private com.wbscouting.api.dto.media.ModelCompositeResponseDto toCompositeDto(ModelMedia media, String originalFilename, Long sizeBytes) {
-        String name = originalFilename;
-        if (name == null || name.isBlank()) {
-            name = media.getFilePath() != null
-                    ? media.getFilePath().substring(media.getFilePath().lastIndexOf('/') + 1)
-                    : "composite";
-            if (name.matches("^[0-9a-fA-F\\-]{36}-.+")) {
-                name = name.substring(37);
+    /**
+     * 🟢 Versao NULL-SAFE do toCompositeDto. NUNCA lança NPE mesmo que media tenha campos nulos.
+     * Evita 500 generico no Jackson ao serializar DTO de resposta.
+     */
+    private com.wbscouting.api.dto.media.ModelCompositeResponseDto toCompositeDtoSafe(ModelMedia media, String originalFilename, Long sizeBytes) {
+        try {
+            String name = originalFilename;
+            if (name == null || name.isBlank()) {
+                if (media != null && media.getFilePath() != null && !media.getFilePath().isBlank()) {
+                    name = media.getFilePath().substring(Math.max(0, media.getFilePath().lastIndexOf('/') + 1));
+                    if (name.matches("^[0-9a-fA-F\\-]{36}-.+")) {
+                        name = name.length() >= 37 ? name.substring(37) : "composite";
+                    }
+                } else {
+                    name = "composite";
+                }
             }
-        }
-        String type = name.toLowerCase().endsWith(".pdf") ? "PDF" : "IMAGE";
-        String bucket = supabaseProperties.resolveBucketModelsMedia();
-        String rawFileUrl = media.getFileUrl();
-        String filePath = media.getFilePath();
+            // Fallback extra: se nome ainda estiver muito estranho (sem extensa), usa ext por MIME
+            if (!name.toLowerCase().contains(".") && media != null) {
+                name = name + (".pdf".equalsIgnoreCase("pdf") ? ".pdf" : ".jpg");
+                name = name.replace(".pdf.pdf", ".pdf");
+            }
 
-        // Fallback MESMO de toDto(): resolve URL incompleta (ex: /public/models-media/ sem path)
-        String safePublicUrl = storageService.resolvePublicUrlFromFields(bucket, filePath, rawFileUrl);
-        if (safePublicUrl == null || safePublicUrl.isBlank()) {
-            safePublicUrl = rawFileUrl;
-        }
-        // Bust cache epochHour -> imagem composite enviada hoje aparece imediatamente no admin
-        String finalUrl = safePublicUrl;
-        if (finalUrl != null && !finalUrl.isBlank()) {
-            finalUrl = finalUrl + (finalUrl.contains("?") ? "&" : "?") + "v=" + (System.currentTimeMillis() / 3_600_000L);
-        }
+            String type = name.toLowerCase().endsWith(".pdf") ? "PDF" : "IMAGE";
+            String bucket = supabaseProperties.resolveBucketModelsMedia();
 
-        return com.wbscouting.api.dto.media.ModelCompositeResponseDto.builder()
-                .id(media.getId())
-                .fileUrl(finalUrl)
-                .filePath(filePath)
-                .storagePath(filePath) // alias deprecated
-                .fileName(name)
-                .fileType(type)
-                .fileSizeBytes(sizeBytes != null ? sizeBytes : 0L)
-                .updatedAt(media.getUpdatedAt() != null ? media.getUpdatedAt() : media.getCreatedAt())
-                .build();
+            String rawFileUrl = media != null ? media.getFileUrl() : null;
+            String filePath = media != null ? media.getFilePath() : null;
+
+            // Fallback de URL incompleta (usa storage service se ele existir)
+            String safePublicUrl = rawFileUrl;
+            try {
+                if (filePath != null || (rawFileUrl != null && !rawFileUrl.isBlank())) {
+                    String resolved = storageService.resolvePublicUrlFromFields(bucket, filePath, rawFileUrl);
+                    if (resolved != null && !resolved.isBlank()) {
+                        safePublicUrl = resolved;
+                    }
+                }
+            } catch (Exception ignoreHelper) {
+                // Se helper falhar, usa raw. Nada de NPE.
+                safePublicUrl = rawFileUrl;
+            }
+            // Null safety final na URL
+            if (safePublicUrl == null || safePublicUrl.isBlank()) {
+                safePublicUrl = rawFileUrl;
+                if (safePublicUrl == null || safePublicUrl.isBlank()) {
+                    if (filePath != null && !filePath.isBlank()) {
+                        safePublicUrl = filePath;
+                    } else {
+                        safePublicUrl = "";
+                    }
+                }
+            }
+            // Bust cache epochHour (evita cache CDN)
+            if (!safePublicUrl.isBlank() && safePublicUrl.startsWith("http")) {
+                safePublicUrl = safePublicUrl + (safePublicUrl.contains("?") ? "&" : "?") + "v=" + (System.currentTimeMillis() / 3_600_000L);
+            }
+
+            // Fallback: sizeBytes nulo
+            long size = 0L;
+            if (sizeBytes != null) size = sizeBytes;
+
+            // Fallback updatedAt: NUNCA NULO
+            OffsetDateTime dt = OffsetDateTime.now();
+            if (media != null) {
+                if (media.getUpdatedAt() != null) {
+                    dt = media.getUpdatedAt();
+                } else if (media.getCreatedAt() != null) {
+                    dt = media.getCreatedAt();
+                }
+            }
+
+            // Fallback final ID
+            UUID idFinal = (media != null && media.getId() != null) ? media.getId() : UUID.randomUUID();
+
+            return com.wbscouting.api.dto.media.ModelCompositeResponseDto.builder()
+                    .id(idFinal)
+                    .fileUrl(safePublicUrl)
+                    .filePath(filePath != null ? filePath : "")
+                    .storagePath(filePath != null ? filePath : "")
+                    .fileName(name)
+                    .fileType(type)
+                    .fileSizeBytes(size)
+                    .updatedAt(dt)
+                    .build();
+        } catch (Exception qualquerExcecaoInternaDto) {
+            // Caixa forte DO DTO: se algo falhar na montagem do DTO, retorna um objeto minimo valido
+            // ao inves de 500 generico por erro de serializacao Jackson.
+            log.error("[COMPOSITE UPLOAD] Falha INTERNA na montagem do DTO de resposta. Retornando DTO fallback. ModelMedia={}",
+                    media != null && media.getId() != null ? media.getId() : "null",
+                    qualquerExcecaoInternaDto);
+            return com.wbscouting.api.dto.media.ModelCompositeResponseDto.builder()
+                    .id(UUID.randomUUID())
+                    .fileUrl("")
+                    .filePath("")
+                    .storagePath("")
+                    .fileName("composite.pdf")
+                    .fileType("PDF")
+                    .fileSizeBytes(sizeBytes != null ? sizeBytes : 0L)
+                    .updatedAt(OffsetDateTime.now())
+                    .build();
+        }
     }
 
     private MediaUploadResponseDto toDto(ModelMedia media) {

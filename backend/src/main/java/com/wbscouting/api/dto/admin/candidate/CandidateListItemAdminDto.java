@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -30,7 +31,19 @@ public class CandidateListItemAdminDto {
     private String city;
     private String state;
     private BigDecimal heightCm;
+    private BigDecimal bustCm;
+    private BigDecimal waistCm;
+    private BigDecimal hipsCm;
+    private Integer shoeSize;
     private CandidateStatus status;
     private Integer photoCount;
     private OffsetDateTime createdAt;
+    private String protocol;
+
+    // 🆕 FOTOS (agora enviadas tambem na LISTAGEM, nao so no detalhe!)
+    private String coverPhoto;
+    private String facePhotoUrl;
+    private String profilePhotoUrl;
+    private String fullBodyPhotoUrl;
+    private List<CandidatePhotoSignedDto> photos;
 }

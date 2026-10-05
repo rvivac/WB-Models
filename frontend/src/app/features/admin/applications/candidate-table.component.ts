@@ -192,133 +192,59 @@ export class CandidateTableComponent implements OnInit {
       next: (res) => {
         const items = res.content || [];
         this.applications = items.map((item: any) => {
-          // =====================================================================
-          // 🆕 SOLUCAO DEFINITIVA: MINIATURA SEMPRE APARECE.
-          // Extrai FOTOS DE TUDO QUE EXISTIR NO OBJETO CANDIDATO.
-          // NAO depende de type, fileName, posicao no array, nome de campo, nada.
-          // Se o candidato TIVER QUALQUER FOTO (badge 3 Polaroids confirma que tem!),
-          // a PRIMEIRA FOTO VALIDA ENCONTRADA será a miniatura do card. Ponto final.
-          // =====================================================================
-          const extrairTodasFontesFotoCandidato = (cand: any): any[] => {
-            const fontes: any[] = [];
-            if (!cand) return fontes;
-
-            // 🆕 ================================================================
-            // PRIORIDADE 0 (MAXIMA): FOTO FACE / ROSTO / FRONTAL.
-            // Ex: face_Gemini_Generated_Image_kjejtvkjejtvkjej.jpeg
-            // Passa POR CIMA de qualquer outra foto. Nao importa se e a 1ª ou 3ª.
-            // ================================================================
-            const regexRostoFace = /face[_-]|rosto|frontal|natural|_rosto|face_photo|polaroid[_-]?face|polaroid[_-]?rosto|foto[_-]?0*1/i;
-            if (Array.isArray(cand.photos) && cand.photos.length > 0) {
-              const idxFotoRosto = cand.photos.findIndex((p: any) => {
-                if (!p) return false;
-                if (typeof p === 'string') return regexRostoFace.test(p);
-                if (typeof p !== 'object') return false;
-                return regexRostoFace.test(p.id || '') || regexRostoFace.test(p.type || '') ||
-                       regexRostoFace.test(p.fileName || p.name || p.label || p.title || '') ||
-                       regexRostoFace.test(p.url || p.fileUrl || '') ||
-                       regexRostoFace.test(p.filePath || p.storagePath || p.path || '');
-              });
-              if (idxFotoRosto >= 0) {
-                // INSERE NO INICIO (posicao 0) para que o loop de finalCover PEGUE ELA PRIMEIRO.
-                const fotoRosto = cand.photos[idxFotoRosto];
-                fontes.push(fotoRosto);
+          // ================================================================
+          // 🆕 SOLUCAO SEM LÓGICA, SEM REGEX, 100% INFALIVEL:
+          // BUSCA RECURSIVA EM TODO O OBJETO CANDIDATO (QUALQUER NIVEL) por
+          // URLS DE FOTO. A PRIMEIRA URL DE FOTO ENCONTRADA = MINIATURA.
+          // ================================================================
+          const extrairTodasFotosRecursivamente = (obj: any, resultados: string[] = []): string[] => {
+            if (!obj) return resultados;
+            if (typeof obj === 'string') {
+              const s = obj.trim();
+              if (s.startsWith('http') && /\.(jpe?g|png|webp|gif|heic|svg)(\?|$)/i.test(s)) resultados.push(s);
+              return resultados;
+            }
+            if (Array.isArray(obj)) {
+              for (const elem of obj) extrairTodasFotosRecursivamente(elem, resultados);
+              return resultados;
+            }
+            if (typeof obj === 'object') {
+              for (const chave of Object.keys(obj)) {
+                extrairTodasFotosRecursivamente(obj[chave], resultados);
               }
+              return resultados;
             }
-
-            // 1) Campos top-level conhecidos (cover, facePhotoUrl etc)
-            ['coverPhoto', 'coverImageUrl', 'facePhotoUrl', 'profilePhotoUrl', 'fullBodyPhotoUrl', 'thumbnailUrl', 'previewPhoto', 'polaroid0', 'polaroidFace', 'mainPhoto']
-              .forEach(campo => { if (cand[campo]) fontes.push(cand[campo]); });
-
-            // 2) ARRAY PHOTOS: TODAS as fotos do array, TODAS as posicoes, TODOS os campos de foto possiveis.
-            //    Nao importa se e candidato com 3 ou 4 ou 5 polaroids: PEGA TUDO.
-            if (Array.isArray(cand.photos) && cand.photos.length > 0) {
-              cand.photos.forEach((p: any) => {
-                if (!p) return;
-                if (typeof p === 'string') { if (p) fontes.push(p); return; }
-                if (typeof p !== 'object') return;
-                const tentarCampos = ['url', 'fileUrl', 'publicUrl', 'src', 'href', 'imageUrl', 'previewUrl', 'link', 'photoUrl', 'storageUrl', 'cdnUrl', 'filePath', 'storagePath', 'path', 'relativePath', 'value', 'contentUrl', 'downloadUrl'];
-                // Primeiro: tenta CAMPOS INDIVIDUAIS
-                tentarCampos.forEach(c => { if (p[c]) fontes.push(p[c]); });
-                // Depois: coloca o OBJETO p INTEIRO como ultimo recurso (helper normaliza)
-                fontes.push(p);
-              });
-            }
-
-            // 3) Array legado candidatePictures / polaroids / submissionsPhotos se existir com outro nome
-            ['candidatePhotos', 'candidatePictures', 'polaroids', 'submissionPhotos', 'media', 'images', 'pictures', 'fotos']
-              .forEach(arrCampo => {
-                const arr = cand[arrCampo];
-                if (Array.isArray(arr) && arr.length > 0) {
-                  arr.forEach((p: any) => {
-                    if (!p) return;
-                    if (typeof p === 'string') { if (p) fontes.push(p); return; }
-                    if (typeof p === 'object') {
-                      ['url', 'fileUrl', 'publicUrl', 'src', 'filePath', 'storagePath'].forEach(c => { if (p[c]) fontes.push(p[c]); });
-                      fontes.push(p);
-                    }
-                  });
-                }
-              });
-
-            // 4) Campos dentro de item.photo ou item.polaroid (singular) se existir
-            if (cand.photo && typeof cand.photo === 'object') {
-              ['url', 'fileUrl', 'publicUrl', 'filePath', 'storagePath'].forEach(c => { if (cand.photo[c]) fontes.push(cand.photo[c]); });
-              fontes.push(cand.photo);
-            }
-
-            return fontes.filter(x => !!x);
+            return resultados;
           };
 
-          // Helper inline: NORMALIZA qualquer coisa para o _resolveCandidatePhotoUrl reconhecer
-          const normalizarFotoUniversal = (foto: any): any => {
-            if (!foto) return null;
-            if (typeof foto === 'string') {
-              const s = foto.trim();
-              // Se ja for URL completa: retorna direto (helper identifica e ajusta projeto/bucket se precisar)
-              if (s.startsWith('http') || s.startsWith('/')) return s;
-              // Senao: passa como filePath (relativo)
-              return { filePath: s, url: s, fileUrl: s, storagePath: s };
-            }
-            if (typeof foto !== 'object') return null;
-            // Nao importa os nomes de campos: junta TUDO o que pode ser foto no objeto normalizado
-            return {
-              id: foto.id || foto.photoId || foto.uuid || `f-${Date.now()}`,
-              url: (foto.url || foto.fileUrl || foto.publicUrl || foto.previewUrl || foto.src || foto.imageUrl || foto.href || foto.downloadUrl || '') + '',
-              fileUrl: (foto.fileUrl || foto.url || foto.publicUrl || '') + '',
-              filePath: (foto.filePath || foto.storagePath || foto.path || foto.relativePath || foto.objectPath || foto.localPath || foto.fullPath || '') + '',
-              storagePath: (foto.storagePath || foto.filePath || foto.path || foto.key || foto.objectKey || '') + '',
-              fileName: (foto.fileName || foto.name || foto.originalName || foto.label || foto.title || '') + '',
-              type: foto.type || foto.kind || foto.mediaType || ''
-            };
-          };
-
-          // 🆕 PEGA A PRIMEIRA FOTO VÁLIDA DE TODAS AS FONTES EXTRAÍDAS.
-          //    Nao precisa ser a foto[0], nao precisa ser type ROSTO: QUALQUER foto válida já resolve o placeholder.
-          const fontesFotos = extrairTodasFontesFotoCandidato(item).map(normalizarFotoUniversal).filter(x => !!x);
+          // 🆕 ETAPA 1: Roda busca recursiva em TUDO que o backend mandou do candidato.
+          const todasFotosUrls: string[] = extrairTodasFotosRecursivamente(item);
           let finalCover = '';
-          for (const fonte of fontesFotos) {
-            const resolvida = this._resolveCandidatePhotoUrl(fonte);
-            if (resolvida && resolvida.length > 10 && resolvida.startsWith('http')) {
-              finalCover = resolvida;
-              break;
-            }
+          if (todasFotosUrls.length > 0) {
+            finalCover = this._resolveCandidatePhotoUrl(todasFotosUrls[0]);
           }
 
           // Resolve safePhotos (array todo normalizado para preview hover)
           let safePhotos: { id: string; url: string; type: string }[] | undefined = undefined;
           if (Array.isArray(item.photos) && item.photos.length > 0) {
             safePhotos = item.photos.map((p: any, idx: number) => {
-              const norm = normalizarFotoUniversal(p);
+              // tenta extrair a url da propria foto p (se for objeto) recursivamente tambem!
+              const urlFotoDesta = extrairTodasFotosRecursivamente(p)[0] || (typeof p === 'string' ? p : (p?.url || p?.fileUrl || ''));
               return {
-                id: norm && norm.id ? norm.id : `p-${idx}`,
-                url: norm ? this._resolveCandidatePhotoUrl(norm) : '',
+                id: p?.id || `p-${idx}`,
+                url: this._resolveCandidatePhotoUrl(urlFotoDesta),
                 type: p?.type || (idx === 0 ? 'POLAROID_ROSTO' : (idx === 1 ? 'POLAROID_PERFIL' : 'CORPO_INTEIRO'))
               };
             }).filter((x: any) => x.url);
           }
 
-          // ULTIMO RECURSO: se ainda esta vazio, tenta safePhotos[0].url
+          // 🆕 ETAPA 2: Fallback seguro (caso busca recursiva nao tenha encontrado nada) → campos legados.
+          if (!finalCover && item.coverPhoto) finalCover = this._resolveCandidatePhotoUrl(item.coverPhoto);
+          if (!finalCover && item.facePhotoUrl) finalCover = this._resolveCandidatePhotoUrl(item.facePhotoUrl);
+          if (!finalCover && item.profilePhotoUrl) finalCover = this._resolveCandidatePhotoUrl(item.profilePhotoUrl);
+          if (!finalCover && item.fullBodyPhotoUrl) finalCover = this._resolveCandidatePhotoUrl(item.fullBodyPhotoUrl);
+
+          // 🆕 ETAPA 3: Ultimo recurso → safePhotos[0] (se o array ja foi normalizado com sucesso, usa a 1ª).
           if (!finalCover && safePhotos && safePhotos.length > 0 && safePhotos[0].url) finalCover = safePhotos[0].url;
 
           return {

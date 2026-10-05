@@ -42,10 +42,13 @@ export class ModelDetailComponent implements OnInit, OnDestroy {
   readonly isCompositeModalOpen = signal<boolean>(false);
   readonly isDownloadingComposite = signal<boolean>(false);
 
-  // URL do Composite Oficial
+  // 🆕 ORDEM CORRETA FALLBACK: composite.fileUrl primeiro (resolvido, projeto stmytwsd CERTO). compositeUrl legado só de backup.
   readonly compositeUrl = computed<string | null>(() => {
     const m = this.model();
-    return m?.compositeUrl || m?.composite?.fileUrl || null;
+    if (!m) return null;
+    const viaObjetoResolvido = m.composite?.fileUrl?.trim();
+    const viaCampoLegado = m.compositeUrl?.trim();
+    return viaObjetoResolvido || viaCampoLegado || null;
   });
 
   // Higienização segura do Instagram (suporte a @handle e URL completa)
@@ -172,33 +175,61 @@ export class ModelDetailComponent implements OnInit, OnDestroy {
     const safeName = stageName.trim().replace(/[^a-zA-Z0-9_-]/g, '_');
     const extMatch = url.match(/\.(pdf|webp|jpe?g|png)(?:\?|$)/i);
     const ext = extMatch ? extMatch[1].toLowerCase() : (url.toLowerCase().includes('.pdf') ? 'pdf' : 'jpg');
-    const filename = `Composite_${safeName}.${ext}`;
+    // 🆕 Nome arquivo alinhado com texto do botao: DOWNLOAD SEDCARD
+    const filename = `Sedcard_${safeName}.${ext}`;
 
     this.http.get(url, { responseType: 'blob' }).subscribe({
       next: (blob) => {
-        const objectUrl = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = objectUrl;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(objectUrl);
+        // 🆕 Detecta BLOB INVALIDO: 0 bytes OU application/json = Supabase respondeu JSON de erro 404!
+        // Nao baixa arquivo quebrado, vai para fallback abrir nova aba Salvar como
+        if (!blob || blob.size === 0 || blob.type === 'application/json') {
+          console.warn(`[downloadComposite] Blob invalido detectado: size=${blob?.size ?? 'null'}, type=${blob?.type ?? 'null'}. Fallback abrir nova aba Salvar como`);
+          this._fallbackAbrirNovaAba(url, filename);
+        } else {
+          try {
+            const objectUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = objectUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(objectUrl);
+          } catch (e) {
+            console.warn(`[downloadComposite] Falha createObjectURL. Fallback abrir nova aba:`, e);
+            this._fallbackAbrirNovaAba(url, filename);
+          }
+        }
         this.isDownloadingComposite.set(false);
       },
-      error: () => {
-        // Fallback direto
-        const link = document.createElement('a');
-        link.href = url;
-        link.target = '_blank';
-        link.download = filename;
-        link.rel = 'noopener noreferrer';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+      error: (err) => {
+        console.warn(`[downloadComposite] HTTP GET blob falhou (CORS Cloudflare? ${err?.status} ${err?.statusText}). Fallback abrir nova aba`);
+        // 🆕 Fallback INFALIVEL: Cloudflare __cf_bm as vezes bloqueia XHR blob GET (Cross-Origin), mas GET direto por link nova aba funciona SEMPRE
+        this._fallbackAbrirNovaAba(url, filename);
         this.isDownloadingComposite.set(false);
       }
     });
+  }
+
+  /**
+   * Fallback final download. Correcao para o warning __cf_bm cookie rejeitado (Cloudflare Bot Management):
+   *   - Bloqueia XHR de cross-origin para blob, mas GET DIRETO via <a target="_blank"> funciona (o navegador baixa direto)
+   *   - Usuario clica com o botao direito -> Salvar como, ou o proprio Chrome baixa PDF automaticamente
+   */
+  private _fallbackAbrirNovaAba(url: string, filename: string): void {
+    try {
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer nofollow';
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (e) {
+      // Ultimo recurso: window.open (qualquer navegador)
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
   }
 
   getBookingRouterLink(): string[] {

@@ -336,16 +336,20 @@ export class PublicModelService {
    *          concatena filePath no final.
    * Sempre adiciona bust-cache ?v=epochHour para aparecer imediatamente novas fotos no publico.
    */
-  private _resolveCoverForCard(card: ModelCardPublicDto | any): ModelCardPublicDto {
+   private _resolveCoverForCard(card: ModelCardPublicDto | any): ModelCardPublicDto {
     if (!card) return card;
+    // 🆕 PROJETO REAL DE PRODUÇÃO stmytwsdlonpnirqiufq (confirmado: backend, index.html, arquivos físicos!)
+    const SUPABASE_PUBLIC_BASE = 'https://stmytwsdlonpnirqiufq.supabase.co/storage/v1/object/public/models-media';
+    const SUPABASE_HOST = 'https://stmytwsdlonpnirqiufq.supabase.co';
+
     const filePath = (card as any).filePath || (card as any).storagePath || '';
     let rawUrl = (card.coverImageUrl || '').trim();
 
-    // 1) Se URL vazia MAS temos filePath -> remontar usando base padrao Storage Supabase Public
+    // 1) URL vazia + filePath? remontar
     if (!rawUrl && filePath) {
-      rawUrl = `https://zmpqmdizqgnpnirqiufq.supabase.co/storage/v1/object/public/models-media/${filePath.replace(/^\//, '')}`;
+      rawUrl = `${SUPABASE_PUBLIC_BASE}/${filePath.replace(/^\//, '')}`;
     }
-    // 2) Se URL parece INCOMPLETA (sem protocolo, termina com /, length curto mas temos filePath)
+    // 2) URL incompleta + filePath? remontar
     const seemsIncomplete = !rawUrl.startsWith('http')
       || rawUrl.endsWith('/')
       || (filePath && rawUrl.length < 40 && !rawUrl.includes(filePath.substring(filePath.lastIndexOf('/') + 1)));
@@ -353,21 +357,27 @@ export class PublicModelService {
     if (seemsIncomplete && filePath) {
       const pathClean = filePath.replace(/^\//, '');
       if (rawUrl && !rawUrl.startsWith('http')) {
-        // URL tipo: /storage/v1/object/public/models-media/ ou /public/models-media/
         if (rawUrl.includes('/models-media/') && !rawUrl.includes(pathClean)) {
           const base = rawUrl.endsWith('/') ? rawUrl : (rawUrl + '/');
-          rawUrl = (base.startsWith('http') ? '' : 'https://zmpqmdizqgnpnirqiufq.supabase.co') + (base + pathClean).replace(/([^:]\/)\/+/g, '$1');
+          rawUrl = (base.startsWith('http') ? '' : SUPABASE_HOST) + (base + pathClean).replace(/([^:]\/)\/+/g, '$1');
         } else if (!rawUrl.includes(pathClean)) {
-          rawUrl = `https://zmpqmdizqgnpnirqiufq.supabase.co/storage/v1/object/public/models-media/${pathClean}`;
+          rawUrl = `${SUPABASE_PUBLIC_BASE}/${pathClean}`;
         }
       } else if (!rawUrl) {
-        rawUrl = `https://zmpqmdizqgnpnirqiufq.supabase.co/storage/v1/object/public/models-media/${pathClean}`;
+        rawUrl = `${SUPABASE_PUBLIC_BASE}/${pathClean}`;
       }
     }
-    // 3) Bust cache (forca navegador baixar foto nova dentro de 1h)
+
+    // 3) Bust cache 1h — SEM PARAMETRO DUPLICADO (nunca mais ?v=A&v=B)
     if (rawUrl) {
-      const sep = rawUrl.includes('?') ? '&' : '?';
-      rawUrl = rawUrl + sep + 'v=' + Math.floor(Date.now() / 3_600_000);
+      let cleaned = rawUrl;
+      if (cleaned.includes('v=')) {
+        cleaned = cleaned
+          .replace(/([?&])v=[^&]*(&|$)/g, (m, sep, end) => (end === '&' ? sep : ''))
+          .replace(/[?&]$/, '');
+      }
+      const sep = cleaned.includes('?') ? '&' : '?';
+      rawUrl = `${cleaned}${sep}v=${Math.floor(Date.now() / 3_600_000)}`;
     }
     return { ...card, coverImageUrl: rawUrl || undefined };
   }
@@ -403,72 +413,97 @@ export class PublicModelService {
    * Sempre adiciona bust-cache epochHour.
    */
   private _resolveSafeMediaUrl(filePath: string | undefined | null, rawFileUrl: string | undefined | null): string {
-    const SUPABASE_PUBLIC_BASE = 'https://zmpqmdizqgnpnirqiufq.supabase.co/storage/v1/object/public/models-media';
-    const CORRECT_PROJECT_HOST = 'zmpqmdizqgnpnirqiufq.supabase.co';
+    // 🆕 PROJETO SUPABASE REAL DE PRODUÇÃO stmytwsdlonpnirqiufq (O ANTERIOR zmpqmdi ERA O ERRADO!)
+    // Confirmado por 3 fontes: (1) index.html preconnect/dns-prefetch, (2) todos os testes Java do backend,
+    // (3) URL do composite que o usuario enviou que FISICAMENTE continha o arquivo PDF 72ce4144-EVE-DUPPRE.pdf
+    const SUPABASE_PUBLIC_BASE = 'https://stmytwsdlonpnirqiufq.supabase.co/storage/v1/object/public/models-media';
+    const CORRECT_PROJECT_HOST = 'stmytwsdlonpnirqiufq.supabase.co';
     const CORRECT_BUCKET = 'models-media';
     const cleanPath = ((filePath || '') + '').trim().replace(/^\/+/, '');
     const urlRaw = (rawFileUrl || '').trim();
 
     let final: string = '';
 
-    // Helper: detecta se URL parece INVALIDA. Agora tambem detecta PROJETO/BUCKET ERRADOS (caso Eve Duppre)
+    // Helper: detecta se URL parece INVALIDA (incompleta, ou PROJETO/BUCKET LEGADO ERRADOS
     const pareceInvalida = (u: string): boolean => {
       if (!u || u.length < 10) return true;
       if (!u.startsWith('http')) return true;
-      // 🆕 CAMADA 1: Tenta parsear URL e verificar se eh do PROJETO CERTO
       try {
         const pu = new URL(u);
+        // 🆕 INVERTIDO: STMYTWSD é o CERTO agora! zmpqmdi (projeto antigo vazio) = marcado invalido
         if (pu.hostname && pu.hostname !== CORRECT_PROJECT_HOST) {
-          console.warn(`[resolveSafeMediaUrl] ⚠️  URL de projeto SUPABASE DIFERENTE (legado!). Host=${pu.hostname} esperado=${CORRECT_PROJECT_HOST}. Remontando via filePath.`);
           return true;
         }
         const path = pu.pathname || '';
         const matchBucket = path.match(/object\/public\/([^/]+)/);
         const bucketNaUrl = matchBucket ? matchBucket[1] : null;
         if (bucketNaUrl && bucketNaUrl !== CORRECT_BUCKET) {
-          console.warn(`[resolveSafeMediaUrl] ⚠️  URL com BUCKET ERRADO (legado!). bucket=${bucketNaUrl} esperado=${CORRECT_BUCKET}. Remontando via filePath.`);
           return true;
         }
       } catch (_e) {
-        // URL invalida no construtor = invalida
+        // URL quebrada no construtor = invalida
         return true;
       }
-      // URL incompleta: termina so no bucket sem path objeto
+      // URL incompleta, termina so no bucket sem objeto
       if (/\/models-media\/?$/.test(u)) return true;
-      // Sem extensao de arquivo valida
+      // Sem extensao valida
       if (!/\.(pdf|jpe?g|png|webp|gif|heic|svg|mp4|mov|avif)(\?|$)/i.test(u)) return true;
       return false;
     };
 
-    // 1) Usa raw URL se PARECER COMPLETA e valida
     if (!pareceInvalida(urlRaw)) {
       final = urlRaw;
     } else {
-      // 2) Remonta via filePath (garante URL exata pro objeto no bucket CORRETO)
+      // FALLBACK 1: filePath do DTO
+      // FALLBACK 2: se filePath NAO VEIO (ex: Eve Duppre), EXTRAI path RELATIVO da PROPRIA URL mesmo que ela fosse de projeto/bucket antigo/errado
+      let relative = '';
       if (cleanPath) {
-        // filePath pode vir com models-media/ prefixo ou sem (composite hardcoded models/...)
-        const relative = cleanPath.startsWith('models-media/')
+        relative = cleanPath.startsWith('models-media/')
           ? cleanPath.substring('models-media/'.length)
           : cleanPath;
+      } else if (urlRaw) {
+        // 🆕 EXTRAI path da PROPRIA URL (ex stmytwsd/site-assets/ zmpqmdi/...) e remonta no endereco CERTO
+        try {
+          const pu = new URL(urlRaw);
+          const pathMatch = pu.pathname.match(/object\/public\/[^/]+\/(.+)$/);
+          if (pathMatch && pathMatch[1]) {
+            relative = pathMatch[1];
+          } else {
+            const fullPath = pu.pathname.split('/').filter(Boolean).join('/');
+            const idx = fullPath.indexOf('models/');
+            if (idx >= 0 && /\.(pdf|jpe?g|png|webp|heic)/i.test(fullPath)) {
+              relative = fullPath.substring(idx);
+            }
+          }
+        } catch (_e2) {
+          // ignora, continua com relative vazio, usa urlRaw
+        }
+      }
+      if (relative) {
         final = `${SUPABASE_PUBLIC_BASE}/${relative}`;
       } else {
-        // Sem filePath de jeito nenhum: retorna raw mesmo que falhe (nao temos mais dados)
+        // Sem fallback de jeito nenhum: retorna raw mesmo que falhe
         final = urlRaw;
       }
     }
 
-    // 🆕 CORRECAO ANTI-DUPLICACAO DEFINITIVA
+    // Anti-duplicação bucket models-media
     if (final && final.length > 0) {
       final = final.replace(/(object\/public\/)(models-media\/){2,}/g, '$1models-media/');
       final = final.replace(/(object\/public\/models-media\/)\/?models-media\//g, '$1');
-      // Remove barras duplas extras (exceto https://)
       final = final.replace(/(?<!:)\/\/+/g, '/').replace('https:/', 'https://');
     }
 
-    // 3) Bust cache: forca navegador baixar a midia nova dentro de 1h
+    // 3) Bust cache 1h — 🆕 SEM PARAM V DUPLICADO (nunca mais ?v=A&v=B)
     if (final && final.length > 0) {
-      const sep = final.includes('?') ? '&' : '?';
-      final = `${final}${sep}v=${Math.floor(Date.now() / 3_600_000)}`;
+      let cleaned = final;
+      if (cleaned.includes('v=')) {
+        cleaned = cleaned
+          .replace(/([?&])v=[^&]*(&|$)/g, (m, sep, end) => (end === '&' ? sep : ''))
+          .replace(/[?&]$/, '');
+      }
+      const sep = cleaned.includes('?') ? '&' : '?';
+      final = `${cleaned}${sep}v=${Math.floor(Date.now() / 3_600_000)}`;
     }
     return final;
   }

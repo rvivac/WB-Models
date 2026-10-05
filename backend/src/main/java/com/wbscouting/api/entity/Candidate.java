@@ -23,6 +23,24 @@ import java.util.UUID;
 @Builder
 public class Candidate {
 
+    // ============================================================
+    // 🔥 GETTERS EXPLICITOS (escritos na mao) PARA GARANTIR BUILD NO RENDER.
+    // O Render Docker com ./mvnw as vezes nao processa annotation processor
+    // do Lombok direito → falha com "cannot find symbol method getXxx()".
+    // Com os getters aqui, compilamos SEM depender de Lombok.
+    // ============================================================
+
+    public Integer getAge() { return this.age; }
+    public UUID getId() { return this.id; }
+    public String getFullName() { return this.fullName; }
+    public String getEmail() { return this.email; }
+    public String getPhone() { return this.phone; }
+    public String getGender() { return this.gender; }
+    public BigDecimal getHeightCm() { return this.heightCm; }
+    public List<CandidatePhoto> getPhotos() { return this.photos; }
+    public OffsetDateTime getCreatedAt() { return this.createdAt; }
+    public void setPhotos(List<CandidatePhoto> photos) { this.photos = photos; }
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)

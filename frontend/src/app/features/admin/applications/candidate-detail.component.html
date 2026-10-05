@@ -178,6 +178,18 @@
           <span class="text-[#5F6661] uppercase tracking-wider text-[10px]">Data de Submiss&atilde;o:</span> 
           <span class="font-mono text-[11px] text-[#5F6661] ml-1">{{ candidate.submittedAt | date:'dd/MM/yyyy' }} às {{ candidate.submittedAt | date:'HH:mm' }}</span>
         </p>
+        <p *ngIf="candidate.protocol">
+          <span class="text-[#5F6661] uppercase tracking-wider text-[10px]">Protocolo Scouting:</span> 
+          <a 
+            [routerLink]="['/admin/candidaturas', candidate.id]"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Abrir este dossiê em nova aba (compartilhar com equipe scouting)"
+            class="font-mono font-bold tracking-wider text-[#5a4524] ml-1 hover:text-[#3b2d17] underline decoration-dotted decoration-[#C2A87E] underline-offset-[3px]"
+          >
+            {{ candidate.protocol }}
+          </a>
+        </p>
       </div>
 
       <!-- Registro LGPD -->

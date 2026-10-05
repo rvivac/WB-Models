@@ -267,7 +267,8 @@ export class CandidateDetailComponent implements OnInit {
       internalNotes: '',
       lgpdConsent: true,
       lgpdConsentAt: '2026-09-29T14:32:00Z',
-      submittedAt: '2026-09-29T14:32:00Z'
+      submittedAt: '2026-09-29T14:32:00Z',
+      protocol: 'WB-20260929-M5Z2'
     };
   }
 }

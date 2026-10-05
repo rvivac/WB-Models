@@ -42,6 +42,7 @@ public class CandidateDetailResponseDto {
     private Boolean lgpdConsent;
     private OffsetDateTime lgpdConsentAt;
     private OffsetDateTime submittedAt;
+    private String protocol;
 
     @Data
     @NoArgsConstructor
@@ -145,6 +146,7 @@ public class CandidateDetailResponseDto {
                 .lgpdConsent(entity.getLgpdConsent())
                 .lgpdConsentAt(entity.getLgpdConsentAt())
                 .submittedAt(entity.getCreatedAt())
+                .protocol(entity.getProtocol())
                 .build();
     }
 

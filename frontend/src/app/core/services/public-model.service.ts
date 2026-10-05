@@ -404,21 +404,49 @@ export class PublicModelService {
    */
   private _resolveSafeMediaUrl(filePath: string | undefined | null, rawFileUrl: string | undefined | null): string {
     const SUPABASE_PUBLIC_BASE = 'https://zmpqmdizqgnpnirqiufq.supabase.co/storage/v1/object/public/models-media';
+    const CORRECT_PROJECT_HOST = 'zmpqmdizqgnpnirqiufq.supabase.co';
+    const CORRECT_BUCKET = 'models-media';
     const cleanPath = ((filePath || '') + '').trim().replace(/^\/+/, '');
     const urlRaw = (rawFileUrl || '').trim();
 
     let final: string = '';
 
-    // 1) Usa raw URL se parecer completa e valida:
-    const rawSeemsValid = urlRaw.startsWith('http') && urlRaw.length > 60
-      && !(urlRaw.endsWith('/models-media/') || urlRaw.endsWith('/models-media'));
+    // Helper: detecta se URL parece INVALIDA. Agora tambem detecta PROJETO/BUCKET ERRADOS (caso Eve Duppre)
+    const pareceInvalida = (u: string): boolean => {
+      if (!u || u.length < 10) return true;
+      if (!u.startsWith('http')) return true;
+      // 🆕 CAMADA 1: Tenta parsear URL e verificar se eh do PROJETO CERTO
+      try {
+        const pu = new URL(u);
+        if (pu.hostname && pu.hostname !== CORRECT_PROJECT_HOST) {
+          console.warn(`[resolveSafeMediaUrl] ⚠️  URL de projeto SUPABASE DIFERENTE (legado!). Host=${pu.hostname} esperado=${CORRECT_PROJECT_HOST}. Remontando via filePath.`);
+          return true;
+        }
+        const path = pu.pathname || '';
+        const matchBucket = path.match(/object\/public\/([^/]+)/);
+        const bucketNaUrl = matchBucket ? matchBucket[1] : null;
+        if (bucketNaUrl && bucketNaUrl !== CORRECT_BUCKET) {
+          console.warn(`[resolveSafeMediaUrl] ⚠️  URL com BUCKET ERRADO (legado!). bucket=${bucketNaUrl} esperado=${CORRECT_BUCKET}. Remontando via filePath.`);
+          return true;
+        }
+      } catch (_e) {
+        // URL invalida no construtor = invalida
+        return true;
+      }
+      // URL incompleta: termina so no bucket sem path objeto
+      if (/\/models-media\/?$/.test(u)) return true;
+      // Sem extensao de arquivo valida
+      if (!/\.(pdf|jpe?g|png|webp|gif|heic|svg|mp4|mov|avif)(\?|$)/i.test(u)) return true;
+      return false;
+    };
 
-    if (rawSeemsValid) {
+    // 1) Usa raw URL se PARECER COMPLETA e valida
+    if (!pareceInvalida(urlRaw)) {
       final = urlRaw;
     } else {
-      // 2) Remonta via filePath (garante URL exata pro objeto no bucket)
+      // 2) Remonta via filePath (garante URL exata pro objeto no bucket CORRETO)
       if (cleanPath) {
-        // filePath as vezes JA vem com 'models-media/' no comeco (como prefixo): remover duplicado.
+        // filePath pode vir com models-media/ prefixo ou sem (composite hardcoded models/...)
         const relative = cleanPath.startsWith('models-media/')
           ? cleanPath.substring('models-media/'.length)
           : cleanPath;
@@ -427,6 +455,14 @@ export class PublicModelService {
         // Sem filePath de jeito nenhum: retorna raw mesmo que falhe (nao temos mais dados)
         final = urlRaw;
       }
+    }
+
+    // 🆕 CORRECAO ANTI-DUPLICACAO DEFINITIVA
+    if (final && final.length > 0) {
+      final = final.replace(/(object\/public\/)(models-media\/){2,}/g, '$1models-media/');
+      final = final.replace(/(object\/public\/models-media\/)\/?models-media\//g, '$1');
+      // Remove barras duplas extras (exceto https://)
+      final = final.replace(/(?<!:)\/\/+/g, '/').replace('https:/', 'https://');
     }
 
     // 3) Bust cache: forca navegador baixar a midia nova dentro de 1h
@@ -466,10 +502,10 @@ export class PublicModelService {
         ...c,
         fileUrl: this._resolveSafeMediaUrl((c.filePath ?? c.storagePath), c.fileUrl)
       };
-      // Tambem atualiza campo legado compositeUrl para mesmo valor resolvido:
-      if (!clone.compositeUrl) {
-        clone.compositeUrl = clone.composite.fileUrl;
-      }
+      // 🆕 CORRECAO CRITICA (caso Eve Duppre): compositeUrl JA EXISTIA com valor ERRADO (projeto/bucket legados).
+      //    Antes era: `if (!clone.compositeUrl)` — ou seja, NUNCA atualizava quando campo tinha valor errado.
+      //    Agora: SEMPRE atualiza campo legado compositeUrl para o valor RESOLVIDO correto.
+      clone.compositeUrl = clone.composite.fileUrl;
     }
     // 4) Campo LEGADO compositeUrl solto: se ele existir mas composite.fileUrl nao, resolve tbm:
     if (clone.compositeUrl && (!clone.composite || !clone.composite.fileUrl)) {

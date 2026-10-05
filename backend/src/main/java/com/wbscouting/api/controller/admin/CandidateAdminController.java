@@ -47,9 +47,14 @@ public class CandidateAdminController {
     ) {
         log.info("Consulta administrativa de candidaturas. Status: {}, Search: {}, Pageable: {}", status, search, pageable);
 
-        Page<CandidateSubmissionResponseDto> result = adminService.listSubmissions(
-                search, status, gender, minHeight, maxHeight, startDate, endDate, pageable
+        // Specification.filter (8 params = assinatura LEGADA) que acabamos de criar
+        // na classe CandidateSubmissionSpecification (agora EXISTE no pacote specification/)
+        Specification<CandidateSubmission> spec = CandidateSubmissionSpecification.filter(
+                search, status, gender, minHeight, maxHeight, startDate, endDate
         );
+
+        // O service SÓ aceita (Specification, Pageable) — assinatura OFICIAL confirmada.
+        Page<CandidateSubmissionResponseDto> result = adminService.listSubmissions(spec, pageable);
         return ResponseEntity.ok(result);
     }
 

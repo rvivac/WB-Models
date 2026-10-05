@@ -138,7 +138,15 @@ public class CandidateApplicationServiceImpl implements CandidateApplicationServ
             compensateUploadedFiles(uploadedPaths);
 
             Throwable root = (ex instanceof CompletionException && ex.getCause() != null) ? ex.getCause() : ex;
+            
+            // Mensagem amigavel: pega getMessage() com FALLBACK se for null (ex: NPE sem mensagem)
+            String motivo = (root.getMessage() != null && !root.getMessage().isBlank())
+                    ? root.getMessage()
+                    : "Erro interno ao processar a candidatura. Contate a equipe.";
+
             if (root instanceof InvalidApplicationException iae) {
+                // InvalidApplicationException extends IllegalArgumentException? SE SIM: deixa passar, ja tem handler.
+                // SE NAO: converter para IllegalArgumentException (o handler global ja existe → HTTP 400 detail)
                 throw iae;
             }
             if (root instanceof InvalidFileException ife) {
@@ -148,9 +156,16 @@ public class CandidateApplicationServiceImpl implements CandidateApplicationServ
                 throw fse;
             }
             if (root instanceof StorageException se) {
-                throw se;
+                // StorageException NAO TEM handler no GlobalExceptionHandler → convertemos para IllegalArgumentException
+                // (mesmo padrao do composite upload que resolveu o 500 generico de PDF!)
+                log.warn("[APPLY CANDIDATURA] StorageException convertida para IllegalArgumentException para HTTP 400 amigavel. Motivo original: {}", motivo);
+                throw new IllegalArgumentException("Não foi possível concluir a candidatura. " + motivo);
             }
-            throw new StorageException("Falha na submissão da candidatura: " + root.getMessage(), root);
+            // QUALQUER outra excecao (NPE, SQLException, RLS Supabase, IllegalArgumentException etc):
+            // CONVERTE PARA IllegalArgumentException sempre → handler global garante HTTP 400 SEMPRE (nunca 500 generico)
+            log.warn("[APPLY CANDIDATURA] Excecao generica convertida para IllegalArgumentException. Classe: {}. Motivo: {}",
+                    root.getClass().getSimpleName(), motivo);
+            throw new IllegalArgumentException("Não foi possível concluir a candidatura. " + motivo);
         }
     }
 

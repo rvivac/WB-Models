@@ -261,7 +261,7 @@ public class ModelMediaServiceImpl implements ModelMediaService {
         }
 
         return modelMediaRepository.findByModelIdAndMediaTypeAndIsActiveTrue(modelId, MediaType.COMPOSITE)
-                .map(comp -> toCompositeDto(comp, null, null))
+                .map(comp -> toCompositeDtoSafe(comp, null, null))
                 .orElse(null);
     }
 

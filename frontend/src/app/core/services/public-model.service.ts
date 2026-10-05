@@ -373,7 +373,7 @@ export class PublicModelService {
       let cleaned = rawUrl;
       if (cleaned.includes('v=')) {
         cleaned = cleaned
-          .replace(/([?&])v=[^&]*(&|$)/g, (m, sep, end) => (end === '&' ? sep : ''))
+          .replace(/([?&])v=[^&]*(&|$)/g, (m: any, sep: any, end: any) => (end === '&' ? sep : ''))
           .replace(/[?&]$/, '');
       }
       const sep = cleaned.includes('?') ? '&' : '?';

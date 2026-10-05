@@ -18,6 +18,88 @@ export class CandidateService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = environment.apiUrl;
 
+  // Helper IDENTICO ao PublicModelService._resolveSafeMediaUrl para fotos de candidatos.
+  // Resolve exatamente o mesmo problema: URLs de facePhotoUrl/profilePhotoUrl/fullBodyPhotoUrl
+  // que vem com projeto supabase errado (zmpqmdi), bucket errado, incompletas ou param duplicado ?v=&v=.
+  // Projeto REAL = stmytwsdlonpnirqiufq / Bucket default candidatos = candidates-uploads.
+  private _resolveCandidatePhotoUrl(rawUrlOrFile: any, fallbackRaw: string | null = null): string {
+    const SUPABASE_PUBLIC_BASE = 'https://stmytwsdlonpnirqiufq.supabase.co/storage/v1/object/public/candidates-uploads';
+    const CORRECT_PROJECT_HOST = 'stmytwsdlonpnirqiufq.supabase.co';
+    const CORRECT_BUCKETS_ALLOWED = new Set(['candidates-uploads', 'models-media', 'site-assets']);
+
+    // Input pode ser string (URL direta) ou objeto { url, filePath, storagePath, fileUrl }
+    let rawUrl = '';
+    let filePath: string = '';
+    if (typeof rawUrlOrFile === 'string') {
+      rawUrl = rawUrlOrFile.trim();
+    } else if (rawUrlOrFile && typeof rawUrlOrFile === 'object') {
+      rawUrl = (rawUrlOrFile.url || rawUrlOrFile.fileUrl || fallbackRaw || '').trim();
+      filePath = ((rawUrlOrFile.filePath || rawUrlOrFile.storagePath || '') + '').trim().replace(/^\/+/, '');
+    }
+    if (!rawUrl && fallbackRaw) rawUrl = fallbackRaw.trim();
+    if (!rawUrl && !filePath) return '';
+
+    const invalid = (u: string): boolean => {
+      if (!u || u.length < 10) return true;
+      if (!u.startsWith('http')) return true;
+      try {
+        const pu = new URL(u);
+        if (pu.hostname && pu.hostname !== CORRECT_PROJECT_HOST) return true;
+        const m = pu.pathname.match(/object\/public\/([^/]+)/);
+        if (m && m[1] && !CORRECT_BUCKETS_ALLOWED.has(m[1])) return true;
+      } catch { return true; }
+      if (/\/(candidates-uploads|models-media)\/?$/.test(u)) return true;
+      if (!/\.(pdf|jpe?g|png|webp|gif|heic|svg)(\?|$)/i.test(u)) return true;
+      return false;
+    };
+
+    let final = '';
+    if (!invalid(rawUrl)) final = rawUrl;
+    else {
+      let relative = '';
+      if (filePath) {
+        const slashIdx = filePath.indexOf('/');
+        relative = (slashIdx >= 0 && CORRECT_BUCKETS_ALLOWED.has(filePath.substring(0, slashIdx)))
+          ? filePath.substring(slashIdx + 1)
+          : filePath;
+      } else if (rawUrl) {
+        try {
+          const pu = new URL(rawUrl);
+          const m = pu.pathname.match(/object\/public\/[^/]+\/(.+)$/);
+          if (m && m[1]) relative = m[1];
+          else {
+            const full = pu.pathname.split('/').filter(Boolean).join('/');
+            const candidatesIdx = full.indexOf('submissions/');
+            if (candidatesIdx >= 0 && /\.(jpe?g|png|webp|heic)/i.test(full)) relative = full.substring(candidatesIdx);
+          }
+        } catch {}
+      }
+      if (relative) {
+        const prefix = (relative.startsWith('submissions/') || relative.startsWith('candidates/'))
+          ? SUPABASE_PUBLIC_BASE
+          : 'https://stmytwsdlonpnirqiufq.supabase.co/storage/v1/object/public/models-media';
+        final = `${prefix}/${relative}`;
+      } else final = rawUrl;
+    }
+
+    if (final) {
+      // Anti duplicacao bucket path
+      final = final.replace(/(object\/public\/)(candidates-uploads\/){2,}/g, '$1candidates-uploads/')
+        .replace(/(object\/public\/candidates-uploads\/)\/?candidates-uploads\//g, '$1')
+        .replace(/(?<!:)\/\/+/g, '/').replace('https:/', 'https://');
+      // Bust cache SEM ?v= duplicado (igual ao composite!)
+      let cleaned = final;
+      if (cleaned.includes('v=')) {
+        cleaned = cleaned
+          .replace(/([?&])v=[^&]*(&|$)/g, (m: any, sep: any, end: any) => (end === '&' ? sep : ''))
+          .replace(/[?&]$/, '');
+      }
+      const sep = cleaned.includes('?') ? '&' : '?';
+      final = `${cleaned}${sep}v=${Math.floor(Date.now() / 3_600_000)}`;
+    }
+    return final;
+  }
+
   // 6 Candidatos Mockados Fashion para Modo Offline / Demonstração
   private mockCandidates: Candidate[] = [
     {
@@ -468,23 +550,29 @@ export class CandidateService {
   private normalizeCandidate(item: any): Candidate {
     if (!item) return {} as Candidate;
 
-    // Se já tiver array de fotos estruturado
+    // Se já tiver array de fotos estruturado (também aplica fallback URL safe)
     let photos: CandidatePhoto[] = [];
     if (Array.isArray(item.photos) && item.photos.length > 0) {
       photos = item.photos.map((p: any, idx: number) => ({
         id: p.id || `p-${idx}`,
-        url: p.url || p,
+        // 🆕 RESOLVE URL SEGURA: projeto/bucket errados? Param duplicado? Remonta sempre!
+        url: this._resolveCandidatePhotoUrl(p),
         type: p.type || (idx === 0 ? 'POLAROID_ROSTO' : (idx === 1 ? 'POLAROID_PERFIL' : 'CORPO_INTEIRO'))
       }));
     } else {
+      // Campos legado facePhotoUrl/profilePhotoUrl/fullBodyPhotoUrl (CandidateSubmission)
+      // 🆕 Resolve fallback URL safe em CADA UM dos 3 campos! Nunca mais placeholder WB
       if (item.facePhotoUrl) {
-        photos.push({ id: 'face', url: item.facePhotoUrl, type: 'POLAROID_ROSTO' });
+        const safe = this._resolveCandidatePhotoUrl(item.facePhotoUrl);
+        if (safe) photos.push({ id: 'face', url: safe, type: 'POLAROID_ROSTO' });
       }
       if (item.profilePhotoUrl) {
-        photos.push({ id: 'profile', url: item.profilePhotoUrl, type: 'POLAROID_PERFIL' });
+        const safe = this._resolveCandidatePhotoUrl(item.profilePhotoUrl);
+        if (safe) photos.push({ id: 'profile', url: safe, type: 'POLAROID_PERFIL' });
       }
       if (item.fullBodyPhotoUrl) {
-        photos.push({ id: 'body', url: item.fullBodyPhotoUrl, type: 'CORPO_INTEIRO' });
+        const safe = this._resolveCandidatePhotoUrl(item.fullBodyPhotoUrl);
+        if (safe) photos.push({ id: 'body', url: safe, type: 'CORPO_INTEIRO' });
       }
     }
 

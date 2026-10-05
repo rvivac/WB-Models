@@ -9,8 +9,9 @@ import org.springframework.transaction.TransactionSystemException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.ExceptionHandler;
-import org.springframework.web.bind.RestControllerAdvice;
+// ✅ PACOTES CORRETOS (com .annotation no final - ORIGINALMENTE FUNCIONAVA!
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.net.URI;

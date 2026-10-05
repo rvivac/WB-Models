@@ -192,28 +192,68 @@ export class CandidateTableComponent implements OnInit {
       next: (res) => {
         const items = res.content || [];
         this.applications = items.map((item: any) => {
-          // 1) Resolve a FOTO DA CAPA da tabela (miniatura 1ª coluna / placeholder WB):
-          //    Tentativas: coverPhoto (campo dedicado) → se vazio, 1ª foto do array photos[0]
-          //    TUDO passa pelo helper _resolveCandidatePhotoUrl (fallback projeto/bucket stmytwsd correto)
-          const rawCover = item.coverPhoto || (item.photos && item.photos.length > 0 ? item.photos[0] : undefined);
-          const safeCover = this._resolveCandidatePhotoUrl(rawCover);
+          // ============================================================
+          // 🆕 GARANTE MINIATURA = MESMA FOTO DO DOSSIÊ (primeira foto real do candidato)
+          //
+          // ORDEM DE FALLBACK (MAIS CONFIAVEL → MENOS CONFIAVEL):
+          // 1. item.photos[0] (array estruturado — MESMO DADO do dossiê detail!)
+          // 2. item.coverPhoto (campo dedicado top-level, se existir e valido)
+          // 3. campos legado facePhotoUrl / profilePhotoUrl / fullBodyPhotoUrl
+          //
+          // Objetos do array photos podem ser 3 interfaces (todas mapeamos para o helper):
+          //   A) CandidatePhoto = { id, url, type }  B) CandidateMedia = { id, url, type, fileName, fileSizeBytes }
+          //   C) Media response antigo = { filePath, storagePath, fileUrl, fileName }
+          // ============================================================
 
-          // 2) (Opcional mas recomendado): Resolve TODAS as urls do array photos (caso algum preview do hover na tabela)
-          let safePhotos: { id: string; url: string; type: string }[] | undefined = undefined;
+          // 1) PRIORIDADE MAXIMA: primeira foto do array PHOTOS (IGUAL DOSSIÊ)
+          let primeiraFotoDossie: any = null;
           if (Array.isArray(item.photos) && item.photos.length > 0) {
-            safePhotos = item.photos.map((p: any, idx: number) => ({
-              id: p.id || `p-${idx}`,
-              url: this._resolveCandidatePhotoUrl(p),
-              type: p.type || (idx === 0 ? 'POLAROID_ROSTO' : (idx === 1 ? 'POLAROID_PERFIL' : 'CORPO_INTEIRO'))
-            }));
+            const rawPhoto0 = item.photos[0];
+            // 🆕 NORMALIZA PARA O FORMATO QUE O HELPER RECONHECE (todos os campos!)
+            primeiraFotoDossie = {
+              id: rawPhoto0.id || `foto-0`,
+              url: (rawPhoto0.url || rawPhoto0.fileUrl || rawPhoto0.publicUrl || '') + '',
+              fileUrl: (rawPhoto0.fileUrl || rawPhoto0.url || rawPhoto0.publicUrl || '') + '',
+              filePath: (rawPhoto0.filePath || rawPhoto0.storagePath || rawPhoto0.path || '') + '',
+              storagePath: (rawPhoto0.storagePath || rawPhoto0.filePath || rawPhoto0.path || '') + '',
+              fileName: rawPhoto0.fileName || rawPhoto0.name || '',
+              type: rawPhoto0.type || 'POLAROID_ROSTO'
+            };
           }
 
-          // 3) Campo LEGADO facePhotoUrl (algumas respostas usam esse campo para a 1ª foto):
-          //    Se safeCover ainda for vazio, tenta facePhotoUrl/profil/fullBody com fallback.
+          // 2) Resolve a miniatura: PRIMEIRO usa a foto do array (dossiê), fallback coverPhoto (campo legado)
+          const fonteCover = primeiraFotoDossie || item.coverPhoto || item.coverImageUrl || null;
+          const safeCover = this._resolveCandidatePhotoUrl(fonteCover);
+
+          // 3) Resolve TODO o array photos (todas as fotos) — garante URLs seguras para hover preview
+          let safePhotos: { id: string; url: string; type: string }[] | undefined = undefined;
+          if (Array.isArray(item.photos) && item.photos.length > 0) {
+            safePhotos = item.photos.map((p: any, idx: number) => {
+              const normalizado = {
+                id: p.id || `p-${idx}`,
+                url: (p.url || p.fileUrl || '') + '',
+                fileUrl: (p.fileUrl || p.url || '') + '',
+                filePath: (p.filePath || p.storagePath || p.path || '') + '',
+                storagePath: (p.storagePath || p.filePath || p.path || '') + ''
+              };
+              return {
+                id: normalizado.id,
+                url: this._resolveCandidatePhotoUrl(normalizado),
+                type: p.type || (idx === 0 ? 'POLAROID_ROSTO' : (idx === 1 ? 'POLAROID_PERFIL' : 'CORPO_INTEIRO'))
+              };
+            });
+          }
+
+          // 4) Fallback para CAMPOS LEGADOS facePhotoUrl/profilePhotoUrl/fullBodyPhotoUrl (se nem array nem coverPhoto funcionaram)
           let finalCover = safeCover;
           if (!finalCover && item.facePhotoUrl) finalCover = this._resolveCandidatePhotoUrl(item.facePhotoUrl);
           if (!finalCover && item.profilePhotoUrl) finalCover = this._resolveCandidatePhotoUrl(item.profilePhotoUrl);
           if (!finalCover && item.fullBodyPhotoUrl) finalCover = this._resolveCandidatePhotoUrl(item.fullBodyPhotoUrl);
+
+          // 5) ULTIMO RECURSO: SE o array safePhotos (etapa 3) tem URLs e a capa final ainda esta vazia, usamos a PRIMEIRA!
+          if (!finalCover && safePhotos && safePhotos.length > 0 && safePhotos[0].url) {
+            finalCover = safePhotos[0].url;
+          }
 
           return {
             ...item,
@@ -224,7 +264,7 @@ export class CandidateTableComponent implements OnInit {
             coverPhoto: finalCover || undefined,
             photos: safePhotos || item.photos,
             photoError: false,
-            // 🆕 Protocolo Scouting (WB-YYYYMMDD-XXXX) vindo do backend. Disponivel para link no HTML do card.
+            // Protocolo Scouting (WB-YYYYMMDD-XXXX) vindo do backend. Disponivel para link no HTML do card.
             protocol: (item.protocol || '').toString().trim() || undefined,
           };
         });

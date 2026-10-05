@@ -7,14 +7,12 @@ import com.wbscouting.api.entity.CandidateSubmission;
 import com.wbscouting.api.enums.SubmissionGender;
 import com.wbscouting.api.enums.SubmissionStatus;
 import com.wbscouting.api.service.submission.CandidateSubmissionAdminService;
-import com.wbscouting.api.specification.CandidateSubmissionSpecification;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -49,11 +47,9 @@ public class CandidateAdminController {
     ) {
         log.info("Consulta administrativa de candidaturas. Status: {}, Search: {}, Pageable: {}", status, search, pageable);
 
-        Specification<CandidateSubmission> spec = CandidateSubmissionSpecification.filter(
-                search, status, gender, minHeight, maxHeight, startDate, endDate
+        Page<CandidateSubmissionResponseDto> result = adminService.listSubmissions(
+                search, status, gender, minHeight, maxHeight, startDate, endDate, pageable
         );
-
-        Page<CandidateSubmissionResponseDto> result = adminService.listSubmissions(spec, pageable);
         return ResponseEntity.ok(result);
     }
 

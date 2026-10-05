@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -12,7 +12,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
@@ -26,6 +26,14 @@ export class LoginComponent {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]]
   });
+
+  ngOnInit(): void {
+    // Garante que login sempre carrega com campos VAZIOS.
+    if (typeof localStorage !== 'undefined') {
+      try { localStorage.removeItem('wb_remember_email'); } catch {}
+    }
+    this.loginForm.reset({ email: '', password: '' }, { emitEvent: false });
+  }
 
   togglePasswordVisibility(): void {
     this.showPassword.update(prev => !prev);

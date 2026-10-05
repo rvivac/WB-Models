@@ -37,15 +37,20 @@ export class AdminLoginComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    // 🆕 NUNCA MAIS preencher email/senha automaticamente!
+    // Limpa qualquer lembrete de email antigo do localStorage.
     if (typeof localStorage !== 'undefined') {
-      const savedEmail = localStorage.getItem('wb_remember_email');
-      if (savedEmail) {
-        this.loginForm.patchValue({
-          email: savedEmail,
-          rememberMe: true
-        });
-      }
+      try { localStorage.removeItem('wb_remember_email'); } catch {}
+      try { localStorage.removeItem('wb_remember_me'); } catch {}
     }
+    // Garante que o form inicie 100% limpo (valor vazio em todos os campos).
+    this.loginForm.reset();
+    this.loginForm.patchValue({
+      email: '',
+      password: '',
+      rememberMe: false
+    }, { emitEvent: false, onlySelf: true });
+    this.challengeForm.reset();
   }
 
   togglePasswordVisibility(): void {
@@ -75,12 +80,10 @@ export class AdminLoginComponent implements OnInit {
 
     const { email, password, rememberMe } = this.loginForm.value;
 
+    // 🆕 Removido salvamento de email no localStorage: nunca lembra email.
+    // Campos de login devem sempre comecar vazios.
     if (typeof localStorage !== 'undefined') {
-      if (rememberMe) {
-        localStorage.setItem('wb_remember_email', email);
-      } else {
-        localStorage.removeItem('wb_remember_email');
-      }
+      try { localStorage.removeItem('wb_remember_email'); } catch {}
     }
 
     const credentials = { email, password };

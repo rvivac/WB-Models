@@ -17,7 +17,11 @@
 
     @if (!is2faStep()) {
       <!-- Formulário de Login -->
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form" novalidate>
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form" novalidate autocomplete="off" data-form-type="login">
+        <!-- 🆕 HACK ANTI-AUTOFILL 100%: inputs invisiveis nao-renderizados capturam o preenchimento automatico do Chrome/Firefox -->
+        <input type="email" id="fake_email" name="fake_email" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute; left:-9999px; opacity:0; height:0; width:0; pointer-events:none;">
+        <input type="password" id="fake_password" name="fake_password" tabindex="-1" autocomplete="new-password" aria-hidden="true" style="position:absolute; left:-9999px; opacity:0; height:0; width:0; pointer-events:none;">
+
         <div class="form-field-group">
           <label for="email" class="field-label">E-mail Corporativo</label>
           <input
@@ -25,7 +29,9 @@
             type="email"
             formControlName="email"
             placeholder="webmaster@wbagency.com.br"
-            autocomplete="username"
+            autocomplete="off"
+            data-form-type="other"
+            data-lpignore="true"
             class="field-input"
           />
           @if (loginForm.get('email')?.touched && loginForm.get('email')?.invalid) {
@@ -43,7 +49,9 @@
               [type]="showPassword() ? 'text' : 'password'"
               formControlName="password"
               placeholder="••••••••••••"
-              autocomplete="current-password"
+              autocomplete="new-password"
+              data-form-type="other"
+              data-lpignore="true"
               class="field-input field-input-password"
             />
             <button

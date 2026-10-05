@@ -6,7 +6,11 @@
       <p class="brand-subtitle">Acesso restrito para bookers e administradores</p>
     </div>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate autocomplete="off">
+      <!-- Hack anti preenchimento automatico -->
+      <input type="email" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;pointer-events:none;">
+      <input type="password" tabindex="-1" autocomplete="new-password" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0;pointer-events:none;">
+
       <!-- Campo E-mail -->
       <div class="form-group">
         <label for="email">E-MAIL ADMINISTRATIVO</label>
@@ -15,7 +19,8 @@
           type="email"
           formControlName="email"
           placeholder="webmaster@wbagency.com.br"
-          autocomplete="username"
+          autocomplete="off"
+          data-lpignore="true"
         />
         @if (loginForm.get('email')?.touched && loginForm.get('email')?.invalid) {
           <span class="form-error">Informe um e-mail válido.</span>
@@ -35,7 +40,8 @@
             [type]="showPassword() ? 'text' : 'password'"
             formControlName="password"
             placeholder="Digite sua senha"
-            autocomplete="current-password"
+            autocomplete="new-password"
+            data-lpignore="true"
           />
           <button
             type="button"

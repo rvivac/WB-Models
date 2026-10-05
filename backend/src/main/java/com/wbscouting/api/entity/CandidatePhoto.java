@@ -64,4 +64,24 @@ public class CandidatePhoto {
     public OffsetDateTime getUploadedAt() {
         return uploadedAt != null ? uploadedAt : createdAt;
     }
+
+    // 🔥 Getters EXPLICITOS complementares (escritos na mao) para NAO depender de Lombok @Getter.
+    // Resolve erros de cannot find symbol no Render Docker ./mvnw.
+    public UUID getId() { return this.id; }
+    public Candidate getCandidate() { return this.candidate; }
+    public Short getPhotoPosition() { return this.photoPosition; }
+    public String getFileUrl() { return this.fileUrl; }
+    public String getFilePath() { return this.filePath; }
+    public OffsetDateTime getCreatedAt() { return this.createdAt; }
+
+    // (Opcionais, setters explicitos, caso algum service use sem Lombok @Setter)
+    public void setId(UUID id) { this.id = id; }
+    public void setCandidate(Candidate candidate) { this.candidate = candidate; }
+    public void setStoragePath(String storagePath) { this.storagePath = storagePath; }
+    public void setDisplayOrder(Integer displayOrder) { this.displayOrder = displayOrder; }
+    public void setUploadedAt(OffsetDateTime uploadedAt) { this.uploadedAt = uploadedAt; }
+    public void setPhotoPosition(Short photoPosition) { this.photoPosition = photoPosition; }
+    public void setFileUrl(String fileUrl) { this.fileUrl = fileUrl; }
+    public void setFilePath(String filePath) { this.filePath = filePath; }
+    public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
 }

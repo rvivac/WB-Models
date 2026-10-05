@@ -203,6 +203,29 @@ export class CandidateTableComponent implements OnInit {
             const fontes: any[] = [];
             if (!cand) return fontes;
 
+            // 🆕 ================================================================
+            // PRIORIDADE 0 (MAXIMA): FOTO FACE / ROSTO / FRONTAL.
+            // Ex: face_Gemini_Generated_Image_kjejtvkjejtvkjej.jpeg
+            // Passa POR CIMA de qualquer outra foto. Nao importa se e a 1ª ou 3ª.
+            // ================================================================
+            const regexRostoFace = /face[_-]|rosto|frontal|natural|_rosto|face_photo|polaroid[_-]?face|polaroid[_-]?rosto|foto[_-]?0*1/i;
+            if (Array.isArray(cand.photos) && cand.photos.length > 0) {
+              const idxFotoRosto = cand.photos.findIndex((p: any) => {
+                if (!p) return false;
+                if (typeof p === 'string') return regexRostoFace.test(p);
+                if (typeof p !== 'object') return false;
+                return regexRostoFace.test(p.id || '') || regexRostoFace.test(p.type || '') ||
+                       regexRostoFace.test(p.fileName || p.name || p.label || p.title || '') ||
+                       regexRostoFace.test(p.url || p.fileUrl || '') ||
+                       regexRostoFace.test(p.filePath || p.storagePath || p.path || '');
+              });
+              if (idxFotoRosto >= 0) {
+                // INSERE NO INICIO (posicao 0) para que o loop de finalCover PEGUE ELA PRIMEIRO.
+                const fotoRosto = cand.photos[idxFotoRosto];
+                fontes.push(fotoRosto);
+              }
+            }
+
             // 1) Campos top-level conhecidos (cover, facePhotoUrl etc)
             ['coverPhoto', 'coverImageUrl', 'facePhotoUrl', 'profilePhotoUrl', 'fullBodyPhotoUrl', 'thumbnailUrl', 'previewPhoto', 'polaroid0', 'polaroidFace', 'mainPhoto']
               .forEach(campo => { if (cand[campo]) fontes.push(cand[campo]); });

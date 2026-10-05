@@ -29,13 +29,12 @@ import { TranslationService } from '../../../core/services/translation.service';
   templateUrl: './become-model.component.html',
   styleUrls: ['./become-model.component.scss']
 })
-export class BecomeModelComponent implements OnInit, OnDestroy {
+export class BecomeModelComponent implements OnInit {
   private fb = inject(FormBuilder);
   private http = inject(HttpClient);
   private faqService = inject(ApplyFaqService);
   private readonly contentSvc = inject(PublicContentService);
   readonly translationService = inject(TranslationService);
-  private langSub?: Subscription;
 
   form!: FormGroup;
   isSubmitting = false;
@@ -306,18 +305,11 @@ export class BecomeModelComponent implements OnInit, OnDestroy {
     this.initForm();
     this.watchBirthDate();
     this.loadEditorialContent();
-    // 🆕 Se idioma mudar (PT/EN), recarrega o texto do Apply Proximos Passos correspondente.
-    const langSig = this.translationService.getLangSignal?.() ?? this.translationService.currentLang?.();
-    if (typeof langSig === 'function') {
-      try {
-        this.langSub = (langSig as any)?.subscribe?.((l: string) => this.loadApplyHowItWorks(l));
-      } catch { /* sem subscription, carrega so no ngOnInit */ }
-    }
-    this.loadApplyHowItWorks(this.translationService.currentLang?.() || 'pt');
-  }
-
-  ngOnDestroy(): void {
-    this.langSub?.unsubscribe();
+    // 🆕 Carrega texto Proximos Passos do Admin CMS 1 unica vez com o idioma atual do usuario.
+    // (Nao escutamos troca de idioma dinamica na pagina apply, pois o TranslationService nao expoe getLangSignal oficial)
+    const langRaw = this.translationService.currentLang?.();
+    const lang = typeof langRaw === 'string' ? (langRaw || 'pt') : 'pt';
+    this.loadApplyHowItWorks(lang);
   }
 
   private loadEditorialContent(): void {

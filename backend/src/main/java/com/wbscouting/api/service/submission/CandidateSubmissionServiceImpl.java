@@ -78,16 +78,19 @@ public class CandidateSubmissionServiceImpl implements CandidateSubmissionServic
         String sanitizedHairColor = sanitizeString(request.getHairColor());
 
         // 4. Geração de Identificadores e Protocolo
-        UUID submissionId = UUID.randomUUID();
+        // 🆕 storageId = UUID SEPARADO apenas para paths no bucket (nao precisa = ID da entidade!)
+        // 🆕 REMOVIDO: uso de submissionId como ID da entidade, pois ela tem @GeneratedValue(strategy = GenerationType.UUID)
+        //    (setar ID manualmente antes do save() faz Hibernate tentar UPDATE e dar: unsaved-value mapping was incorrect)
+        UUID storageId = UUID.randomUUID();
         String protocol = generateProtocol();
         String bucket = supabaseProperties.resolveBucketCandidates();
 
         // 5. Upload dos Arquivos para o Storage com Transação Compensatória Defensiva
         java.util.List<String> uploadedPaths = new java.util.ArrayList<>();
         try {
-            String facePath = String.format("submissions/%s/face_%s", submissionId, cleanFileName(facePhoto.getOriginalFilename()));
-            String profilePath = String.format("submissions/%s/profile_%s", submissionId, cleanFileName(profilePhoto.getOriginalFilename()));
-            String fullBodyPath = String.format("submissions/%s/fullbody_%s", submissionId, cleanFileName(fullBodyPhoto.getOriginalFilename()));
+            String facePath = String.format("submissions/%s/face_%s", storageId, cleanFileName(facePhoto.getOriginalFilename()));
+            String profilePath = String.format("submissions/%s/profile_%s", storageId, cleanFileName(profilePhoto.getOriginalFilename()));
+            String fullBodyPath = String.format("submissions/%s/fullbody_%s", storageId, cleanFileName(fullBodyPhoto.getOriginalFilename()));
 
             storageService.uploadFile(bucket, facePath, facePhoto);
             uploadedPaths.add(facePath);
@@ -101,8 +104,8 @@ public class CandidateSubmissionServiceImpl implements CandidateSubmissionServic
             String fullBodyUrl = storageService.getPublicUrl(bucket, fullBodyPath);
 
             // 6. Construção e Persistência da Entidade
+            // 🆕 OMITIMOS o campo .id() — Hibernate gera o UUID sozinho no INSERT (obedecendo @GeneratedValue(strategy = GenerationType.UUID))
             CandidateSubmission submission = CandidateSubmission.builder()
-                    .id(submissionId)
                     .protocol(protocol)
                     .fullName(sanitizedFullName)
                     .email(request.getEmail().trim().toLowerCase())
@@ -142,8 +145,8 @@ public class CandidateSubmissionServiceImpl implements CandidateSubmissionServic
                     .createdAt(saved.getCreatedAt() != null ? saved.getCreatedAt() : OffsetDateTime.now())
                     .build();
         } catch (Exception ex) {
-            log.error("Erro detectado durante submissão da candidatura (ID={}). Executando rollback compensatório no bucket '{}'...",
-                    submissionId, bucket, ex);
+            log.error("Erro detectado durante submissão da candidatura (storageId={}). Executando rollback compensatório no bucket '{}'...",
+                    storageId, bucket, ex);
             for (String uploadedPath : uploadedPaths) {
                 try {
                     storageService.deleteFile(bucket, uploadedPath);

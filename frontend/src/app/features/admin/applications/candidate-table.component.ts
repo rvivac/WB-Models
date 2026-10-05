@@ -192,65 +192,99 @@ export class CandidateTableComponent implements OnInit {
       next: (res) => {
         const items = res.content || [];
         this.applications = items.map((item: any) => {
-          // ============================================================
-          // 🆕 GARANTE MINIATURA = MESMA FOTO DO DOSSIÊ (primeira foto real do candidato)
-          //
-          // ORDEM DE FALLBACK (MAIS CONFIAVEL → MENOS CONFIAVEL):
-          // 1. item.photos[0] (array estruturado — MESMO DADO do dossiê detail!)
-          // 2. item.coverPhoto (campo dedicado top-level, se existir e valido)
-          // 3. campos legado facePhotoUrl / profilePhotoUrl / fullBodyPhotoUrl
-          //
-          // Objetos do array photos podem ser 3 interfaces (todas mapeamos para o helper):
-          //   A) CandidatePhoto = { id, url, type }  B) CandidateMedia = { id, url, type, fileName, fileSizeBytes }
-          //   C) Media response antigo = { filePath, storagePath, fileUrl, fileName }
-          // ============================================================
+          // =====================================================================
+          // 🆕 IMPLEMENTACAO EXATA PEDIDA: MINIATURA = FOTO ROSTO FRONTAL NATURAL
+          // (Prioridade 1 ABSOLUTA. Nao confia mais em photos[0] aleatorio!)
+          // =====================================================================
+          const encontrarFotoRostoFrontalNatural = (photosArr: any[]): any | null => {
+            if (!Array.isArray(photosArr) || photosArr.length === 0) return null;
 
-          // 1) PRIORIDADE MAXIMA: primeira foto do array PHOTOS (IGUAL DOSSIÊ)
-          let primeiraFotoDossie: any = null;
-          if (Array.isArray(item.photos) && item.photos.length > 0) {
-            const rawPhoto0 = item.photos[0];
-            // 🆕 NORMALIZA PARA O FORMATO QUE O HELPER RECONHECE (todos os campos!)
-            primeiraFotoDossie = {
-              id: rawPhoto0.id || `foto-0`,
-              url: (rawPhoto0.url || rawPhoto0.fileUrl || rawPhoto0.publicUrl || '') + '',
-              fileUrl: (rawPhoto0.fileUrl || rawPhoto0.url || rawPhoto0.publicUrl || '') + '',
-              filePath: (rawPhoto0.filePath || rawPhoto0.storagePath || rawPhoto0.path || '') + '',
-              storagePath: (rawPhoto0.storagePath || rawPhoto0.filePath || rawPhoto0.path || '') + '',
-              fileName: rawPhoto0.fileName || rawPhoto0.name || '',
-              type: rawPhoto0.type || 'POLAROID_ROSTO'
+            // 1) PRIORIDADE 1 MAXIMA: type = POLAROID_ROSTO (campo oficial)
+            let matchRosto = photosArr.find((p: any) => {
+              if (!p || typeof p !== 'object') return false;
+              const t = (p.type || p.kind || '').toString().trim().toUpperCase();
+              return t === 'POLAROID_ROSTO' || t === 'ROSTO' || t === 'FACE' || t === 'FRONTAL' || t === 'FACE_PHOTO' || t === 'POLAROID_FACE';
+            });
+            if (matchRosto) return matchRosto;
+
+            // 2) PRIORIDADE 2: Nome do arquivo / id / label contem ROSTO FRONTAL NATURAL (case insensitive)
+            const regexRosto = /ROSTO|FRONTAL|FACE|NATURAL|POLAROID_ROSTO|FOTO[\s_-]*0*1|PRIMEIRA[\s_-]*FOTO|FOTO[\s_-]*ROSTO|FRENTE/i;
+            matchRosto = photosArr.find((p: any) => {
+              if (!p || typeof p !== 'object') return false;
+              return regexRosto.test(p.id || '') || regexRosto.test(p.type || '') ||
+                     regexRosto.test(p.fileName || p.name || p.label || p.title || '') ||
+                     regexRosto.test(p.url || p.fileUrl || p.storagePath || p.filePath || '');
+            });
+            if (matchRosto) return matchRosto;
+
+            return null;
+          };
+
+          // 🆕 ANTES de qualquer coisa: tenta ENCONTRAR A FOTO ROSTO FRONTAL NATURAL (exatamente como pediu!)
+          const fotoRostoFrontalNatural = encontrarFotoRostoFrontalNatural(item.photos);
+
+          // Helper inline: NORMALIZA qualquer formato de foto (CandidateMedia / CandidatePhoto / DTO antigo / string)
+          // para o _resolveCandidatePhotoUrl sempre reconhecer e remontar a URL correta stmytwsd.
+          const normalizarFoto = (foto: any): any => {
+            if (!foto) return null;
+            if (typeof foto === 'string') return foto.trim();
+            if (typeof foto !== 'object') return null;
+            return {
+              id: foto.id || foto.photoId || `f-${Date.now()}`,
+              url: (foto.url || foto.fileUrl || foto.publicUrl || foto.previewUrl || '') + '',
+              fileUrl: (foto.fileUrl || foto.url || foto.publicUrl || '') + '',
+              filePath: (foto.filePath || foto.storagePath || foto.path || foto.relativePath || '') + '',
+              storagePath: (foto.storagePath || foto.filePath || foto.path || '') + '',
+              fileName: (foto.fileName || foto.name || foto.originalName || foto.label || '') + '',
+              type: foto.type || ''
             };
+          };
+
+          // =====================================================================
+          // ORDEM FINAL PRIORIDADES DA MINIATURA (100% o que voce pediu):
+          // 1. 🆕 FOTO ROSTO FRONTAL NATURAL encontrada acima
+          // 2. fallback: primeira foto do array photos[0] (caso rosto nao exista)
+          // 3. coverPhoto (campo dedicado backend)
+          // 4. coverImageUrl
+          // 5. campos legados facePhotoUrl → profilePhotoUrl → fullBodyPhotoUrl
+          // 6. ultimo: safePhotos[0].url (array normalizado, se existir)
+          // =====================================================================
+          let fonteCapa: any = null;
+          if (fotoRostoFrontalNatural) {
+            fonteCapa = normalizarFoto(fotoRostoFrontalNatural);
+          }
+          let safeCover = fonteCapa ? this._resolveCandidatePhotoUrl(fonteCapa) : '';
+
+          // Se nao deu certo a foto Rosto Natural (por algum motivo), cai no fallback de photos[0] normalizado
+          if (!safeCover && item.photos && item.photos.length > 0) {
+            const fallback0norm = normalizarFoto(item.photos[0]);
+            safeCover = fallback0norm ? this._resolveCandidatePhotoUrl(fallback0norm) : '';
           }
 
-          // 2) Resolve a miniatura: PRIMEIRO usa a foto do array (dossiê), fallback coverPhoto (campo legado)
-          const fonteCover = primeiraFotoDossie || item.coverPhoto || item.coverImageUrl || null;
-          const safeCover = this._resolveCandidatePhotoUrl(fonteCover);
+          // Fallback: coverPhoto / coverImageUrl se existir
+          if (!safeCover && item.coverPhoto) safeCover = this._resolveCandidatePhotoUrl(normalizarFoto(item.coverPhoto));
+          if (!safeCover && item.coverImageUrl) safeCover = this._resolveCandidatePhotoUrl(normalizarFoto(item.coverImageUrl));
 
-          // 3) Resolve TODO o array photos (todas as fotos) — garante URLs seguras para hover preview
+          // 3) Resolve TODO array photos → URLs seguras normalizadas (hover preview / fallback)
           let safePhotos: { id: string; url: string; type: string }[] | undefined = undefined;
           if (Array.isArray(item.photos) && item.photos.length > 0) {
             safePhotos = item.photos.map((p: any, idx: number) => {
-              const normalizado = {
-                id: p.id || `p-${idx}`,
-                url: (p.url || p.fileUrl || '') + '',
-                fileUrl: (p.fileUrl || p.url || '') + '',
-                filePath: (p.filePath || p.storagePath || p.path || '') + '',
-                storagePath: (p.storagePath || p.filePath || p.path || '') + ''
-              };
+              const norm = normalizarFoto(p);
               return {
-                id: normalizado.id,
-                url: this._resolveCandidatePhotoUrl(normalizado),
+                id: norm && norm.id ? norm.id : `p-${idx}`,
+                url: norm ? this._resolveCandidatePhotoUrl(norm) : '',
                 type: p.type || (idx === 0 ? 'POLAROID_ROSTO' : (idx === 1 ? 'POLAROID_PERFIL' : 'CORPO_INTEIRO'))
               };
-            });
+            }).filter(x => x.url);
           }
 
-          // 4) Fallback para CAMPOS LEGADOS facePhotoUrl/profilePhotoUrl/fullBodyPhotoUrl (se nem array nem coverPhoto funcionaram)
+          // 4) Fallback legado: facePhotoUrl / profile / fullBody
           let finalCover = safeCover;
-          if (!finalCover && item.facePhotoUrl) finalCover = this._resolveCandidatePhotoUrl(item.facePhotoUrl);
-          if (!finalCover && item.profilePhotoUrl) finalCover = this._resolveCandidatePhotoUrl(item.profilePhotoUrl);
-          if (!finalCover && item.fullBodyPhotoUrl) finalCover = this._resolveCandidatePhotoUrl(item.fullBodyPhotoUrl);
+          if (!finalCover && item.facePhotoUrl) finalCover = this._resolveCandidatePhotoUrl(normalizarFoto(item.facePhotoUrl));
+          if (!finalCover && item.profilePhotoUrl) finalCover = this._resolveCandidatePhotoUrl(normalizarFoto(item.profilePhotoUrl));
+          if (!finalCover && item.fullBodyPhotoUrl) finalCover = this._resolveCandidatePhotoUrl(normalizarFoto(item.fullBodyPhotoUrl));
 
-          // 5) ULTIMO RECURSO: SE o array safePhotos (etapa 3) tem URLs e a capa final ainda esta vazia, usamos a PRIMEIRA!
+          // 5) Ultimo recurso: usa PRIMEIRA FOTO do array safePhotos (100% normalizada e resolvida)
           if (!finalCover && safePhotos && safePhotos.length > 0 && safePhotos[0].url) {
             finalCover = safePhotos[0].url;
           }
@@ -267,6 +301,7 @@ export class CandidateTableComponent implements OnInit {
             // Protocolo Scouting (WB-YYYYMMDD-XXXX) vindo do backend. Disponivel para link no HTML do card.
             protocol: (item.protocol || '').toString().trim() || undefined,
           };
+        });          };
         });
         this.totalElements = res.totalElements || 0;
         this.totalPages = res.totalPages || 0;

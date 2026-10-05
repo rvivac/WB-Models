@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -319,13 +320,32 @@ public class ModelMediaServiceImpl implements ModelMediaService {
         if (existingComposite.isPresent()) {
             ModelMedia oldComp = existingComposite.get();
             try {
-                storageService.deleteFile(bucket, oldComp.getFilePath());
-                log.info("[COMPOSITE UPLOAD] Removido composite anterior. ModelId={}, oldPath={}", modelId, oldComp.getFilePath());
+                // 🟢 SEGURANCA TOTAL: NUNCA deixa a remocao do composite ANTIGO travar o upload do NOVO.
+                // Captura QUALQUER excessao: StorageException 404 (arquivo jah foi deletado manual no bucket),
+                // IllegalArgumentException path nulo (registro antigo sem filePath), RLS 403, timeout rede.
+                // Orphan-safe: se old jah foi apagado, nao tem problema, seguimos em frente.
+                String oldPath = oldComp.getFilePath();
+                if (oldPath != null && !oldPath.isBlank()) {
+                    storageService.deleteFile(bucket, oldPath);
+                    log.info("[COMPOSITE UPLOAD] Removido composite anterior SUCESSO. ModelId={}, oldPath={}", modelId, oldPath);
+                } else {
+                    log.warn("[COMPOSITE UPLOAD] Composite antigo SEM filePath (registro LEGADO antigo). Pulando remocao storage e deletando apenas do banco. ModelId={}, oldMediaId={}",
+                            modelId, oldComp.getId());
+                }
             } catch (Exception e) {
-                log.warn("Falha ao remover arquivo do composite anterior do storage: {}. Continuando mesmo assim (orphan safe).", e.getMessage());
+                // Nao importa o que aconteceu (arquivo jah apagado, 404, 403, timeout): NAO ABORTA!
+                // O importante eh subir o composite NOVO do usuario. Orphans no bucket serao limpos depois.
+                log.warn("[COMPOSITE UPLOAD] (Nao critico, continuando mesmo assim) Falha ao remover arquivo composite anterior do bucket: {}. Motivo: {}.",
+                        oldComp.getFilePath(), e.getMessage());
             }
-            modelMediaRepository.delete(oldComp);
-            modelMediaRepository.flush();
+            // Remocao do banco SEMPRE acontece, com try/catch proprio tambem.
+            try {
+                modelMediaRepository.delete(oldComp);
+                modelMediaRepository.flush();
+            } catch (Exception eDB) {
+                log.error("[COMPOSITE UPLOAD] Falha ao deletar registro do composite antigo no banco. Vai tentar prosseguir salvando o novo. ModelId={}. Erro: {}",
+                        modelId, eDB.getMessage());
+            }
         }
 
         String originalName = sanitizeFilename(file.getOriginalFilename());
@@ -372,6 +392,7 @@ public class ModelMediaServiceImpl implements ModelMediaService {
             );
         }
 
+        OffsetDateTime agora = OffsetDateTime.now();
         ModelMedia media = ModelMedia.builder()
                 .model(model)
                 .mediaType(MediaType.COMPOSITE)
@@ -380,6 +401,11 @@ public class ModelMediaServiceImpl implements ModelMediaService {
                 .displayOrder(1)
                 .isCover(false)
                 .isActive(true)
+                // 🟢 TIMESTAMPS EXPLICITOS (garante NUNCA null no banco, evita ConstraintViolationException 500)
+                // @CreationTimestamp/@UpdateTimestamp do Hibernate pode nao funcionar em algumas
+                // versoes quando criamos entidade via @Builder lombok. Setando manual = 100% seguro!
+                .createdAt(agora)
+                .updatedAt(agora)
                 .build();
 
         ModelMedia saved = modelMediaRepository.save(media);

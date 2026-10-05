@@ -385,12 +385,12 @@ public class ModelMediaServiceImpl implements ModelMediaService {
                 log.error("[COMPOSITE UPLOAD] StorageException (timeout, auth, rede). ModelId={}.", modelId, stEx);
                 org.springframework.http.HttpStatus st = stEx.getStatus();
                 if (st != null && (st.is5xxServerError() || st == org.springframework.http.HttpStatus.GATEWAY_TIMEOUT)) {
-                    throw new IllegalStateException(
+                    throw new IllegalArgumentException(
                         "Ocorreu um timeout ou falha temporária de conexão ao enviar o composite para o armazenamento na nuvem. " +
                         "Tente novamente em alguns segundos. Detalhe: " + (stEx.getMessage() != null ? stEx.getMessage() : "")
                     );
                 }
-                throw new IllegalStateException(
+                throw new IllegalArgumentException(
                     "Não foi possível enviar o composite para o armazenamento na nuvem. " +
                     "Detalhe: " + (stEx.getMessage() != null ? stEx.getMessage() : "Erro de comunicação.")
                 );
@@ -416,15 +416,16 @@ public class ModelMediaServiceImpl implements ModelMediaService {
             // toCompositeDto com envelope anti-null interno (ver abaixo)
             return toCompositeDtoSafe(saved, originalName, file.getSize());
 
-        } catch (IllegalArgumentException | ResourceNotFoundException | IllegalStateException eTratado) {
+        } catch (IllegalArgumentException | ResourceNotFoundException eTratado) {
             // Mensagens amigaveis ja tratadas: relancar como estao (400 Bad Request / 404)
+            // IllegalArgumentException tem HANDLER EXISTENTE DESDE SEMPRE no GlobalExceptionHandler linha 140 = HTTP 400 c/ mensagem!
             throw eTratado;
         } catch (Exception eQualquerOutra) {
             // ============================================================
             // 🛡️ CAIXA FORTE FINAL: Nenhuma excecao nao tratada escapa como 500 generico
-            // Inclui: NullPointerException, ConstraintViolationException (PostgreSQL),
+            // Inclui: NullPointerException, ConstraintViolationException,
             //         TransactionSystemException, DataIntegrityViolationException etc.
-            // Converte tudo para IllegalStateException com mensagem amigavel.
+            // Converte TUDO para IllegalArgumentException = tem HANDLER EXISTENTE.
             // ============================================================
             log.error("[COMPOSITE UPLOAD] EXCECAO NAO TRATADA CONVERTIDA PARA MENSAGEM AMIGAVEL (evitando 500 generico). ModelId={}",
                     modelId, eQualquerOutra);
@@ -435,7 +436,7 @@ public class ModelMediaServiceImpl implements ModelMediaService {
                 && !eQualquerOutra.getCause().getMessage().isBlank()) {
                 motivo = motivo + ". Detalhe tecnico: " + eQualquerOutra.getCause().getMessage();
             }
-            throw new IllegalStateException(
+            throw new IllegalArgumentException(
                 "Não foi possível salvar o composite. " + motivo + ". " +
                 "Tente novamente em alguns segundos ou verifique se o arquivo está íntegro."
             );

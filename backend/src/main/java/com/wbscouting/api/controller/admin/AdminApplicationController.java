@@ -11,7 +11,7 @@ import com.wbscouting.api.enums.SubmissionStatus;
 import com.wbscouting.api.exception.ResourceNotFoundException;
 import com.wbscouting.api.repository.CandidateSubmissionRepository;
 import com.wbscouting.api.service.storage.StorageService;
-import com.wbscouting.api.specification.CandidateSubmissionSpecification;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +23,8 @@ import org.springframework.data.jpa.domain.Specification;
 import com.wbscouting.api.dto.ApiResponse;
 import com.wbscouting.api.dto.model.ModelResponseDto;
 import com.wbscouting.api.service.submission.CandidateSubmissionAdminService;
+import com.wbscouting.api.service.submission.CandidateSubmissionSpecification;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -55,11 +57,14 @@ public class AdminApplicationController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) SubmissionGender gender,
             @RequestParam(required = false) Boolean isMinor,
+            // 🆕 REGRA 1 e 3: Por PADRAO = false (apenas fichas ainda NAO promovidas para Casting ficam no Scouting Desk).
+            // Permite filtro historico ?includePromoted=true se quiser ver todos (incluindo os ja promovidos de dados antigos).
+            @RequestParam(required = false, defaultValue = "false") Boolean includePromoted,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortDirection
     ) {
-        log.info("Consulta administrativa tabular de candidaturas. Status: {}, Search: {}, isMinor: {}, Page: {}, Size: {}",
-                status, search, isMinor, page, size);
+        log.info("Consulta administrativa tabular de candidaturas. Status: {}, Search: {}, isMinor: {}, includePromoted={}, Page: {}, Size: {}",
+                status, search, isMinor, includePromoted, page, size);
 
         Sort.Direction direction = "ASC".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
         String mappedSortBy = switch (sortBy) {
@@ -73,8 +78,11 @@ public class AdminApplicationController {
 
         Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size), Sort.by(direction, mappedSortBy));
 
+        // 🆕 REGRA 1 e 3: Se includePromoted=false (DEFAULT), oculta quaisquer registros antigos que JA TIVEREM sido
+        //    promovidos (convertedToModelId != null). Os status APPROVED e REJECTED normais (sem promotion) CONTINUAM
+        //    aparecendo (permanentes na tabela scouting desk por tempo indeterminado).
         Specification<CandidateSubmission> spec = CandidateSubmissionSpecification.filter(
-                search, status, gender, isMinor, null, null, null, null
+                search, status, gender, isMinor, null, null, null, null, includePromoted
         );
 
         Page<CandidateApplicationSummaryDto> result = submissionRepository.findAll(spec, pageable)
@@ -85,10 +93,11 @@ public class AdminApplicationController {
 
     @GetMapping("/counts")
     public ResponseEntity<Map<String, Long>> getCounts() {
-        long pending = submissionRepository.countByStatus(SubmissionStatus.PENDING);
-        long approved = submissionRepository.countByStatus(SubmissionStatus.APPROVED);
-        long rejected = submissionRepository.countByStatus(SubmissionStatus.REJECTED);
-        long total = submissionRepository.count();
+        // 🆕 REGRA 3: counts da aba principal consideram apenas os NAO promovidos (ainda no scouting desk).
+        long pending = submissionRepository.countByStatusAndConvertedToModelIdIsNull(SubmissionStatus.PENDING);
+        long approved = submissionRepository.countByStatusAndConvertedToModelIdIsNull(SubmissionStatus.APPROVED);
+        long rejected = submissionRepository.countByStatusAndConvertedToModelIdIsNull(SubmissionStatus.REJECTED);
+        long total = submissionRepository.countByConvertedToModelIdIsNull();
 
         return ResponseEntity.ok(Map.of(
                 "pending", pending,

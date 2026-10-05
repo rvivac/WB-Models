@@ -21,4 +21,13 @@ public interface CandidateSubmissionRepository extends JpaRepository<CandidateSu
     long countByStatus(SubmissionStatus status);
 
     boolean existsByEmailAndStatus(String email, SubmissionStatus status);
+
+    // 🆕 REGRAS 1/3: apenas registros AINDA no Scouting Desk (nao movidos para Casting) contam na grid e cards da Home Admin
+    long countByStatusAndConvertedToModelIdIsNull(SubmissionStatus status);
+    long countByConvertedToModelIdIsNull();
+    long countByStatusAndConvertedToModelIdIsNotNull(SubmissionStatus status);
+    long countByConvertedToModelIdIsNotNull();
+
+    // 🆕 REGRA 2 validacao antes de apagar: confirma se o id existe
+    boolean existsByIdAndConvertedToModelIdIsNotNull(UUID id);
 }

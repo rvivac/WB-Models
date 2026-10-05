@@ -292,7 +292,7 @@ export class CandidateTableComponent implements OnInit {
                 url: norm ? this._resolveCandidatePhotoUrl(norm) : '',
                 type: p?.type || (idx === 0 ? 'POLAROID_ROSTO' : (idx === 1 ? 'POLAROID_PERFIL' : 'CORPO_INTEIRO'))
               };
-            }).filter(x => x.url);
+            }).filter((x: any) => x.url);
           }
 
           // ULTIMO RECURSO: se ainda esta vazio, tenta safePhotos[0].url
@@ -309,7 +309,6 @@ export class CandidateTableComponent implements OnInit {
             photoError: false,
             protocol: (item.protocol || '').toString().trim() || undefined,
           };
-        });          };
         });
         this.totalElements = res.totalElements || 0;
         this.totalPages = res.totalPages || 0;

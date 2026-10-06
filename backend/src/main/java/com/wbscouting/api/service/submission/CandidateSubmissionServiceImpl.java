@@ -17,13 +17,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.dao.DataIntegrityViolationException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.Period;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -41,15 +44,18 @@ public class CandidateSubmissionServiceImpl implements CandidateSubmissionServic
     private final CandidatePhotoRepository candidatePhotoRepository;
     private final StorageService storageService;
     private final SupabaseProperties supabaseProperties;
+    private final ProtocolGeneratorService protocolGeneratorService;
 
     public CandidateSubmissionServiceImpl(CandidateSubmissionRepository repository,
                                           CandidatePhotoRepository candidatePhotoRepository,
                                           StorageService storageService,
-                                          SupabaseProperties supabaseProperties) {
+                                          SupabaseProperties supabaseProperties,
+                                          ProtocolGeneratorService protocolGeneratorService) {
         this.repository = repository;
         this.candidatePhotoRepository = candidatePhotoRepository;
         this.storageService = storageService;
         this.supabaseProperties = supabaseProperties;
+        this.protocolGeneratorService = protocolGeneratorService;
     }
 
     @Override
@@ -82,100 +88,131 @@ public class CandidateSubmissionServiceImpl implements CandidateSubmissionServic
         String sanitizedEyeColor = sanitizeString(request.getEyeColor());
         String sanitizedHairColor = sanitizeString(request.getHairColor());
 
-        // 4. Geração de Identificadores e Protocolo
-        // 🆕 storageId = UUID SEPARADO apenas para paths no bucket (nao precisa = ID da entidade!)
-        // 🆕 REMOVIDO: uso de submissionId como ID da entidade, pois ela tem @GeneratedValue(strategy = GenerationType.UUID)
-        //    (setar ID manualmente antes do save() faz Hibernate tentar UPDATE e dar: unsaved-value mapping was incorrect)
+        // 4. Parâmetros fixos do fluxo (bucket + anti-colisão DB de protocolo)
+        final String bucket = supabaseProperties.resolveBucketCandidates();
+        final int MAX_SAVE_ATTEMPTS = 2;
+
+        // ============================================================
+        // LAÇO DE RETENTATIVA COMPLETO: uploads no storage, builder entity,
+        // persistência DB, fotos filhas e response.
+        //   - DataIntegrityViolationException (UNIQUE(protocol) colisão em ms)
+        //       -> rollback arquivos storage, NOVO storageId, NOVO protocolo, retry 1x
+        //   - Qualquer outro erro -> propaga com rollback storage.
+        // ============================================================
         UUID storageId = UUID.randomUUID();
-        String protocol = generateProtocol();
-        String bucket = supabaseProperties.resolveBucketCandidates();
+        String protocol = null;
+        List<String> uploadedPaths = new ArrayList<>();
+        int saveAttempt = 0;
 
-        // 5. Upload dos Arquivos para o Storage com Transação Compensatória Defensiva
-        java.util.List<String> uploadedPaths = new java.util.ArrayList<>();
-        try {
-            String facePath = String.format("submissions/%s/face_%s", storageId, cleanFileName(facePhoto.getOriginalFilename()));
-            String profilePath = String.format("submissions/%s/profile_%s", storageId, cleanFileName(profilePhoto.getOriginalFilename()));
-            String fullBodyPath = String.format("submissions/%s/fullbody_%s", storageId, cleanFileName(fullBodyPhoto.getOriginalFilename()));
+        while (saveAttempt < MAX_SAVE_ATTEMPTS) {
+            saveAttempt++;
+            // NOVO protocolo a cada iteração (garantido único via existsByProtocol no service)
+            protocol = protocolGeneratorService.generateUniqueProtocol();
+            // NOVO storageId a cada retry também (evita sobrescrever arquivos falhos anteriores)
+            if (saveAttempt > 1) storageId = UUID.randomUUID();
+            uploadedPaths = new ArrayList<>();
 
-            storageService.uploadFile(bucket, facePath, facePhoto);
-            uploadedPaths.add(facePath);
-            storageService.uploadFile(bucket, profilePath, profilePhoto);
-            uploadedPaths.add(profilePath);
-            storageService.uploadFile(bucket, fullBodyPath, fullBodyPhoto);
-            uploadedPaths.add(fullBodyPath);
+            log.info("[SUBMIT] Tentativa {}/{} persistência — protocolo={} | candidato={}",
+                    saveAttempt, MAX_SAVE_ATTEMPTS, protocol, request.getFullName());
 
-            String faceUrl = storageService.getPublicUrl(bucket, facePath);
-            String profileUrl = storageService.getPublicUrl(bucket, profilePath);
-            String fullBodyUrl = storageService.getPublicUrl(bucket, fullBodyPath);
+            try {
+                // ============================================================
+                // 5. Upload das 3 fotos para o Storage
+                // ============================================================
+                String facePath = String.format("submissions/%s/face_%s", storageId, cleanFileName(facePhoto.getOriginalFilename()));
+                String profilePath = String.format("submissions/%s/profile_%s", storageId, cleanFileName(profilePhoto.getOriginalFilename()));
+                String fullBodyPath = String.format("submissions/%s/fullbody_%s", storageId, cleanFileName(fullBodyPhoto.getOriginalFilename()));
 
-            // 6. Construção e Persistência da Entidade
-            // 🆕 OMITIMOS o campo .id() — Hibernate gera o UUID sozinho no INSERT (obedecendo @GeneratedValue(strategy = GenerationType.UUID))
-            CandidateSubmission submission = CandidateSubmission.builder()
-                    .protocol(protocol)
-                    .fullName(sanitizedFullName)
-                    .email(request.getEmail().trim().toLowerCase())
-                    .phone(request.getPhone().trim())
-                    .birthDate(request.getBirthDate())
-                    .age(age)
-                    .gender(request.getGender())
-                    .city(sanitizedCity)
-                    .state(sanitizedState)
-                    .height(request.getHeight())
-                    .bust(request.getBust())
-                    .waist(request.getWaist())
-                    .hips(request.getHips())
-                    .shoeSize(request.getShoeSize())
-                    .eyeColor(sanitizedEyeColor)
-                    .hairColor(sanitizedHairColor)
-                    .instagramHandle(sanitizedInstagram)
-                    .guardianName(sanitizedGuardianName)
-                    .guardianPhone(StringUtils.hasText(request.getGuardianPhone()) ? request.getGuardianPhone().trim() : null)
-                    .guardianEmail(StringUtils.hasText(request.getGuardianEmail()) ? request.getGuardianEmail().trim().toLowerCase() : null)
-                    .lgpdConsent(Boolean.TRUE.equals(request.getLgpdConsent()))
-                    .lgpdConsentAt(OffsetDateTime.now())
-                    .status(SubmissionStatus.PENDING)
-                    .facePhotoUrl(faceUrl)
-                    .profilePhotoUrl(profileUrl)
-                    .fullBodyPhotoUrl(fullBodyUrl)
-                    .build();
+                storageService.uploadFile(bucket, facePath, facePhoto);
+                uploadedPaths.add(facePath);
+                storageService.uploadFile(bucket, profilePath, profilePhoto);
+                uploadedPaths.add(profilePath);
+                storageService.uploadFile(bucket, fullBodyPath, fullBodyPhoto);
+                uploadedPaths.add(fullBodyPath);
 
-            CandidateSubmission saved = repository.save(submission);
-            log.info("Candidatura gravada com sucesso. ID: {}, Protocolo: {}", saved.getId(), saved.getProtocol());
+                String faceUrl = storageService.getPublicUrl(bucket, facePath);
+                String profileUrl = storageService.getPublicUrl(bucket, profilePath);
+                String fullBodyUrl = storageService.getPublicUrl(bucket, fullBodyPath);
 
-            // ================================
-            // 🔥 REGRA OBRIGATÓRIA: Persistir relação filha em candidate_photos
-            //     Tabela: candidate_photos.candidate_id (FK) → candidate_submissions.id
-            // ================================
-            persistirFotoFilha(saved, uploadedPaths.get(0), faceUrl, "POLAROID_ROSTO", 1, cleanFileName(facePhoto.getOriginalFilename()));
-            persistirFotoFilha(saved, uploadedPaths.get(1), profileUrl, "POLAROID_PERFIL", 2, cleanFileName(profilePhoto.getOriginalFilename()));
-            persistirFotoFilha(saved, uploadedPaths.get(2), fullBodyUrl, "CORPO_INTEIRO", 3, cleanFileName(fullBodyPhoto.getOriginalFilename()));
-            log.info("[CANDIDATE_PHOTOS] 3 fotos filhas vinculadas via candidate_id = {}", saved.getId());
+                // ============================================================
+                // 6. Build + Save da entidade CandidateSubmission (ID gerado por Hibernate)
+                // ============================================================
+                CandidateSubmission submission = CandidateSubmission.builder()
+                        .protocol(protocol)
+                        .fullName(sanitizedFullName)
+                        .email(request.getEmail().trim().toLowerCase())
+                        .phone(request.getPhone().trim())
+                        .birthDate(request.getBirthDate())
+                        .age(age)
+                        .gender(request.getGender())
+                        .city(sanitizedCity)
+                        .state(sanitizedState)
+                        .height(request.getHeight())
+                        .bust(request.getBust())
+                        .waist(request.getWaist())
+                        .hips(request.getHips())
+                        .shoeSize(request.getShoeSize())
+                        .eyeColor(sanitizedEyeColor)
+                        .hairColor(sanitizedHairColor)
+                        .instagramHandle(sanitizedInstagram)
+                        .guardianName(sanitizedGuardianName)
+                        .guardianPhone(StringUtils.hasText(request.getGuardianPhone()) ? request.getGuardianPhone().trim() : null)
+                        .guardianEmail(StringUtils.hasText(request.getGuardianEmail()) ? request.getGuardianEmail().trim().toLowerCase() : null)
+                        .lgpdConsent(Boolean.TRUE.equals(request.getLgpdConsent()))
+                        .lgpdConsentAt(OffsetDateTime.now())
+                        .status(SubmissionStatus.PENDING)
+                        .facePhotoUrl(faceUrl)
+                        .profilePhotoUrl(profileUrl)
+                        .fullBodyPhotoUrl(fullBodyUrl)
+                        .build();
 
-            // ================================
-            // Response: protocolo + id + fullName + email + status (DoD)
-            // ================================
-            return CandidateSubmissionResponseDto.builder()
-                    .id(saved.getId())
-                    .protocol(saved.getProtocol())
-                    .message("Candidatura enviada com sucesso! Nossa equipe de scouting analisará seu material.")
-                    .status(saved.getStatus())
-                    .fullName(saved.getFullName())
-                    .email(saved.getEmail())
-                    .createdAt(saved.getCreatedAt() != null ? saved.getCreatedAt() : OffsetDateTime.now())
-                    .build();
-        } catch (Exception ex) {
-            log.error("Erro detectado durante submissão da candidatura (storageId={}). Executando rollback compensatório no bucket '{}'...",
-                    storageId, bucket, ex);
-            for (String uploadedPath : uploadedPaths) {
-                try {
-                    storageService.deleteFile(bucket, uploadedPath);
-                    log.info("Arquivo órfão purgado via rollback compensatório: {}/{}", bucket, uploadedPath);
-                } catch (Exception delEx) {
-                    log.warn("Falha ao purgar arquivo órfão no storage: {}/{} - {}", bucket, uploadedPath, delEx.getMessage());
+                // DataIntegrityViolationException escapa deste save() se colidir protocolo em concorrência de ms
+                CandidateSubmission saved = repository.save(submission);
+                log.info("[SUBMIT] Candidatura gravada com sucesso — ID={} | Protocolo={}", saved.getId(), saved.getProtocol());
+
+                // ============================================================
+                // 7. Persistir 3 linhas filhas em candidate_photos (FK candidate_id = saved.getId())
+                // ============================================================
+                persistirFotoFilha(saved, facePath,    faceUrl,    "POLAROID_ROSTO",   1, cleanFileName(facePhoto.getOriginalFilename()));
+                persistirFotoFilha(saved, profilePath, profileUrl, "POLAROID_PERFIL",  2, cleanFileName(profilePhoto.getOriginalFilename()));
+                persistirFotoFilha(saved, fullBodyPath,fullBodyUrl,"CORPO_INTEIRO",    3, cleanFileName(fullBodyPhoto.getOriginalFilename()));
+                log.info("[SUBMIT][CANDIDATE_PHOTOS] 3 fotos persistidas com candidate_id={}", saved.getId());
+
+                // ============================================================
+                // 8. Resposta HTTP 201: id + protocol + fullName + email + status (DoD)
+                // ============================================================
+                return CandidateSubmissionResponseDto.builder()
+                        .id(saved.getId())
+                        .protocol(saved.getProtocol())
+                        .message("Candidatura enviada com sucesso! Nossa equipe de scouting analisará seu material.")
+                        .status(saved.getStatus())
+                        .fullName(saved.getFullName())
+                        .email(saved.getEmail())
+                        .createdAt(saved.getCreatedAt() != null ? saved.getCreatedAt() : OffsetDateTime.now())
+                        .build();
+
+            } catch (DataIntegrityViolationException dive) {
+                // Anti-colisão milissegundo: UNIQUE(protocol) violado por outra requisição no mesmo instante.
+                // -> Rollback storage, laço tenta de novo (novo protocolo + novo storageId)
+                log.warn("[SUBMIT] Colisão UNIQUE(protocol) em concorrência — tentativa {}/{} | protocolo={}. Reenvio automático com novo ID/protocolo.",
+                        saveAttempt, MAX_SAVE_ATTEMPTS, protocol, dive);
+                rollbackArquivosStorageOrfaos(bucket, uploadedPaths);
+
+                if (saveAttempt >= MAX_SAVE_ATTEMPTS) {
+                    throw new BusinessException("Muitas colisões simultâneas ao gravar protocolo único. Por favor, reenvie em 30 segundos.");
                 }
+                // Volta ao topo do while — next attempt
+            } catch (Exception ex) {
+                // Erro real (negócio, I/O storage, DB genérico, etc.) — falha fatal com rollback de arquivos.
+                log.error("[SUBMIT] Falha fatal submetendo candidatura (storageId={}). Rollback compensatório no bucket '{}'...",
+                        storageId, bucket, ex);
+                rollbackArquivosStorageOrfaos(bucket, uploadedPaths);
+                throw ex;
             }
-            throw ex;
         }
+
+        // Inatingível por construção (return dentro do caminho feliz acima)
+        throw new IllegalStateException("Erro interno: laço de submissão terminou sem return e sem exception.");
     }
 
     private int calculateAndValidateAge(LocalDate birthDate) {
@@ -275,13 +312,18 @@ public class CandidateSubmissionServiceImpl implements CandidateSubmissionServic
     }
 
     /**
-     * Gera protocolo no formato WB-YYYYMMDD-XXXX (4 dígitos hex aleatórios).
-     * Ex.: WB-20261006-7A2F
+     * Helper: remove todos os arquivos do bucket em caso de falha ou retry de concorrência.
+     * Usado tanto por exceções genéricas quanto por DataIntegrityViolationException (retry).
      */
-    private String generateProtocol() {
-        String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String randomPart = UUID.randomUUID().toString().replace("-", "").substring(0, 4).toUpperCase();
-        return String.format("WB-%s-%s", datePart, randomPart);
+    private void rollbackArquivosStorageOrfaos(String bucket, java.util.List<String> uploadedPaths) {
+        for (String uploadedPath : uploadedPaths) {
+            try {
+                storageService.deleteFile(bucket, uploadedPath);
+                log.info("[SUBMIT][ROLLBACK-STORAGE] Arquivo órfão purgado: {}/{}", bucket, uploadedPath);
+            } catch (Exception delEx) {
+                log.warn("[SUBMIT][ROLLBACK-STORAGE] Falha ao purgar órfão: {}/{} - {}", bucket, uploadedPath, delEx.getMessage());
+            }
+        }
     }
 
     /**

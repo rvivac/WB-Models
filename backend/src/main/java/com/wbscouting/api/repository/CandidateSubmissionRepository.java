@@ -16,6 +16,12 @@ public interface CandidateSubmissionRepository extends JpaRepository<CandidateSu
 
     Optional<CandidateSubmission> findByProtocol(String protocol);
 
+    /**
+     * Verificação pré-persistência de unicidade do protocolo.
+     * Usado por ProtocolGeneratorService no laço anti-colisão.
+     */
+    boolean existsByProtocol(String protocol);
+
     Page<CandidateSubmission> findByStatus(SubmissionStatus status, Pageable pageable);
 
     long countByStatus(SubmissionStatus status);

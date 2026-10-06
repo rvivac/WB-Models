@@ -28,11 +28,51 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
     private final TokenBlacklistService tokenBlacklistService;
 
+    /**
+     * Whitelist de caminhos PUBLICOS que NUNCA precisam de validacao JWT.
+     * Motivo: preflight OPTIONS CORS e endpoints publicos devem passar imediatamente
+     * sem que o filtro tente validar token ausente. O SecurityFilterChain garante o
+     * autorizaHTTPRequests final; aqui so pulamos processamento desnecessario.
+     */
+    private static final java.util.List<String> PUBLIC_PATH_PREFIXES = java.util.List.of(
+            "/options",
+            "/auth/", "/api/v1/auth/",
+            "/public/", "/api/v1/public/",
+            "/apply", "/api/v1/apply",
+            "/submissions/", "/api/v1/submissions/",
+            "/candidates/", "/api/v1/candidates/",
+            "/models/", "/api/v1/models/",
+            "/site-contents/", "/api/v1/site-contents/",
+            "/contact-channels/", "/api/v1/public/contact-channels/", "/public/contact-channels/",
+            "/i18n/", "/api/v1/public/i18n/", "/public/i18n/",
+            "/storage/local/", "/api/v1/storage/local/",
+            "/actuator/", "/actuator/health",
+            "/error"
+    );
+
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
+
+        // 🔴 ANTI-BLOQUEIO CORS: Preflight OPTIONS do navegador NUNCA envia Authorization.
+        // Sem este early-exit, o Spring Security/filter chain pode responder 403 ANTES
+        // do CorsFilter (DefaultCorsFilter) injetar os headers Allow-*.
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            log.trace("[CORS] Early-exit OPTIONS preflight para URI: {}", request.getRequestURI());
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // Early-exit 2: Rota ja reconhecida como publica — nao perde tempo com JWT
+        final String uri = request.getRequestURI();
+        for (String prefix : PUBLIC_PATH_PREFIXES) {
+            if (uri.startsWith(prefix)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+        }
 
         final String jwt = getJwtFromRequest(request);
 

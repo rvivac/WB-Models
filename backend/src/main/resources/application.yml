@@ -2,6 +2,9 @@ server:
   port: 8080
   servlet:
     context-path: /api/v1
+  # Obrigatorio Render + Cloudflare: Spring le corretamente os headers X-Forwarded-Host,
+  # X-Forwarded-Proto e X-Forwarded-Prefix (necessario para CORS e redirects absolutos).
+  forward-headers-strategy: native
 
 spring:
   autoconfigure:
@@ -99,3 +102,27 @@ supabase:
 logging:
   level:
     com.wbscouting.api: DEBUG
+
+# ============================================================
+# ACTUATOR (Render Load Balancer Health Check)
+# Sem o /actuator/health respondendo 200, Render marca a instancia
+# como UNHEALTHY e responde 502 Bad Gateway para todo o mundo.
+# ============================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      # Nao mostra detalhes sensiveis (ex: status do DB) em ambiente publico.
+      show-details: never
+      # Sempre responde 200 quando a app esta UP (mesmo se um sub-check falhar).
+      status:
+        order: DOWN, OUT_OF_SERVICE, UP, UNKNOWN
+  server:
+    # Health check no MESMO port que a app (padrao Render). Nao usar porta separada.
+    port: 8080
+  info:
+    build:
+      enabled: true

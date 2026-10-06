@@ -35,7 +35,13 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final RateLimitingFilter rateLimitingFilter;
 
-    @Value("${app.cors.allowed-origins:http://localhost:4200,https://wbagency.com.br,https://www.wbagency.com.br,http://wbagency.com.br,http://www.wbagency.com.br}")
+    /**
+     * Origens permitidas (fallback literal se variavel de ambiente for sobrescrita).
+     * OBS: Nao usamos mais estas em setAllowedOrigins() — elas sao MERGEADAS com
+     * os padroes wildcard abaixo em setAllowedOriginPatterns() para evitar 403
+     * em preflights com barra final, porta implicita ou subdominio dinamico.
+     */
+    @Value("${app.cors.allowed-origins:http://localhost:4200,http://localhost:8080,https://wbagency.com.br,https://www.wbagency.com.br,http://wbagency.com.br,http://www.wbagency.com.br}")
     private List<String> allowedOrigins;
 
     @Value("${app.cors.allowed-methods:GET,POST,PUT,PATCH,DELETE,OPTIONS}")
@@ -63,15 +69,20 @@ public class SecurityConfig {
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // Libera todo o preflight CORS do navegador
+                        // Libera todo o preflight CORS do navegador (OBRIGATORIO antes de qualquer auth)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // Health check do Render (evita 502 na porta do load balancer quando JWT nao e enviado)
+                        .requestMatchers("/actuator/health", "/actuator/health/**", "/error").permitAll()
 
                         // Endpoints públicos de autenticação
                         .requestMatchers("/auth/**", "/api/v1/auth/**").permitAll()
 
                         // Endpoints públicos de candidatura ("Quero ser modelo")
+                        // Obs: rotas /apply e /submissions sao ambas LIBERADAS (TASK item 3)
+                        .requestMatchers(HttpMethod.POST, "/apply/**", "/api/v1/apply/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/submissions/**", "/api/v1/submissions/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/candidates/**", "/api/v1/candidates/**", "/public/candidates/**", "/api/v1/public/candidates/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/candidates/**", "/api/v1/candidates/**", "/public/candidates/**", "/api/v1/public/candidates/**", "/public/candidates/apply", "/api/v1/public/candidates/apply").permitAll()
 
                         // Endpoints públicos de leitura (Catálogo, Home, Conteúdos, Contato, I18n, Storage Local)
                         .requestMatchers(HttpMethod.GET, "/models/**", "/api/v1/models/**").permitAll()
@@ -100,12 +111,49 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(allowedOrigins);
-        configuration.setAllowedMethods(allowedMethods);
-        configuration.setAllowedHeaders(allowedHeaders);
-        configuration.setExposedHeaders(List.of("Authorization", "Retry-After"));
+
+        // 🔑 Anti-403 CORS Render + Hostinger: usamos ALLOWED ORIGIN PATTERNS
+        // com wildcards. Isso permite origens com barra final (ex: https://wbagency.com.br/),
+        // portas dinamicas no localhost, e subdominios wildcard do Render.
+        // Mergeamos os patterns padrão abaixo com a lista ${app.cors.allowed-origins}
+        // (mantemos compatibilidade retroativa se houver override em ENV/Runtime).
+        java.util.ArrayList<String> originPatterns = new java.util.ArrayList<>(List.of(
+                // Frontend em produção (Hostinger)
+                "https://wbagency.com.br",
+                "https://wbagency.com.br/",
+                "https://*.wbagency.com.br",
+                "https://*.wbagency.com.br/",
+                // Ambiente local (portas padrão Angular e Spring)
+                "http://localhost:4200",
+                "http://localhost:4200/",
+                "http://localhost:8080",
+                "http://localhost:8080/",
+                "http://localhost:[*]",
+                "http://127.0.0.1:[*]",
+                // Backend em si (Render - evita 502 quando backend chama a si proprio em webhooks)
+                "https://wb-models-*.onrender.com",
+                "https://*.onrender.com"
+        ));
+        if (allowedOrigins != null && !allowedOrigins.isEmpty()) {
+            originPatterns.addAll(allowedOrigins);
+        }
+        configuration.setAllowedOriginPatterns(originPatterns);
+
+        configuration.setAllowedMethods(allowedMethods != null && !allowedMethods.isEmpty()
+                ? allowedMethods
+                : List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+
+        // Headers de entrada: * (o Spring resolve corretamente mesmo com allowCredentials=true
+        // quando usado em conjunto com AllowedOriginPatterns, não AllowedOrigins literal).
+        configuration.setAllowedHeaders(allowedHeaders != null && !allowedHeaders.isEmpty()
+                ? allowedHeaders
+                : List.of("*"));
+
+        // Headers que o navegador LIBERA para o JS ler (Content-Disposition = download de arquivos)
+        configuration.setExposedHeaders(List.of("Authorization", "Content-Disposition", "Retry-After", "X-Total-Count"));
+
         configuration.setAllowCredentials(allowCredentials);
-        configuration.setMaxAge(maxAge);
+        configuration.setMaxAge(maxAge != null ? maxAge : 3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

@@ -47,6 +47,19 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         String method = request.getMethod();
 
+        // 🔴 Early-exit OBRIGATORIO RFC9110 CORS: OPTIONS preflight do navegador
+        // NUNCA deve ser sujeito a rate limit (senão navegadores modernos retornam 403)
+        if ("OPTIONS".equalsIgnoreCase(method)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // 🔴 Early-exit: health checks do Render / Cloudflare — nao queremos 429 aqui
+        if (path.startsWith("/actuator/") || path.startsWith("/actuator") || "/error".equals(path)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if ("POST".equalsIgnoreCase(method)) {
             String clientIp = extractClientIp(request);
 

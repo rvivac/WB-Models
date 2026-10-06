@@ -95,8 +95,8 @@ class AdminCandidateServiceImplTest {
                 .updatedAt(OffsetDateTime.now())
                 .build();
 
-        photo1.setCandidate(candidate);
-        photo2.setCandidate(candidate);
+        photo1.setOwner(candidate);
+        photo2.setOwner(candidate);
 
         lenient().when(supabaseProperties.resolveBucketCandidates()).thenReturn("candidates-uploads");
     }

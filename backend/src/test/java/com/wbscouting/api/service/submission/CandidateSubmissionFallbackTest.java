@@ -6,6 +6,7 @@ import com.wbscouting.api.dto.CandidateSubmissionResponseDto;
 import com.wbscouting.api.entity.CandidateSubmission;
 import com.wbscouting.api.enums.SubmissionGender;
 import com.wbscouting.api.enums.SubmissionStatus;
+import com.wbscouting.api.repository.CandidatePhotoRepository;
 import com.wbscouting.api.repository.CandidateSubmissionRepository;
 import com.wbscouting.api.service.storage.SupabaseStorageService;
 import org.junit.jupiter.api.AfterEach;
@@ -38,6 +39,12 @@ class CandidateSubmissionFallbackTest {
     @Mock
     private CandidateSubmissionRepository repository;
 
+    @Mock
+    private CandidatePhotoRepository candidatePhotoRepository;
+
+    @Mock
+    private ProtocolGeneratorService protocolGeneratorService;
+
     private SupabaseProperties properties;
     private SupabaseStorageService storageService;
     private CandidateSubmissionServiceImpl submissionService;
@@ -60,7 +67,17 @@ class CandidateSubmissionFallbackTest {
         RestClient restClient = RestClient.builder().baseUrl(properties.getUrl()).build();
         storageService = new SupabaseStorageService(restClient, properties);
 
-        submissionService = new CandidateSubmissionServiceImpl(repository, storageService, properties);
+        // Mock do gerador de protocolo (evita ida ao banco + retorno determinístico nos asserts)
+        when(protocolGeneratorService.generateUniqueProtocol()).thenReturn("WB-20261006-TEST");
+
+        // Assinatura do construtor (5 args): repository, candidatePhotoRepository, storageService, properties, protocolGeneratorService
+        submissionService = new CandidateSubmissionServiceImpl(
+                repository,
+                candidatePhotoRepository,
+                storageService,
+                properties,
+                protocolGeneratorService
+        );
 
         byte[] jpegBytes = new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0, 16, 'J', 'F', 'I', 'F'};
         facePhoto = new MockMultipartFile("facePhoto", "face.jpg", "image/jpeg", jpegBytes);
@@ -111,7 +128,7 @@ class CandidateSubmissionFallbackTest {
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(SubmissionStatus.PENDING);
-        assertThat(response.getProtocol()).startsWith("WB-");
+        assertThat(response.getProtocol()).isEqualTo("WB-20261006-TEST"); // mock determinístico
 
         ArgumentCaptor<CandidateSubmission> captor = ArgumentCaptor.forClass(CandidateSubmission.class);
         verify(repository).save(captor.capture());

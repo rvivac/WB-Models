@@ -146,13 +146,17 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         // -------------- PASSO 3: Carga 2 a 4 modelos de exemplo (CATALOGO) --------------
-        // Apenas se NAO tiver nenhum modelo salvo. Ideal para profile H2 limpo.
+        // ⛔ PRODUÇÃO SEGURA: Seed de modelos fictícios SOMENTE em H2 LOCAL/DEV.
+        //    Em PostgreSQL/Supabase de produção, mesmo se catálogo estiver VAZIO, NAO insere nada.
+        //    (Evita aparecerem modelos demo com fotos Unsplash no site real do cliente)
         long modelCount = 0L;
         try { modelCount = modelRepository.count(); } catch (Exception e) { log.warn("[MODEL INIT] Nao foi possivel contar models. Motivo: {}", e.getMessage()); }
 
-        if (modelCount == 0L) {
-            log.info("[MODEL INIT] Catálogo vazio. Inserindo 4 modelos de exemplo para H2 Local.");
+        if (modelCount == 0L && isLocalDevProfile) {
+            log.info("[MODEL INIT][H2-LOCAL] Catálogo vazio detectado em ambiente LOCAL/DEV. Inserindo 4 modelos exemplo.");
             inserirModelosExemploH2();
+        } else if (modelCount == 0L) {
+            log.info("[MODEL INIT][PROD] Catálogo vazio detectado em ambiente PRODUCAO. Seed de exemplos BLOQUEADO (seguranca). Admin deve cadastrar via painel.");
         } else {
             log.info("[MODEL INIT] Catalogo com {} registros. Pulando carga de exemplos.", modelCount);
         }
@@ -325,13 +329,21 @@ public class DataInitializer implements CommandLineRunner {
             // Garante coluna updated_by em site_contents
             jdbcTemplate.execute("ALTER TABLE public.site_contents ADD COLUMN IF NOT EXISTS updated_by UUID NULL;");
 
-            // Garante composite inicial de demonstração para Isabella Fontana
-            jdbcTemplate.execute("""
-                INSERT INTO public.model_media (id, model_id, media_type, file_url, file_path, display_order, is_cover, is_active, created_at, updated_at)
-                SELECT gen_random_uuid(), '487b27d7-206f-422d-a46c-8961ed8c827c', 'COMPOSITE'::media_type, 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1200&auto=format&fit=crop', 'composites/isabella_fontana_comp.jpg', 1, false, true, NOW(), NOW()
-                WHERE EXISTS (SELECT 1 FROM public.models WHERE id = '487b27d7-206f-422d-a46c-8961ed8c827c')
-                  AND NOT EXISTS (SELECT 1 FROM public.model_media WHERE model_id = '487b27d7-206f-422d-a46c-8961ed8c827c' AND media_type = 'COMPOSITE'::media_type);
-            """);
+            // ⛔ PRODUÇÃO SEGURA: Composite demo Isabella Fontana APENAS se o modelo ID realmente
+            //    pertence a um registro seed H2 (nao queremos inserir midia demo em modelos REAIS
+            //    que por coincidencia tenham mesmo UUID em outro ambiente).
+            //    Verificacao adicional: isLocalDevProfile tambem bloqueia em producao.
+            if (isLocalDevProfile) {
+                log.info("[DLL MIGRATE][LOCAL-H2] Inserindo composite demo Isabella Fontana (seed local).");
+                jdbcTemplate.execute("""
+                    INSERT INTO public.model_media (id, model_id, media_type, file_url, file_path, display_order, is_cover, is_active, created_at, updated_at)
+                    SELECT gen_random_uuid(), '487b27d7-206f-422d-a46c-8961ed8c827c', 'COMPOSITE'::media_type, 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1200&auto=format&fit=crop', 'composites/isabella_fontana_comp.jpg', 1, false, true, NOW(), NOW()
+                    WHERE EXISTS (SELECT 1 FROM public.models WHERE id = '487b27d7-206f-422d-a46c-8961ed8c827c')
+                      AND NOT EXISTS (SELECT 1 FROM public.model_media WHERE model_id = '487b27d7-206f-422d-a46c-8961ed8c827c' AND media_type = 'COMPOSITE'::media_type);
+                """);
+            } else {
+                log.info("[DLL MIGRATE][PROD] Bloco composite demo Isabella BLOQUEADO em ambiente de producao.");
+            }
 
             log.info("[DLL MIGRATE][POSTGRES] OK.");
         } catch (Exception ex) {

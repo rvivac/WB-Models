@@ -48,3 +48,6 @@ projeto/
 .vercel
 .env*
 *.zip
+
+# Perfil local Spring Boot com credenciais locais
+backend/src/main/resources/application-local.yml

@@ -6,9 +6,18 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 public class CandidateDTO {
 
+    // TASK testCompile Render Fix #2: Anotacoes Lombok completas exigidas na inner ApplicationRequest
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ApplicationRequest {
 
         @NotBlank(message = "O nome completo é obrigatório.")
@@ -81,6 +90,28 @@ public class CandidateDTO {
         public void setLgpdAccepted(Boolean lgpdAccepted) { this.lgpdAccepted = lgpdAccepted; }
         public List<PhotoUploadRequest> getPhotos() { return photos; }
         public void setPhotos(List<PhotoUploadRequest> photos) { this.photos = photos; }
+
+        // 🔥 Fallback manual builder p/ MavenWrapper 3.6.3 (@Builder do Lombok pode nao gerar)
+        public static ApplicationRequestBuilder manualBuilder() { return new ApplicationRequestBuilder(); }
+        public static class ApplicationRequestBuilder {
+            private final ApplicationRequest r = new ApplicationRequest();
+            public ApplicationRequestBuilder fullName(String v) { r.setFullName(v); return this; }
+            public ApplicationRequestBuilder email(String v) { r.setEmail(v); return this; }
+            public ApplicationRequestBuilder phone(String v) { r.setPhone(v); return this; }
+            public ApplicationRequestBuilder age(Integer v) { r.setAge(v); return this; }
+            public ApplicationRequestBuilder guardianName(String v) { r.setGuardianName(v); return this; }
+            public ApplicationRequestBuilder gender(String v) { r.setGender(v); return this; }
+            public ApplicationRequestBuilder heightCm(BigDecimal v) { r.setHeightCm(v); return this; }
+            public ApplicationRequestBuilder weightKg(BigDecimal v) { r.setWeightKg(v); return this; }
+            public ApplicationRequestBuilder bustChestCm(BigDecimal v) { r.setBustChestCm(v); return this; }
+            public ApplicationRequestBuilder waistCm(BigDecimal v) { r.setWaistCm(v); return this; }
+            public ApplicationRequestBuilder hipsCm(BigDecimal v) { r.setHipsCm(v); return this; }
+            public ApplicationRequestBuilder instagramHandle(String v) { r.setInstagramHandle(v); return this; }
+            public ApplicationRequestBuilder tiktokHandle(String v) { r.setTiktokHandle(v); return this; }
+            public ApplicationRequestBuilder lgpdAccepted(Boolean v) { r.setLgpdAccepted(v); return this; }
+            public ApplicationRequestBuilder photos(List<PhotoUploadRequest> v) { r.setPhotos(v); return this; }
+            public ApplicationRequest build() { return r; }
+        }
     }
 
     public static class PhotoUploadRequest {

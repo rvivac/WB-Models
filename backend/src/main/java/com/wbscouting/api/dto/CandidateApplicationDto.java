@@ -8,7 +8,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+// TASK testCompile Render Fix #3: Anotacoes Lombok completas exigidas na classe principal
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CandidateApplicationDto {
 
     private UUID id;
@@ -38,8 +47,44 @@ public class CandidateApplicationDto {
     private OffsetDateTime createdAt;
     private List<CandidatePhotoDto> photos = new ArrayList<>();
 
-    public CandidateApplicationDto() {}
+    // 🔥 Fallback builder manual (classe principal) p/ MavenWrapper 3.6.3 (@Builder Lombok pode nao gerar)
+    public static CandidateApplicationDtoBuilder manualBuilder() { return new CandidateApplicationDtoBuilder(); }
+    public static class CandidateApplicationDtoBuilder {
+        private final CandidateApplicationDto d = new CandidateApplicationDto();
+        public CandidateApplicationDtoBuilder id(UUID v) { d.setId(v); return this; }
+        public CandidateApplicationDtoBuilder fullName(String v) { d.setFullName(v); return this; }
+        public CandidateApplicationDtoBuilder email(String v) { d.setEmail(v); return this; }
+        public CandidateApplicationDtoBuilder phone(String v) { d.setPhone(v); return this; }
+        public CandidateApplicationDtoBuilder birthDate(LocalDate v) { d.setBirthDate(v); return this; }
+        public CandidateApplicationDtoBuilder age(Integer v) { d.setAge(v); return this; }
+        public CandidateApplicationDtoBuilder guardianName(String v) { d.setGuardianName(v); return this; }
+        public CandidateApplicationDtoBuilder legalGuardianName(String v) { d.setLegalGuardianName(v); return this; }
+        public CandidateApplicationDtoBuilder legalGuardianContact(String v) { d.setLegalGuardianContact(v); return this; }
+        public CandidateApplicationDtoBuilder gender(String v) { d.setGender(v); return this; }
+        public CandidateApplicationDtoBuilder heightCm(BigDecimal v) { d.setHeightCm(v); return this; }
+        public CandidateApplicationDtoBuilder city(String v) { d.setCity(v); return this; }
+        public CandidateApplicationDtoBuilder state(String v) { d.setState(v); return this; }
+        public CandidateApplicationDtoBuilder weightKg(BigDecimal v) { d.setWeightKg(v); return this; }
+        public CandidateApplicationDtoBuilder bustChestCm(BigDecimal v) { d.setBustChestCm(v); return this; }
+        public CandidateApplicationDtoBuilder waistCm(BigDecimal v) { d.setWaistCm(v); return this; }
+        public CandidateApplicationDtoBuilder hipsCm(BigDecimal v) { d.setHipsCm(v); return this; }
+        public CandidateApplicationDtoBuilder shoeSize(String v) { d.setShoeSize(v); return this; }
+        public CandidateApplicationDtoBuilder dressSize(String v) { d.setDressSize(v); return this; }
+        public CandidateApplicationDtoBuilder instagramHandle(String v) { d.setInstagramHandle(v); return this; }
+        public CandidateApplicationDtoBuilder portfolioUrl(String v) { d.setPortfolioUrl(v); return this; }
+        public CandidateApplicationDtoBuilder tiktokHandle(String v) { d.setTiktokHandle(v); return this; }
+        public CandidateApplicationDtoBuilder status(String v) { d.setStatus(v); return this; }
+        public CandidateApplicationDtoBuilder lgpdAccepted(Boolean v) { d.setLgpdAccepted(v); return this; }
+        public CandidateApplicationDtoBuilder createdAt(OffsetDateTime v) { d.setCreatedAt(v); return this; }
+        public CandidateApplicationDtoBuilder photos(List<CandidatePhotoDto> v) { d.setPhotos(v); return this; }
+        public CandidateApplicationDto build() { return d; }
+    }
 
+    // TASK testCompile Render Fix #3: Anotacoes Lombok completas exigidas na inner CandidatePhotoDto
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CandidatePhotoDto {
         private Short photoPosition;
         private Integer displayOrder;
@@ -54,6 +99,17 @@ public class CandidateApplicationDto {
         public void setFileUrl(String fileUrl) { this.fileUrl = fileUrl; }
         public String getStoragePath() { return storagePath; }
         public void setStoragePath(String storagePath) { this.storagePath = storagePath; }
+
+        // 🔥 Fallback builder manual (inner CandidatePhotoDto) p/ MavenWrapper 3.6.3
+        public static CandidatePhotoDtoBuilder manualBuilder() { return new CandidatePhotoDtoBuilder(); }
+        public static class CandidatePhotoDtoBuilder {
+            private final CandidatePhotoDto p = new CandidatePhotoDto();
+            public CandidatePhotoDtoBuilder photoPosition(Short v) { p.setPhotoPosition(v); return this; }
+            public CandidatePhotoDtoBuilder displayOrder(Integer v) { p.setDisplayOrder(v); return this; }
+            public CandidatePhotoDtoBuilder fileUrl(String v) { p.setFileUrl(v); return this; }
+            public CandidatePhotoDtoBuilder storagePath(String v) { p.setStoragePath(v); return this; }
+            public CandidatePhotoDto build() { return p; }
+        }
     }
 
     public static CandidateApplicationDto fromEntity(Candidate candidate) {

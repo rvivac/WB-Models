@@ -55,4 +55,34 @@ public class AdminAuditLog {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
+
+    // ============================================================
+    // 🔥 GETTERS EXPLICITOS (Lombok @Getter nao processa no MavenWrapper 3.6.3 Render)
+    // ============================================================
+    public UUID getId() { return this.id; }
+    public UUID getAdminId() { return this.adminId; }
+    public String getAdminEmail() { return this.adminEmail; }
+    public String getAction() { return this.action; }
+    public String getResourceType() { return this.resourceType; }
+    public String getResourceId() { return this.resourceId; }
+    public String getDescription() { return this.description; }
+    public Map<String, Object> getDetailsJson() { return this.detailsJson; }
+    public String getIpAddress() { return this.ipAddress; }
+    public String getUserAgent() { return this.userAgent; }
+    public OffsetDateTime getCreatedAt() { return this.createdAt; }
+
+    // ============================================================
+    // 🔥 SETTERS EXPLICITOS complementares
+    // ============================================================
+    public void setId(UUID id) { this.id = id; }
+    public void setAdminId(UUID adminId) { this.adminId = adminId; }
+    public void setAdminEmail(String adminEmail) { this.adminEmail = adminEmail; }
+    public void setAction(String action) { this.action = action; }
+    public void setResourceType(String resourceType) { this.resourceType = resourceType; }
+    public void setResourceId(String resourceId) { this.resourceId = resourceId; }
+    public void setDescription(String description) { this.description = description; }
+    public void setDetailsJson(Map<String, Object> detailsJson) { this.detailsJson = detailsJson; }
+    public void setIpAddress(String ipAddress) { this.ipAddress = ipAddress; }
+    public void setUserAgent(String userAgent) { this.userAgent = userAgent; }
+    public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
 }

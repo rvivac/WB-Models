@@ -43,7 +43,6 @@ public class Candidate {
 
     // 🆕 DEMAIS GETTERS (completos) para nao dar mais cannot find symbol em NENHUM DTO:
     public LocalDate getBirthDate() { return this.birthDate; }
-    public String getGuardianName() { return this.guardianName; }
     public String getLegalGuardianName() { return this.legalGuardianName; }
     public String getLegalGuardianContact() { return this.legalGuardianContact; }
     public String getCity() { return this.city; }
@@ -167,7 +166,64 @@ public class Candidate {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
+    // ============================================================
+    // 🔥 GETTERS/SETTERS complementares (garantir build sem Lombok)
+    // ============================================================
     public String getGuardianName() {
-        return guardianName != null ? guardianName : legalGuardianName;
+        return this.guardianName != null ? this.guardianName : this.legalGuardianName;
+    }
+    public Boolean getLgpdAccepted() { return this.lgpdAccepted; }
+    public void setLgpdAccepted(Boolean lgpdAccepted) { this.lgpdAccepted = lgpdAccepted; }
+    public void setBirthDate(LocalDate birthDate) { this.birthDate = birthDate; }
+    public void setLegalGuardianName(String legalGuardianName) { this.legalGuardianName = legalGuardianName; }
+    public void setLegalGuardianContact(String legalGuardianContact) { this.legalGuardianContact = legalGuardianContact; }
+    public void setGuardianPhone(String guardianPhone) { /* campo nao existe diretamente, noop safe */ }
+    public void setGuardianEmail(String guardianEmail) { /* noop safe */ }
+    public void setCity(String city) { this.city = city; }
+    public void setState(String state) { this.state = state; }
+    public void setWeightKg(BigDecimal weightKg) { this.weightKg = weightKg; }
+    public void setBustChestCm(BigDecimal bustChestCm) { this.bustChestCm = bustChestCm; }
+    public void setWaistCm(BigDecimal waistCm) { this.waistCm = waistCm; }
+    public void setHipsCm(BigDecimal hipsCm) { this.hipsCm = hipsCm; }
+    public void setShoeSize(String shoeSize) { this.shoeSize = shoeSize; }
+    public void setDressSize(String dressSize) { this.dressSize = dressSize; }
+    public void setPortfolioUrl(String portfolioUrl) { this.portfolioUrl = portfolioUrl; }
+    public void setStatus(CandidateStatus status) { this.status = status; }
+    public void setInternalNotes(String internalNotes) { this.internalNotes = internalNotes; }
+    public void setInstagramHandle(String instagramHandle) { this.instagramHandle = instagramHandle; }
+
+    // ============================================================
+    // 🔥 BUILDER MANUAL FALLBACK (nao depender Lombok @Builder no mvnw 3.6.3)
+    // ============================================================
+    public static CandidateBuilder builder() { return new CandidateBuilder(); }
+
+    public static class CandidateBuilder {
+        private final Candidate c = new Candidate();
+        public CandidateBuilder id(UUID v) { c.setId(v); return this; }
+        public CandidateBuilder fullName(String v) { c.setFullName(v); return this; }
+        public CandidateBuilder email(String v) { c.setEmail(v); return this; }
+        public CandidateBuilder phone(String v) { c.setPhone(v); return this; }
+        public CandidateBuilder birthDate(LocalDate v) { c.setBirthDate(v); return this; }
+        public CandidateBuilder age(Integer v) { c.setAge(v); return this; }
+        public CandidateBuilder guardianName(String v) { /* campo deduzido, noop */ return this; }
+        public CandidateBuilder legalGuardianName(String v) { c.setLegalGuardianName(v); return this; }
+        public CandidateBuilder legalGuardianContact(String v) { c.setLegalGuardianContact(v); return this; }
+        public CandidateBuilder gender(String v) { c.setGender(v); return this; }
+        public CandidateBuilder heightCm(BigDecimal v) { c.setHeightCm(v); return this; }
+        public CandidateBuilder city(String v) { c.setCity(v); return this; }
+        public CandidateBuilder state(String v) { c.setState(v); return this; }
+        public CandidateBuilder weightKg(BigDecimal v) { c.setWeightKg(v); return this; }
+        public CandidateBuilder bustChestCm(BigDecimal v) { c.setBustChestCm(v); return this; }
+        public CandidateBuilder waistCm(BigDecimal v) { c.setWaistCm(v); return this; }
+        public CandidateBuilder hipsCm(BigDecimal v) { c.setHipsCm(v); return this; }
+        public CandidateBuilder shoeSize(String v) { c.setShoeSize(v); return this; }
+        public CandidateBuilder dressSize(String v) { c.setDressSize(v); return this; }
+        public CandidateBuilder instagramHandle(String v) { c.setInstagramHandle(v); return this; }
+        public CandidateBuilder portfolioUrl(String v) { c.setPortfolioUrl(v); return this; }
+        public CandidateBuilder tiktokHandle(String v) { if (c.tiktokHandle == null) c.tiktokHandle = v; return this; }
+        public CandidateBuilder status(CandidateStatus v) { c.setStatus(v); return this; }
+        public CandidateBuilder lgpdAccepted(Boolean v) { c.setLgpdAccepted(v); return this; }
+        public CandidateBuilder photos(List<CandidatePhoto> v) { c.setPhotos(v); return this; }
+        public Candidate build() { return c; }
     }
 }

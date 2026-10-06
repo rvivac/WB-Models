@@ -1,23 +1,14 @@
 package com.wbscouting.api.dto;
 
 import com.wbscouting.api.entity.Candidate;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.UUID;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class CandidateApplicationDto {
 
     private UUID id;
@@ -45,9 +36,9 @@ public class CandidateApplicationDto {
     private String status;
     private Boolean lgpdAccepted;
     private OffsetDateTime createdAt;
-
-    @Builder.Default
     private List<CandidatePhotoDto> photos = new ArrayList<>();
+
+    public CandidateApplicationDto() {}
 
     public static class CandidatePhotoDto {
         private Short photoPosition;
@@ -55,7 +46,6 @@ public class CandidateApplicationDto {
         private String fileUrl;
         private String storagePath;
 
-        // 🔥 Getters e Setters EXPLICITOS (sem depender Lombok @Data, que nao roda no Render)
         public Short getPhotoPosition() { return photoPosition; }
         public void setPhotoPosition(Short photoPosition) { this.photoPosition = photoPosition; }
         public Integer getDisplayOrder() { return displayOrder; }
@@ -66,8 +56,60 @@ public class CandidateApplicationDto {
         public void setStoragePath(String storagePath) { this.storagePath = storagePath; }
     }
 
-    // 🔥 Getters e Setters EXPLICITOS em CandidateApplicationDto (escritos na mao) para NAO DEPENDER de LOMBOK @Data/@Getter/@Setter.
-    // Isso evita todos os erros "cannot find symbol method getXxx / setXxx" no Docker Render do ./mvnw.
+    public static CandidateApplicationDto fromEntity(Candidate candidate) {
+        if (candidate == null) {
+            return null;
+        }
+
+        List<CandidatePhotoDto> photoDtos = candidate.getPhotos() != null
+                ? candidate.getPhotos().stream()
+                .map(p -> {
+                    CandidatePhotoDto photo = new CandidatePhotoDto();
+                    Short pos = p.getPhotoPosition() != null ? p.getPhotoPosition() : (p.getDisplayOrder() != null ? p.getDisplayOrder().shortValue() : 1);
+                    photo.setPhotoPosition(pos);
+                    photo.setDisplayOrder(p.getDisplayOrder());
+                    photo.setFileUrl(p.getFileUrl() != null ? p.getFileUrl() : p.getStoragePath());
+                    photo.setStoragePath(p.getStoragePath());
+                    return photo;
+                })
+                .collect(Collectors.toList())
+                : new ArrayList<>();
+
+        CandidateApplicationDto dto = new CandidateApplicationDto();
+        dto.setId(candidate.getId());
+        dto.setFullName(candidate.getFullName());
+        dto.setEmail(candidate.getEmail());
+        dto.setPhone(candidate.getPhone());
+        dto.setBirthDate(candidate.getBirthDate());
+        dto.setAge(candidate.getAge());
+        dto.setGuardianName(candidate.getGuardianName());
+        dto.setLegalGuardianName(candidate.getLegalGuardianName());
+        dto.setLegalGuardianContact(candidate.getLegalGuardianContact());
+        dto.setGender(candidate.getGender());
+        dto.setHeightCm(candidate.getHeightCm());
+        dto.setCity(candidate.getCity());
+        dto.setState(candidate.getState());
+        dto.setWeightKg(candidate.getWeightKg());
+        dto.setBustChestCm(candidate.getBustChestCm());
+        dto.setWaistCm(candidate.getWaistCm());
+        dto.setHipsCm(candidate.getHipsCm());
+        dto.setShoeSize(candidate.getShoeSize());
+        dto.setDressSize(candidate.getDressSize());
+        dto.setInstagramHandle(candidate.getInstagramHandle());
+        dto.setPortfolioUrl(candidate.getPortfolioUrl());
+        dto.setTiktokHandle(candidate.getTiktokHandle());
+        // fallback safe para status enum (evita null pointer)
+        dto.setStatus(candidate.getStatus() != null ? candidate.getStatus().name() : null);
+        // fallback de lgpd (nunca nulo)
+        Boolean lgpd = candidate.getLgpdAccepted();
+        dto.setLgpdAccepted(lgpd != null ? lgpd : Boolean.TRUE);
+        OffsetDateTime created = candidate.getCreatedAt();
+        dto.setCreatedAt(created != null ? created : OffsetDateTime.now());
+        dto.setPhotos(photoDtos);
+        return dto;
+    }
+
+    // Getters + Setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
     public String getFullName() { return fullName; }
@@ -120,57 +162,4 @@ public class CandidateApplicationDto {
     public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
     public List<CandidatePhotoDto> getPhotos() { return photos; }
     public void setPhotos(List<CandidatePhotoDto> photos) { this.photos = photos; }
-
-    public static CandidateApplicationDto fromEntity(Candidate candidate) {
-        if (candidate == null) {
-            return null;
-        }
-
-        List<CandidatePhotoDto> photoDtos = candidate.getPhotos() != null
-                ? candidate.getPhotos().stream()
-                .map(p -> {
-                    // NAO USA CandidatePhotoDto.builder() porque Lombok NAO roda no Render Docker.
-                    // Usamos constructor vazio + setters (garantido, mesmo sem Lombok @Data @Builder)
-                    CandidatePhotoDto photo = new CandidatePhotoDto();
-                    Short pos = p.getPhotoPosition() != null ? p.getPhotoPosition() : (p.getDisplayOrder() != null ? p.getDisplayOrder().shortValue() : 1);
-                    photo.setPhotoPosition(pos);
-                    photo.setDisplayOrder(p.getDisplayOrder());
-                    photo.setFileUrl(p.getFileUrl() != null ? p.getFileUrl() : p.getStoragePath());
-                    photo.setStoragePath(p.getStoragePath());
-                    return photo;
-                })
-                .collect(Collectors.toList())
-                : new ArrayList<>();
-
-        // NAO USA CandidateApplicationDto.builder() porque Lombok NAO processa no Render Docker.
-        // Constructor vazio @NoArgsConstructor + setters @Data (existentes) ou atribuicao direta (campos private, entao usamos setters).
-        CandidateApplicationDto dto = new CandidateApplicationDto();
-        dto.setId(candidate.getId());
-        dto.setFullName(candidate.getFullName());
-        dto.setEmail(candidate.getEmail());
-        dto.setPhone(candidate.getPhone());
-        dto.setBirthDate(candidate.getBirthDate());
-        dto.setAge(candidate.getAge());
-        dto.setGuardianName(candidate.getGuardianName());
-        dto.setLegalGuardianName(candidate.getLegalGuardianName());
-        dto.setLegalGuardianContact(candidate.getLegalGuardianContact());
-        dto.setGender(candidate.getGender());
-        dto.setHeightCm(candidate.getHeightCm());
-        dto.setCity(candidate.getCity());
-        dto.setState(candidate.getState());
-        dto.setWeightKg(candidate.getWeightKg());
-        dto.setBustChestCm(candidate.getBustChestCm());
-        dto.setWaistCm(candidate.getWaistCm());
-        dto.setHipsCm(candidate.getHipsCm());
-        dto.setShoeSize(candidate.getShoeSize());
-        dto.setDressSize(candidate.getDressSize());
-        dto.setInstagramHandle(candidate.getInstagramHandle());
-        dto.setPortfolioUrl(candidate.getPortfolioUrl());
-        dto.setTiktokHandle(candidate.getTiktokHandle());
-        dto.setStatus(candidate.getStatus() != null ? candidate.getStatus().name() : null);
-        dto.setLgpdAccepted(candidate.getLgpdAccepted());
-        dto.setCreatedAt(candidate.getCreatedAt() != null ? candidate.getCreatedAt() : OffsetDateTime.now());
-        dto.setPhotos(photoDtos);
-        return dto;
-    }
 }

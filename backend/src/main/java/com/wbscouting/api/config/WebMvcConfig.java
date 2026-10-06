@@ -5,6 +5,8 @@ import com.wbscouting.api.security.SortAllowlistValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.web.config.PageableHandlerMethodArgumentResolverCustomizer;
@@ -32,7 +34,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(new SortValidationInterceptor());
     }
 
+    @Slf4j
     public static class SortValidationInterceptor implements HandlerInterceptor {
+
         @Override
         public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
             String[] sortParams = request.getParameterValues("sort");

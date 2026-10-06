@@ -106,4 +106,59 @@ public class Model {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    // ============================================================
+    // 🔥 GETTERS EXPLICITOS (Lombok @Getter NAO processa no MavenWrapper 3.6.3 Render)
+    // ============================================================
+    public UUID getId() { return this.id; }
+    public String getStageName() { return this.stageName; }
+    public GenderType getGender() { return this.gender; }
+    public Boolean getIsStar() { return this.isStar; }
+    public Boolean getIsFeaturedHome() { return this.isFeaturedHome; }
+    public Integer getFeaturedOrder() { return this.featuredOrder; }
+    public Boolean getIsActive() { return this.isActive; }
+    public String getPrimaryPhotoUrl() { return this.primaryPhotoUrl; }
+    public String getInstagramUrl() { return this.instagramUrl; }
+    public LocalDate getBirthDate() { return this.birthDate; }
+    public Integer getHeightCm() { return this.heightCm; }
+    public String getCity() { return this.city; }
+    public String getNationality() { return this.nationality; }
+    public String getDressSize() { return this.dressSize; }
+    public String getShoeSize() { return this.shoeSize; }
+    public BigDecimal getBustChestCm() { return this.bustChestCm; }
+    public BigDecimal getWaistCm() { return this.waistCm; }
+    public BigDecimal getHipsCm() { return this.hipsCm; }
+    public String getHairColor() { return this.hairColor; }
+    // Entity tem campo eyes_color (PLURAL) na tabela. Nome do getter confere com o campo.
+    public String getEyesColor() { return this.eyesColor; }
+    public List<ModelMedia> getMedia() { return this.media; }
+    public OffsetDateTime getCreatedAt() { return this.createdAt; }
+    public OffsetDateTime getUpdatedAt() { return this.updatedAt; }
+
+    // ============================================================
+    // 🔥 SETTERS EXPLICITOS complementares
+    // ============================================================
+    public void setId(UUID id) { this.id = id; }
+    public void setStageName(String stageName) { this.stageName = stageName; }
+    public void setGender(GenderType gender) { this.gender = gender; }
+    public void setIsStar(Boolean isStar) { this.isStar = isStar; }
+    public void setIsFeaturedHome(Boolean isFeaturedHome) { this.isFeaturedHome = isFeaturedHome; }
+    public void setFeaturedOrder(Integer featuredOrder) { this.featuredOrder = featuredOrder; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+    public void setPrimaryPhotoUrl(String primaryPhotoUrl) { this.primaryPhotoUrl = primaryPhotoUrl; }
+    public void setInstagramUrl(String instagramUrl) { this.instagramUrl = instagramUrl; }
+    public void setBirthDate(LocalDate birthDate) { this.birthDate = birthDate; }
+    public void setHeightCm(Integer heightCm) { this.heightCm = heightCm; }
+    public void setCity(String city) { this.city = city; }
+    public void setNationality(String nationality) { this.nationality = nationality; }
+    public void setDressSize(String dressSize) { this.dressSize = dressSize; }
+    public void setShoeSize(String shoeSize) { this.shoeSize = shoeSize; }
+    public void setBustChestCm(BigDecimal bustChestCm) { this.bustChestCm = bustChestCm; }
+    public void setWaistCm(BigDecimal waistCm) { this.waistCm = waistCm; }
+    public void setHipsCm(BigDecimal hipsCm) { this.hipsCm = hipsCm; }
+    public void setHairColor(String hairColor) { this.hairColor = hairColor; }
+    public void setEyesColor(String eyesColor) { this.eyesColor = eyesColor; }
+    public void setMedia(List<ModelMedia> media) { this.media = media; }
+    public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
+    public void setUpdatedAt(OffsetDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

@@ -50,4 +50,46 @@ public class SiteContent {
 
     @Column(name = "updated_by")
     private UUID updatedBy;
+
+    // ============================================================
+    // 🔥 GETTERS EXPLICITOS (Lombok @Getter/@Setter NAO processa no mvnw 3.6.3)
+    // ============================================================
+    public UUID getId() { return this.id; }
+    public String getSectionKey() { return this.sectionKey; }
+    public Map<String, Object> getPayloadPt() { return this.payloadPt; }
+    public Map<String, Object> getPayloadEn() { return this.payloadEn; }
+    public Map<String, Object> getMediaUrls() { return this.mediaUrls; }
+    public OffsetDateTime getCreatedAt() { return this.createdAt; }
+    public OffsetDateTime getUpdatedAt() { return this.updatedAt; }
+    public UUID getUpdatedBy() { return this.updatedBy; }
+
+    // ============================================================
+    // 🔥 SETTERS EXPLICITOS complementares
+    // ============================================================
+    public void setId(UUID id) { this.id = id; }
+    public void setSectionKey(String sectionKey) { this.sectionKey = sectionKey; }
+    public void setPayloadPt(Map<String, Object> payloadPt) { this.payloadPt = payloadPt; }
+    public void setPayloadEn(Map<String, Object> payloadEn) { this.payloadEn = payloadEn; }
+    public void setMediaUrls(Map<String, Object> mediaUrls) { this.mediaUrls = mediaUrls; }
+    public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
+    public void setUpdatedAt(OffsetDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public void setUpdatedBy(UUID updatedBy) { this.updatedBy = updatedBy; }
+
+    // ============================================================
+    // 🔥 BUILDER MANUAL FALLBACK (mantem compatibilidade com o builder do TASK)
+    // ============================================================
+    public static SiteContentBuilder builder() { return new SiteContentBuilder(); }
+
+    public static class SiteContentBuilder {
+        private final SiteContent sc = new SiteContent();
+        public SiteContentBuilder id(UUID v) { sc.setId(v); return this; }
+        public SiteContentBuilder sectionKey(String v) { sc.setSectionKey(v); return this; }
+        public SiteContentBuilder payloadPt(Map<String, Object> v) { sc.setPayloadPt(v); return this; }
+        public SiteContentBuilder payloadEn(Map<String, Object> v) { sc.setPayloadEn(v); return this; }
+        public SiteContentBuilder mediaUrls(Map<String, Object> v) { sc.setMediaUrls(v); return this; }
+        public SiteContentBuilder createdAt(OffsetDateTime v) { sc.setCreatedAt(v); return this; }
+        public SiteContentBuilder updatedAt(OffsetDateTime v) { sc.setUpdatedAt(v); return this; }
+        public SiteContentBuilder updatedBy(UUID v) { sc.setUpdatedBy(v); return this; }
+        public SiteContent build() { return sc; }
+    }
 }

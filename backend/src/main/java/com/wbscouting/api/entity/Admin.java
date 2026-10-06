@@ -18,11 +18,11 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "admins", schema = "public")
-@Getter
-@Setter
+// TASK PASSO 3: Anotacoes Lombok completas exigidas
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Admin implements UserDetails {
 
     @Id
@@ -114,4 +114,42 @@ public class Admin implements UserDetails {
     public boolean isEnabled() {
         return Boolean.TRUE.equals(this.isActive);
     }
+
+    // ============================================================
+    // 🔥 GETTERS EXPLICITOS (Lombok @Getter NAO roda no MavenWrapper 3.6.3 Render)
+    // ============================================================
+    public UUID getId() { return this.id; }
+    public String getName() { return this.name; }
+    public String getEmail() { return this.email; }
+    public String getPasswordHash() { return this.passwordHash; }
+    public AdminRole getRole() { return this.role; }
+    public Boolean getIsActive() { return this.isActive; }
+    public String getTotpSecret() { return this.totpSecret; }
+    public Boolean getIs2faEnabled() { return this.is2faEnabled; }
+    public List<String> getBackupCodes() { return this.backupCodes; }
+    public Boolean getMustChangePassword() { return this.mustChangePassword; }
+    public OffsetDateTime getLastLoginAt() { return this.lastLoginAt; }
+    public String getPasswordResetToken() { return this.passwordResetToken; }
+    public OffsetDateTime getPasswordResetExpiresAt() { return this.passwordResetExpiresAt; }
+    public OffsetDateTime getCreatedAt() { return this.createdAt; }
+    public OffsetDateTime getUpdatedAt() { return this.updatedAt; }
+
+    // ============================================================
+    // 🔥 SETTERS EXPLICITOS complementares
+    // ============================================================
+    public void setId(UUID id) { this.id = id; }
+    public void setName(String name) { this.name = name; }
+    public void setEmail(String email) { this.email = email; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+    public void setRole(AdminRole role) { this.role = role; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+    public void setTotpSecret(String totpSecret) { this.totpSecret = totpSecret; }
+    public void setIs2faEnabled(Boolean is2faEnabled) { this.is2faEnabled = is2faEnabled; }
+    public void setBackupCodes(List<String> backupCodes) { this.backupCodes = backupCodes; }
+    public void setMustChangePassword(Boolean mustChangePassword) { this.mustChangePassword = mustChangePassword; }
+    public void setLastLoginAt(OffsetDateTime lastLoginAt) { this.lastLoginAt = lastLoginAt; }
+    public void setPasswordResetToken(String passwordResetToken) { this.passwordResetToken = passwordResetToken; }
+    public void setPasswordResetExpiresAt(OffsetDateTime passwordResetExpiresAt) { this.passwordResetExpiresAt = passwordResetExpiresAt; }
+    public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
+    public void setUpdatedAt(OffsetDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

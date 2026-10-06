@@ -23,6 +23,7 @@ public class ModelCompositeResponseDto {
      */
     private String filePath;
     /** @deprecated Use filePath. Mantido para compatibilidade DTOs legados. */
+    @Deprecated
     private String storagePath;
     private String fileName;
     private String fileType; // "PDF" | "IMAGE"

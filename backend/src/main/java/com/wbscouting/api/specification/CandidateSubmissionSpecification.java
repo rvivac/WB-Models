@@ -1,4 +1,8 @@
-package com.wbscouting.api.service.submission;
+// ✅ PASSO 1 TASK CRITICA: PACOTE CORRIGIDO (combinando caminho fisico + declaracao package)
+// ANTES: package com.wbscouting.api.service.submission (ERRADO - causava class file does not contain expected class
+//        e abortava analysis de tipos do javac, consequentemente TODOS annotation processors do Lombok paravam!)
+// AGORA: package com.wbscouting.api.specification (CORRETO - arquivo fisico esta em specification/)
+package com.wbscouting.api.specification;
 
 import com.wbscouting.api.entity.CandidateSubmission;
 import com.wbscouting.api.enums.SubmissionGender;

@@ -58,6 +58,7 @@ public class AuthDTO {
         private String newPassword;
     }
 
+    // TASK CIRURGICA #3: Declaracao LIMPA. @AllArgsConstructor JA GERA MessageResponse(String message) pois ha apenas 1 atributo do tipo String. Nao declarar construtor manual (duplicata).
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

@@ -103,20 +103,48 @@ public class SupabaseProperties {
                 || "your-anon-key".equalsIgnoreCase(trimmed);
     }
 
-    @Getter
-    @Setter
+    // ============================================================
+    // 🔥 GETTERS/SETTERS EXPLICITOS (Lombok @Getter/@Setter nao processa no mvnw 3.6.3)
+    // ============================================================
+    public String getUrl() { return this.url; }
+    public void setUrl(String url) { this.url = url; }
+    public String getServiceRoleKey() { return this.serviceRoleKey; }
+    public void setServiceRoleKey(String serviceRoleKey) { this.serviceRoleKey = serviceRoleKey; }
+    public String getAnonKey() { return this.anonKey; }
+    public void setAnonKey(String anonKey) { this.anonKey = anonKey; }
+    public String getKey() { return this.key; }
+    public void setKey(String key) { this.key = key; }
+    public Storage getStorage() { return this.storage; }
+    public void setStorage(Storage storage) { this.storage = storage; }
+    public Buckets getBuckets() { return this.buckets; }
+    public void setBuckets(Buckets buckets) { this.buckets = buckets; }
+
     public static class Storage {
         private boolean localFallback = false;
         private String localDir = "uploads";
         private String localBaseUrl = "http://localhost:8080";
         private String publicBaseUrl;
+
+        public boolean isLocalFallback() { return localFallback; }
+        public void setLocalFallback(boolean localFallback) { this.localFallback = localFallback; }
+        public String getLocalDir() { return localDir; }
+        public void setLocalDir(String localDir) { this.localDir = localDir; }
+        public String getLocalBaseUrl() { return localBaseUrl; }
+        public void setLocalBaseUrl(String localBaseUrl) { this.localBaseUrl = localBaseUrl; }
+        public String getPublicBaseUrl() { return publicBaseUrl; }
+        public void setPublicBaseUrl(String publicBaseUrl) { this.publicBaseUrl = publicBaseUrl; }
     }
 
-    @Getter
-    @Setter
     public static class Buckets {
         private String siteAssets = FALLBACK_SITE_ASSETS;
         private String modelsMedia = FALLBACK_MODELS_MEDIA;
         private String candidatesUploads = FALLBACK_CANDIDATES_UPLOADS;
+
+        public String getSiteAssets() { return siteAssets; }
+        public void setSiteAssets(String siteAssets) { this.siteAssets = siteAssets; }
+        public String getModelsMedia() { return modelsMedia; }
+        public void setModelsMedia(String modelsMedia) { this.modelsMedia = modelsMedia; }
+        public String getCandidatesUploads() { return candidatesUploads; }
+        public void setCandidatesUploads(String candidatesUploads) { this.candidatesUploads = candidatesUploads; }
     }
 }

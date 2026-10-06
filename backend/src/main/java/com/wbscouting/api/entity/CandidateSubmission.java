@@ -127,4 +127,78 @@ public class CandidateSubmission {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    // ============================================================
+    // 🔥 GETTERS EXPLICITOS (Lombok @Getter NAO roda no MavenWrapper 3.6.3 Render)
+    // ============================================================
+    public UUID getId() { return this.id; }
+    public String getProtocol() { return this.protocol; }
+    public String getFullName() { return this.fullName; }
+    public String getEmail() { return this.email; }
+    public String getPhone() { return this.phone; }
+    public LocalDate getBirthDate() { return this.birthDate; }
+    public Integer getAge() { return this.age; }
+    public SubmissionGender getGender() { return this.gender; }
+    public String getCity() { return this.city; }
+    public String getState() { return this.state; }
+    public BigDecimal getHeight() { return this.height; }
+    public BigDecimal getBust() { return this.bust; }
+    public BigDecimal getWaist() { return this.waist; }
+    public BigDecimal getHips() { return this.hips; }
+    public Integer getShoeSize() { return this.shoeSize; }
+    public String getEyeColor() { return this.eyeColor; }
+    public String getHairColor() { return this.hairColor; }
+    public String getInstagramHandle() { return this.instagramHandle; }
+    public String getGuardianName() { return this.guardianName; }
+    public String getGuardianPhone() { return this.guardianPhone; }
+    public String getGuardianEmail() { return this.guardianEmail; }
+    public Boolean getLgpdConsent() { return this.lgpdConsent; }
+    public OffsetDateTime getLgpdConsentAt() { return this.lgpdConsentAt; }
+    public SubmissionStatus getStatus() { return this.status; }
+    public String getFacePhotoUrl() { return this.facePhotoUrl; }
+    public String getProfilePhotoUrl() { return this.profilePhotoUrl; }
+    public String getFullBodyPhotoUrl() { return this.fullBodyPhotoUrl; }
+    public String getReviewedBy() { return this.reviewedBy; }
+    public OffsetDateTime getReviewedAt() { return this.reviewedAt; }
+    public String getFeedbackNotes() { return this.feedbackNotes; }
+    public UUID getConvertedToModelId() { return this.convertedToModelId; }
+    public OffsetDateTime getCreatedAt() { return this.createdAt; }
+    public OffsetDateTime getUpdatedAt() { return this.updatedAt; }
+
+    // ============================================================
+    // 🔥 SETTERS EXPLICITOS complementares
+    // ============================================================
+    public void setId(UUID id) { this.id = id; }
+    public void setProtocol(String protocol) { this.protocol = protocol; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+    public void setEmail(String email) { this.email = email; }
+    public void setPhone(String phone) { this.phone = phone; }
+    public void setBirthDate(LocalDate birthDate) { this.birthDate = birthDate; }
+    public void setAge(Integer age) { this.age = age; }
+    public void setGender(SubmissionGender gender) { this.gender = gender; }
+    public void setCity(String city) { this.city = city; }
+    public void setState(String state) { this.state = state; }
+    public void setHeight(BigDecimal height) { this.height = height; }
+    public void setBust(BigDecimal bust) { this.bust = bust; }
+    public void setWaist(BigDecimal waist) { this.waist = waist; }
+    public void setHips(BigDecimal hips) { this.hips = hips; }
+    public void setShoeSize(Integer shoeSize) { this.shoeSize = shoeSize; }
+    public void setEyeColor(String eyeColor) { this.eyeColor = eyeColor; }
+    public void setHairColor(String hairColor) { this.hairColor = hairColor; }
+    public void setInstagramHandle(String instagramHandle) { this.instagramHandle = instagramHandle; }
+    public void setGuardianName(String guardianName) { this.guardianName = guardianName; }
+    public void setGuardianPhone(String guardianPhone) { this.guardianPhone = guardianPhone; }
+    public void setGuardianEmail(String guardianEmail) { this.guardianEmail = guardianEmail; }
+    public void setLgpdConsent(Boolean lgpdConsent) { this.lgpdConsent = lgpdConsent; }
+    public void setLgpdConsentAt(OffsetDateTime v) { this.lgpdConsentAt = v; }
+    public void setStatus(SubmissionStatus status) { this.status = status; }
+    public void setFacePhotoUrl(String facePhotoUrl) { this.facePhotoUrl = facePhotoUrl; }
+    public void setProfilePhotoUrl(String profilePhotoUrl) { this.profilePhotoUrl = profilePhotoUrl; }
+    public void setFullBodyPhotoUrl(String fullBodyPhotoUrl) { this.fullBodyPhotoUrl = fullBodyPhotoUrl; }
+    public void setReviewedBy(String reviewedBy) { this.reviewedBy = reviewedBy; }
+    public void setReviewedAt(OffsetDateTime reviewedAt) { this.reviewedAt = reviewedAt; }
+    public void setFeedbackNotes(String feedbackNotes) { this.feedbackNotes = feedbackNotes; }
+    public void setConvertedToModelId(UUID convertedToModelId) { this.convertedToModelId = convertedToModelId; }
+    public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
+    public void setUpdatedAt(OffsetDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

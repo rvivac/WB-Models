@@ -1,12 +1,16 @@
 package com.wbscouting.api.service.model;
 
+import com.wbscouting.api.config.SupabaseProperties;
 import com.wbscouting.api.dto.ModelDTO;
 import com.wbscouting.api.dto.model.*;
 import com.wbscouting.api.entity.Model;
+import com.wbscouting.api.entity.ModelMedia;
 import com.wbscouting.api.enums.GenderType;
 import com.wbscouting.api.exception.ResourceNotFoundException;
+import com.wbscouting.api.repository.ModelMediaRepository;
 import com.wbscouting.api.repository.ModelRepository;
 import com.wbscouting.api.repository.specification.ModelSpecification;
+import com.wbscouting.api.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -14,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.UUID;
@@ -25,6 +30,9 @@ import java.util.stream.Collectors;
 public class ModelServiceImpl implements ModelService {
 
     private final ModelRepository modelRepository;
+    private final ModelMediaRepository modelMediaRepository;
+    private final StorageService storageService;
+    private final SupabaseProperties supabaseProperties;
 
     @Override
     @Transactional
@@ -157,8 +165,43 @@ public class ModelServiceImpl implements ModelService {
         Model model = modelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Modelo", "id", id));
 
+        // 1. Buscar TODAS as midias vinculadas ao modelo (ativas e inativas)
+        List<ModelMedia> allMedia = modelMediaRepository.findByModelIdOrderByDisplayOrderAsc(id);
+        String bucket = supabaseProperties.resolveBucketModelsMedia();
+
+        // 2. Remover arquivos FISICOS do Supabase Storage (FAIL-SAFE)
+        int deletedFiles = 0;
+        int failedFiles = 0;
+        for (ModelMedia media : allMedia) {
+            String filePath = media.getFilePath();
+            if (!StringUtils.hasText(filePath)) {
+                log.warn("Midia ID: {} do modelo ID: {} sem filePath valido. Pulando remocao do storage.", media.getId(), id);
+                continue;
+            }
+            try {
+                storageService.deleteFile(bucket, filePath);
+                deletedFiles++;
+            } catch (Exception e) {
+                failedFiles++;
+                log.warn("Falha NAO-CRITICA ao remover arquivo do storage. Midia ID: {}, path: {}, motivo: {}. Procedendo com exclusao do banco.",
+                        media.getId(), filePath, e.getMessage());
+            }
+        }
+
+        log.info("Remocao de arquivos do storage concluida. Modelo ID: {} -> {} removidos, {} falhas (nao criticas).", id, deletedFiles, failedFiles);
+
+        // 3. Deletar as midias do banco SEM depender do cascade (evita FK constraint em alguns bancos)
+        if (!allMedia.isEmpty()) {
+            modelMediaRepository.deleteAll(allMedia);
+            modelMediaRepository.flush();
+            log.info("{} registros de midia removidos da tabela model_media para o modelo ID: {}", allMedia.size(), id);
+        }
+
+        // 4. Excluir definitivamente o modelo do banco
         modelRepository.delete(model);
-        log.info("Modelo ID: {} excluído com sucesso", id);
+        modelRepository.flush();
+
+        log.info("Modelo ID: {} excluido com sucesso do banco de dados (Hard Delete).", id);
     }
 
     // Métodos Públicos de Catálogo (Portal / Site Institucional)

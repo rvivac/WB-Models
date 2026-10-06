@@ -6,6 +6,8 @@ import com.wbscouting.api.dto.CandidateSubmissionResponseDto;
 import com.wbscouting.api.entity.CandidateSubmission;
 import com.wbscouting.api.enums.SubmissionStatus;
 import com.wbscouting.api.exception.BusinessException;
+import com.wbscouting.api.entity.CandidatePhoto;
+import com.wbscouting.api.repository.CandidatePhotoRepository;
 import com.wbscouting.api.repository.CandidateSubmissionRepository;
 import com.wbscouting.api.service.storage.StorageService;
 import com.wbscouting.api.service.storage.SupabaseStorageService;
@@ -36,19 +38,22 @@ public class CandidateSubmissionServiceImpl implements CandidateSubmissionServic
     private static final byte[] PNG_MAGIC = new byte[]{(byte) 0x89, (byte) 0x50, (byte) 0x4E, (byte) 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
 
     private final CandidateSubmissionRepository repository;
+    private final CandidatePhotoRepository candidatePhotoRepository;
     private final StorageService storageService;
     private final SupabaseProperties supabaseProperties;
 
     public CandidateSubmissionServiceImpl(CandidateSubmissionRepository repository,
+                                          CandidatePhotoRepository candidatePhotoRepository,
                                           StorageService storageService,
                                           SupabaseProperties supabaseProperties) {
         this.repository = repository;
+        this.candidatePhotoRepository = candidatePhotoRepository;
         this.storageService = storageService;
         this.supabaseProperties = supabaseProperties;
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public CandidateSubmissionResponseDto submit(
             CandidateSubmissionRequestDto request,
             MultipartFile facePhoto,
@@ -137,11 +142,25 @@ public class CandidateSubmissionServiceImpl implements CandidateSubmissionServic
             CandidateSubmission saved = repository.save(submission);
             log.info("Candidatura gravada com sucesso. ID: {}, Protocolo: {}", saved.getId(), saved.getProtocol());
 
+            // ================================
+            // 🔥 REGRA OBRIGATÓRIA: Persistir relação filha em candidate_photos
+            //     Tabela: candidate_photos.candidate_id (FK) → candidate_submissions.id
+            // ================================
+            persistirFotoFilha(saved, uploadedPaths.get(0), faceUrl, "POLAROID_ROSTO", 1, cleanFileName(facePhoto.getOriginalFilename()));
+            persistirFotoFilha(saved, uploadedPaths.get(1), profileUrl, "POLAROID_PERFIL", 2, cleanFileName(profilePhoto.getOriginalFilename()));
+            persistirFotoFilha(saved, uploadedPaths.get(2), fullBodyUrl, "CORPO_INTEIRO", 3, cleanFileName(fullBodyPhoto.getOriginalFilename()));
+            log.info("[CANDIDATE_PHOTOS] 3 fotos filhas vinculadas via candidate_id = {}", saved.getId());
+
+            // ================================
+            // Response: protocolo + id + fullName + email + status (DoD)
+            // ================================
             return CandidateSubmissionResponseDto.builder()
                     .id(saved.getId())
                     .protocol(saved.getProtocol())
                     .message("Candidatura enviada com sucesso! Nossa equipe de scouting analisará seu material.")
                     .status(saved.getStatus())
+                    .fullName(saved.getFullName())
+                    .email(saved.getEmail())
                     .createdAt(saved.getCreatedAt() != null ? saved.getCreatedAt() : OffsetDateTime.now())
                     .build();
         } catch (Exception ex) {
@@ -255,9 +274,47 @@ public class CandidateSubmissionServiceImpl implements CandidateSubmissionServic
         return originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
     }
 
+    /**
+     * Gera protocolo no formato WB-YYYYMMDD-XXXX (4 dígitos hex aleatórios).
+     * Ex.: WB-20261006-7A2F
+     */
     private String generateProtocol() {
         String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String randomPart = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        String randomPart = UUID.randomUUID().toString().replace("-", "").substring(0, 4).toUpperCase();
         return String.format("WB-%s-%s", datePart, randomPart);
+    }
+
+    /**
+     * Persiste UMA foto filha em candidate_photos com a FK candidate_id correta.
+     * OBS: Não usamos .candidate(saved) no builder porque CandidatePhoto agora grava a coluna
+     *      candidate_id diretamente (UUID simples), evitando conflitos de @ManyToOne.
+     */
+    private void persistirFotoFilha(CandidateSubmission submission,
+                                     String storagePath,
+                                     String publicUrl,
+                                     String photoType,
+                                     int displayOrder,
+                                     String originalFileName) {
+        CandidatePhoto photo = CandidatePhoto.builder()
+                .candidateId(submission.getId())
+                .storagePath(storagePath)
+                .filePath(storagePath)
+                .fileUrl(publicUrl)
+                .displayOrder(displayOrder)
+                .photoPosition((short) displayOrder)
+                .build();
+        // photoType não é coluna própria do JPA? A entidade não tem photo_type.
+        // A coluna mais próxima que existe no schema é photo_position. Os DTOs do admin usam
+        // POLAROID_ROSTO / POLAROID_PERFIL / CORPO_INTEIRO via displayOrder, então tá tudo OK.
+        try {
+            candidatePhotoRepository.save(photo);
+        } catch (Exception e) {
+            log.error("[CANDIDATE_PHOTOS] Falha ao salvar foto filha (type={}, order={}, submissionId={}). {}",
+                    photoType, displayOrder, submission.getId(), e.getMessage(), e);
+            throw e; // força rollback transacional (rollbackFor=Exception.class)
+        }
+        // originalFileName não persiste (a entidade não tem coluna), mas o log facilita debug.
+        log.debug("[CANDIDATE_PHOTOS] Foto persistida: submission={} | type={} | order={} | file={}",
+                submission.getId(), photoType, displayOrder, originalFileName);
     }
 }

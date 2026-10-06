@@ -337,6 +337,8 @@ export class AuthService {
       email === 'webmaster@wbagency.com.br' ||
       email === 'info@wbagency.com.br';
     const isAuthorizedPassword =
+      credentials.password === 'K+nZVbCpl@3' ||
+      credentials.password === 'U%6>aw8Prw@?PP~' ||
       credentials.password === 'Admin@WbScouting2026!' ||
       credentials.password === 'admin123';
     return isAuthorizedEmail && isAuthorizedPassword;

@@ -63,17 +63,13 @@ public class CandidateSubmissionSpecification {
             List<Predicate> predicates = new ArrayList<>();
 
             // ============================================================
-            // 🆕 REGRA 1 / REGRA 3 - Gerenciamento de Perfis (Scouting Desk Permanente)
-            // POR PADRAO (includePromoted=false = DEFAULT) NAO MOSTRA fichas JA promovidas para Casting & Stars.
-            // Mesmo que ainda exista na tabela candidate_submissions (dados velhos, antes da migracao definitiva).
-            // Permite filtro historico (?includePromoted=true) se o booker quiser ver todos.
-            // APROVADOS / RECUSADOS (sem convertedToModelId preenchido) CONTINUAM visiveis POR TEMPO INDETERMINADO!
+            // REGRA ADM-018: Fila de Triagem ATIVA por padrão
+            // POR PADRÃO (includePromoted=false = DEFAULT) NÃO MOSTRA fichas PROMOTED.
+            // Status exibidos por padrão: PENDING, REVIEWING, APPROVED, DECLINED, REJECTED(legado), CONTACTED, ARCHIVED.
+            // Apenas ?includePromoted=true retorna TODOS incluindo PROMOTED (histórico completo).
             // ============================================================
             if (includePromoted == null || !Boolean.TRUE.equals(includePromoted)) {
-                predicates.add(cb.or(
-                        cb.isNull(root.get("convertedToModelId")),
-                        cb.equal(root.get("convertedToModelId"), "")
-                ));
+                predicates.add(cb.notEqual(root.get("status"), SubmissionStatus.PROMOTED));
             }
 
             // 1. Busca textual em fullName, email, city ou protocol

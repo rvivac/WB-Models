@@ -14,9 +14,17 @@ public class CandidatePhoto {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "candidate_id", nullable = false)
-    private Candidate candidate;
+    /**
+     * FK BRUTA para a coluna candidate_id.
+     *
+     * Motivo do mapeamento por UUID direto (não @ManyToOne):
+     * A mesma coluna referencia tanto candidates.id quanto candidate_submissions.id
+     * dependendo do fluxo. O Hibernate NÃO consegue declarar duas FKs na mesma coluna.
+     * Como a ON DELETE CASCADE está declarada no SCHEMA do Supabase (não no JPA), gravar o
+     * UUID aqui é suficiente para garantir a integridade referencial e o cascade no delete.
+     */
+    @Column(name = "candidate_id", nullable = false)
+    private UUID candidateId;
 
     @Column(name = "storage_path", nullable = false)
     private String storagePath;
@@ -47,8 +55,22 @@ public class CandidatePhoto {
 
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
-    public Candidate getCandidate() { return candidate; }
-    public void setCandidate(Candidate candidate) { this.candidate = candidate; }
+    public UUID getCandidateId() { return this.candidateId; }
+    public void setCandidateId(UUID candidateId) { this.candidateId = candidateId; }
+
+    /** Helper (novo): vincula a foto a uma CandidateSubmission via UUID. */
+    public void setOwner(CandidateSubmission submission) {
+        this.candidateId = (submission != null) ? submission.getId() : null;
+    }
+
+    /** Helper (novo): vincula a foto a uma entidade Candidate (tabela candidates) via UUID. */
+    public void setOwner(Candidate candidate) {
+        this.candidateId = (candidate != null) ? candidate.getId() : null;
+    }
+
+    /** @deprecated Manter compatibilidade com código antigo que chame getCandidate(). */
+    @Deprecated
+    public UUID resolveOwnerId() { return this.candidateId; }
     public Short getPhotoPosition() { return this.photoPosition; }
     public void setPhotoPosition(Short photoPosition) { this.photoPosition = photoPosition; }
     public String getStoragePath() { return storagePath != null ? storagePath : filePath; }
@@ -70,7 +92,17 @@ public class CandidatePhoto {
     public static class CandidatePhotoBuilder {
         private final CandidatePhoto p = new CandidatePhoto();
         public CandidatePhotoBuilder id(UUID v) { p.setId(v); return this; }
-        public CandidatePhotoBuilder candidate(Candidate v) { p.setCandidate(v); return this; }
+        /** Builder setter: vincular foto a uma CandidateSubmission. */
+        public CandidatePhotoBuilder candidate(CandidateSubmission v) { p.setOwner(v); return this; }
+
+        /**
+         * Builder setter compatível com fluxos de candidatura pública (entidade Candidate).
+         * Usado por CandidateService / CandidateApplicationServiceImpl.
+         */
+        public CandidatePhotoBuilder candidate(Candidate v) { p.setOwner(v); return this; }
+
+        /** Builder setter direto por UUID (ÚTIL quando a entidade já tem o id após o save). */
+        public CandidatePhotoBuilder candidateId(UUID v) { p.setCandidateId(v); return this; }
         public CandidatePhotoBuilder storagePath(String v) { p.setStoragePath(v); return this; }
         public CandidatePhotoBuilder displayOrder(Integer v) { p.setDisplayOrder(v); return this; }
         public CandidatePhotoBuilder uploadedAt(OffsetDateTime v) { p.setUploadedAt(v); return this; }

@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.Period;
 import java.util.UUID;
 
 @Data
@@ -181,6 +182,17 @@ public class CandidateSubmissionResponseDto {
             return null;
         }
 
+        // ================================
+        // 🔥 REGRA DO DOD: calcular idade DINAMICAMENTE com Period.between
+        // (não confiar no age salvo pode desatualizar com o passar dos anos)
+        // ================================
+        Integer ageCalculated = null;
+        LocalDate bd = entity.getBirthDate();
+        if (bd != null) {
+            int anos = Period.between(bd, LocalDate.now()).getYears();
+            if (anos >= 0 && anos < 120) ageCalculated = anos;
+        }
+
         return CandidateSubmissionResponseDto.builder()
                 .id(entity.getId())
                 .protocol(entity.getProtocol())
@@ -191,7 +203,7 @@ public class CandidateSubmissionResponseDto {
                 .email(entity.getEmail())
                 .phone(entity.getPhone())
                 .birthDate(entity.getBirthDate())
-                .age(entity.getAge())
+                .age(ageCalculated)
                 .gender(entity.getGender())
                 .city(entity.getCity())
                 .state(entity.getState())

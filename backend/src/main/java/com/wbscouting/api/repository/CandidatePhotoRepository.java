@@ -14,6 +14,6 @@ public interface CandidatePhotoRepository extends JpaRepository<CandidatePhoto, 
 
     List<CandidatePhoto> findByCandidateIdOrderByDisplayOrderAsc(UUID candidateId);
 
-    @Query("SELECT cp.candidate.id, COUNT(cp) FROM CandidatePhoto cp WHERE cp.candidate.id IN :candidateIds GROUP BY cp.candidate.id")
+    @Query("SELECT cp.candidateId, COUNT(cp) FROM CandidatePhoto cp WHERE cp.candidateId IN :candidateIds GROUP BY cp.candidateId")
     List<Object[]> countPhotosByCandidateIds(@Param("candidateIds") List<UUID> candidateIds);
 }

@@ -23,8 +23,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.http.HttpStatus;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -79,17 +82,38 @@ public class CandidateAdminController {
         return ResponseEntity.ok(updated);
     }
 
-    @Deprecated(since = "1.1.0", forRemoval = true)
     @PostMapping({"/{id}/promote-to-model", "/{id}/convert-to-model", "/{id}/promote", "/{id}/convert"})
-    public ResponseEntity<CandidateSubmissionResponseDto> promoteToModel(
+    public ResponseEntity<Map<String, Object>> promoteToModel(
             @PathVariable UUID id,
-            @RequestParam(required = false, defaultValue = "false") Boolean activateImmediately,
+            @RequestParam(required = false, defaultValue = "true") Boolean activateImmediately,
             Authentication authentication
     ) {
         String reviewerName = extractReviewerName(authentication);
         log.info("Ação operacional de promoção para modelo da candidatura ID: {} por {}", id, reviewerName);
-        CandidateSubmissionResponseDto promoted = adminService.promoteToModel(id, reviewerName, activateImmediately);
-        return ResponseEntity.ok(promoted);
+        com.wbscouting.api.dto.model.ModelResponseDto model = adminService.promoteCandidateToModel(id, reviewerName, activateImmediately);
+        return ResponseEntity.ok(Map.of(
+                "status", "PROMOTED",
+                "message", "Candidatura promovida com sucesso para o elenco oficial.",
+                "modelId", model.getId(),
+                "modelName", model.getStageName(),
+                "redirectUrl", "/admin/models"
+        ));
+    }
+
+    /**
+     * Exclusão definitiva (Hard Delete) da candidatura.
+     * Regra ADM-018: HTTP 400 se status != DECLINED (ou legado REJECTED).
+     */
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('WEBMASTER', 'SUPER_ADMIN', 'ADMIN')")
+    public ResponseEntity<Void> deleteSubmission(
+            @PathVariable UUID id,
+            Authentication authentication
+    ) {
+        String operator = extractReviewerName(authentication);
+        log.warn("[HARD-DELETE][API] Solicitação de exclusão definitiva da candidatura ID: {} por '{}'", id, operator);
+        adminService.deleteSubmission(id, operator);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     private String extractReviewerName(Authentication authentication) {

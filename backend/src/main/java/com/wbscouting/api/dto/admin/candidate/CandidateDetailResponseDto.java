@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -84,7 +85,20 @@ public class CandidateDetailResponseDto {
             }
         }
 
-        boolean minor = entity.getAge() != null ? entity.getAge() < 18 : false;
+        // ================================
+        // 🔥 REGRA OBRIGATÓRIA DO DOD: NÃO USAR entity.getAge()
+        // Calcular dinamicamente com Period.between(birthDate, hoje)
+        // ================================
+        Integer ageCalculated = null;
+        boolean minor = false;
+        LocalDate bd = entity.getBirthDate();
+        if (bd != null) {
+            int anos = Period.between(bd, LocalDate.now()).getYears();
+            if (anos >= 0 && anos < 120) {
+                ageCalculated = anos;
+                minor = anos < 18;
+            }
+        }
 
         BiometricsDto biometrics = BiometricsDto.builder()
                 .height(heightVal)
@@ -132,7 +146,7 @@ public class CandidateDetailResponseDto {
                 .phone(entity.getPhone())
                 .instagram(entity.getInstagramHandle())
                 .birthDate(entity.getBirthDate())
-                .age(entity.getAge())
+                .age(ageCalculated)
                 .isMinor(minor)
                 .guardianName(entity.getGuardianName())
                 .guardianPhone(entity.getGuardianPhone())

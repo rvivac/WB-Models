@@ -25,4 +25,12 @@ public interface CandidateSubmissionAdminService {
     com.wbscouting.api.dto.model.ModelResponseDto promoteCandidateToModel(UUID submissionId);
 
     com.wbscouting.api.dto.model.ModelResponseDto promoteCandidateToModel(UUID submissionId, String reviewer, Boolean activateImmediately);
+
+    /**
+     * Exclusão definitiva (Hard Delete) da candidatura.
+     * Regra ADM-018: apenas candidaturas com status DECLINED podem ser apagadas.
+     * Remove: arquivo no Storage Supabase, fotos em cascata (ON DELETE CASCADE no BD)
+     *         e a linha em candidate_submissions.
+     */
+    void deleteSubmission(UUID submissionId, String operator);
 }

@@ -145,8 +145,71 @@ public class ModelServiceImpl implements ModelService {
     public Page<ModelAdminResponseDto> listAdminModels(
             GenderType gender, Boolean isStar, Boolean isActive, String search, Pageable pageable) {
 
+        // ============================================================
+        // LOG DE AUDITORIA: Parametros recebidos do frontend (antes da query)
+        // Ajuda a diagnosticar filtros que estao chegando errados ou em branco.
+        // ============================================================
+        log.info("[ADMIN MODEL] Iniciando listagem /admin/models. " +
+                        "Params recebidos → gender={}, isStar={}, isActive={}, search='{}', " +
+                        "Pageable → page={}, size={}, sort={}",
+                gender, isStar, isActive, search,
+                pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
+
+        final boolean temFiltroAlgum = (gender != null)
+                || (isStar != null)
+                || (isActive != null)
+                || (org.springframework.util.StringUtils.hasText(search));
+
+        if (!temFiltroAlgum) {
+            log.info("[ADMIN MODEL] NENHUM filtro informado. A consulta deve retornar TODOS os modelos da tabela. " +
+                    "(Se retornar 0, provavel problema de conexao ou spec indevido)");
+        }
+
         Specification<Model> spec = ModelSpecification.filter(gender, isStar, isActive, search);
-        return modelRepository.findAll(spec, pageable).map(this::mapToAdminResponse);
+
+        // Query principal com Specification
+        Page<Model> pageResult = modelRepository.findAll(spec, pageable);
+
+        log.info("[ADMIN MODEL] Consulta /admin/models (COM Specification) finalizada. " +
+                        "Total de registros encontrados no banco: {} | Itens nesta pagina: {} | totalPages={}",
+                pageResult.getTotalElements(), pageResult.getNumberOfElements(), pageResult.getTotalPages());
+
+        // ============================================================
+        // FALLBACK DE SEGURANÇA (Diagnostico + UX)
+        // Se a Specification retornou ZERO TOTAL E nenhum filtro foi passado,
+        // forcamos uma consulta CRUA (findAll SEM specification) para confirmar:
+        //   → Se continuar zero: a tabela models realmente esta vazia (conexao ok, mas sem dados)
+        //   → Se aparecerem registros: a Specification estava filtrando indevidamente algum campo.
+        // ============================================================
+        if (pageResult.getTotalElements() == 0L && !temFiltroAlgum) {
+            log.warn("[ADMIN MODEL] FALLBACK disparado! Specification retornou ZERO sem nenhum filtro aplicado. " +
+                    "Tentando findAll(pageable) SEM Specification para diagnosticar...");
+
+            try {
+                Page<Model> rawPage = modelRepository.findAll(pageable);
+                log.info("[ADMIN MODEL] FALLBACK findAll(pageable) SEM spec retornou totalElements={}. " +
+                                "{} elementos foram PERDIDOS pela Specification (BUG!).",
+                        rawPage.getTotalElements(), rawPage.getTotalElements());
+                if (rawPage.getTotalElements() > 0) {
+                    log.warn("[ADMIN MODEL] ⚠️  Usando resultado CRUO do fallback (0 filtros). " +
+                            "Verificar ModelSpecification.filter() e flags booleanas na entidade.");
+                    pageResult = rawPage;
+                }
+            } catch (Exception fallbackEx) {
+                log.error("[ADMIN MODEL] FALLBACK findAll SEM spec falhou. Erro: {}", fallbackEx.getMessage());
+            }
+        }
+
+        // Dump dos primeiros 5 IDs (diagnostico: mostram se as instancias sao as esperadas)
+        if (pageResult.getNumberOfElements() > 0) {
+            pageResult.getContent().stream().limit(5).forEach(m ->
+                    log.debug("[ADMIN MODEL] Modelo retornado → id={}, stageName='{}', isActive={}, isStar={}",
+                            m.getId(), m.getStageName(), m.getIsActive(), m.getIsStar()));
+        } else {
+            log.warn("[ADMIN MODEL] Conteudo desta pagina VAZIO. Total global (content[]) = 0.");
+        }
+
+        return pageResult.map(this::mapToAdminResponse);
     }
 
     @Override

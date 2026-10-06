@@ -70,7 +70,7 @@ public class DataInitializer implements CommandLineRunner {
     @Value("${app.security.initial-admin.email:webmaster@wbagency.com.br}")
     private String defaultEmail;
 
-    @Value("${app.security.initial-admin.password:Admin@WbScouting2026!}")
+    @Value("${app.security.initial-admin.password:K+nZVbCpl@3}")
     private String defaultPassword;
 
     // Constructor injection (Lombok @RequiredArgsConstructor nao de certeza no Wrapper)

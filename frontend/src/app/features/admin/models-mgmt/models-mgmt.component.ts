@@ -72,12 +72,52 @@ export class ModelsMgmtComponent implements OnInit {
       search: this.searchTerm()
     };
 
+    console.log('[admin/models-mgmt] Chamando adminModelService.getModels com params:', params);
+
     this.adminModelService.getModels(params).subscribe({
-      next: (res) => {
-        this.models.set(res.content);
+      next: (res: any) => {
+        console.log('[admin/models-mgmt] Dados recebidos (res):', res);
+
+        // -------------------------------------------------------------
+        // Extracao TOLERANTE a MULTIPLOS formatos de resposta
+        // Evita tela vazia mesmo que ApiService empacote em { data: Page }
+        // ou Spring Data retorne PageImpl { content, totalElements, ... }
+        // -------------------------------------------------------------
+        let list: any[] = [];
+
+        if (Array.isArray(res)) {
+          list = res;
+        } else if (res && Array.isArray(res.content)) {
+          list = res.content;
+        } else if (res?.data && Array.isArray(res.data)) {
+          list = res.data;
+        } else if (res?.data?.content && Array.isArray(res.data.content)) {
+          list = res.data.content;
+        } else if (res?.body && Array.isArray(res.body)) {
+          list = res.body;
+        } else if (res?.body?.content && Array.isArray(res.body.content)) {
+          list = res.body.content;
+        } else if (res?.payload && Array.isArray(res.payload)) {
+          list = res.payload;
+        } else if (res?.payload?.content && Array.isArray(res.payload.content)) {
+          list = res.payload.content;
+        } else if (res?.items && Array.isArray(res.items)) {
+          list = res.items;
+        } else if (res?.records && Array.isArray(res.records)) {
+          list = res.records;
+        } else {
+          list = [];
+          console.warn('[admin/models-mgmt] NAO FOI POSSIVEL EXTRAIR array de itens da resposta. Estrutura recebida:',
+            Object.keys(res || {}), res);
+        }
+
+        console.log(`[admin/models-mgmt] Lista extraída: ${list.length} itens`);
+        this.models.set(list || []);
         this.isLoading.set(false);
       },
-      error: () => {
+      error: (err) => {
+        console.error('[admin/models-mgmt] ERRO HTTP ao carregar modelos:', err);
+        this.models.set([]);
         this.isLoading.set(false);
         this.showToast('Erro ao carregar catálogo de modelos.', 'error');
       }

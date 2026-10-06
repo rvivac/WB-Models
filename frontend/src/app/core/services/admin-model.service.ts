@@ -401,19 +401,78 @@ export class AdminModelService {
   }
 
   private normalizePageResponse(res: any): AdminModelPageResponse {
+    // 🔍 DIAGNÓSTICO: Imprime o envelope REAL da resposta no console DevTools
+    console.log('[admin-model] Resposta CRUA recebida de /admin/models:', res);
+
     if (!res) {
+      console.warn('[admin-model] Resposta nula/undefined. Retornando pagina vazia.');
       return { content: [], totalElements: 0, totalPages: 0, size: 20, number: 0 };
     }
-    const content = this._applyCoverAll(res.content || (Array.isArray(res) ? res : []));
-    return {
+
+    // -------------------------------------------------------------
+    // Extracao TOLERANTE a MULTIPLOS envelopes de resposta
+    // Ordem de prioridade (do mais comum Spring para mais exotico):
+    //  1. res.data        → ApiResponse / ResponseEntity empacotado
+    //  2. res.body        → Resposta crua HttpClient { body: ... }
+    //  3. res.payload     → Envelope custom
+    //  4. res.records / res.items → Envelopes de listagem genericos
+    //  5. res.content     → Page do Spring Data (DIRETO, esperado)
+    //  6. Array direto    → Endpoint nao paginado ou lista crua
+    // -------------------------------------------------------------
+    let extractedList: any[] = [];
+    const candidateContainers: any[] = [
+      res,
+      res?.data,
+      res?.body,
+      res?.payload,
+      res?.result,
+      (res?.data && typeof res?.data === 'object') ? res.data : null
+    ].filter(c => c != null);
+
+    for (const c of candidateContainers) {
+      if (Array.isArray(c)) { extractedList = c; break; }
+      if (Array.isArray(c.content)) { extractedList = c.content; break; }
+      if (Array.isArray(c.items)) { extractedList = c.items; break; }
+      if (Array.isArray(c.records)) { extractedList = c.records; break; }
+    }
+
+    // Fallback: Spring Page raw, campo content direto no root
+    if (extractedList.length === 0 && Array.isArray(res.content)) {
+      extractedList = res.content;
+    }
+
+    // Totalizadores: pegar do container que efetivamente continha a lista
+    let meta: any = res;
+    for (const c of candidateContainers) {
+      if (c === res) continue;
+      if (Array.isArray(c)) continue;
+      if ((Array.isArray(c.content) && c.content === extractedList) ||
+          (Array.isArray(c.items) && c.items === extractedList) ||
+          (Array.isArray(c.records) && c.records === extractedList)) {
+        meta = c; break;
+      }
+    }
+
+    const content = this._applyCoverAll(extractedList || []);
+
+    const normalized: AdminModelPageResponse = {
       content,
-      totalElements: res.totalElements ?? content.length,
-      totalPages: res.totalPages ?? 1,
-      size: res.size ?? content.length,
-      number: res.number ?? 0,
-      first: res.first ?? true,
-      last: res.last ?? true
+      totalElements: meta?.totalElements ?? res?.totalElements ?? content.length,
+      totalPages: meta?.totalPages ?? res?.totalPages ?? Math.max(1, Math.ceil(content.length / (meta?.size ?? res?.size ?? 20))),
+      size: meta?.size ?? res?.size ?? content.length,
+      number: meta?.number ?? res?.number ?? 0,
+      first: meta?.first ?? res?.first ?? true,
+      last: meta?.last ?? res?.last ?? true
     };
+
+    console.log('[admin-model] Resposta NORMALIZADA:', normalized, `(${normalized.content.length} items)`);
+
+    if (normalized.content.length === 0) {
+      console.warn('[admin-model] NORMALIZACAO retornou lista VAZIA. Verifique se a extracao acima encontrou o array correto.',
+        'extractedList=', extractedList, 'meta=', meta);
+    }
+
+    return normalized;
   }
 
   private getMockPagedModels(filters: AdminModelFilterParams): AdminModelPageResponse {

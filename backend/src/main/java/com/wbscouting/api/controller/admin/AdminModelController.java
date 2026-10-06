@@ -20,7 +20,6 @@ import org.springframework.util.StringUtils;
 
 import java.net.URI;
 import java.util.UUID;
-import java.util.function.Function;
 
 @RestController
 @RequestMapping("/admin/models")
@@ -30,7 +29,6 @@ public class AdminModelController {
 
     private final ModelService modelService;
     private final ModelRepository modelRepository;
-    private final Function<Model, ModelAdminResponseDto> modelToAdminMapper;
 
     @PostMapping
     @AuditAction(action = "CREATE", resource = "MODEL", description = "Criação de novo modelo no casting")
@@ -113,11 +111,9 @@ public class AdminModelController {
                 Page<Model> rawModels = modelRepository.findAll(pageable);
                 log.info("[CONTROLLER /admin/models] Fallback direto retornou totalElements={}", rawModels.getTotalElements());
                 if (rawModels.getTotalElements() > 0) {
-                    // Mapeamos diretamente via service mapper injetado (nao depende mais da camada de specs)
-                    final Function<Model, ModelAdminResponseDto> mapper = modelToAdminMapper != null
-                            ? modelToAdminMapper
-                            : m -> modelService.getAdminModelById(m.getId());
-                    result = rawModels.map(mapper);
+                    // Mapeamento inline direto SEM depender de Beans injetados.
+                    // Replica fielmente ModelServiceImpl.mapToAdminResponse() para o fallback.
+                    result = rawModels.map(this::mapToAdminDtoInline);
                     log.warn("[CONTROLLER /admin/models] ⚠️  SOBRESCREVENDO resposta para {} itens (fallback vitorioso). " +
                             "Analise os logs da ModelSpecification.filter()".formatted(result.getTotalElements()));
                 }
@@ -145,5 +141,39 @@ public class AdminModelController {
     public ResponseEntity<Void> deleteModel(@PathVariable UUID id) {
         modelService.deleteModel(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Mapeamento INLINE de Model → ModelAdminResponseDto usado EXCLUSIVAMENTE no fallback de listagem
+     * quando a service + Specification falham em retornar registros (ex: H2 sendo usado em vez de PostgreSQL).
+     * Replica fielmente a logica de ModelServiceImpl.mapToAdminResponse() para manter consistencia.
+     * Nao usa injecao de dependencias nem Beans — metodo privado puro.
+     */
+    private ModelAdminResponseDto mapToAdminDtoInline(Model model) {
+        if (model == null) return null;
+        return ModelAdminResponseDto.builder()
+                .id(model.getId())
+                .stageName(model.getStageName())
+                .gender(model.getGender())
+                .isStar(model.getIsStar())
+                .isFeaturedHome(model.getIsFeaturedHome())
+                .featuredOrder(model.getFeaturedOrder())
+                .isActive(model.getIsActive())
+                .primaryPhotoUrl(model.getPrimaryPhotoUrl())
+                .instagramUrl(model.getInstagramUrl())
+                .birthDate(model.getBirthDate())
+                .heightCm(model.getHeightCm())
+                .city(model.getCity())
+                .nationality(model.getNationality())
+                .dressSize(model.getDressSize())
+                .shoeSize(model.getShoeSize())
+                .bustChestCm(model.getBustChestCm())
+                .waistCm(model.getWaistCm())
+                .hipsCm(model.getHipsCm())
+                .hairColor(model.getHairColor())
+                .eyesColor(model.getEyesColor())
+                .createdAt(model.getCreatedAt())
+                .updatedAt(model.getUpdatedAt())
+                .build();
     }
 }

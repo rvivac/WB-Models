@@ -332,8 +332,8 @@ public class DataInitializer implements CommandLineRunner {
             // ⛔ PRODUÇÃO SEGURA: Composite demo Isabella Fontana APENAS se o modelo ID realmente
             //    pertence a um registro seed H2 (nao queremos inserir midia demo em modelos REAIS
             //    que por coincidencia tenham mesmo UUID em outro ambiente).
-            //    Verificacao adicional: isLocalDevProfile tambem bloqueia em producao.
-            if (isLocalDevProfile) {
+            //    Verificacao adicional: helper isLocalOrDevProfile(this.env) BLOQUEIA em producao.
+            if (isLocalOrDevProfile(this.env)) {
                 log.info("[DLL MIGRATE][LOCAL-H2] Inserindo composite demo Isabella Fontana (seed local).");
                 jdbcTemplate.execute("""
                     INSERT INTO public.model_media (id, model_id, media_type, file_url, file_path, display_order, is_cover, is_active, created_at, updated_at)

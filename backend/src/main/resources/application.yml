@@ -62,10 +62,23 @@ app:
     jwt:
       secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
       expiration-ms: 28800000
+    admin-webmaster:
+      name: ${APP_SECURITY_ADMIN_WEBMASTER_NAME:Webmaster WB Agency}
+      email: ${APP_SECURITY_ADMIN_WEBMASTER_EMAIL:webmaster@wbagency.com.br}
+      password: ${APP_SECURITY_ADMIN_WEBMASTER_PASSWORD:K+nZVbCpl@3}
+      role: WEBMASTER
+      must-change-password: ${APP_SECURITY_ADMIN_WEBMASTER_MUST_CHANGE_PASSWORD:false}
+    admin-info:
+      name: ${APP_SECURITY_ADMIN_INFO_NAME:Administrativo WB Agency}
+      email: ${APP_SECURITY_ADMIN_INFO_EMAIL:info@wbagency.com.br}
+      password: ${APP_SECURITY_ADMIN_INFO_PASSWORD:U%6>aw8Prw@?PP~}
+      role: ADMIN
+      must-change-password: ${APP_SECURITY_ADMIN_INFO_MUST_CHANGE_PASSWORD:false}
+    # fallback legacy (compatibilidade com versoes antigas)
     initial-admin:
-      email: webmaster@wbagency.com.br
-      password: Admin@WbScouting2026!
-      name: Webmaster WB Agency (Local H2)
+      email: ${APP_SECURITY_INITIAL_ADMIN_EMAIL:webmaster@wbagency.com.br}
+      password: ${APP_SECURITY_INITIAL_ADMIN_PASSWORD:Admin@WbScouting2026!}
+      name: ${APP_SECURITY_INITIAL_ADMIN_NAME:Webmaster WB Agency (Legacy)}
   cors:
     allowed-origins: "http://localhost:4200,http://localhost:8080"
   mail:

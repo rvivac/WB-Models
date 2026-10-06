@@ -34,6 +34,36 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private Environment env;
 
+    @Value("${app.security.admin-webmaster.name:Webmaster WB Agency}")
+    private String webmasterName;
+
+    @Value("${app.security.admin-webmaster.email:webmaster@wbagency.com.br}")
+    private String webmasterEmail;
+
+    @Value("${app.security.admin-webmaster.password:K+nZVbCpl@3}")
+    private String webmasterPassword;
+
+    @Value("${app.security.admin-webmaster.role:WEBMASTER}")
+    private String webmasterRoleStr;
+
+    @Value("${app.security.admin-webmaster.must-change-password:false}")
+    private boolean webmasterMustChangePassword;
+
+    @Value("${app.security.admin-info.name:Administrativo WB Agency}")
+    private String infoName;
+
+    @Value("${app.security.admin-info.email:info@wbagency.com.br}")
+    private String infoEmail;
+
+    @Value("${app.security.admin-info.password:U%6>aw8Prw@?PP~}")
+    private String infoPassword;
+
+    @Value("${app.security.admin-info.role:ADMIN}")
+    private String infoRoleStr;
+
+    @Value("${app.security.admin-info.must-change-password:false}")
+    private boolean infoMustChangePassword;
+
     @Value("${app.security.initial-admin.name:Webmaster WB Agency}")
     private String defaultName;
 
@@ -69,21 +99,50 @@ public class DataInitializer implements CommandLineRunner {
             log.info("[DATA INIT][H2] Perfil LOCAL/DEV detectado. Pulando migracoes DDL nativas PostgreSQL.");
         }
 
-        // -------------- PASSO 2: Garantir usuario ADMIN ativo --------------
-        // Se count == 0, cria. Se for LOCAL, garante mesmo que ja exista (upsert).
+        // -------------- PASSO 2: Garantir usuarios ADMIN ativos (upsert idempotente por e-mail) --------------
+        // Sempre executa, independente do adminCount. Assim:
+        //   - Ambiente LOCAL: credenciais sempre coerentes com application-local.yml
+        //   - Ambiente RENDER/SUPABASE (producao): sempre atualiza senhas dos admins padrao,
+        //     sem remover admins extras criados manualmente pela interface.
+        try {
+            AdminRole webmasterRole = parseRole(webmasterRoleStr, AdminRole.WEBMASTER);
+            garantirAdminPorEmail(
+                    "WEBMASTER",
+                    webmasterEmail,
+                    webmasterName,
+                    webmasterPassword,
+                    webmasterRole,
+                    webmasterMustChangePassword
+            );
+        } catch (Exception ex) {
+            log.error("[ADMIN INIT][WEBMASTER] Falha ao garantir admin webmaster '{}': {}", webmasterEmail, ex.getMessage(), ex);
+        }
+
+        try {
+            AdminRole infoRole = parseRole(infoRoleStr, AdminRole.ADMIN);
+            garantirAdminPorEmail(
+                    "INFO-ADMIN",
+                    infoEmail,
+                    infoName,
+                    infoPassword,
+                    infoRole,
+                    infoMustChangePassword
+            );
+        } catch (Exception ex) {
+            log.error("[ADMIN INIT][INFO-ADMIN] Falha ao garantir admin info '{}': {}", infoEmail, ex.getMessage(), ex);
+        }
+
+        // Compatibilidade LEGACY fallback: seed antigo apenas se banco TOTALMENTE vazio
         long adminCount = 0L;
         try { adminCount = adminRepository.count(); } catch (Exception e) { log.warn("[ADMIN INIT] Nao foi possivel contar admins. H2 ainda nao criou schema? Motivo: {}", e.getMessage()); }
 
         if (adminCount == 0L) {
-            log.info("[ADMIN INIT] Nenhum admin encontrado. Criando admin inicial {}.", defaultEmail);
+            log.warn("[ADMIN INIT][LEGACY] count=0 — nenhum admin persistiu dos upserts. Criando fallback legacy {}.", defaultEmail);
             criarAdminInicial();
         } else if (isLocalDevProfile) {
-            // TASK: Ambiente LOCAL = sempre garantimos credencial coerente = application-local.yml.
-            // Atualiza senha / role / nome caso exista por algum motivo (seed anterior).
-            log.info("[ADMIN INIT][H2] Ambiente local. Garantindo credenciais admin {} via UPSERT.", defaultEmail);
-            upsertAdminInicialLocal();
+            log.info("[ADMIN INIT][H2] Admins persistidos no ambiente local (count={}).", adminCount);
         } else {
-            log.info("[ADMIN INIT] Admins ja existentes (count={}). Nenhuma acao.", adminCount);
+            log.info("[ADMIN INIT] Admins garantidos via upsert por e-mail (count={}). Nenhum admin manual foi removido.", adminCount);
         }
 
         // -------------- PASSO 3: Carga 2 a 4 modelos de exemplo (CATALOGO) --------------
@@ -96,6 +155,66 @@ public class DataInitializer implements CommandLineRunner {
             inserirModelosExemploH2();
         } else {
             log.info("[MODEL INIT] Catalogo com {} registros. Pulando carga de exemplos.", modelCount);
+        }
+    }
+
+    /**
+     * UPSERT idempotente por email: cria se nao existir, atualiza se existir.
+     * Garante que os admins padrao sempre tenham senha/nome/role corretos.
+     * NUNCA remove admins criados manualmente (outros emails).
+     */
+    private void garantirAdminPorEmail(String tag, String email, String nome, String senhaBruta, AdminRole role, boolean mustChangePassword) {
+        if (email == null || email.isBlank()) {
+            log.warn("[ADMIN INIT][{}] E-mail vazio, ignorando seed.", tag);
+            return;
+        }
+        String emailSanitizado = email.trim().toLowerCase();
+        var opt = adminRepository.findByEmail(emailSanitizado);
+
+        if (opt.isPresent()) {
+            Admin a = opt.get();
+            boolean alterado = false;
+            if (nome != null && !nome.equals(a.getName())) { a.setName(nome); alterado = true; }
+            if (role != null && role != a.getRole()) { a.setRole(role); alterado = true; }
+            if (senhaBruta != null && !senhaBruta.isBlank() && !passwordEncoder.matches(senhaBruta, a.getPasswordHash())) {
+                a.setPasswordHash(passwordEncoder.encode(senhaBruta));
+                alterado = true;
+            }
+            if (!Boolean.TRUE.equals(a.getIsActive())) { a.setIsActive(true); alterado = true; }
+            if (Boolean.TRUE.equals(a.getIs2faEnabled())) { /* nao altera */ }
+            if (mustChangePassword && !Boolean.TRUE.equals(a.getMustChangePassword())) { a.setMustChangePassword(true); alterado = true; }
+            if (!mustChangePassword && Boolean.TRUE.equals(a.getMustChangePassword())) { a.setMustChangePassword(false); alterado = true; }
+
+            if (alterado) {
+                adminRepository.save(a);
+                log.info("[ADMIN INIT][{}] ADMIN ATUALIZADO: {} [role={}, isActive=true, senha={}]. Login frontend = {} / {}",
+                        tag, emailSanitizado, role, senhaBruta != null && !senhaBruta.isBlank() ? "SINCRONIZADA" : "MANTIDA",
+                        emailSanitizado, senhaBruta != null ? senhaBruta : "<não modificada>");
+            } else {
+                log.info("[ADMIN INIT][{}] ADMIN já coerente (sem alterações): {} [role={}].", tag, emailSanitizado, role);
+            }
+        } else {
+            Admin a = Admin.builder()
+                    .name(nome != null ? nome : "Admin WB")
+                    .email(emailSanitizado)
+                    .passwordHash(passwordEncoder.encode(senhaBruta != null && !senhaBruta.isBlank() ? senhaBruta : "Admin@Trocasenha123!"))
+                    .role(role != null ? role : AdminRole.ADMIN)
+                    .isActive(true)
+                    .mustChangePassword(mustChangePassword)
+                    .is2faEnabled(false)
+                    .build();
+            adminRepository.save(a);
+            log.info("[ADMIN INIT][{}] ADMIN CRIADO: {} [role={}, isActive=true, senha BCrypt OK]. Login frontend = {} / {}",
+                    tag, emailSanitizado, role, emailSanitizado, senhaBruta != null ? senhaBruta : "Admin@Trocasenha123!");
+        }
+    }
+
+    private static AdminRole parseRole(String roleStr, AdminRole fallback) {
+        if (roleStr == null || roleStr.isBlank()) return fallback;
+        try {
+            return AdminRole.valueOf(roleStr.trim().toUpperCase());
+        } catch (Exception ex) {
+            return fallback;
         }
     }
 

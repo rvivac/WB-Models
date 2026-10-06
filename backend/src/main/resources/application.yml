@@ -4,6 +4,11 @@ server:
     context-path: /api/v1
 
 spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration
+      - org.springframework.boot.autoconfigure.mail.MailSenderValidatorAutoConfiguration
+
   datasource:
     url: jdbc:h2:mem:wblocaldb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
     username: sa
@@ -34,6 +39,24 @@ spring:
         max-page-size: 50
         default-page-size: 20
 
+  mail:
+    host: ${SPRING_MAIL_HOST:}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:}
+    password: ${SPRING_MAIL_PASSWORD:}
+    protocol: ${SPRING_MAIL_PROTOCOL:smtp}
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: ${SPRING_MAIL_SMTP_AUTH:true}
+          starttls:
+            enable: ${SPRING_MAIL_STARTTLS_ENABLE:true}
+            required: ${SPRING_MAIL_STARTTLS_REQUIRED:true}
+          connectiontimeout: ${SPRING_MAIL_CONNECTION_TIMEOUT:10000}
+          timeout: ${SPRING_MAIL_TIMEOUT:10000}
+          writetimeout: ${SPRING_MAIL_WRITE_TIMEOUT:10000}
+
 app:
   security:
     jwt:
@@ -45,6 +68,11 @@ app:
       name: Webmaster WB Agency (Local H2)
   cors:
     allowed-origins: "http://localhost:4200,http://localhost:8080"
+  mail:
+    from-address: ${APP_MAIL_FROM_ADDRESS:no-reply@wbscouting.com}
+    from-name: ${APP_MAIL_FROM_NAME:WB Scouting}
+    agency-notification-email: ${APP_MAIL_AGENCY_NOTIFICATION:contato@wbscouting.com}
+    reset-password-base-url: ${APP_MAIL_RESET_BASE_URL:http://localhost:4200/admin/reset-password}
 
 supabase:
   url: https://dummy-local.supabase.co

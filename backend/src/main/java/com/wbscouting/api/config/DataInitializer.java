@@ -6,8 +6,6 @@ import com.wbscouting.api.enums.AdminRole;
 import com.wbscouting.api.repository.AdminRepository;
 import com.wbscouting.api.repository.ModelRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -19,16 +17,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.UUID;
 
 @Slf4j
 @Component
 public class DataInitializer implements CommandLineRunner {
-
-    // ============================================================
-    // Logger fallback static (nao depende @Slf4j processar)
-    // ============================================================
-    private static final Logger LOG = LoggerFactory.getLogger(DataInitializer.class);
 
     private final AdminRepository adminRepository;
     private final ModelRepository modelRepository;
@@ -74,36 +66,36 @@ public class DataInitializer implements CommandLineRunner {
         if (!isLocalDevProfile) {
             migrateDatabaseSchemaPostgresOnly();
         } else {
-            LOG.info("[DATA INIT][H2] Perfil LOCAL/DEV detectado. Pulando migracoes DDL nativas PostgreSQL.");
+            log.info("[DATA INIT][H2] Perfil LOCAL/DEV detectado. Pulando migracoes DDL nativas PostgreSQL.");
         }
 
         // -------------- PASSO 2: Garantir usuario ADMIN ativo --------------
         // Se count == 0, cria. Se for LOCAL, garante mesmo que ja exista (upsert).
         long adminCount = 0L;
-        try { adminCount = adminRepository.count(); } catch (Exception e) { LOG.warn("[ADMIN INIT] Nao foi possivel contar admins. H2 ainda nao criou schema? Motivo: {}", e.getMessage()); }
+        try { adminCount = adminRepository.count(); } catch (Exception e) { log.warn("[ADMIN INIT] Nao foi possivel contar admins. H2 ainda nao criou schema? Motivo: {}", e.getMessage()); }
 
         if (adminCount == 0L) {
-            LOG.info("[ADMIN INIT] Nenhum admin encontrado. Criando admin inicial {}.", defaultEmail);
+            log.info("[ADMIN INIT] Nenhum admin encontrado. Criando admin inicial {}.", defaultEmail);
             criarAdminInicial();
         } else if (isLocalDevProfile) {
             // TASK: Ambiente LOCAL = sempre garantimos credencial coerente = application-local.yml.
             // Atualiza senha / role / nome caso exista por algum motivo (seed anterior).
-            LOG.info("[ADMIN INIT][H2] Ambiente local. Garantindo credenciais admin {} via UPSERT.", defaultEmail);
+            log.info("[ADMIN INIT][H2] Ambiente local. Garantindo credenciais admin {} via UPSERT.", defaultEmail);
             upsertAdminInicialLocal();
         } else {
-            LOG.info("[ADMIN INIT] Admins ja existentes (count={}). Nenhuma acao.", adminCount);
+            log.info("[ADMIN INIT] Admins ja existentes (count={}). Nenhuma acao.", adminCount);
         }
 
         // -------------- PASSO 3: Carga 2 a 4 modelos de exemplo (CATALOGO) --------------
         // Apenas se NAO tiver nenhum modelo salvo. Ideal para profile H2 limpo.
         long modelCount = 0L;
-        try { modelCount = modelRepository.count(); } catch (Exception e) { LOG.warn("[MODEL INIT] Nao foi possivel contar models. Motivo: {}", e.getMessage()); }
+        try { modelCount = modelRepository.count(); } catch (Exception e) { log.warn("[MODEL INIT] Nao foi possivel contar models. Motivo: {}", e.getMessage()); }
 
         if (modelCount == 0L) {
-            LOG.info("[MODEL INIT] Catálogo vazio. Inserindo 4 modelos de exemplo para H2 Local.");
+            log.info("[MODEL INIT] Catálogo vazio. Inserindo 4 modelos de exemplo para H2 Local.");
             inserirModelosExemploH2();
         } else {
-            LOG.info("[MODEL INIT] Catalogo com {} registros. Pulando carga de exemplos.", modelCount);
+            log.info("[MODEL INIT] Catalogo com {} registros. Pulando carga de exemplos.", modelCount);
         }
     }
 
@@ -118,7 +110,7 @@ public class DataInitializer implements CommandLineRunner {
                 .is2faEnabled(false)
                 .build();
         adminRepository.save(initialAdmin);
-        LOG.info("[ADMIN INIT] Admin CRIADO: {} [role={}, senha BCrypt OK, isActive=true] Login frontend = {} / {}",
+        log.info("[ADMIN INIT] Admin CRIADO: {} [role={}, senha BCrypt OK, isActive=true] Login frontend = {} / {}",
                 defaultEmail, AdminRole.WEBMASTER, defaultEmail, defaultPassword);
     }
 
@@ -134,12 +126,12 @@ public class DataInitializer implements CommandLineRunner {
                 a.setMustChangePassword(false);
                 a.setIs2faEnabled(false);
                 adminRepository.save(a);
-                LOG.info("[ADMIN INIT][H2] Admin ATUALIZADO via UPSERT: {}. Senha atualizada.", defaultEmail);
+                log.info("[ADMIN INIT][H2] Admin ATUALIZADO via UPSERT: {}. Senha atualizada.", defaultEmail);
             } else {
                 criarAdminInicial();
             }
         } catch (Exception e) {
-            LOG.warn("[ADMIN INIT][H2] Falhou findByEmail UPSERT local. Criando admin novo. Motivo: {}", e.getMessage());
+            log.warn("[ADMIN INIT][H2] Falhou findByEmail UPSERT local. Criando admin novo. Motivo: {}", e.getMessage());
             criarAdminInicial();
         }
     }
@@ -152,61 +144,52 @@ public class DataInitializer implements CommandLineRunner {
                 "Manuela Andrade"
         };
         int[] idades = { 19, 21, 20, 22 };
-        double[] alturasCm = { 175.0, 178.0, 172.0, 180.0 };
+        int[] alturasCm = { 175, 178, 172, 180 };
         double[] busto = { 86.0, 88.0, 84.0, 90.0 };
         double[] cintura = { 61.0, 62.0, 60.0, 63.0 };
         double[] quadril = { 90.0, 92.0, 88.0, 94.0 };
-        String[] etnias = { "Branca", "Parda", "Branca", "Preta" };
         String[] olhos = { "Castanhos", "Verdes", "Azuis", "Castanhos escuros" };
         String[] cabelos = { "Castanho longo", "Ondulado preto", "Loiro claro", "Crespo preto" };
         String[] cidades = { "São Paulo", "Rio de Janeiro", "Belo Horizonte", "Brasília" };
+        String[] nacionalidades = { "Brasileira", "Brasileira", "Brasileira", "Brasileira" };
+        String[] tamanhoVestido = { "36", "38", "36", "40" };
+        String[] tamanhoCalcado = { "38", "39", "38", "39" };
         String[] fotoRosto = {
                 "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop",
                 "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=600&auto=format&fit=crop",
                 "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&auto=format&fit=crop",
                 "https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=600&auto=format&fit=crop"
         };
-        String[] fotoCorpo = {
-                "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=900&auto=format&fit=crop",
-                "https://images.unsplash.com/photo-1524638431109-93d95c968f03?w=900&auto=format&fit=crop",
-                "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=900&auto=format&fit=crop",
-                "https://images.unsplash.com/photo-1520975922284-9f505439a830?w=900&auto=format&fit=crop"
-        };
 
         for (int i = 0; i < nomes.length; i++) {
             try {
                 Model m = new Model();
-                m.setId(UUID.randomUUID());
-                m.setName(nomes[i]);
-                m.setStageName(nomes[i].split(" ")[0] + " W.");
+                m.setStageName(nomes[i]);
+                m.setGender(com.wbscouting.api.enums.GenderType.FEMALE);
                 m.setBirthDate(LocalDate.now().minusYears(idades[i]).minusDays((long)(Math.random() * 300)));
-                m.setHeightCm(BigDecimal.valueOf(alturasCm[i]));
-                m.setBustCm(BigDecimal.valueOf(busto[i]));
+                m.setHeightCm(alturasCm[i]);
+                m.setBustChestCm(BigDecimal.valueOf(busto[i]));
                 m.setWaistCm(BigDecimal.valueOf(cintura[i]));
-                m.setHipCm(BigDecimal.valueOf(quadril[i]));
-                m.setEthnicity(etnias[i]);
-                m.setEyeColor(olhos[i]);
+                m.setHipsCm(BigDecimal.valueOf(quadril[i]));
+                m.setEyesColor(olhos[i]);
                 m.setHairColor(cabelos[i]);
                 m.setCity(cidades[i]);
-                m.setState("SP");
-                m.setCountry("Brasil");
-                m.setPhone("+55 11 9" + (10000000 + (int)(Math.random() * 89999999)));
-                try { m.setEmail((nomes[i].split(" ")[0].toLowerCase() + "." + nomes[i].split(" ")[1].toLowerCase() + "@wbscouting.com").replaceAll("[^a-z0-9@.\\-]", "")); } catch (Exception ignore) {}
-                m.setFacePhotoUrl(fotoRosto[i]);
-                m.setProfilePhotoUrl(fotoRosto[i]);
-                m.setFullBodyPhotoUrl(fotoCorpo[i]);
-                m.setShoeSizeEu(38 + i % 2);
-                m.setDressSizeBr(36 + i % 3);
+                m.setNationality(nacionalidades[i]);
+                m.setDressSize(tamanhoVestido[i]);
+                m.setShoeSize(tamanhoCalcado[i]);
+                m.setPrimaryPhotoUrl(fotoRosto[i]);
+                m.setInstagramUrl("@" + nomes[i].split(" ")[0].toLowerCase() + ".wb");
                 m.setIsActive(true);
-                m.setIsFeatured(i == 0);
-                m.setCategories(new HashSet<>(Arrays.asList("EDITORIAL", "COMERCIAL", "RUNWAY")));
+                m.setIsFeaturedHome(i == 0);
+                m.setIsStar(i == 0);
+                m.setFeaturedOrder(i == 0 ? 1 : null);
                 modelRepository.save(m);
-                LOG.info("[MODEL INIT][H2][{}] Modelo exemplo criado: {} ({}, {}cm)", (i+1), m.getName(), idades[i], alturasCm[i]);
+                log.info("[MODEL INIT][H2][{}] Modelo exemplo criado: {} ({}, {}cm)", (i+1), m.getStageName(), idades[i], alturasCm[i]);
             } catch (Exception ex) {
-                LOG.error("[MODEL INIT][H2] Falhou modelo exemplo {} ({}). Motivo: {}", (i+1), nomes[i], ex.getMessage());
+                log.error("[MODEL INIT][H2] Falhou modelo exemplo {} ({}). Motivo: {}", (i+1), nomes[i], ex.getMessage(), ex);
             }
         }
-        LOG.info("[MODEL INIT][H2] {} modelos exemplo inseridos no catalogo.", nomes.length);
+        log.info("[MODEL INIT][H2] {} modelos exemplo inseridos no catalogo.", nomes.length);
     }
 
     private void migrateDatabaseSchemaPostgresOnly() {
@@ -233,7 +216,7 @@ public class DataInitializer implements CommandLineRunner {
 
             log.info("[DLL MIGRATE][POSTGRES] OK.");
         } catch (Exception ex) {
-            LOG.error("[DLL MIGRATE][POSTGRES] Erro ao aplicar migracoes DDL PostgreSQL. (Continuando app porque nao eh critico). Motivo: {}", ex.getMessage(), ex);
+            log.error("[DLL MIGRATE][POSTGRES] Erro ao aplicar migracoes DDL PostgreSQL. (Continuando app porque nao eh critico). Motivo: {}", ex.getMessage(), ex);
         }
     }
 

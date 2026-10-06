@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 
 public class CandidateDTO {
 
-    // TASK testCompile Render Fix #2: Anotacoes Lombok completas exigidas na inner ApplicationRequest
     @Data
     @Builder
     @NoArgsConstructor

@@ -3,6 +3,7 @@ package com.wbscouting.api.config;
 import com.wbscouting.api.entity.Admin;
 import com.wbscouting.api.enums.AdminRole;
 import com.wbscouting.api.repository.AdminRepository;
+import com.wbscouting.api.repository.ModelRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("null")
 @DisplayName("3.3. Teste do DataInitializer (Sem Recriação de Admin Padrão)")
 class DataInitializerIdempotencyTest {
 
@@ -30,13 +32,17 @@ class DataInitializerIdempotencyTest {
     @Mock
     private JdbcTemplate jdbcTemplate;
 
+    @Mock
+    private ModelRepository modelRepository;
+
     private DataInitializer dataInitializer;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        dataInitializer = new DataInitializer(adminRepository, passwordEncoder, jdbcTemplate);
+        // Ordem do construtor real: AdminRepository, ModelRepository, PasswordEncoder, JdbcTemplate
+        dataInitializer = new DataInitializer(adminRepository, modelRepository, passwordEncoder, jdbcTemplate);
 
         ReflectionTestUtils.setField(dataInitializer, "defaultName", "Webmaster WB Agency");
         ReflectionTestUtils.setField(dataInitializer, "defaultEmail", "webmaster@wbagency.com.br");
@@ -49,7 +55,7 @@ class DataInitializerIdempotencyTest {
         // Simula que a tabela public.admins já possui 1 administrador cadastrado (como em produção)
         when(adminRepository.count()).thenReturn(1L);
 
-        dataInitializer.run();
+        dataInitializer.run(new String[0]);
 
         // Verifica que o repositório foi consultado
         verify(adminRepository, times(1)).count();
@@ -66,7 +72,7 @@ class DataInitializerIdempotencyTest {
     void shouldNotRecreateAdminWhenMultipleAdminsExist() {
         when(adminRepository.count()).thenReturn(5L);
 
-        dataInitializer.run();
+        dataInitializer.run(new String[0]);
 
         verify(adminRepository, times(1)).count();
         verify(adminRepository, never()).save(any(Admin.class));
@@ -79,7 +85,7 @@ class DataInitializerIdempotencyTest {
         when(adminRepository.count()).thenReturn(0L);
         when(passwordEncoder.encode("Admin@WbScouting2026!")).thenReturn("bcrypt-encoded-strong-hash");
 
-        dataInitializer.run();
+        dataInitializer.run(new String[0]);
 
         verify(adminRepository, times(1)).count();
         verify(passwordEncoder, times(1)).encode("Admin@WbScouting2026!");
@@ -100,7 +106,7 @@ class DataInitializerIdempotencyTest {
     void shouldExecuteSchemaMigrationsResiliently() {
         when(adminRepository.count()).thenReturn(1L);
 
-        dataInitializer.run();
+        dataInitializer.run(new String[0]);
 
         // Verifica que as instruções de DDL defensivas foram submetidas ao JdbcTemplate
         verify(jdbcTemplate, atLeast(3)).execute(anyString());

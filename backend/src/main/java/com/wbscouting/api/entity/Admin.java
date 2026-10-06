@@ -5,13 +5,12 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -40,8 +39,7 @@ public class Admin implements UserDetails {
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false, columnDefinition = "admin_role")
-    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(name = "role", length = 50, nullable = false)
     @Builder.Default
     private AdminRole role = AdminRole.SUPER_ADMIN;
 
@@ -56,8 +54,12 @@ public class Admin implements UserDetails {
     @Builder.Default
     private Boolean is2faEnabled = false;
 
-    @Column(name = "backup_codes", columnDefinition = "text[]")
-    private List<String> backupCodes;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "admin_backup_codes", schema = "public", joinColumns = @JoinColumn(name = "admin_id"))
+    @Column(name = "code", length = 255, nullable = false)
+    @OrderColumn
+    @Builder.Default
+    private List<String> backupCodes = new ArrayList<>();
 
     @Column(name = "must_change_password", nullable = false)
     @Builder.Default
@@ -152,4 +154,74 @@ public class Admin implements UserDetails {
     public void setPasswordResetExpiresAt(OffsetDateTime passwordResetExpiresAt) { this.passwordResetExpiresAt = passwordResetExpiresAt; }
     public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
     public void setUpdatedAt(OffsetDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    // ============================================================
+    // 🔥 BUILDER MANUAL (FALLBACK Lombok NoClassDefFoundError: Admin$AdminBuilder)
+    //    Quando o annotation processor do Lombok falha no Maven Wrapper, essa
+    //    inner class estática garante que Admin.builder() exista em bytecode.
+    // ============================================================
+    public static AdminBuilder builder() {
+        return new AdminBuilder();
+    }
+
+    public static class AdminBuilder {
+        private UUID id;
+        private String name;
+        private String email;
+        private String passwordHash;
+        private AdminRole role = AdminRole.SUPER_ADMIN;
+        private Boolean isActive = true;
+        private String totpSecret;
+        private Boolean is2faEnabled = false;
+        private java.util.List<String> backupCodes;
+        private Boolean mustChangePassword = false;
+        private OffsetDateTime lastLoginAt;
+        private String passwordResetToken;
+        private OffsetDateTime passwordResetExpiresAt;
+        private OffsetDateTime createdAt;
+        private OffsetDateTime updatedAt;
+
+        AdminBuilder() {}
+
+        public AdminBuilder id(UUID id) { this.id = id; return this; }
+        public AdminBuilder name(String name) { this.name = name; return this; }
+        public AdminBuilder email(String email) { this.email = email; return this; }
+        public AdminBuilder passwordHash(String passwordHash) { this.passwordHash = passwordHash; return this; }
+        public AdminBuilder role(AdminRole role) { this.role = role; return this; }
+        public AdminBuilder isActive(Boolean isActive) { this.isActive = isActive; return this; }
+        public AdminBuilder totpSecret(String totpSecret) { this.totpSecret = totpSecret; return this; }
+        public AdminBuilder is2faEnabled(Boolean is2faEnabled) { this.is2faEnabled = is2faEnabled; return this; }
+        public AdminBuilder backupCodes(java.util.List<String> backupCodes) { this.backupCodes = backupCodes; return this; }
+        public AdminBuilder mustChangePassword(Boolean mustChangePassword) { this.mustChangePassword = mustChangePassword; return this; }
+        public AdminBuilder lastLoginAt(OffsetDateTime lastLoginAt) { this.lastLoginAt = lastLoginAt; return this; }
+        public AdminBuilder passwordResetToken(String passwordResetToken) { this.passwordResetToken = passwordResetToken; return this; }
+        public AdminBuilder passwordResetExpiresAt(OffsetDateTime passwordResetExpiresAt) { this.passwordResetExpiresAt = passwordResetExpiresAt; return this; }
+        public AdminBuilder createdAt(OffsetDateTime createdAt) { this.createdAt = createdAt; return this; }
+        public AdminBuilder updatedAt(OffsetDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
+
+        public Admin build() {
+            Admin a = new Admin();
+            a.setId(this.id);
+            a.setName(this.name);
+            a.setEmail(this.email);
+            a.setPasswordHash(this.passwordHash);
+            a.setRole(this.role != null ? this.role : AdminRole.SUPER_ADMIN);
+            a.setIsActive(this.isActive != null ? this.isActive : true);
+            a.setTotpSecret(this.totpSecret);
+            a.setIs2faEnabled(this.is2faEnabled != null ? this.is2faEnabled : false);
+            a.setBackupCodes(this.backupCodes);
+            a.setMustChangePassword(this.mustChangePassword != null ? this.mustChangePassword : false);
+            a.setLastLoginAt(this.lastLoginAt);
+            a.setPasswordResetToken(this.passwordResetToken);
+            a.setPasswordResetExpiresAt(this.passwordResetExpiresAt);
+            a.setCreatedAt(this.createdAt);
+            a.setUpdatedAt(this.updatedAt);
+            return a;
+        }
+
+        @Override
+        public String toString() {
+            return "AdminBuilder(email=" + this.email + ", role=" + this.role + ")";
+        }
+    }
 }

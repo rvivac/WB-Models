@@ -1,36 +1,32 @@
 server:
-  port: ${PORT:8080}
+  port: 8080
   servlet:
     context-path: /api/v1
 
 spring:
-  config:
-    import:
-      - optional:file:.env[.properties]
-
-  servlet:
-    multipart:
-      max-file-size: 25MB
-      max-request-size: 30MB
-
-  application:
-    name: wb-scouting-api
-
   datasource:
-    # Pooler via porta 6543 com suporte a sslmode=verify-full com validação de CA do sistema
-    url: ${DB_URL:jdbc:postgresql://${DB_HOST:aws-0-sa-east-1.pooler.supabase.com}:${DB_PORT:6543}/${DB_NAME:postgres}?sslmode=${DB_SSL_MODE:require}&sslrootcert=${DB_SSL_ROOT_CERT_PATH:/etc/ssl/certs/ca-certificates.crt}&prepareThreshold=0}
-    username: ${DB_USERNAME:}
-    password: ${DB_PASSWORD:}
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:h2:mem:wblocaldb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
     hikari:
-      pool-name: WbScoutingHikariPool
-      maximum-pool-size: 3
+      pool-name: WbLocalH2Pool
+      maximum-pool-size: 5
       minimum-idle: 1
-      idle-timeout: 300000
-      connection-timeout: 30000
-      max-lifetime: 1200000
-      connection-test-query: SELECT 1
-      auto-commit: true
+      idle-timeout: 30000
+      connection-timeout: 20000
+      max-lifetime: 60000
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
 
   data:
     web:
@@ -38,71 +34,27 @@ spring:
         max-page-size: 50
         default-page-size: 20
 
-  jpa:
-    open-in-view: false
-    hibernate:
-      ddl-auto: none
-    show-sql: false
-
-  mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:no-reply@wbscouting.com}
-    password: ${MAIL_PASSWORD:dummy-password}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-            required: true
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
-
-# Configurações da Aplicação
 app:
-  mail:
-    from-address: ${MAIL_FROM:no-reply@wbscouting.com}
-    from-name: "WB Scouting"
-    agency-notification-email: ${AGENCY_CONTACT_EMAIL:contato@wbscouting.com}
-    reset-password-base-url: ${RESET_PWD_URL:http://localhost:4200/admin/reset-password}
   security:
     jwt:
-      secret: ${JWT_SECRET:}
-      expiration-ms: ${JWT_EXPIRATION_MS:28800000} # 8 horas
+      secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      expiration-ms: 28800000
     initial-admin:
-      email: ${INITIAL_ADMIN_EMAIL:webmaster@wbagency.com.br}
-      password: ${INITIAL_ADMIN_PASSWORD:}
-      name: ${INITIAL_ADMIN_NAME:Webmaster WB Agency}
+      email: webmaster@wbagency.com.br
+      password: Admin@WbScouting2026!
+      name: Webmaster WB Agency (Local H2)
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,https://wbagency.com.br,https://www.wbagency.com.br,http://wbagency.com.br,http://www.wbagency.com.br,https://wb-models-1.onrender.com,http://wb-models-1.onrender.com}
-    allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,PATCH,DELETE,OPTIONS}
-    allowed-headers: ${CORS_ALLOWED_HEADERS:Authorization,Content-Type,X-Requested-With,Accept,Origin}
-    allow-credentials: true
-    max-age: 3600
+    allowed-origins: "http://localhost:4200,http://localhost:8080"
 
-# Configurações do Supabase Storage e API
 supabase:
-  url: ${SUPABASE_URL:}
-  key: ${SUPABASE_KEY:}
-  service-role-key: ${SUPABASE_SERVICE_ROLE_KEY:}
-  anon-key: ${SUPABASE_ANON_KEY:}
+  url: https://dummy-local.supabase.co
+  key: local-dummy-key
+  service-role-key: local-dummy-sr
+  anon-key: local-dummy-anon
   storage:
-    # Base URL pública usada para montar URLs diretamente (sem precisar do SDK).
-    # Formato: ${SUPABASE_URL}/storage/v1/object/public
-    public-base-url: ${SUPABASE_STORAGE_PUBLIC_BASE_URL:${SUPABASE_URL:https://your-project-ref.supabase.co}/storage/v1/object/public}
-    local-fallback: ${SUPABASE_STORAGE_LOCAL_FALLBACK:false}
-    local-dir: ${SUPABASE_STORAGE_LOCAL_DIR:uploads}
-    local-base-url: ${SUPABASE_STORAGE_LOCAL_BASE_URL:https://wb-models-1.onrender.com}
-  buckets:
-    site-assets: site-assets
-    models-media: models-media
-    candidates-uploads: candidates-uploads
+    local-fallback: true
+    local-dir: uploads-local
 
 logging:
   level:
-    root: INFO
     com.wbscouting.api: DEBUG
-    com.wbscouting.api.service.storage: DEBUG
-    org.springframework.security: INFO

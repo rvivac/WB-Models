@@ -34,26 +34,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.wbscouting.api.security.audit.AuditAction;
 import org.springframework.web.bind.annotation.*;
 
-// ============================================================
-// Logger MANUAL (lombok @Slf4j NAO gera field no MavenWrapper 3.6.3 Render)
-// ============================================================
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.UUID;
 
-// @Slf4j comentado: substituido pelo logger static abaixo (evita erro cannot find symbol variable log)
-// @Slf4j
+@Slf4j
 @RestController
 @RequestMapping({"/api/v1/admin/applications", "/admin/applications"})
 @PreAuthorize("hasAnyRole('WEBMASTER', 'SUPER_ADMIN', 'CONTENT_ADMIN', 'ADMIN')")
 @RequiredArgsConstructor
 public class AdminApplicationController {
-
-    // 🔥 Logger manual (substitui @Slf4j - annotation processor do Lombok nao funciona no mvnw 3.6.3)
-    private static final Logger log = LoggerFactory.getLogger(AdminApplicationController.class);
 
     private final CandidateSubmissionRepository submissionRepository;
     private final CandidateSubmissionAdminService candidateSubmissionAdminService;

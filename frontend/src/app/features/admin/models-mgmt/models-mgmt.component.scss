@@ -478,17 +478,25 @@ $success: #4ec985;
   to { transform: translateX(0); }
 }
 
-// Botão Gold
+// Botão Gold / Outline / Danger
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   padding: 0.65rem 1.4rem;
   font-size: 0.88rem;
   font-weight: 500;
   border-radius: 6px;
   cursor: pointer;
   border: 1px solid transparent;
+  transition: all 0.2s ease;
+  font-family: inherit;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 
   &.btn-gold {
     background: linear-gradient(135deg, $gold 0%, $gold-light 50%, $gold-dark 100%);
@@ -496,10 +504,306 @@ $success: #4ec985;
     font-weight: 600;
     box-shadow: 0 4px 14px rgba($gold, 0.2);
 
-    &:hover {
+    &:hover:not(:disabled) {
       filter: brightness(1.1);
       box-shadow: 0 6px 20px rgba($gold, 0.35);
       transform: translateY(-1px);
     }
+  }
+
+  &.btn-outline {
+    background: transparent;
+    border-color: $border-color;
+    color: $text-main;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+      border-color: rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.04);
+    }
+  }
+
+  &.btn-danger {
+    background: linear-gradient(135deg, $danger 0%, #c03d3d 50%, #992d2d 100%);
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba($danger, 0.22);
+
+    &:hover:not(:disabled) {
+      filter: brightness(1.1);
+      box-shadow: 0 6px 22px rgba($danger, 0.38);
+      transform: translateY(-1px);
+    }
+  }
+}
+
+.spinner-inline {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+// ============================================================
+// 🗑️ BOTAO APAGAR (coluna Açoes da tabela)
+// ============================================================
+.action-cell {
+  .action-btn {
+    &.action-btn-danger {
+      color: rgba($danger, 0.88);
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+
+      &:hover {
+        color: $danger;
+        text-decoration: underline;
+        background: rgba($danger, 0.08);
+        border-radius: 4px;
+      }
+    }
+  }
+}
+
+// ============================================================
+// 🗑️ MODAL DE CONFIRMAÇÃO DE EXCLUSÃO PERMANENTE
+// ============================================================
+.confirm-delete-backdrop {
+  justify-content: center !important;
+  align-items: center;
+  background: rgba(8, 10, 12, 0.92) !important;
+  padding: 1.5rem;
+
+  .confirm-delete-dialog {
+    width: 100%;
+    max-width: 640px;
+    max-height: 90vh;
+    background: $bg-dark;
+    border: 1px solid rgba($danger, 0.45);
+    border-radius: 14px;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.85), 0 0 35px rgba($danger, 0.12);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: confirmDialogPop 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+
+    .confirm-delete-header {
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1.75rem 1.75rem 1.25rem 1.75rem;
+      border-bottom: 1px solid rgba($danger, 0.2);
+      background: linear-gradient(180deg, rgba($danger, 0.06) 0%, transparent 100%);
+
+      .confirm-delete-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: rgba($danger, 0.18);
+        color: #ffb8b8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        flex-shrink: 0;
+        line-height: 1;
+        padding-bottom: 4px;
+      }
+
+      .confirm-delete-header-text {
+        flex: 1;
+
+        .confirm-delete-title {
+          margin: 0 0 0.35rem 0;
+          font-size: 1.5rem;
+          color: #fff;
+          font-weight: 500;
+          letter-spacing: -0.02em;
+        }
+
+        .confirm-delete-subtitle {
+          margin: 0;
+          color: rgba(#ffd1d1, 0.75);
+          font-size: 0.75rem;
+          opacity: 0.9;
+        }
+      }
+    }
+
+    .confirm-delete-body {
+      padding: 1.75rem;
+      overflow-y: auto;
+      flex: 1;
+      color: $text-main;
+
+      .confirm-delete-model-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        background: $bg-card;
+        border: 1px solid $border-color;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+
+        .confirm-delete-model-photo {
+          width: 68px;
+          height: 84px;
+          border-radius: 6px;
+          overflow: hidden;
+          border: 1px solid $border-color;
+          background: #000;
+          flex-shrink: 0;
+
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+
+          .photo-placeholder-mini {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: $bg-card-elevated;
+            color: $gold;
+            font-weight: 700;
+            font-size: 1rem;
+          }
+        }
+
+        .confirm-delete-model-info {
+          flex: 1;
+          min-width: 0;
+
+          .confirm-delete-model-name {
+            font-size: 1.15rem;
+            font-weight: 500;
+            color: #fff;
+            margin-bottom: 0.3rem;
+          }
+
+          .confirm-delete-model-meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem 0.6rem;
+            margin-bottom: 0.35rem;
+            color: $text-secondary;
+            font-size: 0.82rem;
+
+            .meta-item {
+              color: $text-secondary;
+            }
+
+            .meta-badge {
+              display: inline-flex;
+              align-items: center;
+              padding: 2px 8px;
+              border-radius: 4px;
+              font-size: 0.7rem;
+              text-transform: uppercase;
+              letter-spacing: 0.04em;
+              font-weight: 600;
+
+              &.meta-badge-star {
+                background: rgba($gold, 0.2);
+                color: $gold-light;
+                border: 1px solid $border-gold;
+                gap: 0.2rem;
+              }
+
+              &.meta-badge-inactive {
+                background: rgba($danger, 0.18);
+                color: #f5a8a8;
+                border-color: rgba($danger, 0.4);
+              }
+            }
+          }
+
+          .confirm-delete-model-photos-count {
+            font-size: 0.78rem;
+            color: rgba($gold, 0.85);
+            color: #ffd1a6;
+            margin-top: 0.2rem;
+          }
+        }
+      }
+
+      .confirm-delete-warnings {
+        background: #1a0f0d;
+        border-left: 3px solid rgba($danger, 0.55);
+        border-radius: 6px;
+        padding: 1rem 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        color: #f2e5e3;
+
+        .warn-line {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.5rem;
+
+          .warn-bullet {
+            color: rgba($danger, 0.95);
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 1px;
+          }
+
+          &.warn-strong {
+            margin-top: 0.4rem;
+            padding-top: 0.6rem;
+            border-top: 1px dashed rgba($danger, 0.35);
+            color: #ffdede;
+            font-weight: 500;
+
+            .warn-bullet {
+              font-size: 0.95rem;
+            }
+          }
+        }
+      }
+    }
+
+    .confirm-delete-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.25rem 1.75rem;
+      border-top: 1px solid $border-color;
+      background: $bg-card;
+
+      @media (max-width: 520px) {
+        flex-direction: column-reverse;
+
+        .btn {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+    }
+  }
+}
+
+@keyframes confirmDialogPop {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }

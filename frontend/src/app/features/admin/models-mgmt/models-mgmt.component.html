@@ -194,6 +194,18 @@
                   <button class="action-btn" (click)="toggleStatus(model)">
                     {{ model.isActive ? 'Desativar' : 'Ativar' }}
                   </button>
+                  <!-- ============================================================
+                       🗑️ BOTÃO APAGAR MODELO (abre modal de CONFIRMAÇÃO 2 cliques)
+                       ============================================================ -->
+                  <button
+                    type="button"
+                    class="action-btn action-btn-danger"
+                    title="Excluir este modelo permanentemente do casting"
+                    (click)="confirmDelete(model)"
+                  >
+                    <span aria-hidden="true">&#128465;</span>
+                    Apagar
+                  </button>
                 </td>
               </tr>
             } @empty {
@@ -222,6 +234,133 @@
           (saved)="onModelSaved($event)"
           (cancelled)="closeForm()"
         ></app-model-form>
+      </div>
+    </div>
+  }
+
+  <!-- ============================================================
+       🗑️ MODAL DE CONFIRMAÇÃO: EXCLUIR MODELO PERMANENTEMENTE
+       Regra UX: 2 CLIQUES obrigatorios para exclusao.
+       ============================================================ -->
+  @if (isConfirmDeleteOpen() && pendingDeleteModel()) {
+    <div class="drawer-backdrop confirm-delete-backdrop" (click)="cancelDelete()">
+      <div class="confirm-delete-dialog" (click)="$event.stopPropagation()" role="alertdialog" aria-modal="true" aria-labelledby="confirm-delete-title">
+
+        <!-- Cabecalho do modal -->
+        <div class="confirm-delete-header">
+          <div class="confirm-delete-icon" aria-hidden="true">
+            &#9888;
+          </div>
+          <div class="confirm-delete-header-text">
+            <h3 id="confirm-delete-title" class="confirm-delete-title font-serif">
+              Excluir Modelo Permanentemente?
+            </h3>
+            <p class="confirm-delete-subtitle text-xs uppercase tracking-widest">
+              Ação irreversível — leia com atenção antes de confirmar
+            </p>
+          </div>
+          <button type="button" class="drawer-close-btn" (click)="cancelDelete()" title="Cancelar exclusão" aria-label="Cancelar">
+            &times;
+          </button>
+        </div>
+
+        <!-- Corpo do modal: Dados do modelo e foto -->
+        <div class="confirm-delete-body">
+
+          <!-- Card miniatura do modelo -->
+          <div class="confirm-delete-model-card">
+            <div class="confirm-delete-model-photo">
+              @if (pendingDeleteModel()?.primaryPhotoUrl && !hasBrokenThumb(pendingDeleteModel()!.id)) {
+                <img
+                  [src]="pendingDeleteModel()!.primaryPhotoUrl"
+                  [alt]="pendingDeleteModel()!.stageName"
+                  loading="eager"
+                  (error)="onThumbError(pendingDeleteModel()!.id)"
+                />
+              } @else {
+                <div class="photo-placeholder-mini" aria-hidden="true">
+                  <span>WB</span>
+                </div>
+              }
+            </div>
+            <div class="confirm-delete-model-info">
+              <div class="confirm-delete-model-name">
+                {{ pendingDeleteModel()?.stageName || 'Modelo sem nome artístico' }}
+              </div>
+              <div class="confirm-delete-model-meta">
+                @if (pendingDeleteModel()?.heightCm) {
+                  <span class="meta-item">{{ pendingDeleteModel()!.heightCm }} cm</span>
+                }
+                @if (pendingDeleteModel()?.gender) {
+                  <span class="meta-item">{{ pendingDeleteModel()!.gender === 'MALE' ? 'Masculino' : 'Feminino' }}</span>
+                }
+                @if (pendingDeleteModel()?.city) {
+                  <span class="meta-item">{{ pendingDeleteModel()!.city }}</span>
+                }
+                @if (pendingDeleteModel()?.isStar) {
+                  <span class="meta-badge meta-badge-star" title="Categoria Stars">
+                    &starf; STAR
+                  </span>
+                }
+                @if (!pendingDeleteModel()?.isActive) {
+                  <span class="meta-badge meta-badge-inactive">Inativo</span>
+                }
+              </div>
+              @if ((pendingDeleteModel()?.photosCount ?? 0) > 0) {
+                <div class="confirm-delete-model-photos-count">
+                  {{ pendingDeleteModel()?.photosCount ?? 0 }} foto(s) do acervo serão apagadas junto
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Avisos importantes -->
+          <div class="confirm-delete-warnings">
+            <div class="warn-line">
+              <span class="warn-bullet">&#8226;</span>
+              Todas as <strong>fotos do acervo (book, polaroids, composites)</strong> vinculadas a este modelo serão removidas permanentemente do bucket do Supabase.
+            </div>
+            <div class="warn-line">
+              <span class="warn-bullet">&#8226;</span>
+              Todas as <strong>configurações de vitrine na Home (isFeaturedHome), selo Stars, tags de visibilidade</strong> e medidas técnicas serão perdidas.
+            </div>
+            <div class="warn-line">
+              <span class="warn-bullet">&#8226;</span>
+              O perfil do modelo desaparecerá IMEDIATAMENTE do catálogo público do site institucional e da aba administrativa.
+            </div>
+            <div class="warn-line warn-strong">
+              <span class="warn-bullet">&#9888;</span>
+              Esta ação <strong>NÃO PODE SER DESFEITA</strong>. Se quiser manter os dados, use a opção <em>"Desativar"</em> em vez de excluir.
+            </div>
+          </div>
+        </div>
+
+        <!-- Rodape do modal: Botoes Cancelar / Confirmar exclusao -->
+        <div class="confirm-delete-footer">
+          <button
+            type="button"
+            class="btn btn-outline"
+            (click)="cancelDelete()"
+            [disabled]="isDeleting()"
+          >
+            &larr; Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger"
+            (click)="executeDelete()"
+            [disabled]="isDeleting()"
+          >
+            @if (isDeleting()) {
+              <span class="spinner-inline"></span>
+              Excluindo...
+            } @else {
+              <span aria-hidden="true">&#128465;</span>
+              Sim, Excluir Permanentemente
+            }
+          </button>
+        </div>
+
       </div>
     </div>
   }

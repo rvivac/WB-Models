@@ -13,7 +13,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// TASK testCompile Render Fix #3: Anotacoes Lombok completas exigidas na classe principal
 @Data
 @Builder
 @NoArgsConstructor
@@ -80,7 +79,6 @@ public class CandidateApplicationDto {
         public CandidateApplicationDto build() { return d; }
     }
 
-    // TASK testCompile Render Fix #3: Anotacoes Lombok completas exigidas na inner CandidatePhotoDto
     @Data
     @Builder
     @NoArgsConstructor

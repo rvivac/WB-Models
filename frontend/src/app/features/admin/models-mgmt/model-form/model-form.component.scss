@@ -17,9 +17,61 @@ $success: #4ec985;
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 1.5rem 1.5rem 4rem 1.5rem;
   color: $text-main;
   animation: fadeIn 0.3s ease-out;
+
+  /* ============================================================
+     🔥 BARRA DE ROLAGEM VERTICAL ESPECIFICA - EDITAR CADASTRO MODELO
+     (Janela do formulario, tanto dentro do modal quanto pagina standalone)
+     ============================================================ */
+  // Altura maxima do formulario em viewport height (mantem 18% da tela livre para header do modal + browser chrome)
+  max-height: 82vh;
+  // Scroll vertical auto ativa apenas quando transbordar; scroll horizontal liberado para campos de secoes grandes
+  overflow-y: auto;
+  overflow-x: hidden;
+  // Garante espaco reservado para a scrollbar, evitando layout shift "puxando" conteudo quando a barra aparece
+  scrollbar-gutter: stable;
+  // Melhora performance do scroll em browser baseados em Chromium (Chrome, Edge, Electron)
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+
+  // Espacamento interno MAIOR no TOPO (cabeçalho) e no FIM (antes do footer sticky)
+  padding: 1.5rem 1.5rem 7.5rem 1.5rem;
+
+  /* =================== SCROLLBAR CUSTOM BEGE-DOURADO (IGUAL TABELA MODELS) =================== */
+  // Chromium (Chrome, Edge, Brave, Electron, etc.)
+  &::-webkit-scrollbar {
+    width: 11px;
+    height: 11px;
+  }
+  &::-webkit-scrollbar-track {
+    background: linear-gradient(180deg, rgba($bg-card, 0.9) 0%, rgba($bg-card-elevated, 0.95) 100%);
+    border-left: 1px solid $border-color;
+    border-radius: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    // Cor do thumb = mesma paleta da tabela admin/models (gradient bege-dourado)
+    background: linear-gradient(180deg, rgba($gold, 0.55) 0%, rgba($gold-dark, 0.45) 100%);
+    border-radius: 6px;
+    border: 2px solid rgba(0, 0, 0, 0.35);
+    transition: all 0.25s ease;
+    cursor: pointer;
+
+    &:hover {
+      background: linear-gradient(180deg, rgba($gold, 0.85) 0%, rgba($gold-dark, 0.75) 100%);
+      border-color: rgba($gold, 0.6);
+    }
+    &:active {
+      background: linear-gradient(180deg, rgba($gold-light, 0.95) 0%, rgba($gold, 0.85) 100%);
+    }
+  }
+  &::-webkit-scrollbar-corner {
+    background: rgba($bg-dark, 0.9);
+  }
+
+  // Firefox (funciona no Firefox >= 99)
+  scrollbar-width: thin;
+  scrollbar-color: rgba($gold, 0.65) rgba($bg-card, 0.95);
 }
 
 @keyframes fadeIn {
@@ -74,7 +126,10 @@ $success: #4ec985;
   to { transform: translateX(0); opacity: 1; }
 }
 
-// Cabeçalho da Página
+// ============================================================
+// 🔥 CABEÇALHO FIXO NO TOPO (breadcrumb + titulo + botoes)
+//    Sticky durante scroll das secoes.
+// ============================================================
 .form-header {
   display: flex;
   justify-content: space-between;
@@ -83,6 +138,20 @@ $success: #4ec985;
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid $border-color;
+
+  // STICKY TOP: Permanece visivel enquanto rola as 6 secoes para baixo.
+  position: sticky;
+  top: 0;
+  // Backdrop blur para manter legibilidade ao sobrepor secoes.
+  background: rgba($bg-dark, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  // Garante espacamento interno igual ao container para nao ficar desalinhado
+  margin: -1.5rem -1.5rem 2rem -1.5rem;
+  padding: 1.5rem 1.5rem 1.5rem 1.5rem;
+  z-index: 4;
+  // Sombra leve para separar do conteudo abaixo ao rolar
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
 
   @media (max-width: 768px) {
     flex-direction: column;
@@ -725,13 +794,40 @@ $success: #4ec985;
   }
 }
 
-// Barra de Rodapé Fixa / Final de Ação
+// ============================================================
+// 🔥 BARRA DE AÇÕES (CANCELAR / SALVAR) SEMPRE VISÍVEL
+//    Sticky no FIM do container do formulario durante o scroll.
+// ============================================================
 .form-footer-bar {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
-  padding-top: 1.5rem;
+  padding: 1rem 0;
   border-top: 1px solid $border-color;
+
+  // Sticky: Fica colado no fundo da janela quando o usuario rola para baixo.
+  position: sticky;
+  bottom: 0;
+  // Backdrop blur para nao cobrir o texto do formulario feio
+  background: rgba($bg-card-elevated, 0.9);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 5;
+  margin: 0 -1.5rem -7.5rem -1.5rem;
+  padding: 1rem 1.5rem;
+
+  // Sombra leve no topo para separar visualmente do conteudo enquanto rola
+  box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.35);
+
+  @media (max-width: 640px) {
+    // Mobile: Botões ocupam 100% largura
+    flex-direction: column-reverse;
+
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
 }
 
 .empty-composite-notice {
@@ -752,4 +848,3 @@ $success: #4ec985;
     margin-bottom: 0.5rem;
   }
 }
-

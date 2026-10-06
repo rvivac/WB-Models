@@ -25,6 +25,13 @@ export class ModelsMgmtComponent implements OnInit {
   readonly isFormOpen = signal<boolean>(false);
   readonly editingModelId = signal<string | null>(null);
 
+  // ============================================================
+  // 🗑️ MODAL DE CONFIRMAÇÃO: APAGAR MODELO
+  // ============================================================
+  readonly isConfirmDeleteOpen = signal<boolean>(false);
+  readonly pendingDeleteModel = signal<ModelAdminItem | null>(null);
+  readonly isDeleting = signal<boolean>(false);
+
   // Filtros
   readonly filterGender = signal<ModelGender | 'ALL'>('ALL');
   readonly filterStar = signal<boolean | null>(null);
@@ -145,5 +152,60 @@ export class ModelsMgmtComponent implements OnInit {
     setTimeout(() => {
       this.toast.set(null);
     }, 4000);
+  }
+
+  // ============================================================
+  // 🗑️ FUNÇÃO APAGAR MODELO - CONFIRMAÇÃO 2 CLIQUES
+  // ============================================================
+
+  /**
+   * 1º clique: Abre modal de confirmação (PASSO 1).
+   */
+  confirmDelete(model: ModelAdminItem): void {
+    if (!model || !model.id) return;
+    this.pendingDeleteModel.set(model);
+    this.isConfirmDeleteOpen.set(true);
+  }
+
+  /**
+   * Fecha modal sem apagar (clique cancelar, X, ou backdrop).
+   */
+  cancelDelete(): void {
+    this.isConfirmDeleteOpen.set(false);
+    this.pendingDeleteModel.set(null);
+    this.isDeleting.set(false);
+  }
+
+  /**
+   * 2º clique: Confirma exclusão PERMANENTE (PASSO 2).
+   * Chama backend DELETE /admin/models/{id} via AdminModelService.deleteModel().
+   *
+   * Segurança extra: só executa se pendingDeleteModel estiver definido
+   * (evita duplo clique ou exclusao acidental).
+   */
+  executeDelete(): void {
+    const target = this.pendingDeleteModel();
+    if (!target || !target.id || this.isDeleting()) return;
+
+    this.isDeleting.set(true);
+    this.adminModelService.deleteModel(target.id).subscribe({
+      next: () => {
+        // (A) Remove o modelo da lista LOCAL imediatamente (UI fica responsiva)
+        this.models.update((list) => list.filter((m) => m.id !== target.id));
+        // (B) Recarrega backend para confirmar paginacao e totais sincronizados
+        this.loadModels();
+        this.showToast(`Modelo "${target.stageName}" foi excluído permanentemente com sucesso.`, 'success');
+        this.cancelDelete();
+      },
+      error: (err) => {
+        console.error('[Apagar Modelo] Falha DELETE backend:', err);
+        const detail = (err as any)?.error?.detail || (err as any)?.message || '';
+        this.showToast(
+          `Erro ao excluir modelo "${target.stageName}". ${detail ? ` Detalhe: ${detail}` : 'Tente novamente em instantes.'}`,
+          'error'
+        );
+        this.isDeleting.set(false);
+      }
+    });
   }
 }

@@ -7,7 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// TASK testCompile Render Fix #1: Anotacoes Lombok completas exigidas
 @Data
 @Builder
 @NoArgsConstructor

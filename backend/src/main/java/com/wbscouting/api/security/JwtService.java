@@ -6,8 +6,6 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -17,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 @Slf4j
@@ -29,19 +28,23 @@ public class JwtService {
     public JwtService(
             @Value("${app.security.jwt.secret:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}") String secret,
             @Value("${app.security.jwt.expiration-ms:28800000}") long jwtExpirationMs) {
-        this.signingKey = buildSigningKey(secret);
+        String safeSecret = Objects.requireNonNullElse(secret,
+                "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970");
+        this.signingKey = buildSigningKey(safeSecret);
         this.jwtExpirationMs = jwtExpirationMs;
     }
 
     private SecretKey buildSigningKey(String secret) {
+        String s = Objects.requireNonNullElse(secret,
+                "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970");
         byte[] keyBytes;
         try {
-            keyBytes = Decoders.BASE64.decode(secret);
+            keyBytes = Decoders.BASE64.decode(s);
             if (keyBytes.length < 32) {
-                keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+                keyBytes = s.getBytes(StandardCharsets.UTF_8);
             }
         } catch (Exception e) {
-            keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+            keyBytes = s.getBytes(StandardCharsets.UTF_8);
         }
         return Keys.hmacShaKeyFor(keyBytes);
     }

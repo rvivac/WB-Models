@@ -36,8 +36,17 @@
         <span class="text-[11px] text-[#5F6661] uppercase tracking-wider">Arraste para reordenar</span>
       </div>
 
+      <!-- Erro de Rede/Autenticacao (fallback de seguranca) -->
+      <div *ngIf="lastErrorMessage" class="p-3 mb-4 bg-red-50 border-l-2 border-[#dc2626] text-red-700 text-xs error-alert">
+        <strong class="uppercase tracking-wider mr-1">⚠️  Atenção:</strong>
+        {{ lastErrorMessage }}
+        <button type="button" (click)="loadData()" class="ml-3 underline hover:no-underline font-semibold text-[#dc2626] retry-btn">
+          Tentar Novamente
+        </button>
+      </div>
+
       <!-- Alerta de Quantidade Mínima -->
-      <div *ngIf="featuredList.length < 4" class="p-3 bg-amber-50 border-l-2 border-amber-500 text-amber-800 text-xs mb-4 min-alert">
+      <div *ngIf="!isFeaturedEmptyReal && featuredList.length < 4" class="p-3 bg-amber-50 border-l-2 border-amber-500 text-amber-800 text-xs mb-4 min-alert">
         É necessário ter no mínimo 4 modelos para compor a vitrine da Home.
       </div>
 
@@ -83,8 +92,17 @@
           </button>
         </div>
 
-        <div *ngIf="featuredList.length === 0" class="p-12 text-center text-xs text-[#5F6661] uppercase tracking-wider empty-state">
-          Nenhum modelo selecionado para a Home. Escolha perfis no catálogo lateral.
+        <div *ngIf="isFeaturedEmptyReal" class="p-12 text-center space-y-3 text-[#5F6661] empty-state featured-empty-real">
+          <div class="text-3xl mb-2">🖼️</div>
+          <p class="text-xs uppercase tracking-[0.2em] font-semibold text-[#4B584E] mb-1">
+            Nenhum destaque configurado no momento
+          </p>
+          <p class="text-[11px] tracking-wide max-w-sm mx-auto">
+            A API de backend retornou 0 itens na vitrine. Escolha perfis no catálogo lateral (coluna direita) para compor a Home da WB Agency.
+          </p>
+          <p class="text-[10px] text-[#8C6D3F] uppercase tracking-wider mt-2">
+            ⛔ Nenhum dado mock está sendo exibido.
+          </p>
         </div>
       </div>
     </div>
@@ -130,8 +148,24 @@
           </button>
         </div>
 
-        <div *ngIf="filteredAvailableModels.length === 0" class="p-6 text-center text-xs text-[#5F6661]">
-          Nenhum modelo disponível encontrado.
+        <div *ngIf="isAvailableEmptyReal && !loadingAvailable" class="p-6 text-center space-y-2 text-[#5F6661] empty-state available-empty-real">
+          <div class="text-2xl mb-1">📋</div>
+          <p class="text-[11px] uppercase tracking-wider font-semibold text-[#4B584E]">
+            Nenhum modelo ativo cadastrado.
+          </p>
+          <p class="text-[11px] tracking-wide max-w-xs mx-auto">
+            Antes de compor a vitrine, cadastre modelos reais no painel em:
+          </p>
+          <a routerLink="/admin/models" class="inline-block mt-1 px-3 py-1.5 bg-[#4B584E] text-white text-[10px] uppercase tracking-widest hover:bg-[#38433B] transition-colors rounded-none">
+            Ir para Gestão de Modelos →
+          </a>
+          <p class="text-[10px] text-[#8C6D3F] uppercase tracking-wider mt-1">
+            ⛔ Nenhum dado mock está sendo exibido.
+          </p>
+        </div>
+
+        <div *ngIf="!isAvailableEmptyReal && filteredAvailableModels.length === 0 && searchQuery" class="p-6 text-center text-xs text-[#5F6661]">
+          Nenhum modelo corresponde à busca "<strong>{{ searchQuery }}</strong>".
         </div>
       </div>
     </div>

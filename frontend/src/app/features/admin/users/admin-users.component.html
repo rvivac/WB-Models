@@ -115,8 +115,11 @@
                       </span>
                     }
                     @case ('WEBMASTER') {
-                      <span class="inline-block bg-[#4B584E] text-white text-[10px] font-mono font-bold uppercase tracking-widest px-2.5 py-1 rounded-none shadow-2xs">
-                        WEBMASTER
+                      <span class="inline-flex items-center gap-1.5 bg-[#4B584E] text-white text-[10px] font-mono font-bold uppercase tracking-widest px-2.5 py-1 rounded-none shadow-2xs" title="Papel de Webmaster é fixo e não pode ser alterado ou excluído pelo painel (RBAC-018).">
+                        <span>WEBMASTER</span>
+                        <span class="bg-black/20 border border-white/20 px-1 py-[1px] text-[8px] tracking-[0.15em]">
+                          🔒 IMUTÁVEL
+                        </span>
                       </span>
                     }
                     @case ('ADMIN') {
@@ -181,15 +184,26 @@
                 <td class="py-4 px-6 text-right whitespace-nowrap">
                   <div class="inline-flex items-center gap-2">
                     
-                    <!-- Botão Alterar Papel -->
-                    <button
-                      type="button"
-                      (click)="openRoleModal(user)"
-                      class="px-2.5 py-1 text-[11px] uppercase tracking-wider text-neutral-700 hover:text-neutral-900 border border-neutral-300 hover:border-neutral-900 bg-white transition-all cursor-pointer rounded-none"
-                      title="Alterar nível hierárquico"
-                    >
-                      Papel
-                    </button>
+                    <!-- Botão Alterar Papel (IMUTÁVEL se WEBMASTER) -->
+                    @if (isWebmasterRole(user.role)) {
+                      <button
+                        type="button"
+                        disabled
+                        class="px-2.5 py-1 text-[11px] uppercase tracking-wider text-neutral-300 border border-neutral-200 bg-neutral-50 cursor-not-allowed rounded-none"
+                        title="Papel de WEBMASTER é fixo e não pode ser alterado."
+                      >
+                        Papel 🔒
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        (click)="openRoleModalSafe(user)"
+                        class="px-2.5 py-1 text-[11px] uppercase tracking-wider text-neutral-700 hover:text-neutral-900 border border-neutral-300 hover:border-neutral-900 bg-white transition-all cursor-pointer rounded-none"
+                        title="Alterar nível hierárquico"
+                      >
+                        Papel
+                      </button>
+                    }
 
                     <!-- Botão Alternar Status (Ativar / Desativar) -->
                     @if (isCurrentUser(user)) {
@@ -210,23 +224,47 @@
                         Excluir
                       </button>
                     } @else {
-                      <button
-                        type="button"
-                        (click)="toggleStatus(user)"
-                        [class]="user.isActive 
-                          ? 'px-2.5 py-1 text-[11px] uppercase tracking-wider text-red-700 hover:text-white hover:bg-red-700 border border-red-300 transition-all cursor-pointer rounded-none'
-                          : 'px-2.5 py-1 text-[11px] uppercase tracking-wider text-emerald-800 hover:text-white hover:bg-[#4B584E] border border-emerald-400 transition-all cursor-pointer rounded-none'"
-                      >
-                        {{ user.isActive ? 'Desativar' : 'Ativar' }}
-                      </button>
-                      <button
-                        type="button"
-                        (click)="openDeleteModal(user)"
-                        class="px-2.5 py-1 text-[11px] uppercase tracking-wider text-neutral-600 hover:text-white hover:bg-red-800 hover:border-red-800 border border-neutral-300 bg-white transition-all cursor-pointer rounded-none"
-                        title="Excluir administrador"
-                      >
-                        Excluir
-                      </button>
+                      <!-- Botão Status: IMUTÁVEL se WEBMASTER (nao ativar/desativar) -->
+                      @if (isWebmasterRole(user.role)) {
+                        <button
+                          type="button"
+                          disabled
+                          class="px-2.5 py-1 text-[11px] uppercase tracking-wider text-neutral-300 border border-neutral-200 bg-neutral-50 cursor-not-allowed rounded-none"
+                          title="Conta de WEBMASTER: status não pode ser alterado pelo painel."
+                        >
+                          Status 🔒
+                        </button>
+                      } @else {
+                        <button
+                          type="button"
+                          (click)="toggleStatus(user)"
+                          [class]="user.isActive 
+                            ? 'px-2.5 py-1 text-[11px] uppercase tracking-wider text-red-700 hover:text-white hover:bg-red-700 border border-red-300 transition-all cursor-pointer rounded-none'
+                            : 'px-2.5 py-1 text-[11px] uppercase tracking-wider text-emerald-800 hover:text-white hover:bg-[#4B584E] border border-emerald-400 transition-all cursor-pointer rounded-none'"
+                        >
+                          {{ user.isActive ? 'Desativar' : 'Ativar' }}
+                        </button>
+                      }
+                      <!-- Botão Excluir: IMUTÁVEL se WEBMASTER -->
+                      @if (isWebmasterRole(user.role)) {
+                        <button
+                          type="button"
+                          disabled
+                          class="px-2.5 py-1 text-[11px] uppercase tracking-wider text-neutral-300 border border-neutral-200 bg-neutral-50 cursor-not-allowed rounded-none"
+                          title="Conta de WEBMASTER não pode ser excluída pelo painel."
+                        >
+                          Excluir 🔒
+                        </button>
+                      } @else {
+                        <button
+                          type="button"
+                          (click)="openDeleteModalSafe(user)"
+                          class="px-2.5 py-1 text-[11px] uppercase tracking-wider text-neutral-600 hover:text-white hover:bg-red-800 hover:border-red-800 border border-neutral-300 bg-white transition-all cursor-pointer rounded-none"
+                          title="Excluir administrador"
+                        >
+                          Excluir
+                        </button>
+                      }
                     }
 
                   </div>
@@ -270,7 +308,7 @@
         >&times;</button>
       </div>
 
-      <form [formGroup]="createUserForm" (ngSubmit)="submitCreateUser()" class="space-y-4" novalidate>
+      <form [formGroup]="createUserForm" (ngSubmit)="submitCreateUserSafe()" class="space-y-4" novalidate>
         
         <div>
           <label for="name" class="block text-xs uppercase tracking-wider text-neutral-700 font-medium mb-1">
@@ -315,8 +353,12 @@
           >
             <option value="ADMIN">ADMIN &bull; Acesso completo a Candidaturas, Modelos e Conteúdo</option>
             <option value="SCOUT">SCOUT &bull; Triagem inicial e avaliação de candidaturas</option>
-            <option value="WEBMASTER">WEBMASTER &bull; Privilégio total incluindo Gestão de Usuários</option>
+            <option value="SUPER_ADMIN">SUPER ADMIN &bull; Privilégio máximo operacional permitido</option>
+            <!-- 🔒 RBAC-018: WEBMASTER removido das opções de criação manual (apenas seeds iniciais) -->
           </select>
+          <p class="mt-2 text-[10px] text-[#8C6D3F] tracking-wide">
+            🔒 Observação: O papel de <strong>WEBMASTER</strong> é exclusivo para provisionamento técnico inicial e não pode ser criado manualmente por este formulário.
+          </p>
         </div>
 
         <div class="bg-[#F8F9F8] border border-[#E8EBE8] p-3 text-[11px] text-neutral-600 leading-relaxed rounded-none">
@@ -423,16 +465,34 @@
         Defina a nova função para <strong>{{ selectedUserForRole()?.name }}</strong>:
       </p>
 
-      <form [formGroup]="changeRoleForm" (ngSubmit)="submitChangeRole()" class="space-y-4">
+      <form [formGroup]="changeRoleForm" (ngSubmit)="submitChangeRoleSafe()" class="space-y-4">
         <div>
-          <select
-            formControlName="role"
-            class="w-full px-3 py-2 text-xs border border-[#E2E8E2] bg-[#FFFDF5] focus:bg-white focus:outline-none focus:border-[#4B584E] rounded-none transition-colors"
-          >
-            <option value="ADMIN">ADMIN &bull; Geral</option>
-            <option value="SCOUT">SCOUT &bull; Triador</option>
-            <option value="WEBMASTER">WEBMASTER &bull; Gestão Total</option>
-          </select>
+          <!-- 🔒 RBAC-018: Para contas de WEBMASTER o select fica TOTALMENTE desabilitado (imutavel) -->
+          @if (isWebmasterRole(selectedUserForRole()?.role)) {
+            <div class="border border-[#4B584E]/30 bg-[#F4F5F4] rounded-none p-3 space-y-2">
+              <p class="text-[11px] text-[#4B584E] uppercase tracking-wider font-bold">
+                🔒 Papel Fixo — Não editável
+              </p>
+              <p class="text-xs text-neutral-600 leading-relaxed">
+                Este usuário possui o papel de <strong>WEBMASTER</strong> (conta de provisionamento raiz). Por questões de governança de segurança (norma RBAC-018), a alteração do nível hierárquico está bloqueada para esta conta.
+              </p>
+              <code class="block text-[10px] bg-white border border-[#E8EBE8] p-2 text-neutral-500 mt-2 rounded-none font-mono">
+                role: WEBMASTER &larr; IMUTÁVEL
+              </code>
+            </div>
+            <!-- Campo oculto com valor travado, não envia papel alterado -->
+            <input formControlName="role" type="hidden" readonly />
+          } @else {
+            <select
+              formControlName="role"
+              class="w-full px-3 py-2 text-xs border border-[#E2E8E2] bg-[#FFFDF5] focus:bg-white focus:outline-none focus:border-[#4B584E] rounded-none transition-colors"
+            >
+              <option value="ADMIN">ADMIN &bull; Geral</option>
+              <option value="SCOUT">SCOUT &bull; Triador</option>
+              <option value="SUPER_ADMIN">SUPER ADMIN &bull; Privilégio máximo permitido</option>
+              <!-- 🔒 RBAC-018: Não permitir PROMOVER admin para WEBMASTER via painel -->
+            </select>
+          }
         </div>
 
         <div class="flex items-center justify-end gap-3 pt-3 border-t border-[#E8EBE8]">

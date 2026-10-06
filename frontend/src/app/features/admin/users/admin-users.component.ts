@@ -124,6 +124,8 @@ export class AdminUsersComponent implements OnInit {
 
   openRoleModal(user: AdminUserItem): void {
     this.selectedUserForRole.set(user);
+    // Se o usuario for WEBMASTER (redundancia), preenche o formulario com o valor e força disabled
+    // posteriormente via HTML. Mas o ideal eh que openRoleModalSafe tenha bloqueado a abertura.
     this.changeRoleForm.patchValue({ role: user.role });
     this.isRoleModalOpen.set(true);
   }
@@ -234,5 +236,92 @@ export class AdminUsersComponent implements OnInit {
 
   isCurrentUser(user: AdminUserItem): boolean {
     return user.email.toLowerCase() === this.currentAdminEmail.toLowerCase();
+  }
+
+  // ============================================================
+  // 🔥 HELPERS DE BLINDAGEM RBAC-018 para papel WEBMASTER (fixo/imutavel)
+  // ============================================================
+  isWebmasterRole(role: string | null | undefined): boolean {
+    return String(role || '').toUpperCase() === 'WEBMASTER';
+  }
+
+  /**
+   * Abertura do modal de alteracao de papel. Para WEBMASTER, o papel eh FIXO e nao
+   * pode ser alterado. Exibe erro e NAO abre o modal (economiza roundtrip pro backend
+   * falhar com 403 e melhora UX).
+   */
+  openRoleModalSafe(user: AdminUserItem): void {
+    if (this.isWebmasterRole(user.role)) {
+      this.errorMessage.set('🔒 Operação bloqueada: O papel de WEBMASTER é fixo e não pode ser alterado (RBAC-018).');
+      setTimeout(() => this.errorMessage.set(null), 6000);
+      return;
+    }
+    this.openRoleModal(user);
+  }
+
+  /**
+   * Abertura do modal de exclusao. Contas de WEBMASTER sao de provisionamento raiz
+   * e NAO PODEM ser excluidas pelo painel.
+   */
+  openDeleteModalSafe(user: AdminUserItem): void {
+    if (this.isCurrentUser(user)) {
+      this.errorMessage.set('Por segurança, você não pode excluir seu próprio usuário logado.');
+      setTimeout(() => this.errorMessage.set(null), 4000);
+      return;
+    }
+    if (this.isWebmasterRole(user.role)) {
+      this.errorMessage.set('🔒 Operação bloqueada: Contas de WEBMASTER são de provisionamento raiz e não podem ser excluídas pelo painel (RBAC-018).');
+      setTimeout(() => this.errorMessage.set(null), 6000);
+      return;
+    }
+    this.openDeleteModal(user);
+  }
+
+  /**
+   * Submit de alteracao de papel. Blindagens locais (alem das do backend)
+   * para nao enviar requisicao que ja sabemos que sera bloqueada.
+   */
+  submitChangeRoleSafe(): void {
+    const user = this.selectedUserForRole();
+    if (!user) return;
+
+    // Defesa 1: NAO alterar papel DE UM webmaster existente (redundancia, ja que openRoleModalSafe bloqueia)
+    if (this.isWebmasterRole(user.role)) {
+      this.errorMessage.set('🔒 Operação bloqueada: O papel de WEBMASTER é fixo e não pode ser alterado.');
+      setTimeout(() => this.errorMessage.set(null), 6000);
+      return;
+    }
+
+    const newRole = String(this.changeRoleForm.value?.role || '').toUpperCase();
+
+    // Defesa 2: NAO promover ninguem PARA webmaster (cargo maximo manual = SUPER_ADMIN)
+    if (this.isWebmasterRole(newRole)) {
+      this.errorMessage.set('🔒 Operação bloqueada: Não é permitido promover administradores para WEBMASTER pelo painel. Cargo máximo permitido: SUPER_ADMIN.');
+      setTimeout(() => this.errorMessage.set(null), 6000);
+      return;
+    }
+
+    // Resto da validacao (auto-rebaixamento) e submit
+    this.submitChangeRole();
+  }
+
+  /**
+   * Submit de criacao de admin. Blindagem: caso o operador tente selecionar WEBMASTER
+   * no select (mesmo que o frontend oculte), faz downgrade automatico para SUPER_ADMIN
+   * e exibe aviso.
+   */
+  submitCreateUserSafe(): void {
+    if (this.createUserForm.invalid) {
+      this.createUserForm.markAllAsTouched();
+      return;
+    }
+    const formRole = String(this.createUserForm.value?.role || '').toUpperCase();
+    if (this.isWebmasterRole(formRole)) {
+      console.warn('[admin/users] Tentativa de CRIAR admin com role=WEBMASTER bloqueada localmente. Efetuando downgrade para SUPER_ADMIN.');
+      this.successMessage.set('🔒 Aviso: Não é permitido criar contas de WEBMASTER pelo painel. O novo administrador foi promovido para o cargo máximo SUPER_ADMIN.');
+      setTimeout(() => this.successMessage.set(null), 7000);
+      this.createUserForm.patchValue({ role: 'SUPER_ADMIN' }, { emitEvent: false });
+    }
+    this.submitCreateUser();
   }
 }

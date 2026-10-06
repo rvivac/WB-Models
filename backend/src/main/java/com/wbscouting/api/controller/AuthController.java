@@ -4,6 +4,9 @@ import com.wbscouting.api.dto.auth.ForgotPasswordRequestDto;
 import com.wbscouting.api.dto.auth.LoginRequestDto;
 import com.wbscouting.api.dto.auth.LoginResponseDto;
 import com.wbscouting.api.dto.auth.ResetPasswordRequestDto;
+import com.wbscouting.api.entity.AdminLoginHistory;
+import com.wbscouting.api.repository.AdminLoginHistoryRepository;
+import com.wbscouting.api.repository.AdminRepository;
 import com.wbscouting.api.service.auth.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,6 +29,51 @@ public class AuthController {
 
     private final AuthService authService;
     private final com.wbscouting.api.service.audit.AuditLogService auditLogService;
+    /** Repositorio de auditoria historica de acessos admin. */
+    private final AdminLoginHistoryRepository adminLoginHistoryRepository;
+    /** Lookup rapido de admin por email para capturar o UUID do usuario autenticado. */
+    private final AdminRepository adminRepository;
+
+    /**
+     * Persiste o historico de login na tabela admin_login_history.<br>
+     * <strong>FAIL-SAFE</strong>: Qualquer falha aqui NAO cancela o login do usuario.
+     * Isso evita indisponibilidade do portal em caso de problema de IO/DB na tabela de auditoria.
+     */
+    private void recordLoginHistory(LoginResponseDto response, String clientIp, String userAgent) {
+        if (response == null || response.getAdminEmail() == null || response.getAccessToken() == null) {
+            return; // Autenticacao ainda nao completou (ex: desafio 2FA pendente). Aguardar etapa final.
+        }
+        try {
+            adminRepository.findByEmailAndIsActiveTrue(response.getAdminEmail().trim().toLowerCase())
+                    .ifPresentOrElse(
+                            admin -> adminLoginHistoryRepository.save(
+                                    AdminLoginHistory.builder()
+                                            .adminId(admin.getId())
+                                            .ipAddress(clientIp)
+                                            .userAgent(truncateUserAgent(userAgent))
+                                            .loggedAt(java.time.OffsetDateTime.now())
+                                            .build()
+                            ),
+                            () -> org.slf4j.LoggerFactory.getLogger(AuthController.class)
+                                    .warn("[AUTH-HISTORY] Nao foi possivel encontrar admin ativo {} para gravar historico de login (desincronia transacional rara).",
+                                            response.getAdminEmail())
+                    );
+        } catch (Exception ex) {
+            // FAIL-SAFE: Nunca deixa auditoria quebrar login do usuario.
+            org.slf4j.LoggerFactory.getLogger(AuthController.class)
+                    .warn("[AUTH-HISTORY] Falha ao gravar historico de login para '{}' (FAIL-SAFE: login nao foi interrompido). Causa: {}",
+                            response.getAdminEmail(), ex.getMessage());
+        }
+    }
+
+    /**
+     * Trunca User-Agent caso ultrapasse 2000 caracteres (limite razoavel de TEXT;
+     * evita DoS acidental ou malicioso de payload gigante).
+     */
+    private String truncateUserAgent(String userAgent) {
+        if (userAgent == null) return null;
+        return userAgent.length() > 2000 ? userAgent.substring(0, 2000) : userAgent;
+    }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(
@@ -37,6 +85,10 @@ public class AuthController {
 
         try {
             LoginResponseDto response = authService.login(request);
+
+            // 🔥 Persiste HISTORICO DE LOGIN na tabela admin_login_history (IP + UA + data).
+            //    FAIL-SAFE: nunca cancela o login se a tabela falhar.
+            recordLoginHistory(response, clientIp, userAgent);
 
             if (response.getAccessToken() != null) {
                 boolean isSecure = httpRequest.isSecure() || "https".equalsIgnoreCase(httpRequest.getHeader("X-Forwarded-Proto"));
@@ -86,6 +138,11 @@ public class AuthController {
             HttpServletRequest httpRequest,
             HttpServletResponse httpResponse) {
         LoginResponseDto response = authService.challenge2fa(request);
+
+        // 🔥 Persiste HISTORICO DE LOGIN tambem no sucesso do desafio 2FA.
+        String clientIp = extractClientIp(httpRequest);
+        String userAgent = httpRequest.getHeader("User-Agent");
+        recordLoginHistory(response, clientIp, userAgent);
 
         if (response.getAccessToken() != null) {
             boolean isSecure = httpRequest.isSecure() || "https".equalsIgnoreCase(httpRequest.getHeader("X-Forwarded-Proto"));

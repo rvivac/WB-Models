@@ -6,6 +6,7 @@ import com.wbscouting.api.dto.admin.CreateAdminUserResponseDto;
 import com.wbscouting.api.entity.Admin;
 import com.wbscouting.api.enums.AdminRole;
 import com.wbscouting.api.exception.ResourceNotFoundException;
+import com.wbscouting.api.repository.AdminLoginHistoryRepository;
 import com.wbscouting.api.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ import java.util.UUID;
 public class AdminUserServiceImpl implements AdminUserService {
 
     private final AdminRepository adminRepository;
+    private final AdminLoginHistoryRepository adminLoginHistoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -50,11 +52,24 @@ public class AdminUserServiceImpl implements AdminUserService {
             validatePasswordComplexity(rawPassword);
         }
 
+        // ============================================================
+        // 🔥 REGRA DE GOVERNANÇA RBAC / ADM-018: Impedir criacao indevida de WEBMASTER.
+        // Apenas o DataInitializer (se, em ambiente LOCAL/DEV) pode gerar o primeiro Webmaster.
+        // Qualquer tentativa via endpoint admin-api cria usuarios Admin/Scouter. Promocoes
+        // de Admin via /admin/users.
+        // ============================================================
+        AdminRole effectiveRole = request.getRole();
+        if (effectiveRole == AdminRole.WEBMASTER) {
+            log.warn("[ADM-018] Tentativa de CRIAR novo administrador com papel WEBMASTER bloqueada via API. " +
+                    "Promovendo para SUPER_ADMIN (papel maximo permitido para criacao manual). Email-alvo: {}", email);
+            effectiveRole = AdminRole.SUPER_ADMIN;
+        }
+
         Admin admin = Admin.builder()
                 .name(request.getName().trim())
                 .email(email)
                 .passwordHash(passwordEncoder.encode(rawPassword))
-                .role(request.getRole())
+                .role(effectiveRole)
                 .isActive(true)
                 .is2faEnabled(false)
                 .mustChangePassword(true)
@@ -79,6 +94,17 @@ public class AdminUserServiceImpl implements AdminUserService {
             throw new IllegalArgumentException("Operação bloqueada: Não é permitido desativar sua própria conta de administrador.");
         }
 
+        // ============================================================
+        // 🔥 REGRA DE SEGURANÇA ESTRITA: WEBMASTER nunca pode ser desativado/ativado.
+        // O papel WEBMASTER e vinculado unicamente ao provisionamento inicial.
+        // ============================================================
+        if (target.getRole() == AdminRole.WEBMASTER) {
+            throw new IllegalStateException(
+                    "Operação bloqueada (RBAC-018): O papel de WEBMASTER é imutável e não pode ter seu status (ativo/inativo) alterado por meio do painel. " +
+                    "Contate o suporte técnico caso precise ajustar acessos do Webmaster."
+            );
+        }
+
         boolean willDeactivate = Boolean.TRUE.equals(target.getIsActive());
 
         if (willDeactivate && isSuperRole(target.getRole())) {
@@ -100,6 +126,30 @@ public class AdminUserServiceImpl implements AdminUserService {
     public AdminUserResponseDto updateRole(UUID id, AdminRole newRole, String authenticatedEmail) {
         Admin target = adminRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Administrador não encontrado com o ID: " + id));
+
+        // ============================================================
+        // 🔥 REGRA DE DEFESA 1 (NAO ALTERAR WEBMASTER EXISTENTE):
+        // Se o admin alvo possui role == WEBMASTER, QUALQUER alteracao de papel
+        // (mesmo para SUPER_ADMIN ou downgrade para ADMIN) e ABSOLUTAMENTE PROIBIDA.
+        // ============================================================
+        if (target.getRole() == AdminRole.WEBMASTER) {
+            throw new IllegalStateException(
+                    "Operação bloqueada (RBAC-W018]: O papel de WEBMASTER é FIXO e IMUTÁVEL. Não é permitido alterar, rebaixar, promover ou trocar o papel do Webmaster através da conta de ID '" + id + "'. " +
+                    "Alterações em contas Webmaster exigem provisionamento técnico inicial via DataInitializer seed ou SQL direto com auditoria."
+            );
+        }
+
+        // ============================================================
+        // 🔥 REGRA DE DEFESA 2 (NAO CRIAR OUTROS WEBMASTER INDEV):
+        // NÃO PERMITE promover/administrador nenhum admin com role diferente para WEBMASTER.
+        // Apenas um 1 (ou 2 no maximo se governanca explicitamente.
+        // ============================================================
+        if (newRole == AdminRole.WEBMASTER && target.getRole() != AdminRole.WEBMASTER) {
+            throw new IllegalStateException(
+                    "Operação bloqueada (RBAC-018): Não é permitido promover administradores para o papel de WEBMASTER por meio do painel. " +
+                    "O cargo máximo permitido para criação e promoção manuais é SUPER_ADMIN. Contate o suporte técnico caso precise ajustar o provisionamento Webmaster."
+            );
+        }
 
         if (target.getEmail().equalsIgnoreCase(authenticatedEmail.trim()) && isSuperRole(target.getRole()) && !isSuperRole(newRole)) {
             throw new IllegalArgumentException("Operação bloqueada: Não é permitido rebaixar seu próprio papel de Webmaster.");
@@ -127,6 +177,17 @@ public class AdminUserServiceImpl implements AdminUserService {
 
         if (target.getEmail().equalsIgnoreCase(authenticatedEmail.trim())) {
             throw new IllegalArgumentException("Operação bloqueada: Não é permitido excluir sua própria conta de administrador.");
+        }
+
+        // ============================================================
+        // 🔥 REGRA DE SEGURANÇA ESTRITA: WEBMASTER NUNCA PODE SER EXCLUIDO VIA API.
+        // Exclusão de contas de provisionamento inicial.
+        // ============================================================
+        if (target.getRole() == AdminRole.WEBMASTER) {
+            throw new IllegalStateException(
+                    "Operação bloqueada (RBAC-018): Contas com papel de WEBMASTER são contas de provisionamento raiz e NÃO PODEM SER EXCLUÍDAS pelo painel admin. " +
+                    "Remoção exige migração de banco gerenciada com auditoria externa."
+            );
         }
 
         if (isSuperRole(target.getRole())) {
@@ -181,6 +242,27 @@ public class AdminUserServiceImpl implements AdminUserService {
     }
 
     private AdminUserResponseDto toResponseDto(Admin admin) {
+        // ====== FALLBACK lastLoginAt: =========================
+        // Se Admin.lastLoginAt for null (dados historicos antigos
+        // antes da implementacao ou contas inativas antigas),
+        // fazemos backfill de 1 unico registro na tabela de
+        // auditoria de login historico, garantindo assim exibicao
+        // correta no painel /admin/usuarios sem N+1 excessivo.
+        // ======================================================
+        java.time.OffsetDateTime lastLogin = admin.getLastLoginAt();
+        if (lastLogin == null) {
+            try {
+                lastLogin = adminLoginHistoryRepository
+                        .findLastLoginDateByAdminId(admin.getId())
+                        .orElse(null);
+            } catch (Exception ignored) {
+                // FAIL-SAFE: se tabela nao existir ainda (H2 dev inicial)
+                // ou houver erro de FK, mantem null para exibir
+                // "Nunca acessou" no frontend.
+                lastLogin = null;
+            }
+        }
+
         return AdminUserResponseDto.builder()
                 .id(admin.getId())
                 .name(admin.getName())
@@ -189,7 +271,7 @@ public class AdminUserServiceImpl implements AdminUserService {
                 .isActive(admin.getIsActive())
                 .is2faEnabled(admin.getIs2faEnabled())
                 .mustChangePassword(admin.getMustChangePassword())
-                .lastLoginAt(admin.getLastLoginAt())
+                .lastLoginAt(lastLogin)
                 .createdAt(admin.getCreatedAt())
                 .build();
     }

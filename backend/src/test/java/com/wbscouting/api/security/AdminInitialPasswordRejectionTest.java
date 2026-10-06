@@ -6,6 +6,7 @@ import com.wbscouting.api.dto.auth.LoginRequestDto;
 import com.wbscouting.api.entity.Admin;
 import com.wbscouting.api.enums.AdminRole;
 import com.wbscouting.api.exception.GlobalExceptionHandler;
+import com.wbscouting.api.repository.AdminLoginHistoryRepository;
 import com.wbscouting.api.repository.AdminRepository;
 import com.wbscouting.api.service.auth.AuthServiceImpl;
 import com.wbscouting.api.service.email.EmailService;
@@ -46,6 +47,9 @@ class AdminInitialPasswordRejectionTest {
     private AdminRepository adminRepository;
 
     @Mock
+    private AdminLoginHistoryRepository adminLoginHistoryRepository;
+
+    @Mock
     private JwtService jwtService;
 
     @Mock
@@ -79,6 +83,7 @@ class AdminInitialPasswordRejectionTest {
 
         authService = new AuthServiceImpl(
                 adminRepository,
+                adminLoginHistoryRepository,
                 passwordEncoder,
                 jwtService,
                 emailService,
@@ -86,7 +91,19 @@ class AdminInitialPasswordRejectionTest {
                 mock(com.wbscouting.api.service.auth.TotpService.class)
         );
 
-        AuthController authController = new AuthController(authService, mock(com.wbscouting.api.service.audit.AuditLogService.class));
+        // ============================================================
+        // 🔥 Construtor de AuthController com 4 dependencias (ordem exata requerida):
+        //   1. AuthService                (autenticacao real)
+        //   2. AuditLogService            (mock isolado)
+        //   3. AdminLoginHistoryRepository (mock isolado @Mock linha 49)
+        //   4. AdminRepository             (mock isolado @Mock linha 46)
+        // ============================================================
+        AuthController authController = new AuthController(
+                authService,
+                mock(com.wbscouting.api.service.audit.AuditLogService.class),
+                adminLoginHistoryRepository,
+                adminRepository
+        );
         mockMvc = MockMvcBuilders.standaloneSetup(authController)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();

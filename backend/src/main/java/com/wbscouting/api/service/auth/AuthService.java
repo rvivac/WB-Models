@@ -8,7 +8,28 @@ import com.wbscouting.api.dto.auth.ResetPasswordRequestDto;
 
 public interface AuthService {
 
-    LoginResponseDto login(LoginRequestDto request);
+    /**
+     * Autenticacao padrao com auditoria completa de IP e User-Agent para
+     * gravar historico de login na tabela admin_login_history.
+     */
+    LoginResponseDto login(LoginRequestDto request, String clientIp, String userAgent);
+
+    /** Desafio 2FA finalizado com sucesso, tambem registra historico de login. */
+    LoginResponseDto challenge2fa(com.wbscouting.api.dto.auth.TwoFactorChallengeRequestDto request, String clientIp, String userAgent);
+
+    /**
+     * Overload legado SEM auditoria de IP/UA. Mantido para compatibilidade com
+     * testes unitarios (ex: AdminInitialPasswordRejectionTest.shouldRejectLogin...).
+     * Equivale a chamar login(request, null, null).
+     */
+    default LoginResponseDto login(LoginRequestDto request) {
+        return login(request, null, null);
+    }
+
+    /** Overload legado SEM auditoria (para testes / codigo que nao tem HttpServletRequest). */
+    default LoginResponseDto challenge2fa(com.wbscouting.api.dto.auth.TwoFactorChallengeRequestDto request) {
+        return challenge2fa(request, null, null);
+    }
 
     void processForgotPassword(ForgotPasswordRequestDto request);
 
@@ -17,8 +38,6 @@ public interface AuthService {
     AuthDTO.MessageResponse forgotPassword(AuthDTO.ForgotPasswordRequest request);
 
     AuthDTO.MessageResponse resetPassword(AuthDTO.ResetPasswordRequest request);
-
-    LoginResponseDto challenge2fa(com.wbscouting.api.dto.auth.TwoFactorChallengeRequestDto request);
 
     void logout(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response);
 }

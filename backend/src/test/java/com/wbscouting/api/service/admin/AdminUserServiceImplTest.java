@@ -3,6 +3,7 @@ package com.wbscouting.api.service.admin;
 import com.wbscouting.api.dto.admin.AdminUserResponseDto;
 import com.wbscouting.api.entity.Admin;
 import com.wbscouting.api.enums.AdminRole;
+import com.wbscouting.api.repository.AdminLoginHistoryRepository;
 import com.wbscouting.api.repository.AdminRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,6 +28,9 @@ class AdminUserServiceImplTest {
 
     @Mock
     private AdminRepository adminRepository;
+
+    @Mock
+    private AdminLoginHistoryRepository adminLoginHistoryRepository;
 
     @Mock
     private PasswordEncoder passwordEncoder;

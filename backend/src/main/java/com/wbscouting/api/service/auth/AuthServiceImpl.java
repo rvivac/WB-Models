@@ -6,7 +6,9 @@ import com.wbscouting.api.dto.auth.LoginRequestDto;
 import com.wbscouting.api.dto.auth.LoginResponseDto;
 import com.wbscouting.api.dto.auth.ResetPasswordRequestDto;
 import com.wbscouting.api.entity.Admin;
+import com.wbscouting.api.entity.AdminLoginHistory;
 import com.wbscouting.api.exception.InvalidTokenException;
+import com.wbscouting.api.repository.AdminLoginHistoryRepository;
 import com.wbscouting.api.repository.AdminRepository;
 import com.wbscouting.api.security.JwtService;
 import com.wbscouting.api.security.TokenHashUtils;
@@ -30,15 +32,49 @@ import java.util.UUID;
 public class AuthServiceImpl implements AuthService {
 
     private final AdminRepository adminRepository;
+    /** Repositorio de auditoria historica dos acessos administrativos. */
+    private final AdminLoginHistoryRepository adminLoginHistoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final EmailService emailService;
     private final com.wbscouting.api.security.TokenBlacklistService tokenBlacklistService;
     private final TotpService totpService;
 
+    /**
+     * Persiste o historico de login em admin_login_history.<br>
+     * <strong>FAIL-SAFE</strong>: qualquer falha de IO/DB na tabela de auditoria
+     * NUNCA cancela ou quebra a autenticacao do usuario (principio de
+     * disponibilidade do servico de autenticacao; log WARN eh gravado no slf4j).
+     */
+    private void recordLoginHistoryFailSafe(Admin admin, String clientIp, String userAgent) {
+        if (admin == null || admin.getId() == null) {
+            return;
+        }
+        try {
+            adminLoginHistoryRepository.save(
+                    AdminLoginHistory.builder()
+                            .adminId(admin.getId())
+                            .ipAddress(clientIp)
+                            .userAgent(truncateUserAgent(userAgent))
+                            .loggedAt(java.time.OffsetDateTime.now())
+                            .build()
+            );
+        } catch (Exception ex) {
+            // FAIL-SAFE: Nunca deixa auditoria quebrar login.
+            log.warn("[AUTH-HISTORY] Falha ao gravar historico de login para admin '{}' (FAIL-SAFE: login nao foi interrompido). Causa: {}",
+                    admin.getEmail(), ex.getMessage());
+        }
+    }
+
+    /** Anti-DoS: User-Agents acima de 2000 caracteres nao sao persistidos integralmente. */
+    private static String truncateUserAgent(String userAgent) {
+        if (userAgent == null) return null;
+        return userAgent.length() > 2000 ? userAgent.substring(0, 2000) : userAgent;
+    }
+
     @Override
     @Transactional
-    public LoginResponseDto login(LoginRequestDto request) {
+    public LoginResponseDto login(LoginRequestDto request, String clientIp, String userAgent) {
         String email = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
 
         Admin admin = adminRepository.findByEmailAndIsActiveTrue(email)
@@ -65,6 +101,10 @@ public class AuthServiceImpl implements AuthService {
         admin.setLastLoginAt(OffsetDateTime.now());
         adminRepository.save(admin);
 
+        // 🔥 Persiste historico completo de login (IP + User-Agent) em admin_login_history.
+        //    FAIL-SAFE: se tabela de auditoria falhar, login continua sem historico (log warn apenas).
+        recordLoginHistoryFailSafe(admin, clientIp, userAgent);
+
         String token = jwtService.generateToken(admin);
 
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
@@ -88,7 +128,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public LoginResponseDto challenge2fa(com.wbscouting.api.dto.auth.TwoFactorChallengeRequestDto request) {
+    public LoginResponseDto challenge2fa(com.wbscouting.api.dto.auth.TwoFactorChallengeRequestDto request, String clientIp, String userAgent) {
         String email;
         try {
             email = jwtService.extract2faChallengeEmail(request.getTempToken());
@@ -131,6 +171,12 @@ public class AuthServiceImpl implements AuthService {
 
         admin.setLastLoginAt(OffsetDateTime.now());
         adminRepository.save(admin);
+
+        // 🔥 Persiste historico COMPLETO de login TAMBEM no sucesso do desafio 2FA
+        //    (o primeiro passo (login com senha) soh gera LASTLOGINAT parcial em Admin,
+        //     por isso o historico final eh gravado apenas quando o token de acesso
+        //     eh efetivamente emitido).
+        recordLoginHistoryFailSafe(admin, clientIp, userAgent);
 
         String token = jwtService.generateToken(admin);
 

@@ -58,6 +58,21 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- ============================================================ -->
+		<!-- H2 Database (Driver em memoria para ambiente LOCAL apenas) -->
+		<!-- Passo 1 da TASK: Perfil local usa H2 em memoria para     -->
+		<!-- destravar backend sem rede ou schema remoto do Supabase. -->
+		<!-- scope=runtime => NAO compila com H2, apenas executa.     -->
+		<!-- EM PRODUCAO (Render/Hostinger) nao influencia em nada     -->
+		<!-- pois a propriedade SPRING_PROFILES_ACTIVE=prod usa o      -->
+		<!-- application-prod.yml ou properties de DataSource Postgres -->
+		<!-- ============================================================ -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
 		<!-- Lombok -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>

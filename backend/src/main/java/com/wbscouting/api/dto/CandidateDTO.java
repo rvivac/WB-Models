@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -56,6 +57,7 @@ public class CandidateDTO {
 
         @NotEmpty(message = "Envie pelo menos 1 foto para avaliação")
         @Size(max = 8, message = "Limite máximo de 8 fotos")
+        @Default
         private List<PhotoUploadRequest> photos = new ArrayList<>();
 
         // Getters + Setters (manuais, sem @Data)

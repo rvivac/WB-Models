@@ -154,7 +154,16 @@ public class Candidate {
     @Column(name = "lgpd_accepted_at", nullable = false, updatable = false)
     private OffsetDateTime lgpdAcceptedAt;
 
-    @OneToMany(mappedBy = "candidate", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    /**
+     * Relacionamento UNIDIRECIONAL via @JoinColumn.
+     *
+     * Motivo: CandidatePhoto usa FK UUID escalar (campo candidateId) e NAO declara
+     * @ManyToOne Candidate candidate. A mesma coluna candidate_id pode referenciar
+     * tanto candidates.id quanto candidate_submissions.id dependendo do fluxo.
+     * Troquei de mappedBy para @JoinColumn para o Hibernate inicializar sem erro.
+     */
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "candidate_id", referencedColumnName = "id", insertable = false, updatable = false)
     @Builder.Default
     private List<CandidatePhoto> photos = new ArrayList<>();
 

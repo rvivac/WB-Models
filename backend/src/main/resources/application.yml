@@ -7,6 +7,11 @@ server:
   forward-headers-strategy: native
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 50MB
+
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration

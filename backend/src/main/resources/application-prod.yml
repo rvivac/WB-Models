@@ -7,6 +7,10 @@ server:
   forward-headers-strategy: native
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 50MB
   datasource:
     # Pooler Supabase IPv4 (aws-0-sa-east-1.pooler.supabase.com) - OBRIGATORIO no Render (Render nao possui suporte a saida IPv6)
     url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://aws-0-sa-east-1.pooler.supabase.com:6543/postgres?sslmode=require&prepareThreshold=0}"

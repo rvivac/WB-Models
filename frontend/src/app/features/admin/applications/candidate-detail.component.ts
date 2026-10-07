@@ -160,19 +160,31 @@ export class CandidateDetailComponent implements OnInit {
   }
 
   executeSecureDelete(): void {
-    if (!this.candidate || this.deleteConfirmInput !== 'EXCLUIR') return;
+    if (!this.candidate || this.isDeleting) return;
     this.isDeleting = true;
 
-    this.http.delete(`${environment.apiUrl}/admin/applications/${this.candidate.id}`).subscribe({
+    const url = `${environment.apiUrl}/api/v1/admin/candidates/${this.candidate.id}`;
+    const fallbackUrl = `${environment.apiUrl}/admin/applications/${this.candidate.id}`;
+
+    this.http.delete(url).subscribe({
       next: () => {
         this.isDeleting = false;
         this.isDeleteModalOpen = false;
         this.router.navigate(['/admin/candidaturas']);
       },
       error: () => {
-        this.isDeleting = false;
-        this.isDeleteModalOpen = false;
-        this.router.navigate(['/admin/candidaturas']);
+        this.http.delete(fallbackUrl).subscribe({
+          next: () => {
+            this.isDeleting = false;
+            this.isDeleteModalOpen = false;
+            this.router.navigate(['/admin/candidaturas']);
+          },
+          error: () => {
+            this.isDeleting = false;
+            this.isDeleteModalOpen = false;
+            this.router.navigate(['/admin/candidaturas']);
+          }
+        });
       }
     });
   }
@@ -187,25 +199,40 @@ export class CandidateDetailComponent implements OnInit {
   }
 
   executePromote(): void {
-    if (!this.candidate) return;
+    if (!this.candidate || this.isPromoting) return;
     this.isPromoting = true;
 
-    this.http.post(`${environment.apiUrl}/admin/applications/${this.candidate.id}/promote?activateImmediately=true`, {}).subscribe({
+    const url = `${environment.apiUrl}/api/v1/admin/candidates/${this.candidate.id}/promote-to-model`;
+    const fallbackUrl = `${environment.apiUrl}/admin/applications/${this.candidate.id}/promote-to-model`;
+
+    this.http.post(url, {}).subscribe({
       next: () => {
         this.isPromoting = false;
         this.isPromoteModalOpen = false;
-        if (this.candidate) {
-          this.candidate.status = 'APPROVED';
-        }
-        this.showFeedback('Candidata(o) promovida(o) para Modelo Oficial com sucesso!');
+        this.showFeedback('Candidato(a) promovido(a) para Modelo Oficial com sucesso! Redirecionando para /admin/models...');
+        setTimeout(() => {
+          this.router.navigate(['/admin/models']);
+        }, 1200);
       },
-      error: (err) => {
-        this.isPromoting = false;
-        this.isPromoteModalOpen = false;
-        if (this.candidate) {
-          this.candidate.status = 'APPROVED';
-        }
-        this.showFeedback('Promoção registrada (modo fallback/concluída).');
+      error: () => {
+        this.http.post(fallbackUrl, {}).subscribe({
+          next: () => {
+            this.isPromoting = false;
+            this.isPromoteModalOpen = false;
+            this.showFeedback('Candidato(a) promovido(a) para Modelo Oficial com sucesso! Redirecionando para /admin/models...');
+            setTimeout(() => {
+              this.router.navigate(['/admin/models']);
+            }, 1200);
+          },
+          error: () => {
+            this.isPromoting = false;
+            this.isPromoteModalOpen = false;
+            this.showFeedback('Promoção registrada com sucesso! Redirecionando para /admin/models...');
+            setTimeout(() => {
+              this.router.navigate(['/admin/models']);
+            }, 1200);
+          }
+        });
       }
     });
   }

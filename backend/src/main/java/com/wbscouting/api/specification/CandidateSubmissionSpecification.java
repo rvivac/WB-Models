@@ -82,9 +82,11 @@ public class CandidateSubmissionSpecification {
                 predicates.add(cb.or(nameMatch, emailMatch, cityMatch, protocolMatch));
             }
 
-            // 2. Filtro por status
+            // 2. Filtro por status (padrão exclui ARCHIVED)
             if (status != null) {
                 predicates.add(cb.equal(root.get("status"), status));
+            } else {
+                predicates.add(cb.notEqual(root.get("status"), SubmissionStatus.ARCHIVED));
             }
 
             // 3. Filtro por gênero

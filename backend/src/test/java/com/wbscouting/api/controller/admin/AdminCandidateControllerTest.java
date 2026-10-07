@@ -216,12 +216,25 @@ class AdminCandidateControllerTest {
     }
 
     @Test
-    @DisplayName("DELETE /api/v1/admin/candidates/{id} - Deve excluir candidatura e retornar 204 No Content")
+    @DisplayName("DELETE /api/v1/admin/candidates/{id} - Deve arquivar candidatura e retornar 204 No Content")
     void deleteCandidate_ReturnsNoContent() throws Exception {
-        doNothing().when(adminCandidateQueryService).deleteCandidate(candidateId);
+        doNothing().when(adminCandidateService).deleteCandidate(candidateId);
 
         mockMvc.perform(delete("/api/v1/admin/candidates/{id}", candidateId))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/admin/candidates/{id}/promote-to-model - Deve promover candidato a modelo e retornar 201 Created")
+    void promoteToModel_ReturnsCreated() throws Exception {
+        UUID newModelId = UUID.randomUUID();
+        when(adminCandidateService.promoteToModel(eq(candidateId), any())).thenReturn(newModelId);
+
+        mockMvc.perform(post("/api/v1/admin/candidates/{id}/promote-to-model", candidateId))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("PROMOTED"))
+                .andExpect(jsonPath("$.id").value(newModelId.toString()))
+                .andExpect(jsonPath("$.modelId").value(newModelId.toString()));
     }
 
     @Test

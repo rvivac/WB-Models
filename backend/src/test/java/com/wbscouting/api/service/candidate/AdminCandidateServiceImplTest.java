@@ -51,6 +51,15 @@ class AdminCandidateServiceImplTest {
     private StorageService storageService;
 
     @Mock
+    private com.wbscouting.api.repository.ModelRepository modelRepository;
+
+    @Mock
+    private com.wbscouting.api.repository.ModelMediaRepository modelMediaRepository;
+
+    @Mock
+    private com.wbscouting.api.repository.CandidateSubmissionRepository candidateSubmissionRepository;
+
+    @Mock
     private SupabaseProperties supabaseProperties;
 
     @InjectMocks
@@ -214,30 +223,48 @@ class AdminCandidateServiceImplTest {
     }
 
     @Test
-    @DisplayName("Deve excluir candidatura removendo primeiro os arquivos físicos no Storage e depois no banco")
+    @DisplayName("Deve arquivar candidatura (soft delete) definindo status ARCHIVED e gravando archivedAt")
     void deleteCandidate_Success() {
-        when(candidateRepository.findWithPhotosById(candidateId)).thenReturn(Optional.of(candidate));
+        when(candidateRepository.findById(candidateId)).thenReturn(Optional.of(candidate));
 
         adminCandidateService.deleteCandidate(candidateId);
 
-        // Valida double-delete seguro: deleção no Storage primeiro para cada foto
-        verify(storageService).deleteFile("candidates-uploads", "cand-1/photo1.jpg");
-        verify(storageService).deleteFile("candidates-uploads", "cand-1/photo2.jpg");
-
-        // Depois deleção relacional da entidade
-        verify(candidateRepository).delete(candidate);
+        assertThat(candidate.getStatus()).isEqualTo(CandidateStatus.ARCHIVED);
+        assertThat(candidate.getArchivedAt()).isNotNull();
+        verify(candidateRepository).save(candidate);
+        verify(candidateRepository, never()).delete(any(Candidate.class));
     }
 
     @Test
-    @DisplayName("Deve lançar ResourceNotFoundException ao tentar deletar ID inexistente")
+    @DisplayName("Deve lançar ResourceNotFoundException ao tentar arquivar ID inexistente")
     void deleteCandidate_NotFound_ThrowsException() {
-        when(candidateRepository.findWithPhotosById(candidateId)).thenReturn(Optional.empty());
+        when(candidateRepository.findById(candidateId)).thenReturn(Optional.empty());
+        when(candidateSubmissionRepository.findById(candidateId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> adminCandidateService.deleteCandidate(candidateId))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Candidatura não encontrada com ID: " + candidateId);
 
-        verify(storageService, never()).deleteFile(anyString(), anyString());
         verify(candidateRepository, never()).delete(any(Candidate.class));
+    }
+
+    @Test
+    @DisplayName("Deve promover candidato a modelo, migrar fotos para ModelMedia e remover registro original de candidates")
+    void promoteToModel_Success() {
+        UUID newModelId = UUID.randomUUID();
+        when(candidateRepository.findWithPhotosById(candidateId)).thenReturn(Optional.of(candidate));
+        when(modelRepository.save(any(com.wbscouting.api.entity.Model.class))).thenAnswer(invocation -> {
+            com.wbscouting.api.entity.Model m = invocation.getArgument(0);
+            m.setId(newModelId);
+            return m;
+        });
+
+        UUID resultId = adminCandidateService.promoteToModel(candidateId, true);
+
+        assertThat(resultId).isEqualTo(newModelId);
+        verify(modelRepository).save(any(com.wbscouting.api.entity.Model.class));
+        verify(modelMediaRepository, atLeastOnce()).save(any(com.wbscouting.api.entity.ModelMedia.class));
+        verify(candidateRepository).delete(candidate);
+        verify(candidateRepository).flush();
     }
 }

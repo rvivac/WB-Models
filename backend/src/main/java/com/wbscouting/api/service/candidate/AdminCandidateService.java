@@ -41,8 +41,16 @@ public interface AdminCandidateService {
     CandidateDetailAdminDto updateNotes(UUID id, CandidateNotesUpdateDto dto);
 
     /**
-     * Realiza a exclusão segura da candidatura (remoção física de arquivos no Storage
-     * e remoção relacional no banco de dados).
+     * Realiza o arquivamento (soft delete) da candidatura, alterando seu status para ARCHIVED
+     * e registrando archivedAt.
      */
     void deleteCandidate(UUID id);
+
+    /**
+     * Promove o candidato para o catálogo oficial de modelos.
+     * Copia os dados do Candidate para Model, migra as fotos para ModelMedia,
+     * remove fisicamente o registro original de candidates e candidate_photos,
+     * e retorna o UUID do novo modelo criado.
+     */
+    UUID promoteToModel(UUID id, Boolean activateImmediately);
 }

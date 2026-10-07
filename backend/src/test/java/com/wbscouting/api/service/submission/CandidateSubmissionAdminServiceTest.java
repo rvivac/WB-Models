@@ -10,6 +10,7 @@ import com.wbscouting.api.enums.GenderType;
 import com.wbscouting.api.enums.SubmissionGender;
 import com.wbscouting.api.enums.SubmissionStatus;
 import com.wbscouting.api.event.CandidateApprovedEvent;
+import com.wbscouting.api.event.CandidatePromotedToCastingEvent;
 import com.wbscouting.api.exception.BusinessException;
 import com.wbscouting.api.exception.ResourceNotFoundException;
 import com.wbscouting.api.repository.CandidateSubmissionRepository;
@@ -191,6 +192,7 @@ class CandidateSubmissionAdminServiceTest {
     @Test
     @DisplayName("promoteToModel - Promove candidatura para Model e cria ModelMedia com sucesso")
     void shouldPromoteCandidateToModelSuccessfully() {
+        sampleSubmission.setStatus(SubmissionStatus.APPROVED);
         UUID generatedModelId = UUID.randomUUID();
         when(repository.findById(sampleId)).thenReturn(Optional.of(sampleSubmission));
         when(modelRepository.save(any(Model.class))).thenAnswer(inv -> {
@@ -202,7 +204,7 @@ class CandidateSubmissionAdminServiceTest {
 
         CandidateSubmissionResponseDto result = adminService.promoteToModel(sampleId, "Booker Chefe", false);
 
-        assertThat(result.getStatus()).isEqualTo(SubmissionStatus.APPROVED);
+        assertThat(result.getStatus()).isEqualTo(SubmissionStatus.PROMOTED);
         assertThat(result.getConvertedToModelId()).isEqualTo(generatedModelId);
 
         verify(modelRepository, times(1)).save(argThat(m ->
@@ -213,12 +215,13 @@ class CandidateSubmissionAdminServiceTest {
         ));
 
         verify(modelMediaRepository, times(3)).save(any(ModelMedia.class));
-        verify(eventPublisher, times(1)).publishEvent(any(CandidateApprovedEvent.class));
+        verify(eventPublisher, times(1)).publishEvent(any(CandidatePromotedToCastingEvent.class));
     }
 
     @Test
     @DisplayName("promoteToModel - Lança DuplicatePromotionException quando a candidatura já tiver sido promovida")
     void shouldThrowDuplicatePromotionExceptionWhenAlreadyPromoted() {
+        sampleSubmission.setStatus(SubmissionStatus.APPROVED);
         sampleSubmission.setConvertedToModelId(UUID.randomUUID());
         when(repository.findById(sampleId)).thenReturn(Optional.of(sampleSubmission));
 
@@ -230,8 +233,9 @@ class CandidateSubmissionAdminServiceTest {
     }
 
     @Test
-    @DisplayName("promoteCandidateToModel - Retorna ModelResponseDto e atualiza status da candidatura para APPROVED")
+    @DisplayName("promoteCandidateToModel - Retorna ModelResponseDto e atualiza status da candidatura para PROMOTED")
     void shouldPromoteCandidateToModelResponseDtoSuccessfully() {
+        sampleSubmission.setStatus(SubmissionStatus.APPROVED);
         UUID generatedModelId = UUID.randomUUID();
         when(repository.findById(sampleId)).thenReturn(Optional.of(sampleSubmission));
         when(modelRepository.save(any(Model.class))).thenAnswer(inv -> {
@@ -249,11 +253,11 @@ class CandidateSubmissionAdminServiceTest {
         assertThat(result.getHeightCm()).isEqualTo(180);
         assertThat(result.getIsActive()).isTrue();
 
-        assertThat(sampleSubmission.getStatus()).isEqualTo(SubmissionStatus.APPROVED);
+        assertThat(sampleSubmission.getStatus()).isEqualTo(SubmissionStatus.PROMOTED);
         assertThat(sampleSubmission.getConvertedToModelId()).isEqualTo(generatedModelId);
 
         verify(modelRepository, times(1)).save(any(Model.class));
         verify(modelMediaRepository, times(3)).save(any(ModelMedia.class));
-        verify(eventPublisher, times(1)).publishEvent(any(CandidateApprovedEvent.class));
+        verify(eventPublisher, times(1)).publishEvent(any(CandidatePromotedToCastingEvent.class));
     }
 }

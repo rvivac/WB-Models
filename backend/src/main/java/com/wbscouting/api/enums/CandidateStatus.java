@@ -4,5 +4,6 @@ public enum CandidateStatus {
     PENDING,
     REVIEWED,
     APPROVED,
-    REJECTED
+    REJECTED,
+    ARCHIVED
 }

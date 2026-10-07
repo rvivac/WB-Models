@@ -21,9 +21,11 @@ public class CandidateSpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // 1. Comparação de status
+            // 1. Comparação de status (padrão exclui ARCHIVED)
             if (status != null) {
                 predicates.add(cb.equal(root.get("status"), status));
+            } else {
+                predicates.add(cb.notEqual(root.get("status"), CandidateStatus.ARCHIVED));
             }
 
             // 2. Comparação de gênero (case-insensitive)

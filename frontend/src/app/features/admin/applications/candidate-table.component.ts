@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, catchError, of } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { fixUtf8, sanitizeCandidateName } from '../../../core/utils/text-sanitizer.util';
 
@@ -52,6 +52,14 @@ export class CandidateTableComponent implements OnInit {
   selectedMinor = '';
   searchQuery = '';
   pendingCount = 0;
+  archivedCount = 0;
+
+  // Ações de Promoção e Arquivo Morto
+  isPromotingId: string | null = null;
+  candidateToArchive: CandidateApplicationRow | null = null;
+  isArchiveModalOpen = false;
+  isArchiving = false;
+  feedbackMessage = '';
 
   pageIndex = 0;
   pageSize = 15;
@@ -277,12 +285,87 @@ export class CandidateTableComponent implements OnInit {
   loadCounts(): void {
     this.http.get<any>(`${environment.apiUrl}/admin/applications/counts`).subscribe({
       next: (counts) => {
-        if (counts && counts.pending !== undefined) {
-          this.pendingCount = counts.pending;
+        if (counts) {
+          if (counts.pending !== undefined) this.pendingCount = counts.pending;
+          if (counts.archived !== undefined) this.archivedCount = counts.archived;
         }
       },
       error: () => {}
     });
+  }
+
+  promoteCandidate(candidate: CandidateApplicationRow, event: Event): void {
+    event.stopPropagation();
+    if (!candidate || this.isPromotingId) return;
+
+    this.isPromotingId = candidate.id;
+    const url = `${environment.apiUrl}/api/v1/admin/candidates/${candidate.id}/promote-to-model`;
+    const fallbackUrl = `${environment.apiUrl}/admin/applications/${candidate.id}/promote-to-model`;
+
+    this.http.post<any>(url, null).pipe(
+      catchError(() => this.http.post<any>(fallbackUrl, null))
+    ).subscribe({
+      next: (res) => {
+        this.isPromotingId = null;
+        this.applications = this.applications.filter(a => a.id !== candidate.id);
+        this.totalElements = Math.max(0, this.totalElements - 1);
+        this.loadCounts();
+        this.showFeedback(`Candidato(a) "${candidate.fullName}" promovido(a) a Modelo! Criado no elenco oficial.`);
+      },
+      error: () => {
+        this.isPromotingId = null;
+        this.showFeedback('Erro ao promover candidato. Tente novamente.');
+      }
+    });
+  }
+
+  openArchiveModal(candidate: CandidateApplicationRow, event: Event): void {
+    event.stopPropagation();
+    this.candidateToArchive = candidate;
+    this.isArchiveModalOpen = true;
+  }
+
+  closeArchiveModal(): void {
+    this.candidateToArchive = null;
+    this.isArchiveModalOpen = false;
+  }
+
+  executeArchive(): void {
+    if (!this.candidateToArchive || this.isArchiving) return;
+    const candidate = this.candidateToArchive;
+    this.isArchiving = true;
+
+    const url = `${environment.apiUrl}/api/v1/admin/candidates/${candidate.id}`;
+    const fallbackUrl = `${environment.apiUrl}/admin/applications/${candidate.id}`;
+
+    this.http.delete(url).pipe(
+      catchError(() => this.http.delete(fallbackUrl))
+    ).subscribe({
+      next: () => {
+        this.isArchiving = false;
+        this.isArchiveModalOpen = false;
+        this.applications = this.applications.filter(a => a.id !== candidate.id);
+        this.totalElements = Math.max(0, this.totalElements - 1);
+        this.loadCounts();
+        this.showFeedback(`Candidato(a) "${candidate.fullName}" movido(a) para o Arquivo Morto.`);
+        this.candidateToArchive = null;
+      },
+      error: () => {
+        this.isArchiving = false;
+        this.isArchiveModalOpen = false;
+        this.showFeedback('Erro ao mover para o Arquivo Morto. Tente novamente.');
+        this.candidateToArchive = null;
+      }
+    });
+  }
+
+  showFeedback(msg: string): void {
+    this.feedbackMessage = msg;
+    setTimeout(() => {
+      if (this.feedbackMessage === msg) {
+        this.feedbackMessage = '';
+      }
+    }, 4500);
   }
 
   goToPage(page: number): void {

@@ -174,6 +174,15 @@ public class Candidate {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
+    @Column(name = "archived_at")
+    private OffsetDateTime archivedAt;
+
+    public OffsetDateTime getArchivedAt() { return this.archivedAt; }
+    public void setArchivedAt(OffsetDateTime archivedAt) { this.archivedAt = archivedAt; }
+    public void setArchivedAt(java.time.LocalDateTime archivedAt) {
+        this.archivedAt = archivedAt != null ? archivedAt.atOffset(java.time.ZoneOffset.UTC) : null;
+    }
+
     // ============================================================
     // 🔥 GETTERS/SETTERS complementares (garantir build sem Lombok)
     // ============================================================

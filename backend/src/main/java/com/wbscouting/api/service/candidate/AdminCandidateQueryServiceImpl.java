@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.time.Period;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -103,33 +104,18 @@ public class AdminCandidateQueryServiceImpl implements AdminCandidateQueryServic
     @Override
     @Transactional
     public void deleteCandidate(UUID id) {
-        log.info("Iniciando rotina de double-delete para candidatura ID: {}", id);
+        log.info("Iniciando arquivamento (soft delete) da candidatura ID: {}", id);
 
-        // 1. Verificar a existência da candidatura por ID
-        Candidate candidate = candidateRepository.findWithPhotosById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Candidatura não encontrada com ID: " + id));
-
-        String bucket = resolveBucketName();
-
-        // 2 & 3. Recuperar caminhos e executar deleção física de cada foto no Supabase Storage
-        if (candidate.getPhotos() != null && !candidate.getPhotos().isEmpty()) {
-            for (CandidatePhoto photo : candidate.getPhotos()) {
-                String storagePath = photo.getStoragePath();
-                if (StringUtils.hasText(storagePath)) {
-                    try {
-                        log.debug("Expurgando foto do Supabase Storage: bucket={}, path={}", bucket, storagePath);
-                        storageService.deleteFile(bucket, storagePath);
-                    } catch (Exception ex) {
-                        log.error("Falha ao expurgar arquivo '{}' do bucket '{}' no Supabase Storage. Erro: {}",
-                                storagePath, bucket, ex.getMessage(), ex);
-                    }
-                }
-            }
+        Candidate candidate = candidateRepository.findById(id).orElse(null);
+        if (candidate != null) {
+            candidate.setStatus(CandidateStatus.ARCHIVED);
+            candidate.setArchivedAt(OffsetDateTime.now());
+            candidateRepository.save(candidate);
+            log.info("Candidatura ID: {} movida para Arquivo Morto com sucesso.", id);
+            return;
         }
 
-        // 4. Deletar a entidade Candidate no banco de dados (cascade remove candidate_photos)
-        candidateRepository.delete(candidate);
-        log.info("Double-delete finalizado com sucesso para candidatura ID: {}", id);
+        throw new ResourceNotFoundException("Candidatura não encontrada com ID: " + id);
     }
 
     private Map<UUID, Integer> fetchPhotoCounts(List<UUID> candidateIds) {

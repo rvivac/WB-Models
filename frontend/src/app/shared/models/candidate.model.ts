@@ -1,4 +1,4 @@
-export type CandidateStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type CandidateStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
 
 export interface CandidatePhoto {
   id: string;

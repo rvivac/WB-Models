@@ -90,12 +90,13 @@ public class CandidateAdminController {
     ) {
         String reviewerName = extractReviewerName(authentication);
         log.info("Ação operacional de promoção para modelo da candidatura ID: {} por {}", id, reviewerName);
-        com.wbscouting.api.dto.model.ModelResponseDto model = adminService.promoteCandidateToModel(id, reviewerName, activateImmediately);
+        CandidateSubmissionResponseDto promoted = adminService.promoteToModel(id, reviewerName, activateImmediately);
+        UUID modelId = promoted != null ? promoted.getConvertedToModelId() : null;
         return ResponseEntity.ok(Map.of(
-                "status", "PROMOTED",
+                "status", promoted != null && promoted.getStatus() != null ? promoted.getStatus().name() : "PROMOTED",
+                "convertedToModelId", modelId != null ? modelId.toString() : "",
+                "modelId", modelId != null ? modelId.toString() : "",
                 "message", "Candidatura promovida com sucesso para o elenco oficial.",
-                "modelId", model.getId(),
-                "modelName", model.getStageName(),
                 "redirectUrl", "/admin/models"
         ));
     }

@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -64,9 +66,23 @@ public class AdminCandidateController {
         return ResponseEntity.ok(updated);
     }
 
+    @PostMapping("/{id}/promote-to-model")
+    public ResponseEntity<Map<String, Object>> promoteToModel(
+            @PathVariable UUID id,
+            @RequestParam(required = false, defaultValue = "true") Boolean activateImmediately) {
+        UUID modelId = adminCandidateService.promoteToModel(id, activateImmediately);
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "PROMOTED");
+        response.put("id", modelId != null ? modelId.toString() : "");
+        response.put("modelId", modelId != null ? modelId.toString() : "");
+        response.put("message", "Candidato promovido a modelo com sucesso.");
+        response.put("redirectUrl", "/admin/models");
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(response);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCandidate(@PathVariable UUID id) {
-        adminCandidateQueryService.deleteCandidate(id);
+        adminCandidateService.deleteCandidate(id);
         return ResponseEntity.noContent().build();
     }
 }

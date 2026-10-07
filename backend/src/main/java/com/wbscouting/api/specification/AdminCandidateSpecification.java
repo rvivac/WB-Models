@@ -16,9 +16,11 @@ public class AdminCandidateSpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // 1. Filtro opcional por status da candidatura
+            // 1. Filtro opcional por status da candidatura (padrão exclui ARCHIVED)
             if (status != null) {
                 predicates.add(cb.equal(root.get("status"), status));
+            } else {
+                predicates.add(cb.notEqual(root.get("status"), CandidateStatus.ARCHIVED));
             }
 
             // 2. Filtro opcional por busca textual (full_name ou email)

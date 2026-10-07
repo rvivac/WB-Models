@@ -492,6 +492,18 @@ export class CandidateService {
     );
   }
 
+  /**
+   * Move o candidato para o Arquivo Morto (Soft Delete).
+   * DELETE /api/v1/admin/candidates/{id}
+   */
+  archiveCandidate(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/api/v1/admin/candidates/${id}`).pipe(
+      catchError(() => {
+        return this.http.delete<void>(`${this.baseUrl}/admin/applications/${id}`);
+      })
+    );
+  }
+
   // --- Funções Auxiliares de Normalização & Mock ---
 
   private getMockPage(

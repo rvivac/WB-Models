@@ -22,6 +22,17 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.Period;
+import com.wbscouting.api.entity.Model;
+import com.wbscouting.api.entity.ModelMedia;
+import com.wbscouting.api.entity.CandidateSubmission;
+import com.wbscouting.api.enums.GenderType;
+import com.wbscouting.api.enums.MediaType;
+import com.wbscouting.api.enums.SubmissionStatus;
+import com.wbscouting.api.repository.ModelMediaRepository;
+import com.wbscouting.api.repository.ModelRepository;
+import com.wbscouting.api.repository.CandidateSubmissionRepository;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -34,6 +45,9 @@ public class AdminCandidateServiceImpl implements AdminCandidateService {
 
     private final CandidateRepository candidateRepository;
     private final CandidatePhotoRepository candidatePhotoRepository;
+    private final ModelRepository modelRepository;
+    private final ModelMediaRepository modelMediaRepository;
+    private final CandidateSubmissionRepository candidateSubmissionRepository;
     private final StorageService storageService;
     private final SupabaseProperties supabaseProperties;
 
@@ -112,32 +126,203 @@ public class AdminCandidateServiceImpl implements AdminCandidateService {
     @Override
     @Transactional
     public void deleteCandidate(UUID id) {
-        log.info("Iniciando exclusão segura da candidatura ID: {}", id);
+        log.info("Iniciando arquivamento (soft delete) da candidatura ID: {}", id);
 
-        Candidate candidate = candidateRepository.findWithPhotosById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Candidatura não encontrada com ID: " + id));
+        Candidate candidate = candidateRepository.findById(id).orElse(null);
+        if (candidate != null) {
+            candidate.setStatus(CandidateStatus.ARCHIVED);
+            candidate.setArchivedAt(OffsetDateTime.now());
+            candidateRepository.save(candidate);
+            log.info("Candidatura ID: {} movida para Arquivo Morto com sucesso.", id);
+            return;
+        }
 
-        String bucket = resolveBucketName();
+        if (candidateSubmissionRepository != null) {
+            CandidateSubmission submission = candidateSubmissionRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Candidatura não encontrada com ID: " + id));
+            submission.setStatus(SubmissionStatus.ARCHIVED);
+            submission.setArchivedAt(OffsetDateTime.now());
+            candidateSubmissionRepository.save(submission);
+            log.info("Candidatura submission ID: {} movida para Arquivo Morto com sucesso.", id);
+        } else {
+            throw new ResourceNotFoundException("Candidatura não encontrada com ID: " + id);
+        }
+    }
 
-        // 1. Exclusão física das fotos no Supabase Storage
-        if (candidate.getPhotos() != null && !candidate.getPhotos().isEmpty()) {
-            for (CandidatePhoto photo : candidate.getPhotos()) {
-                String storagePath = photo.getStoragePath();
-                if (StringUtils.hasText(storagePath)) {
-                    try {
-                        log.debug("Removendo arquivo físico da foto no storage: bucket={}, path={}", bucket, storagePath);
-                        storageService.deleteFile(bucket, storagePath);
-                    } catch (Exception ex) {
-                        log.warn("Erro não impeditivo ao remover foto do storage durante exclusão: bucket={}, path={}, erro={}",
-                                bucket, storagePath, ex.getMessage());
+    @Override
+    @Transactional
+    public UUID promoteToModel(UUID id, Boolean activateImmediately) {
+        log.info("Iniciando promoção da candidatura ID: {} para Modelo Oficial", id);
+
+        Candidate candidate = candidateRepository.findWithPhotosById(id).orElse(null);
+        if (candidate != null) {
+            // Determina gênero
+            GenderType gender = GenderType.MALE;
+            if (candidate.getGender() != null) {
+                String g = candidate.getGender().trim().toLowerCase();
+                if (g.contains("fem") || g.equals("f")) {
+                    gender = GenderType.FEMALE;
+                }
+            }
+
+            // Normaliza altura em cm
+            Integer heightCm = null;
+            if (candidate.getHeightCm() != null) {
+                if (candidate.getHeightCm().compareTo(BigDecimal.valueOf(3)) < 0) {
+                    heightCm = candidate.getHeightCm().multiply(BigDecimal.valueOf(100)).intValue();
+                } else {
+                    heightCm = candidate.getHeightCm().intValue();
+                }
+            }
+
+            // Foto principal de capa
+            String primaryPhotoUrl = null;
+            if (candidate.getPhotos() != null && !candidate.getPhotos().isEmpty()) {
+                CandidatePhoto firstPhoto = candidate.getPhotos().stream()
+                        .sorted(Comparator.comparing(CandidatePhoto::getDisplayOrder, Comparator.nullsLast(Comparator.naturalOrder())))
+                        .findFirst().orElse(null);
+                if (firstPhoto != null) {
+                    primaryPhotoUrl = firstPhoto.getFileUrl() != null ? firstPhoto.getFileUrl() : firstPhoto.getFilePath();
+                    if (primaryPhotoUrl == null) primaryPhotoUrl = firstPhoto.getStoragePath();
+                }
+            }
+
+            // 1. Cria a nova entidade Model com os dados do Candidate
+            Model model = Model.builder()
+                    .stageName(StringUtils.hasText(candidate.getFullName()) ? candidate.getFullName().trim() : "Novo Talento")
+                    .gender(gender)
+                    .isStar(false)
+                    .isFeaturedHome(false)
+                    .isActive(activateImmediately == null || Boolean.TRUE.equals(activateImmediately))
+                    .primaryPhotoUrl(primaryPhotoUrl)
+                    .instagramUrl(candidate.getInstagramHandle())
+                    .birthDate(candidate.getBirthDate())
+                    .heightCm(heightCm)
+                    .city(candidate.getCity())
+                    .nationality("Brasileira")
+                    .dressSize(candidate.getDressSize())
+                    .shoeSize(candidate.getShoeSize())
+                    .bustChestCm(candidate.getBustChestCm())
+                    .waistCm(candidate.getWaistCm())
+                    .hipsCm(candidate.getHipsCm())
+                    .build();
+
+            Model savedModel = modelRepository.save(model);
+
+            // 2. Migra as URLs das fotos de candidate_photos para a galeria do Model (ModelMedia)
+            if (candidate.getPhotos() != null && !candidate.getPhotos().isEmpty()) {
+                int order = 1;
+                for (CandidatePhoto p : candidate.getPhotos()) {
+                    String photoUrl = p.getFileUrl() != null ? p.getFileUrl() : p.getFilePath();
+                    if (photoUrl == null) photoUrl = p.getStoragePath();
+                    if (StringUtils.hasText(photoUrl)) {
+                        ModelMedia media = ModelMedia.builder()
+                                .model(savedModel)
+                                .mediaType(order == 1 ? MediaType.BOOK : MediaType.POLAROID)
+                                .fileUrl(photoUrl)
+                                .filePath(p.getStoragePath() != null ? p.getStoragePath() : photoUrl)
+                                .displayOrder(p.getDisplayOrder() != null ? p.getDisplayOrder() : order)
+                                .isCover(order == 1)
+                                .isActive(true)
+                                .build();
+                        modelMediaRepository.save(media);
+                        order++;
                     }
                 }
             }
+
+            // 3. Remove fisicamente o registro original de candidates e candidate_photos
+            candidateRepository.delete(candidate);
+            candidateRepository.flush();
+
+            log.info("Candidato ID: {} promovido para Modelo ID: {} e removido da esteira com sucesso.", id, savedModel.getId());
+            return savedModel.getId();
         }
 
-        // 2. Exclusão relacional no banco de dados
-        candidateRepository.delete(candidate);
-        log.info("Candidatura ID: {} e arquivos associados removidos com sucesso.", id);
+        // Fallback: caso o ID seja de CandidateSubmission
+        if (candidateSubmissionRepository != null) {
+            CandidateSubmission submission = candidateSubmissionRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Candidatura não encontrada com ID: " + id));
+
+            GenderType gender = (submission.getGender() != null && submission.getGender().name().contains("FEM"))
+                    ? GenderType.FEMALE : GenderType.MALE;
+
+            Integer heightCm = null;
+            if (submission.getHeight() != null) {
+                if (submission.getHeight().compareTo(BigDecimal.valueOf(3)) < 0) {
+                    heightCm = submission.getHeight().multiply(BigDecimal.valueOf(100)).intValue();
+                } else {
+                    heightCm = submission.getHeight().intValue();
+                }
+            }
+
+            Model model = Model.builder()
+                    .stageName(StringUtils.hasText(submission.getFullName()) ? submission.getFullName().trim() : "Novo Talento")
+                    .gender(gender)
+                    .isStar(false)
+                    .isFeaturedHome(false)
+                    .isActive(activateImmediately == null || Boolean.TRUE.equals(activateImmediately))
+                    .primaryPhotoUrl(submission.getFacePhotoUrl())
+                    .instagramUrl(submission.getInstagramHandle())
+                    .birthDate(submission.getBirthDate())
+                    .heightCm(heightCm)
+                    .city(submission.getCity())
+                    .nationality("Brasileira")
+                    .shoeSize(submission.getShoeSize() != null ? submission.getShoeSize().toString() : null)
+                    .bustChestCm(submission.getBust())
+                    .waistCm(submission.getWaist())
+                    .hipsCm(submission.getHips())
+                    .hairColor(submission.getHairColor())
+                    .eyesColor(submission.getEyeColor())
+                    .build();
+
+            Model savedModel = modelRepository.save(model);
+
+            if (StringUtils.hasText(submission.getFacePhotoUrl())) {
+                modelMediaRepository.save(ModelMedia.builder()
+                        .model(savedModel)
+                        .mediaType(MediaType.BOOK)
+                        .fileUrl(submission.getFacePhotoUrl())
+                        .filePath(submission.getFacePhotoUrl())
+                        .displayOrder(1)
+                        .isCover(true)
+                        .isActive(true)
+                        .build());
+            }
+
+            if (StringUtils.hasText(submission.getProfilePhotoUrl())) {
+                modelMediaRepository.save(ModelMedia.builder()
+                        .model(savedModel)
+                        .mediaType(MediaType.POLAROID)
+                        .fileUrl(submission.getProfilePhotoUrl())
+                        .filePath(submission.getProfilePhotoUrl())
+                        .displayOrder(2)
+                        .isCover(false)
+                        .isActive(true)
+                        .build());
+            }
+
+            if (StringUtils.hasText(submission.getFullBodyPhotoUrl())) {
+                modelMediaRepository.save(ModelMedia.builder()
+                        .model(savedModel)
+                        .mediaType(MediaType.POLAROID)
+                        .fileUrl(submission.getFullBodyPhotoUrl())
+                        .filePath(submission.getFullBodyPhotoUrl())
+                        .displayOrder(3)
+                        .isCover(false)
+                        .isActive(true)
+                        .build());
+            }
+
+            submission.setStatus(SubmissionStatus.PROMOTED);
+            submission.setConvertedToModelId(savedModel.getId());
+            candidateSubmissionRepository.save(submission);
+
+            log.info("Candidatura submission ID: {} promovida para Modelo ID: {}", id, savedModel.getId());
+            return savedModel.getId();
+        }
+
+        throw new ResourceNotFoundException("Candidatura não encontrada com ID: " + id);
     }
 
     private Map<UUID, Integer> fetchPhotoCounts(List<UUID> candidateIds) {

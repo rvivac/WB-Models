@@ -162,24 +162,23 @@ class AdminCandidateQueryServiceImplTest {
     }
 
     @Test
-    @DisplayName("Deve executar double-delete seguro: remoção física no storage e posterior exclusão relacional")
+    @DisplayName("Deve arquivar candidatura (soft delete) definindo status ARCHIVED e gravando archivedAt")
     void deleteCandidate_Success() {
-        when(candidateRepository.findWithPhotosById(candidateId)).thenReturn(Optional.of(candidate));
+        when(candidateRepository.findById(candidateId)).thenReturn(Optional.of(candidate));
 
         adminCandidateQueryService.deleteCandidate(candidateId);
 
-        // 1. Deleção física de cada arquivo no bucket privado
-        verify(storageService).deleteFile("candidates-uploads", "cand-test/photo1.jpg");
-        verify(storageService).deleteFile("candidates-uploads", "cand-test/photo2.jpg");
-
-        // 2. Deleção relacional no banco
-        verify(candidateRepository).delete(candidate);
+        assertThat(candidate.getStatus()).isEqualTo(CandidateStatus.ARCHIVED);
+        assertThat(candidate.getArchivedAt()).isNotNull();
+        verify(candidateRepository).save(candidate);
+        verify(candidateRepository, never()).delete(any(Candidate.class));
+        verify(storageService, never()).deleteFile(anyString(), anyString());
     }
 
     @Test
-    @DisplayName("Deve lançar ResourceNotFoundException ao tentar deletar ID inexistente")
+    @DisplayName("Deve lançar ResourceNotFoundException ao tentar arquivar ID inexistente")
     void deleteCandidate_NotFound_ThrowsException() {
-        when(candidateRepository.findWithPhotosById(candidateId)).thenReturn(Optional.empty());
+        when(candidateRepository.findById(candidateId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> adminCandidateQueryService.deleteCandidate(candidateId))
                 .isInstanceOf(ResourceNotFoundException.class)

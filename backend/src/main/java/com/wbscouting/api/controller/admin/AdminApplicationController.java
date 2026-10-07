@@ -98,12 +98,14 @@ public class AdminApplicationController {
         long pending = submissionRepository.countByStatusAndConvertedToModelIdIsNull(SubmissionStatus.PENDING);
         long approved = submissionRepository.countByStatusAndConvertedToModelIdIsNull(SubmissionStatus.APPROVED);
         long rejected = submissionRepository.countByStatusAndConvertedToModelIdIsNull(SubmissionStatus.REJECTED);
+        long archived = submissionRepository.countByStatus(SubmissionStatus.ARCHIVED);
         long total = submissionRepository.countByConvertedToModelIdIsNull();
 
         return ResponseEntity.ok(Map.of(
                 "pending", pending,
                 "approved", approved,
                 "rejected", rejected,
+                "archived", archived,
                 "total", total
         ));
     }
@@ -141,7 +143,7 @@ public class AdminApplicationController {
         return ResponseEntity.ok(CandidateDetailResponseDto.fromEntity(saved));
     }
 
-    @PostMapping("/{id}/promote")
+    @PostMapping({"/{id}/promote", "/{id}/promote-to-model"})
     @AuditAction(action = "PROMOTE", resource = "SCOUTING_CANDIDATE", description = "Promoção de candidato para elenco de modelos")
     public ResponseEntity<ApiResponse<ModelResponseDto>> promoteCandidateToModel(
             @PathVariable("id") UUID id,
@@ -156,17 +158,16 @@ public class AdminApplicationController {
     }
 
     @DeleteMapping("/{id}")
-    @AuditAction(action = "DELETE", resource = "SCOUTING_CANDIDATE", description = "Exclusão permanente de candidatura (Purge)")
+    @AuditAction(action = "ARCHIVE", resource = "SCOUTING_CANDIDATE", description = "Mover candidatura para Arquivo Morto")
     public ResponseEntity<Void> deleteApplication(@PathVariable UUID id) {
-        log.info("Iniciando exclusão permanente defensiva (Purge LGPD) da candidatura ID: {}", id);
+        log.info("Iniciando arquivamento (soft delete) da candidatura ID: {}", id);
         CandidateSubmission submission = submissionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Candidatura", "id", id));
 
-        // Purge dos binários no Supabase Storage
-        purgeCandidateFiles(submission);
-
-        submissionRepository.delete(submission);
-        log.info("Candidatura ID: {} e arquivos associados purgados com sucesso do banco e storage.", id);
+        submission.setStatus(SubmissionStatus.ARCHIVED);
+        submission.setArchivedAt(OffsetDateTime.now());
+        submissionRepository.save(submission);
+        log.info("Candidatura ID: {} movida para Arquivo Morto com sucesso.", id);
         return ResponseEntity.noContent().build();
     }
 

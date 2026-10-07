@@ -469,14 +469,14 @@ class CandidateSubmissionLifecycleE2ETest {
     }
 
     @Test
-    @DisplayName("TC-11 [LGPD Purge / Delete]: Deve purgar arquivos do storage e remover candidatura do banco com 204 No Content")
+    @DisplayName("TC-11 [Arquivo Morto / Soft Delete]: Deve arquivar candidatura com status ARCHIVED com 204 No Content")
     void shouldPurgeApplicationUnderLgpd() throws Exception {
         when(submissionRepository.findById(candidateId)).thenReturn(Optional.of(candidateEntity));
 
         mockMvc.perform(delete("/api/v1/admin/applications/{id}", candidateId))
                 .andExpect(status().isNoContent());
 
-        verify(storageService, atLeastOnce()).deleteFile(anyString(), anyString());
-        verify(submissionRepository, times(1)).delete(candidateEntity);
+        verify(submissionRepository, times(1)).save(candidateEntity);
+        org.assertj.core.api.Assertions.assertThat(candidateEntity.getStatus()).isEqualTo(com.wbscouting.api.enums.SubmissionStatus.ARCHIVED);
     }
 }

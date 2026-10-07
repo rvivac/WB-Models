@@ -23,8 +23,8 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      # PROD: NUNCA create-drop. Apenas valida schema.
-      ddl-auto: validate
+      # PROD: update cria tabelas/colunas novas sem nunca apagar dados existentes
+      ddl-auto: update
     show-sql: false
     properties:
       hibernate:

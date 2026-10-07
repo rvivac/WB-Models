@@ -1,10 +1,11 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AdminModelService } from '../../../core/services/admin-model.service';
 import {
   AdminModelFilterParams,
+  AdminModelPageResponse,
   ModelAdminItem,
   ModelGender
 } from '../../../shared/models/admin-model.interface';
@@ -19,42 +20,36 @@ import { ModelFormComponent } from './model-form/model-form.component';
 })
 export class ModelsMgmtComponent implements OnInit {
   private readonly adminModelService = inject(AdminModelService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly models = signal<ModelAdminItem[]>([]);
   readonly isLoading = signal<boolean>(false);
   readonly isFormOpen = signal<boolean>(false);
   readonly editingModelId = signal<string | null>(null);
 
-  // ============================================================
-  // 🗑️ MODAL DE CONFIRMAÇÃO: APAGAR MODELO
-  // ============================================================
+  // Paginação e totais (debug do envelope Spring Page)
+  readonly totalElements = signal<number>(0);
+  readonly totalPages = signal<number>(0);
+  readonly pageSize = signal<number>(20);
+  readonly page = signal<number>(0);
+
   readonly isConfirmDeleteOpen = signal<boolean>(false);
   readonly pendingDeleteModel = signal<ModelAdminItem | null>(null);
   readonly isDeleting = signal<boolean>(false);
 
-  // Filtros
   readonly filterGender = signal<ModelGender | 'ALL'>('ALL');
   readonly filterStar = signal<boolean | null>(null);
   readonly filterStatus = signal<boolean | null>(null);
   readonly searchTerm = signal<string>('');
 
-  // Toast
   readonly toast = signal<{ message: string; type: 'success' | 'error' } | null>(null);
-
-  /**
-   * IDs dos modelos cuja miniatura de foto falhou ao carregar.
-   * O fallback sera exibido (quadrado "WB") em vez do icone de imagem quebrada.
-   * Resolve bug: fotos apareciam no Publico, mas apareciam quebradas no Admin.
-   */
   readonly brokenPhotoIds = signal<Set<string>>(new Set());
 
-  /** Marca ID do modelo como teve erro de foto, forca placeholder cinza. */
   onThumbError(modelId: string): void {
     if (!modelId) return;
     this.brokenPhotoIds.update(s => new Set(s).add(modelId));
   }
 
-  /** @returns true se a miniatura deve pular o <img> e usar fallback "WB". */
   hasBrokenThumb(modelId: string): boolean {
     return !modelId || this.brokenPhotoIds().has(modelId);
   }
@@ -66,60 +61,59 @@ export class ModelsMgmtComponent implements OnInit {
   loadModels(): void {
     this.isLoading.set(true);
     const params: AdminModelFilterParams = {
+      page: this.page(),
+      size: this.pageSize(),
       gender: this.filterGender(),
       isStar: this.filterStar(),
       isActive: this.filterStatus(),
       search: this.searchTerm()
     };
 
-    console.log('[admin/models-mgmt] Chamando adminModelService.getModels com params:', params);
+    console.log('%c[models-mgmt] loadModels() iniciado com params:', 'color:#4B584E;font-weight:bold', params);
 
     this.adminModelService.getModels(params).subscribe({
-      next: (res: any) => {
-        console.log('[admin/models-mgmt] Dados recebidos (res):', res);
+      next: (page: AdminModelPageResponse) => {
+        console.groupCollapsed('%c[models-mgmt] Resposta recebida do service', 'color:#4B584E;font-weight:bold');
+        console.log('page obj completo:', page);
+        console.log('page.content (lista final a renderizar):', page.content);
+        console.log('page.content.length =', page.content?.length ?? 0);
+        console.log('page.totalElements =', page.totalElements);
+        console.log('page.totalPages    =', page.totalPages);
+        console.log('page.size          =', page.size);
+        console.log('page.number (page index) =', page.number);
+        console.groupEnd();
 
-        // -------------------------------------------------------------
-        // Extracao TOLERANTE a MULTIPLOS formatos de resposta
-        // Evita tela vazia mesmo que ApiService empacote em { data: Page }
-        // ou Spring Data retorne PageImpl { content, totalElements, ... }
-        // -------------------------------------------------------------
-        let list: any[] = [];
+        // ⚠️ Garantia EXTRA: se veio array puro (endpoint nao paginado), normaliza:
+        const list: ModelAdminItem[] = Array.isArray(page)
+          ? page as any
+          : Array.isArray(page?.content)
+            ? page.content
+            : [];
 
-        if (Array.isArray(res)) {
-          list = res;
-        } else if (res && Array.isArray(res.content)) {
-          list = res.content;
-        } else if (res?.data && Array.isArray(res.data)) {
-          list = res.data;
-        } else if (res?.data?.content && Array.isArray(res.data.content)) {
-          list = res.data.content;
-        } else if (res?.body && Array.isArray(res.body)) {
-          list = res.body;
-        } else if (res?.body?.content && Array.isArray(res.body.content)) {
-          list = res.body.content;
-        } else if (res?.payload && Array.isArray(res.payload)) {
-          list = res.payload;
-        } else if (res?.payload?.content && Array.isArray(res.payload.content)) {
-          list = res.payload.content;
-        } else if (res?.items && Array.isArray(res.items)) {
-          list = res.items;
-        } else if (res?.records && Array.isArray(res.records)) {
-          list = res.records;
-        } else {
-          list = [];
-          console.warn('[admin/models-mgmt] NAO FOI POSSIVEL EXTRAIR array de itens da resposta. Estrutura recebida:',
-            Object.keys(res || {}), res);
-        }
+        const totalEl: number = (page as any)?.totalElements ?? list.length ?? 0;
+        const totalPg: number = (page as any)?.totalPages ?? Math.max(1, Math.ceil(totalEl / (this.pageSize() || 20)));
 
-        console.log(`[admin/models-mgmt] Lista extraída: ${list.length} itens`);
+        console.log('[models-mgmt] ✅ FINAL -> list.length=', list.length, ' totalElements=', totalEl, 'totalPages=', totalPg);
+
         this.models.set(list || []);
+        this.totalElements.set(totalEl);
+        this.totalPages.set(totalPg);
         this.isLoading.set(false);
+
+        // ⚠️ Força detecção de mudanças (corrige problema de tabela "invisivel" por
+        // zona do Angular / Signals + RxJS pipe async)
+        this.cdr.markForCheck();
+        try { this.cdr.detectChanges(); } catch { /* standalone componentes nao tem ViewContainer as vezes */ }
       },
       error: (err) => {
-        console.error('[admin/models-mgmt] ERRO HTTP ao carregar modelos:', err);
+        console.error('%c[models-mgmt] 🔴 ERRO ao carregar modelos:', 'color:#B91C1C;font-weight:bold', err);
         this.models.set([]);
+        this.totalElements.set(0);
+        this.totalPages.set(0);
         this.isLoading.set(false);
-        this.showToast('Erro ao carregar catálogo de modelos.', 'error');
+        this.cdr.markForCheck();
+        const detail = (err as any)?.error?.detail || (err as any)?.message || '';
+        this.showToast(`Erro ao carregar catálogo de modelos. ${detail ? 'Detalhe: ' + detail : ''}`, 'error');
       }
     });
   }

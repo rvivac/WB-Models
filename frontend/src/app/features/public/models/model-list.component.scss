@@ -67,32 +67,47 @@
 }
 
 // -------------------------------------------------------------
-// Grelha de Modelos (2 cols mobile, 3 cols tablet, 4 cols desktop)
+// Grelha de Modelos (Homogênea, align-items: stretch)
 // -------------------------------------------------------------
 .models-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
   margin-bottom: 4rem;
+  align-items: stretch; /* Garante que todas as colunas tenham a mesma altura */
+
+  @include sm {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5rem;
+  }
 
   @include md {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 1.5rem;
   }
 
   @include lg {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 2rem;
+  }
+
+  // Garante que o elemento hospedeiro de cada card preencha 100% da linha
+  > app-model-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
   }
 }
 
 // -------------------------------------------------------------
-// Skeletons Monocromáticos (Zero CLS)
+// Skeletons Monocromáticos (Zero CLS - Dimensões Idênticas)
 // -------------------------------------------------------------
 .skeleton-card {
   position: relative;
   display: flex;
   flex-direction: column;
+  height: 100%;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
@@ -120,9 +135,11 @@
   }
 
   .skeleton-info {
-    padding: 1rem;
+    padding: 1rem 0.875rem;
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
+    justify-content: space-between;
     gap: 0.5rem;
 
     .skeleton-line {

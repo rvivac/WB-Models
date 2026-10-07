@@ -35,14 +35,9 @@ public class FeaturedModelServiceImpl implements FeaturedModelService {
     @Override
     @Transactional
     public List<FeaturedModelResponseDto> updateFeaturedHomeModels(FeaturedModelsReorderRequestDto request) {
-        if (request == null || request.getItems() == null) {
-            throw new IllegalArgumentException("A lista de itens de destaque não pode ser nula.");
-        }
-
-        List<FeaturedModelOrderItemDto> items = request.getItems();
-        if (items.size() < 4 || items.size() > 8) {
-            throw new IllegalArgumentException("A vitrine da Home deve conter entre 4 e 8 modelos (recebido: " + items.size() + ").");
-        }
+        List<FeaturedModelOrderItemDto> items = (request != null && request.getItems() != null)
+                ? request.getItems()
+                : Collections.emptyList();
 
         List<UUID> newModelIds = items.stream()
                 .map(FeaturedModelOrderItemDto::getModelId)

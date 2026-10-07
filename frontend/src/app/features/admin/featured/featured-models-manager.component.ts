@@ -153,8 +153,8 @@ export class FeaturedModelsManagerComponent implements OnInit {
   }
 
   saveChanges(): void {
-    if (this.featuredList.length < 4 || this.featuredList.length > 8) {
-      alert(`A vitrine deve conter ENTRE 4 E 8 modelos selecionados. (Atual: ${this.featuredList.length})`);
+    if (this.featuredList.length > 8) {
+      alert(`A vitrine deve conter no máximo 8 modelos selecionados. (Atual: ${this.featuredList.length})`);
       return;
     }
 

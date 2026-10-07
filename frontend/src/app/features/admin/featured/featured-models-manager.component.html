@@ -11,13 +11,13 @@
 
     <!-- Ações Globais -->
     <div class="flex items-center gap-4">
-      <span class="text-xs font-sans tracking-[0.15em] uppercase font-medium" [class.text-red-600]="featuredList.length < 4" [class.text-[#4B584E]]="featuredList.length >= 4">
+      <span class="text-xs font-sans tracking-[0.15em] uppercase font-medium text-[#4B584E]">
         {{ featuredList.length }} de 8 Selecionados
       </span>
       <button 
         type="button" 
         (click)="saveChanges()"
-        [disabled]="isSubmitting || featuredList.length < 4 || featuredList.length > 8"
+        [disabled]="isSubmitting || featuredList.length > 8"
         class="px-6 py-3 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-[0.2em] font-sans disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-sm rounded-none btn-publish"
       >
         <span *ngIf="!isSubmitting">Publicar na Home</span>
@@ -43,11 +43,6 @@
         <button type="button" (click)="loadData()" class="ml-3 underline hover:no-underline font-semibold text-[#dc2626] retry-btn">
           Tentar Novamente
         </button>
-      </div>
-
-      <!-- Alerta de Quantidade Mínima -->
-      <div *ngIf="!isFeaturedEmptyReal && featuredList.length < 4" class="p-3 bg-amber-50 border-l-2 border-amber-500 text-amber-800 text-xs mb-4 min-alert">
-        É necessário ter no mínimo 4 modelos para compor a vitrine da Home.
       </div>
 
       <div 

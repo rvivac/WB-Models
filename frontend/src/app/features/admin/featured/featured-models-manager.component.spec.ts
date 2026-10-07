@@ -110,15 +110,22 @@ describe('FeaturedModelsManagerComponent', () => {
     expect(component.featuredList.find(m => m.id === '2')).toBeUndefined();
   });
 
-  it('não deve salvar se houver menos de 4 modelos', () => {
+  it('deve permitir salvar mesmo se houver menos de 4 modelos (flexibilidade de quantidade mínima)', () => {
     spyOn(window, 'alert');
     fixture.detectChanges();
-    httpMock.expectOne(`${environment.apiUrl}/admin/featured-models`).flush(mockFeatured.slice(0, 3));
+    httpMock.expectOne(`${environment.apiUrl}/admin/featured-models`).flush(mockFeatured.slice(0, 2));
     httpMock.expectOne(`${environment.apiUrl}/admin/models?status=ACTIVE&size=100`).flush(mockAvailable);
 
     component.saveChanges();
-    expect(window.alert).toHaveBeenCalledWith('A vitrine deve conter entre 4 e 8 modelos selecionados.');
+    expect(component.isSubmitting).toBeTrue();
+
+    const putReq = httpMock.expectOne(`${environment.apiUrl}/admin/featured-models`);
+    expect(putReq.request.method).toBe('PUT');
+    expect(putReq.request.body.items.length).toBe(2);
+    putReq.flush(mockFeatured.slice(0, 2));
+
     expect(component.isSubmitting).toBeFalse();
+    expect(window.alert).toHaveBeenCalledWith(jasmine.stringMatching(/Curadoria da Home atualizada com sucesso/));
   });
 
   it('deve salvar vitrine com PUT /admin/featured-models ao atingir critérios válidos', () => {
@@ -139,6 +146,6 @@ describe('FeaturedModelsManagerComponent', () => {
     putReq.flush(mockFeatured);
 
     expect(component.isSubmitting).toBeFalse();
-    expect(window.alert).toHaveBeenCalledWith('Curadoria da Home atualizada com sucesso!');
+    expect(window.alert).toHaveBeenCalledWith(jasmine.stringMatching(/Curadoria da Home atualizada com sucesso/));
   });
 });

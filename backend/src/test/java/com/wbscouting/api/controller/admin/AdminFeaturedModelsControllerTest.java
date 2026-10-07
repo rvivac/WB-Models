@@ -142,4 +142,24 @@ class AdminFeaturedModelsControllerTest {
                 .andExpect(jsonPath("$.length()").value(4))
                 .andExpect(jsonPath("$[0].id").value(modelId1.toString()));
     }
+
+    @Test
+    @DisplayName("PUT /admin/featured-models deve aceitar lista com qualquer quantidade de modelos (inclusive vazia ou 1)")
+    void updateFeaturedHomeModels_AcceptsAnySize() throws Exception {
+        FeaturedModelsReorderRequestDto request = FeaturedModelsReorderRequestDto.builder()
+                .items(List.of(
+                        FeaturedModelOrderItemDto.builder().modelId(modelId1).displayOrder(1).build()
+                ))
+                .build();
+
+        when(featuredModelService.updateFeaturedHomeModels(any(FeaturedModelsReorderRequestDto.class)))
+                .thenReturn(List.of(mockList.get(0)));
+
+        mockMvc.perform(put("/admin/featured-models")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(modelId1.toString()));
+    }
 }

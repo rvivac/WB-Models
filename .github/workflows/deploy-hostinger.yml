@@ -1,5 +1,4 @@
-# WB Agency - Pipeline de Deploy Hostinger (Angular 18 -> domains/wbagency.com.br/public_html via FTP)
-# Deploy trigger: 2026-10-03T15:40:00
+# WB Agency - Pipeline de Deploy Hostinger (Angular 18 build -> public_html via FTP)
 name: Deploy Frontend para Hostinger
 
 on:
@@ -40,100 +39,39 @@ jobs:
       - name: Compilar Angular em Produção
         run: npm run build -- --configuration production
 
-      - name: Garantir fallback SPA + Ignore (.htaccess / .git-ftp-ignore)
+      - name: Garantir fallback SPA (404.html e .htaccess)
         run: |
           DIST_DIR="dist/frontend/browser"
           if [ ! -d "$DIST_DIR" ]; then
             echo "ERRO CRÍTICO: Build Angular NÃO GEROU $DIST_DIR!"
             exit 1
           fi
+          # Fallback para rotas SPA caso servidor busque 404.html
           cp "$DIST_DIR/index.html" "$DIST_DIR/404.html"
 
-          # --------------------------------------------------------------------------
-          # 1) ESCREVE .htaccess (roteamento SPA Angular + mínimo)
-          #    OBS: Usamos printf '%s\n' AQUI para EVITAR CUALQUER ERRO DE YAML
-          #    com HEREDOC contendo tags <IfModule...> que confundem parser.
-          # --------------------------------------------------------------------------
-          echo "--- [1/2] Escrevendo .htaccess ---"
-          printf '%s\n' \
-            'DirectoryIndex index.html index.php' \
-            '' \
-            '<IfModule mod_rewrite.c>' \
-            '  RewriteEngine On' \
-            '  RewriteBase /' \
-            '  RewriteRule ^index\.html$ - [L]' \
-            '  RewriteCond %{REQUEST_FILENAME} !-f' \
-            '  RewriteCond %{REQUEST_FILENAME} !-d' \
-            '  RewriteRule . /index.html [L]' \
-            '</IfModule>' \
-            > "$DIST_DIR/.htaccess"
+          # Garante que o .htaccess completo de public/ esteja presente no diretório de build
+          if [ ! -f "$DIST_DIR/.htaccess" ] && [ -f "public/.htaccess" ]; then
+            cp "public/.htaccess" "$DIST_DIR/.htaccess"
+          fi
 
-          # --------------------------------------------------------------------------
-          # 2) ESCREVE .git-ftp-ignore (NÃO APAGAR assets grandes no servidor)
-          # --------------------------------------------------------------------------
-          echo "--- [2/2] Escrevendo .git-ftp-ignore ---"
-          printf '%s\n' \
-            '# Arquivos / pastas QUE NÃO DEVEM SER APAGADOS NO SERVIDOR HOSTINGER (FTP-Deploy-Action)' \
-            '# ==========================================================' \
-            '# Medida de seguranca: evita que videos, logos, imagens e' \
-            '# conteudos enviados manualmente (via File Manager) sejam' \
-            '# deletados acidentalmente em deploy de CSS/JS novo.' \
-            '# ==========================================================' \
-            '' \
-            '# ASSETS GRANDES NAO COMPACTAVEIS (imagens/video/fontes)' \
-            'assets/videos/' \
-            'assets/images/' \
-            'assets/i18n/' \
-            '*.mp4' \
-            '*.webm' \
-            '*.jpg' \
-            '*.jpeg' \
-            '*.png' \
-            '*.gif' \
-            '*.webp' \
-            '*.avif' \
-            '*.svg' \
-            '*.ico' \
-            '*.woff2' \
-            '*.woff' \
-            '*.ttf' \
-            '' \
-            '# ARQUIVOS GERENCIADOS PELO PAINEL / SEO' \
-            'sitemap.xml' \
-            'sitemap_index.xml' \
-            'robots.txt' \
-            '.well-known/' \
-            '' \
-            '# ARQUIVOS DE DIAGNOSTICO (criados manualmente no File Manager)' \
-            '*.php' \
-            > "$DIST_DIR/.git-ftp-ignore"
+          echo "--- Verificando .htaccess no pacote de build ---"
+          ls -la "$DIST_DIR/.htaccess" && cat "$DIST_DIR/.htaccess"
 
-          # --------------------------------------------------------------------------
-          # 3) VALIDA QUE OS DOIS ARQUIVOS FORAM GERADOS
-          # --------------------------------------------------------------------------
-          echo "--- Validando arquivos gerados ---"
-          ( ls -la "$DIST_DIR/.htaccess" && echo "== .htaccess OK ($(wc -l < $DIST_DIR/.htaccess) linhas) ==" && cat "$DIST_DIR/.htaccess" && echo ) || exit 2
-          ( ls -la "$DIST_DIR/.git-ftp-ignore" && echo "== .git-ftp-ignore OK ($(wc -l < $DIST_DIR/.git-ftp-ignore) linhas) ==" && cat "$DIST_DIR/.git-ftp-ignore" && echo ) || exit 3
-
-      - name: Validar e Garantir Presença dos Assets no Pacote de Deploy
+      - name: Validar Integridade dos Arquivos de Build
         run: |
           DIST_DIR="dist/frontend/browser"
-          echo "=== Verificando integridade dos assets para deploy na Hostinger ==="
+          echo "=== Verificando arquivos resultantes do build em $DIST_DIR ==="
+          ls -la "$DIST_DIR"
           if [ ! -d "$DIST_DIR/assets" ]; then
             echo "ERRO CRÍTICO: Pasta assets não encontrada em $DIST_DIR!"
             exit 1
           fi
-          echo "Lista de arquivos e subdiretórios em assets:"
-          ls -la "$DIST_DIR/assets"
-          [ -d "$DIST_DIR/assets/i18n" ] && ls -la "$DIST_DIR/assets/i18n" || echo "(sem pasta i18n — usando translation service)"
-          ls -la "$DIST_DIR/assets/images"
-          ls -la "$DIST_DIR/assets/videos"
-          echo "Tamanhos de arquivos críticos (em bytes):"
-          du -cb "$DIST_DIR/assets/videos/"*  2>/dev/null | tail -1 || true
+          echo "Tamanhos de arquivos críticos do build:"
+          du -cb "$DIST_DIR/assets/videos/"* 2>/dev/null | tail -1 || true
           du -b "$DIST_DIR/assets/images/hero-poster.jpg" 2>/dev/null || true
-          echo "Assets validados com sucesso para o deploy."
+          echo "Arquivos de build validados com sucesso para o deploy."
 
-      - name: Enviar arquivos via FTP para a Hostinger (public_html)
+      - name: Enviar arquivos do build via FTP para a Hostinger (public_html)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -143,5 +81,6 @@ jobs:
           port: 21
           timeout: 600000
           local-dir: ./frontend/dist/frontend/browser/
-          server-dir: ${{ secrets.FTP_SERVER_DIR || 'domains/wbagency.com.br/public_html/' }}
+          server-dir: ${{ secrets.FTP_SERVER_DIR || 'public_html/' }}
+
 

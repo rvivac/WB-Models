@@ -180,10 +180,9 @@ public class CandidateSubmissionServiceImpl implements CandidateSubmissionServic
                 log.info("[SUBMIT] Candidato gravado e sincronizado em 'candidates' — ID={}", candidate.getId());
 
                 // ============================================================
-                // 7. Build + Save de CandidateSubmission (Backoffice/Triagem com mesmo ID e protocolo único)
+                // 7. Build + Save de CandidateSubmission (Backoffice/Triagem com protocolo único e ID gerado pelo Hibernate)
                 // ============================================================
                 CandidateSubmission submission = CandidateSubmission.builder()
-                        .id(candidate.getId())
                         .protocol(protocol)
                         .fullName(sanitizedFullName)
                         .email(request.getEmail().trim().toLowerCase())

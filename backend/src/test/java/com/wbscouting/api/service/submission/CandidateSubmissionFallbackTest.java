@@ -129,7 +129,13 @@ class CandidateSubmissionFallbackTest {
             c.setId(UUID.randomUUID());
             return c;
         });
-        when(repository.saveAndFlush(any(CandidateSubmission.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(repository.saveAndFlush(any(CandidateSubmission.class))).thenAnswer(invocation -> {
+            CandidateSubmission sub = invocation.getArgument(0);
+            if (sub.getId() == null) {
+                sub.setId(UUID.randomUUID());
+            }
+            return sub;
+        });
 
         CandidateSubmissionResponseDto response = submissionService.submit(
                 request,

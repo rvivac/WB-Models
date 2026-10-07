@@ -1,0 +1,117 @@
+# ============================================================
+# PROFILE PROD - Render + Supabase PostgreSQL via PgBouncer
+# Hard Constraints do projeto: project_memory.md
+# ============================================================
+server:
+  port: 8080
+  forward-headers-strategy: native
+
+spring:
+    datasource:
+    # CONEXAO DIRETA 5432 (funciona no Render como o SQL Editor do Supabase)
+    # Formato user SIMPLES = postgres (sem prefixo stmytwsdlonpnirqiufq)
+    url: "jdbc:postgresql://db.stmytwsdlonpnirqiufq.supabase.co:5432/postgres?sslmode=require"
+    username: "${SPRING_DATASOURCE_USERNAME:postgres}"
+    password: "${SPRING_DATASOURCE_PASSWORD:}"
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: WbProdSupabaseDirectPool
+      maximum-pool-size: 3
+      minimum-idle: 1
+      connection-timeout: 30000
+      max-lifetime: 1800000          # OBRIGATORIO 60s (PgBouncer timeout)
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      # PROD: NUNCA create-drop. Apenas valida schema.
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect  # OBRIGATORIO - evita "Unable to determine Dialect"
+        jdbc:
+          time_zone: America/Sao_Paulo
+    defer-datasource-initialization: false
+
+  sql:
+    init:
+      mode: never      # PROD: NUNCA executa data.sql / schema.sql
+
+  h2:
+    console:
+      enabled: false   # PROD: desliga H2
+
+  data:
+    web:
+      pageable:
+        max-page-size: 50
+        default-page-size: 20
+
+  mail:
+    host: "${SPRING_MAIL_HOST:smtp.hostinger.com}"
+    port: ${SPRING_MAIL_PORT:587}
+    username: "${SPRING_MAIL_USERNAME:}"
+    password: "${SPRING_MAIL_PASSWORD:}"
+    protocol: smtp
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
+
+app:
+  security:
+    jwt:
+      secret: "${APP_JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}"
+      expiration-ms: 28800000
+    admin-webmaster:
+      name: "${APP_SECURITY_ADMIN_WEBMASTER_NAME:Webmaster WB Agency}"
+      email: "${APP_SECURITY_ADMIN_WEBMASTER_EMAIL:webmaster@wbagency.com.br}"
+      password: "${APP_SECURITY_ADMIN_WEBMASTER_PASSWORD:}"
+      role: WEBMASTER
+      must-change-password: "${APP_SECURITY_ADMIN_WEBMASTER_MUST_CHANGE_PASSWORD:true}"
+    admin-info:
+      name: "${APP_SECURITY_ADMIN_INFO_NAME:Administrativo WB Agency}"
+      email: "${APP_SECURITY_ADMIN_INFO_EMAIL:info@wbagency.com.br}"
+      password: "${APP_SECURITY_ADMIN_INFO_PASSWORD:}"
+      role: ADMIN
+      must-change-password: "${APP_SECURITY_ADMIN_INFO_MUST_CHANGE_PASSWORD:true}"
+  cors:
+    allowed-origins: "${APP_CORS_ALLOWED_ORIGINS:https://wbagency.com.br,https://www.wbagency.com.br}"
+  mail:
+    from-address: "${APP_MAIL_FROM_ADDRESS:no-reply@wbagency.com.br}"
+    from-name: "${APP_MAIL_FROM_NAME:WB Agency}"
+    agency-notification-email: "${APP_MAIL_AGENCY_NOTIFICATION:info@wbagency.com.br}"
+    reset-password-base-url: "${APP_MAIL_RESET_BASE_URL:https://wbagency.com.br/admin/reset-password}"
+
+supabase:
+  url: "${SUPABASE_URL:https://stmytwsdlonpnirqiufq.supabase.co}"
+  key: "${SUPABASE_ANON_KEY:}"
+  service-role-key: "${SUPABASE_SERVICE_ROLE_KEY:}"
+  storage:
+    local-fallback: false
+    local-dir: ""
+
+logging:
+  level:
+    com.wbscouting.api: INFO
+    org.hibernate.SQL: WARN
+    com.zaxxer.hikari: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+  server:
+    port: 8080

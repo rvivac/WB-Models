@@ -228,14 +228,14 @@ export class ModelsMgmtComponent implements OnInit {
         this.models.update((list) => list.filter((m) => m.id !== target.id));
         // (B) Recarrega backend para confirmar paginacao e totais sincronizados
         this.loadModels();
-        this.showToast(`Modelo "${target.stageName}" foi excluído permanentemente com sucesso.`, 'success');
+        this.showToast(`Modelo "${target.stageName}" foi movido para o Arquivo Morto com sucesso.`, 'success');
         this.cancelDelete();
       },
       error: (err) => {
         console.error('[Apagar Modelo] Falha DELETE backend:', err);
         const detail = (err as any)?.error?.detail || (err as any)?.message || '';
         this.showToast(
-          `Erro ao excluir modelo "${target.stageName}". ${detail ? ` Detalhe: ${detail}` : 'Tente novamente em instantes.'}`,
+          `Erro ao arquivar modelo "${target.stageName}". ${detail ? ` Detalhe: ${detail}` : 'Tente novamente em instantes.'}`,
           'error'
         );
         this.isDeleting.set(false);

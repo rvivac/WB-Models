@@ -50,6 +50,53 @@ public interface ModelRepository extends JpaRepository<Model, UUID>, JpaSpecific
     Page<Model> findAll(Specification<Model> spec, Pageable pageable);
 
     // ========================================================================
+    // 🔥🔥 METODOS DEDICADOS EXCLUSIVAMENTE PARA ADMIN — JPQL PURO, SEM JOINS
+    //    Desacoplam COMPLETAMENTE a listagem administrativa de qualquer:
+    //      - Specification (nao ha join fetch acoplado via spec)
+    //      - EntityGraph (nao ha media carregada)
+    //      - FetchMode.JOIN em collections
+    //    countQuery eh EXPLICITA (evita HHH90003004 e count totalElements quebrado).
+    // ========================================================================
+
+    /**
+     * Query ADMIN sem nenhum filtro. JPQL pura = SELECT m FROM Model m.
+     * Gera SQL nativo: SELECT * FROM public.models ORDER BY ... LIMIT ? OFFSET ?
+     * countQuery: SELECT count(m) FROM Model m → SELECT count(*) FROM public.models
+     */
+    @Query(
+            value = "SELECT m FROM Model m",
+            countQuery = "SELECT count(m) FROM Model m"
+    )
+    Page<Model> findAllAdminPure(Pageable pageable);
+
+    /**
+     * Query ADMIN com filtros (gender, isStar, isActive, search por stageName LIKE).
+     * JPQL pura com predicates IS NULL OU IGUAL — nenhum join em collections.
+     * countQuery tambem explicita com mesmo filtro para totalElements correto.
+     *
+     * @param search SERA recebido como NULL se string vazia. Se NAO nulo, deve vir trimado.
+     */
+    @Query(
+            value = "SELECT m FROM Model m WHERE " +
+                    "(:gender IS NULL OR m.gender = :gender) AND " +
+                    "(:isStar IS NULL OR m.isStar = :isStar) AND " +
+                    "(:isActive IS NULL OR m.isActive = :isActive) AND " +
+                    "(:search IS NULL OR LOWER(m.stageName) LIKE LOWER(CONCAT('%', :search, '%')))",
+            countQuery = "SELECT count(m) FROM Model m WHERE " +
+                    "(:gender IS NULL OR m.gender = :gender) AND " +
+                    "(:isStar IS NULL OR m.isStar = :isStar) AND " +
+                    "(:isActive IS NULL OR m.isActive = :isActive) AND " +
+                    "(:search IS NULL OR LOWER(m.stageName) LIKE LOWER(CONCAT('%', :search, '%')))"
+    )
+    Page<Model> findAdminWithFilters(
+            @org.springframework.data.repository.query.Param("gender") GenderType gender,
+            @org.springframework.data.repository.query.Param("isStar") Boolean isStar,
+            @org.springframework.data.repository.query.Param("isActive") Boolean isActive,
+            @org.springframework.data.repository.query.Param("search") String search,
+            Pageable pageable
+    );
+
+    // ========================================================================
     // ✅ BUSCAS INDIVIDUAIS (DETALHE) — PODEM usar EntityGraph com media
     // ========================================================================
     @EntityGraph(attributePaths = {"media"})

@@ -13,14 +13,17 @@ import com.wbscouting.api.repository.specification.ModelSpecification;
 import com.wbscouting.api.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -33,6 +36,14 @@ public class ModelServiceImpl implements ModelService {
     private final ModelMediaRepository modelMediaRepository;
     private final StorageService storageService;
     private final SupabaseProperties supabaseProperties;
+
+    /**
+     * JDBC Template com SQL PURO para diagnostico de conexao/dados.
+     * required=false: injecao falha silenciosamente em ambientes sem DataSource
+     * (ex: testes unitarios leves). Null-safe check em cada uso.
+     */
+    @Autowired(required = false)
+    private JdbcTemplate jdbcTemplate;
 
     @Override
     @Transactional
@@ -146,79 +157,68 @@ public class ModelServiceImpl implements ModelService {
             GenderType gender, Boolean isStar, Boolean isActive, String search, Pageable pageable) {
 
         // ============================================================
-        // 🔥 LOG OBRIGATORIO DA TASK: Contagem bruta da tabela models NO SUPABASE.
-        //    - Se count() > 0 e specification/findAll retornam 0 = spec ou query errada.
-        //    - Se count() == 0 e existem registros no Supabase = CONEXAO H2 MEMORY sendo usada em vez de PostgreSQL!
+        // 🔥🔥 DIAGNOSTICO SQL PURO VIA JDBC DIRETO (SEM JPA/HIBERNATE)
+        //    Permite confirmar no painel Render se: a) o DB conectado eh o correto;
+        //    b) as linhas realmente existem. Nao afeta a consulta real final.
         // ============================================================
-        final long TOTAL_COUNT_BRUTO = modelRepository.count();
-        log.info("[DIAGNOSTICO-BD] modelRepository.count() no Supabase = {}", TOTAL_COUNT_BRUTO);
+        if (jdbcTemplate != null) {
+            try {
+                Integer jdbcCount = jdbcTemplate.queryForObject(
+                        "SELECT count(*) FROM public.models", Integer.class);
+                log.info("[DIAGNOSTICO-SQL-PURO] SELECT count(*) FROM public.models (JDBC direto) = {}", jdbcCount);
 
-        // ============================================================
-        // LOG DE AUDITORIA: Parametros recebidos do frontend (antes da query)
-        // Ajuda a diagnosticar filtros que estao chegando errados ou em branco.
-        // ============================================================
-        log.info("[ADMIN MODEL] Iniciando listagem /admin/models. " +
-                        "Params recebidos → gender={}, isStar={}, isActive={}, search='{}', " +
-                        "Pageable → page={}, size={}, sort={} | TOTAL tabela models = {}",
-                gender, isStar, isActive, search,
-                pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort(),
-                TOTAL_COUNT_BRUTO);
+                List<Map<String, Object>> jdbcRows = jdbcTemplate.queryForList(
+                        "SELECT id, stage_name, is_active, is_star, created_at FROM public.models ORDER BY created_at DESC LIMIT 5");
+                log.info("[DIAGNOSTICO-SQL-PURO] 5 linhas JDBC direto (public.models) = {}", jdbcRows);
+            } catch (Exception jdbcEx) {
+                log.error("[DIAGNOSTICO-SQL-PURO] Falha ao executar SQL puro: {}", jdbcEx.getMessage());
+            }
+        }
 
-        final boolean temFiltroAlgum = (gender != null)
+        // 1. SANITIZACAO DO PARAMETRO DE BUSCA: vazio/branco → NULL (para o LIKE do JPQL nao filtrar nada)
+        final String sanitizedSearch = StringUtils.hasText(search) ? search.trim() : null;
+
+        // 2. Verifica se ha algum filtro REAL aplicado (apos sanitizacao)
+        final boolean hasFilters = (gender != null)
                 || (isStar != null)
                 || (isActive != null)
-                || (org.springframework.util.StringUtils.hasText(search));
+                || (sanitizedSearch != null);
 
-        if (!temFiltroAlgum) {
-            log.info("[ADMIN MODEL] NENHUM filtro informado. A consulta deve retornar TODOS os modelos da tabela. " +
-                    "(Se retornar 0, provavel problema de conexao ou spec indevido)");
+        // 3. LOGGER DE PARAMETROS (ajuda a identificar filtros corretamente)
+        log.info("[ADMIN MODEL] listAdminModels → gender={}, isStar={}, isActive={}, sanitizedSearch='{}', " +
+                        "hasFilters={}, pageable.page={}, pageable.size={}, pageable.sort={}",
+                gender, isStar, isActive, sanitizedSearch,
+                hasFilters,
+                pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
+
+        // ============================================================
+        // 🔥🔥 CORACAO DA CORRECAO — JPQLs PURAS (task requerida):
+        //    - NENHUMA Specification (evita join fetch/root.fetch indevido em specs)
+        //    - NENHUM @EntityGraph acoplado em collections (Model.media)
+        //    - countQuery EXPLICITA em ambas as queries (resolve totalElements=0)
+        //    - Warning HHH90003004 NAO ocorre mais aqui.
+        // ============================================================
+        final Page<Model> pageResult;
+
+        if (hasFilters) {
+            log.info("[ADMIN MODEL] Executando findAdminWithFilters() (JPQL pura) com filtros.");
+            pageResult = modelRepository.findAdminWithFilters(
+                    gender,
+                    isStar,
+                    isActive,
+                    sanitizedSearch,
+                    pageable
+            );
+        } else {
+            log.info("[ADMIN MODEL] Executando findAllAdminPure() (JPQL pura) SEM filtros.");
+            pageResult = modelRepository.findAllAdminPure(pageable);
         }
 
-        Specification<Model> spec = ModelSpecification.filter(gender, isStar, isActive, search);
-
-        // Query principal com Specification
-        Page<Model> pageResult = modelRepository.findAll(spec, pageable);
-
         // ============================================================
-        // 🔥 LOG OBRIGATORIO DA TASK: TotalElements apos consulta COM Specification.
+        // LOG DE RESULTADO.
         // ============================================================
-        log.info("[DIAGNOSTICO-BD] page.getTotalElements() retornado (COM Specification) = {}", pageResult.getTotalElements());
-        log.info("[ADMIN MODEL] Consulta /admin/models (COM Specification) finalizada. " +
-                        "Total de registros encontrados no banco: {} | Itens nesta pagina: {} | totalPages={}",
+        log.info("[ADMIN MODEL] Resultado retornado: totalElements={}, numberOfElements={}, totalPages={}",
                 pageResult.getTotalElements(), pageResult.getNumberOfElements(), pageResult.getTotalPages());
-
-        // ============================================================
-        // FALLBACK DE SEGURANÇA (Diagnostico + UX)
-        // Se a Specification retornou ZERO TOTAL E nenhum filtro foi passado,
-        // forcamos uma consulta CRUA (findAll SEM specification) para confirmar:
-        //   → Se continuar zero: a tabela models realmente esta vazia (conexao ok, mas sem dados)
-        //   → Se aparecerem registros: a Specification estava filtrando indevidamente algum campo.
-        // ============================================================
-        if (!temFiltroAlgum) {
-            // ============================================================
-            // 🔥 DIAGNOSTICO FORCADO SEMPRE (mesmo que spec retorne > 0) para
-            //    confirmar que ambos os caminhos retornam o mesmo total.
-            // ============================================================
-            Page<Model> rawPage = null;
-            try {
-                rawPage = modelRepository.findAll(pageable);
-                log.info("[DIAGNOSTICO-BD] findAll(pageable) SEM Specification → totalElements = {}", rawPage.getTotalElements());
-            } catch (Exception fallbackEx) {
-                log.error("[ADMIN MODEL] findAll SEM spec falhou. Erro: {}", fallbackEx.getMessage());
-            }
-
-            // Se Specification voltar 0 e houver registros: substituir resultado.
-            if (pageResult.getTotalElements() == 0L && rawPage != null) {
-                log.warn("[ADMIN MODEL] FALLBACK VITORIOSO! Specification retornou 0 porem a tabela tem {} registros. " +
-                        "Substituindo resposta pelo findAll SEM spec para evitar tela vazia no Admin.", rawPage.getTotalElements());
-                pageResult = rawPage;
-            } else if (rawPage != null
-                    && pageResult.getTotalElements() != rawPage.getTotalElements()) {
-                log.warn("[ADMIN MODEL] DISCREPANCIA DETECTADA: Specification total={} vs. findAll SEM spec total={}. " +
-                        "Verificar predicates em ModelSpecification.filter()!",
-                        pageResult.getTotalElements(), rawPage.getTotalElements());
-            }
-        }
 
         // Dump dos primeiros 5 IDs (diagnostico: mostram se as instancias sao as esperadas)
         if (pageResult.getNumberOfElements() > 0) {

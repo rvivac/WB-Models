@@ -8,6 +8,7 @@ import com.wbscouting.api.service.model.ModelService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -17,8 +18,11 @@ import com.wbscouting.api.security.audit.AuditAction;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.util.StringUtils;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.net.URI;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -29,6 +33,14 @@ public class AdminModelController {
 
     private final ModelService modelService;
     private final ModelRepository modelRepository;
+
+    /**
+     * JDBC Template (SQL PURO, sem Hibernate) para diagnostico de dados.
+     * Util quando findAll/JPA mascara registros por EntityGraph / Join Fetch /
+     * Specifications incorretas — SQL puro mostra exatamente o que existe no DB.
+     */
+    @Autowired(required = false)
+    private JdbcTemplate jdbcTemplate;
 
     @PostMapping
     @AuditAction(action = "CREATE", resource = "MODEL", description = "Criação de novo modelo no casting")
@@ -86,12 +98,30 @@ public class AdminModelController {
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
         // ============================================================
+        // 🔥🔥 DIAGNOSTICO CRUCIAL: SQL PURO via JDBC (SEM JPA/Hibernate)
+        //    - Se isto > 0 e JPA retorna 0: BUG de MAEPMANETO (EntityGraph / Join Fetch etc)
+        //    - Se isto == 0: BANCO conectado NAO tem os registros (H2 em vez de Supabase).
+        // ============================================================
+        if (jdbcTemplate != null) {
+            try {
+                Integer jdbcCount = jdbcTemplate.queryForObject(
+                        "SELECT count(*) FROM public.models", Integer.class);
+                log.info("[DIAGNOSTICO-SQL-PURO] [CONTROLLER] SELECT count(*) FROM public.models via JDBC = {}", jdbcCount);
+                List<Map<String, Object>> jdbcRows = jdbcTemplate.queryForList(
+                        "SELECT id, stage_name, is_active FROM public.models ORDER BY created_at DESC LIMIT 3");
+                log.info("[DIAGNOSTICO-SQL-PURO] [CONTROLLER] 3 linhas de public.models via JDBC direto = {}", jdbcRows);
+            } catch (Exception jdbcEx) {
+                log.error("[DIAGNOSTICO-SQL-PURO] [CONTROLLER] Falha JDBC: {}", jdbcEx.getMessage());
+            }
+        }
+
+        // ============================================================
         // 🔥 LOG OBRIGATORIO DA TASK: Contagem DIRETA no repository
         //    antes de QUALQUER processamento. Se for H2 em vez de PostgreSQL,
         //    aqui aparece 0 (ou seed da H2) ao inves dos dados reais do Supabase.
         // ============================================================
         final long DIAG_COUNT_TOTAL = modelRepository.count();
-        log.info("[DIAGNOSTICO-BD] [CONTROLLER] modelRepository.count() no Supabase = {} (executado ANTES de service/specs)", DIAG_COUNT_TOTAL);
+        log.info("[DIAGNOSTICO-BD] [CONTROLLER] modelRepository.count() (JPA) no Supabase = {} (executado ANTES de service/specs)", DIAG_COUNT_TOTAL);
 
         if (isActive == null && status != null) {
             isActive = "ACTIVE".equalsIgnoreCase(status) || "true".equalsIgnoreCase(status);

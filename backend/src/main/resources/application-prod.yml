@@ -8,18 +8,17 @@ server:
 
 spring:
   datasource:
-    # CONEXAO DIRETA 5432 (funciona no Render como o SQL Editor do Supabase)
-    # Formato user SIMPLES = postgres (sem prefixo stmytwsdlonpnirqiufq)
-    url: "jdbc:postgresql://db.stmytwsdlonpnirqiufq.supabase.co:5432/postgres?sslmode=require"
-    username: "${SPRING_DATASOURCE_USERNAME:postgres}"
+    # Pooler Supabase IPv4 (aws-0-sa-east-1.pooler.supabase.com) - OBRIGATORIO no Render (Render nao possui suporte a saida IPv6)
+    url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://aws-0-sa-east-1.pooler.supabase.com:6543/postgres?sslmode=require&prepareThreshold=0}"
+    username: "${SPRING_DATASOURCE_USERNAME:postgres.stmytwsdlonpnirqiufq}"
     password: "${SPRING_DATASOURCE_PASSWORD:}"
     driver-class-name: org.postgresql.Driver
     hikari:
-      pool-name: WbProdSupabaseDirectPool
+      pool-name: WbProdSupabasePool
       maximum-pool-size: 3
       minimum-idle: 1
       connection-timeout: 30000
-      max-lifetime: 1800000          # OBRIGATORIO 60s (PgBouncer timeout)
+      max-lifetime: 60000            # OBRIGATORIO 60s (PgBouncer / Supavisor timeout)
 
   jpa:
     open-in-view: false

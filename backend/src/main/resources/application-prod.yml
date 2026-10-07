@@ -7,7 +7,7 @@ server:
   forward-headers-strategy: native
 
 spring:
-    datasource:
+  datasource:
     # CONEXAO DIRETA 5432 (funciona no Render como o SQL Editor do Supabase)
     # Formato user SIMPLES = postgres (sem prefixo stmytwsdlonpnirqiufq)
     url: "jdbc:postgresql://db.stmytwsdlonpnirqiufq.supabase.co:5432/postgres?sslmode=require"

@@ -146,14 +146,23 @@ public class ModelServiceImpl implements ModelService {
             GenderType gender, Boolean isStar, Boolean isActive, String search, Pageable pageable) {
 
         // ============================================================
+        // 🔥 LOG OBRIGATORIO DA TASK: Contagem bruta da tabela models NO SUPABASE.
+        //    - Se count() > 0 e specification/findAll retornam 0 = spec ou query errada.
+        //    - Se count() == 0 e existem registros no Supabase = CONEXAO H2 MEMORY sendo usada em vez de PostgreSQL!
+        // ============================================================
+        final long TOTAL_COUNT_BRUTO = modelRepository.count();
+        log.info("[DIAGNOSTICO-BD] modelRepository.count() no Supabase = {}", TOTAL_COUNT_BRUTO);
+
+        // ============================================================
         // LOG DE AUDITORIA: Parametros recebidos do frontend (antes da query)
         // Ajuda a diagnosticar filtros que estao chegando errados ou em branco.
         // ============================================================
         log.info("[ADMIN MODEL] Iniciando listagem /admin/models. " +
                         "Params recebidos → gender={}, isStar={}, isActive={}, search='{}', " +
-                        "Pageable → page={}, size={}, sort={}",
+                        "Pageable → page={}, size={}, sort={} | TOTAL tabela models = {}",
                 gender, isStar, isActive, search,
-                pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
+                pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort(),
+                TOTAL_COUNT_BRUTO);
 
         final boolean temFiltroAlgum = (gender != null)
                 || (isStar != null)
@@ -170,6 +179,10 @@ public class ModelServiceImpl implements ModelService {
         // Query principal com Specification
         Page<Model> pageResult = modelRepository.findAll(spec, pageable);
 
+        // ============================================================
+        // 🔥 LOG OBRIGATORIO DA TASK: TotalElements apos consulta COM Specification.
+        // ============================================================
+        log.info("[DIAGNOSTICO-BD] page.getTotalElements() retornado (COM Specification) = {}", pageResult.getTotalElements());
         log.info("[ADMIN MODEL] Consulta /admin/models (COM Specification) finalizada. " +
                         "Total de registros encontrados no banco: {} | Itens nesta pagina: {} | totalPages={}",
                 pageResult.getTotalElements(), pageResult.getNumberOfElements(), pageResult.getTotalPages());
@@ -181,22 +194,29 @@ public class ModelServiceImpl implements ModelService {
         //   → Se continuar zero: a tabela models realmente esta vazia (conexao ok, mas sem dados)
         //   → Se aparecerem registros: a Specification estava filtrando indevidamente algum campo.
         // ============================================================
-        if (pageResult.getTotalElements() == 0L && !temFiltroAlgum) {
-            log.warn("[ADMIN MODEL] FALLBACK disparado! Specification retornou ZERO sem nenhum filtro aplicado. " +
-                    "Tentando findAll(pageable) SEM Specification para diagnosticar...");
-
+        if (!temFiltroAlgum) {
+            // ============================================================
+            // 🔥 DIAGNOSTICO FORCADO SEMPRE (mesmo que spec retorne > 0) para
+            //    confirmar que ambos os caminhos retornam o mesmo total.
+            // ============================================================
+            Page<Model> rawPage = null;
             try {
-                Page<Model> rawPage = modelRepository.findAll(pageable);
-                log.info("[ADMIN MODEL] FALLBACK findAll(pageable) SEM spec retornou totalElements={}. " +
-                                "{} elementos foram PERDIDOS pela Specification (BUG!).",
-                        rawPage.getTotalElements(), rawPage.getTotalElements());
-                if (rawPage.getTotalElements() > 0) {
-                    log.warn("[ADMIN MODEL] ⚠️  Usando resultado CRUO do fallback (0 filtros). " +
-                            "Verificar ModelSpecification.filter() e flags booleanas na entidade.");
-                    pageResult = rawPage;
-                }
+                rawPage = modelRepository.findAll(pageable);
+                log.info("[DIAGNOSTICO-BD] findAll(pageable) SEM Specification → totalElements = {}", rawPage.getTotalElements());
             } catch (Exception fallbackEx) {
-                log.error("[ADMIN MODEL] FALLBACK findAll SEM spec falhou. Erro: {}", fallbackEx.getMessage());
+                log.error("[ADMIN MODEL] findAll SEM spec falhou. Erro: {}", fallbackEx.getMessage());
+            }
+
+            // Se Specification voltar 0 e houver registros: substituir resultado.
+            if (pageResult.getTotalElements() == 0L && rawPage != null) {
+                log.warn("[ADMIN MODEL] FALLBACK VITORIOSO! Specification retornou 0 porem a tabela tem {} registros. " +
+                        "Substituindo resposta pelo findAll SEM spec para evitar tela vazia no Admin.", rawPage.getTotalElements());
+                pageResult = rawPage;
+            } else if (rawPage != null
+                    && pageResult.getTotalElements() != rawPage.getTotalElements()) {
+                log.warn("[ADMIN MODEL] DISCREPANCIA DETECTADA: Specification total={} vs. findAll SEM spec total={}. " +
+                        "Verificar predicates em ModelSpecification.filter()!",
+                        pageResult.getTotalElements(), rawPage.getTotalElements());
             }
         }
 

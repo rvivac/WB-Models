@@ -85,6 +85,14 @@ public class AdminModelController {
             @RequestParam(required = false) String search,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
+        // ============================================================
+        // 🔥 LOG OBRIGATORIO DA TASK: Contagem DIRETA no repository
+        //    antes de QUALQUER processamento. Se for H2 em vez de PostgreSQL,
+        //    aqui aparece 0 (ou seed da H2) ao inves dos dados reais do Supabase.
+        // ============================================================
+        final long DIAG_COUNT_TOTAL = modelRepository.count();
+        log.info("[DIAGNOSTICO-BD] [CONTROLLER] modelRepository.count() no Supabase = {} (executado ANTES de service/specs)", DIAG_COUNT_TOTAL);
+
         if (isActive == null && status != null) {
             isActive = "ACTIVE".equalsIgnoreCase(status) || "true".equalsIgnoreCase(status);
         }
@@ -94,7 +102,15 @@ public class AdminModelController {
                 || (isActive != null)
                 || StringUtils.hasText(search);
 
+        log.info("[DIAGNOSTICO-BD] [CONTROLLER] filtros aplicados? anyFilterApplied={} (gender={}, isStar={}, isActive={}, search='{}')",
+                anyFilterApplied, gender, isStar, isActive, search);
+
         Page<ModelAdminResponseDto> result = modelService.listAdminModels(gender, isStar, isActive, search, pageable);
+
+        // ============================================================
+        // 🔥 LOG OBRIGATORIO DA TASK: apos a service retornar, qual o totalElements
+        // ============================================================
+        log.info("[DIAGNOSTICO-BD] [CONTROLLER] result.getTotalElements() APOS service/spec = {}", result.getTotalElements());
 
         // ============================================================
         // 🔥 FALLBACK ABSOLUTO (CONTROLLER LEVEL):
@@ -104,21 +120,30 @@ public class AdminModelController {
         // Consultamos DIRETAMENTE o repository findAll SEM specs para mostrar
         // ao usuario os dados que existem (evita tela branca no Admin).
         // ============================================================
-        if (result.getTotalElements() == 0L && !anyFilterApplied) {
-            log.warn("[CONTROLLER /admin/models] Service retornou totalElements=0 SEM filtros. " +
-                    "Disparando fallback DIRETO via modelRepository.findAll(pageable) para contornar falha de Specification/conexao.");
+        if (!anyFilterApplied) {
+            // ============================================================
+            // 🔥 Fallback controller: SEMPRE executa (diagnostico + garantia)
+            //    Se a service + specification estiver mascarando registros
+            //    por qualquer motivo, a listagem admin mostra os dados reais.
+            // ============================================================
+            Page<Model> rawModels = null;
             try {
-                Page<Model> rawModels = modelRepository.findAll(pageable);
-                log.info("[CONTROLLER /admin/models] Fallback direto retornou totalElements={}", rawModels.getTotalElements());
-                if (rawModels.getTotalElements() > 0) {
-                    // Mapeamento inline direto SEM depender de Beans injetados.
-                    // Replica fielmente ModelServiceImpl.mapToAdminResponse() para o fallback.
-                    result = rawModels.map(this::mapToAdminDtoInline);
-                    log.warn("[CONTROLLER /admin/models] ⚠️  SOBRESCREVENDO resposta para {} itens (fallback vitorioso). " +
-                            "Analise os logs da ModelSpecification.filter()".formatted(result.getTotalElements()));
-                }
+                rawModels = modelRepository.findAll(pageable);
+                log.info("[DIAGNOSTICO-BD] [CONTROLLER] fallback findAll SEM spec → totalElements = {}", rawModels.getTotalElements());
             } catch (Exception e) {
                 log.error("[CONTROLLER /admin/models] Falha no fallback direto do repository: {}", e.getMessage(), e);
+            }
+
+            // Se service voltar 0 e rawModels tiver algo → SOBRESCREVE a resposta
+            if (result.getTotalElements() == 0L && rawModels != null && rawModels.getTotalElements() > 0L) {
+                log.warn("[CONTROLLER /admin/models] ⚠️  SOBRESCREVENDO resposta com {} itens (service/specs retornaram 0 MAS TABELA TEM DADOS). " +
+                        "Elimine a causa raiz (provavel H2 em vez de PostgreSQL).", rawModels.getTotalElements());
+                result = rawModels.map(this::mapToAdminDtoInline);
+            } else if (rawModels != null
+                    && result.getTotalElements() != rawModels.getTotalElements()) {
+                log.warn("[CONTROLLER /admin/models] ⚠️  DISCREPANCIA DETECTADA: service/specs total={} vs. fallback SEM spec total={}. " +
+                        "Verificar Specification.filter() e anotações da entidade Model.",
+                        result.getTotalElements(), rawModels.getTotalElements());
             }
         }
 

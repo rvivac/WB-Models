@@ -225,7 +225,10 @@ public class CandidateSubmissionServiceImpl implements CandidateSubmissionServic
 
                 // Salva as fotos agora que o candidato existe no banco
                 candidatePhotoRepository.saveAll(photos);
-                candidate.setPhotos(photos);
+                if (candidate.getPhotos() != null) {
+                    candidate.getPhotos().clear();
+                    candidate.getPhotos().addAll(photos);
+                }
                 log.info("[SUBMIT][CANDIDATE_PHOTOS] 3 fotos persistidas com candidate_id={}", candidate.getId());
 
                 // ============================================================

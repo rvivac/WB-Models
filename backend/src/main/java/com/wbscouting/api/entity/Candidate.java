@@ -39,7 +39,16 @@ public class Candidate {
     public BigDecimal getHeightCm() { return this.heightCm; }
     public List<CandidatePhoto> getPhotos() { return this.photos; }
     public OffsetDateTime getCreatedAt() { return this.createdAt; }
-    public void setPhotos(List<CandidatePhoto> photos) { this.photos = photos; }
+    public void setPhotos(List<CandidatePhoto> photos) {
+        if (this.photos == null) {
+            this.photos = new ArrayList<>();
+        } else {
+            this.photos.clear();
+        }
+        if (photos != null) {
+            this.photos.addAll(photos);
+        }
+    }
 
     // 🆕 DEMAIS GETTERS (completos) para nao dar mais cannot find symbol em NENHUM DTO:
     public LocalDate getBirthDate() { return this.birthDate; }

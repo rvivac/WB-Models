@@ -9,6 +9,8 @@ import com.wbscouting.api.enums.SubmissionStatus;
 import com.wbscouting.api.exception.BusinessException;
 import com.wbscouting.api.repository.CandidateSubmissionRepository;
 import com.wbscouting.api.service.storage.StorageService;
+import com.wbscouting.api.entity.Candidate;
+import com.wbscouting.api.repository.CandidateRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +35,9 @@ class CandidateSubmissionServiceTest {
 
     @Mock
     private CandidateSubmissionRepository repository;
+
+    @Mock
+    private CandidateRepository candidateRepository;
 
     @Mock
     private com.wbscouting.api.repository.CandidatePhotoRepository candidatePhotoRepository;
@@ -100,11 +105,12 @@ class CandidateSubmissionServiceTest {
     @DisplayName("submit - Sucesso com candidato maior de idade")
     void shouldSubmitSuccessfullyWhenAdult() {
         when(storageService.getPublicUrl(any(), any())).thenReturn("https://storage.supabase.co/file.jpg");
-        when(repository.save(any(CandidateSubmission.class))).thenAnswer(invocation -> {
-            CandidateSubmission sub = invocation.getArgument(0);
-            sub.setId(UUID.randomUUID());
-            return sub;
+        when(candidateRepository.saveAndFlush(any(Candidate.class))).thenAnswer(invocation -> {
+            Candidate c = invocation.getArgument(0);
+            c.setId(UUID.randomUUID());
+            return c;
         });
+        when(repository.saveAndFlush(any(CandidateSubmission.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         CandidateSubmissionResponseDto response = submissionService.submit(
                 adultDto, validJpegFace, validPngProfile, validJpegBody
@@ -116,7 +122,9 @@ class CandidateSubmissionServiceTest {
         assertThat(response.getStatus()).isEqualTo(SubmissionStatus.PENDING);
 
         verify(storageService, times(3)).uploadFile(any(), any(), any());
-        verify(repository, times(1)).save(any(CandidateSubmission.class));
+        verify(candidateRepository, times(1)).saveAndFlush(any(Candidate.class));
+        verify(repository, times(1)).saveAndFlush(any(CandidateSubmission.class));
+        verify(candidatePhotoRepository, times(1)).saveAll(anyList());
     }
 
     @Test
@@ -140,11 +148,12 @@ class CandidateSubmissionServiceTest {
         minorDto.setGuardianEmail("maria@promessa.com");
 
         when(storageService.getPublicUrl(any(), any())).thenReturn("https://storage.supabase.co/file.jpg");
-        when(repository.save(any(CandidateSubmission.class))).thenAnswer(invocation -> {
-            CandidateSubmission sub = invocation.getArgument(0);
-            sub.setId(UUID.randomUUID());
-            return sub;
+        when(candidateRepository.saveAndFlush(any(Candidate.class))).thenAnswer(invocation -> {
+            Candidate c = invocation.getArgument(0);
+            c.setId(UUID.randomUUID());
+            return c;
         });
+        when(repository.saveAndFlush(any(CandidateSubmission.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         CandidateSubmissionResponseDto response = submissionService.submit(
                 minorDto, validJpegFace, validPngProfile, validJpegBody
@@ -152,7 +161,9 @@ class CandidateSubmissionServiceTest {
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(SubmissionStatus.PENDING);
-        verify(repository, times(1)).save(any(CandidateSubmission.class));
+        verify(candidateRepository, times(1)).saveAndFlush(any(Candidate.class));
+        verify(repository, times(1)).saveAndFlush(any(CandidateSubmission.class));
+        verify(candidatePhotoRepository, times(1)).saveAll(anyList());
     }
 
     @Test

@@ -73,7 +73,7 @@ public class CandidateApplicationServiceImpl implements CandidateApplicationServ
         try {
             // 3. Persistência atômica da ficha cadastral do candidato
             Candidate candidate = mapToCandidateEntity(requestDto, age);
-            candidate = candidateRepository.save(candidate);
+            candidate = candidateRepository.saveAndFlush(candidate);
             final UUID candidateId = candidate.getId();
             log.info("Ficha de candidato salva com ID={}. Iniciando upload concorrente de {} fotos...",
                     candidateId, photos.size());

@@ -3,11 +3,14 @@ package com.wbscouting.api.service.submission;
 import com.wbscouting.api.config.SupabaseProperties;
 import com.wbscouting.api.dto.CandidateSubmissionRequestDto;
 import com.wbscouting.api.dto.CandidateSubmissionResponseDto;
+import com.wbscouting.api.entity.Candidate;
+import com.wbscouting.api.entity.CandidatePhoto;
 import com.wbscouting.api.entity.CandidateSubmission;
+import com.wbscouting.api.enums.CandidateStatus;
 import com.wbscouting.api.enums.SubmissionStatus;
 import com.wbscouting.api.exception.BusinessException;
-import com.wbscouting.api.entity.CandidatePhoto;
 import com.wbscouting.api.repository.CandidatePhotoRepository;
+import com.wbscouting.api.repository.CandidateRepository;
 import com.wbscouting.api.repository.CandidateSubmissionRepository;
 import com.wbscouting.api.service.storage.StorageService;
 import com.wbscouting.api.service.storage.SupabaseStorageService;
@@ -21,6 +24,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.Period;
@@ -41,17 +45,20 @@ public class CandidateSubmissionServiceImpl implements CandidateSubmissionServic
     private static final byte[] PNG_MAGIC = new byte[]{(byte) 0x89, (byte) 0x50, (byte) 0x4E, (byte) 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
 
     private final CandidateSubmissionRepository repository;
+    private final CandidateRepository candidateRepository;
     private final CandidatePhotoRepository candidatePhotoRepository;
     private final StorageService storageService;
     private final SupabaseProperties supabaseProperties;
     private final ProtocolGeneratorService protocolGeneratorService;
 
     public CandidateSubmissionServiceImpl(CandidateSubmissionRepository repository,
+                                          CandidateRepository candidateRepository,
                                           CandidatePhotoRepository candidatePhotoRepository,
                                           StorageService storageService,
                                           SupabaseProperties supabaseProperties,
                                           ProtocolGeneratorService protocolGeneratorService) {
         this.repository = repository;
+        this.candidateRepository = candidateRepository;
         this.candidatePhotoRepository = candidatePhotoRepository;
         this.storageService = storageService;
         this.supabaseProperties = supabaseProperties;
@@ -135,9 +142,48 @@ public class CandidateSubmissionServiceImpl implements CandidateSubmissionServic
                 String fullBodyUrl = storageService.getPublicUrl(bucket, fullBodyPath);
 
                 // ============================================================
-                // 6. Build + Save da entidade CandidateSubmission (ID gerado por Hibernate)
+                // 6. Build + SaveAndFlush de Candidate (registro PAI na tabela 'candidates')
+                // ============================================================
+                BigDecimal heightCm = BigDecimal.ZERO;
+                if (request.getHeight() != null) {
+                    if (request.getHeight().compareTo(BigDecimal.valueOf(3)) < 0) {
+                        heightCm = request.getHeight().multiply(BigDecimal.valueOf(100));
+                    } else {
+                        heightCm = request.getHeight();
+                    }
+                }
+
+                Candidate candidate = Candidate.builder()
+                        .fullName(sanitizedFullName)
+                        .email(request.getEmail().trim().toLowerCase())
+                        .phone(request.getPhone().trim())
+                        .birthDate(request.getBirthDate())
+                        .age(age)
+                        .gender(request.getGender() != null ? request.getGender().name() : "FEMALE")
+                        .heightCm(heightCm)
+                        .city(sanitizedCity)
+                        .state(sanitizedState)
+                        .bustChestCm(request.getBust())
+                        .waistCm(request.getWaist())
+                        .hipsCm(request.getHips())
+                        .shoeSize(request.getShoeSize() != null ? request.getShoeSize().toString() : null)
+                        .instagramHandle(sanitizedInstagram)
+                        .guardianName(sanitizedGuardianName)
+                        .legalGuardianName(sanitizedGuardianName)
+                        .legalGuardianContact(StringUtils.hasText(request.getGuardianPhone()) ? request.getGuardianPhone().trim() : null)
+                        .status(CandidateStatus.PENDING)
+                        .lgpdAccepted(Boolean.TRUE.equals(request.getLgpdConsent()))
+                        .build();
+
+                // Salva e sincroniza IMEDIATAMENTE no banco para garantir que o ID exista na tabela 'candidates'
+                candidate = candidateRepository.saveAndFlush(candidate);
+                log.info("[SUBMIT] Candidato gravado e sincronizado em 'candidates' — ID={}", candidate.getId());
+
+                // ============================================================
+                // 7. Build + Save de CandidateSubmission (Backoffice/Triagem com mesmo ID e protocolo único)
                 // ============================================================
                 CandidateSubmission submission = CandidateSubmission.builder()
+                        .id(candidate.getId())
                         .protocol(protocol)
                         .fullName(sanitizedFullName)
                         .email(request.getEmail().trim().toLowerCase())
@@ -167,16 +213,21 @@ public class CandidateSubmissionServiceImpl implements CandidateSubmissionServic
                         .build();
 
                 // DataIntegrityViolationException escapa deste save() se colidir protocolo em concorrência de ms
-                CandidateSubmission saved = repository.save(submission);
+                CandidateSubmission saved = repository.saveAndFlush(submission);
                 log.info("[SUBMIT] Candidatura gravada com sucesso — ID={} | Protocolo={}", saved.getId(), saved.getProtocol());
 
                 // ============================================================
-                // 7. Persistir 3 linhas filhas em candidate_photos (FK candidate_id = saved.getId())
+                // 8. Processa o upload e a associação das fotos usando o candidate persistido
                 // ============================================================
-                persistirFotoFilha(saved, facePath,    faceUrl,    "POLAROID_ROSTO",   1, cleanFileName(facePhoto.getOriginalFilename()));
-                persistirFotoFilha(saved, profilePath, profileUrl, "POLAROID_PERFIL",  2, cleanFileName(profilePhoto.getOriginalFilename()));
-                persistirFotoFilha(saved, fullBodyPath,fullBodyUrl,"CORPO_INTEIRO",    3, cleanFileName(fullBodyPhoto.getOriginalFilename()));
-                log.info("[SUBMIT][CANDIDATE_PHOTOS] 3 fotos persistidas com candidate_id={}", saved.getId());
+                List<CandidatePhoto> photos = new ArrayList<>();
+                photos.add(criarFotoFilha(candidate, facePath, faceUrl, 1));
+                photos.add(criarFotoFilha(candidate, profilePath, profileUrl, 2));
+                photos.add(criarFotoFilha(candidate, fullBodyPath, fullBodyUrl, 3));
+
+                // Salva as fotos agora que o candidato existe no banco
+                candidatePhotoRepository.saveAll(photos);
+                candidate.setPhotos(photos);
+                log.info("[SUBMIT][CANDIDATE_PHOTOS] 3 fotos persistidas com candidate_id={}", candidate.getId());
 
                 // ============================================================
                 // 8. Resposta HTTP 201: id + protocol + fullName + email + status (DoD)
@@ -327,9 +378,22 @@ public class CandidateSubmissionServiceImpl implements CandidateSubmissionServic
     }
 
     /**
-     * Persiste UMA foto filha em candidate_photos com a FK candidate_id correta.
-     * OBS: Não usamos .candidate(saved) no builder porque CandidatePhoto agora grava a coluna
-     *      candidate_id diretamente (UUID simples), evitando conflitos de @ManyToOne.
+     * Instancia e associa uma foto filha vinculada ao Candidate persistido.
+     */
+    private CandidatePhoto criarFotoFilha(Candidate candidate, String storagePath, String publicUrl, int displayOrder) {
+        CandidatePhoto photo = new CandidatePhoto();
+        photo.setCandidate(candidate);
+        photo.setCandidateId(candidate.getId());
+        photo.setStoragePath(storagePath);
+        photo.setFilePath(storagePath);
+        photo.setFileUrl(publicUrl);
+        photo.setDisplayOrder(displayOrder);
+        photo.setPhotoPosition((short) displayOrder);
+        return photo;
+    }
+
+    /**
+     * Persiste UMA foto filha em candidate_photos com a FK candidate_id correta (compatibilidade).
      */
     private void persistirFotoFilha(CandidateSubmission submission,
                                      String storagePath,

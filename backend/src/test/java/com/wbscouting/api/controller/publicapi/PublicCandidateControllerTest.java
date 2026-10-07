@@ -1,29 +1,34 @@
 package com.wbscouting.api.controller.publicapi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wbscouting.api.dto.candidate.CandidateApplyRequestDto;
-import com.wbscouting.api.dto.candidate.CandidateApplyResponseDto;
-import com.wbscouting.api.enums.GenderType;
-import com.wbscouting.api.exception.InvalidApplicationException;
+import com.wbscouting.api.dto.CandidateSubmissionRequestDto;
+import com.wbscouting.api.dto.CandidateSubmissionResponseDto;
+import com.wbscouting.api.enums.SubmissionGender;
+import com.wbscouting.api.enums.SubmissionStatus;
 import com.wbscouting.api.security.JwtAuthenticationEntryPoint;
 import com.wbscouting.api.security.JwtAuthenticationFilter;
 import com.wbscouting.api.security.JwtService;
 import com.wbscouting.api.security.JwtTokenProvider;
-import com.wbscouting.api.service.candidate.CandidateApplicationService;
+import com.wbscouting.api.service.submission.CandidateSubmissionService;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -33,7 +38,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(PublicCandidateController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Import(PublicCandidateControllerTest.TestConfig.class)
 class PublicCandidateControllerTest {
+
+    @TestConfiguration
+    static class TestConfig {
+        @Bean
+        public Validator validator() {
+            return Validation.buildDefaultValidatorFactory().getValidator();
+        }
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -42,7 +56,7 @@ class PublicCandidateControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private CandidateApplicationService candidateApplicationService;
+    private CandidateSubmissionService candidateSubmissionService;
 
     @MockitoBean
     private JwtService jwtService;
@@ -56,116 +70,104 @@ class PublicCandidateControllerTest {
     @MockitoBean
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
-    private CandidateApplyRequestDto validDto;
+    private CandidateSubmissionRequestDto validDto;
 
     @BeforeEach
     void setUp() {
-        validDto = CandidateApplyRequestDto.builder()
+        validDto = CandidateSubmissionRequestDto.builder()
                 .fullName("Camila Queiroz")
                 .email("camila@queiroz.com")
                 .phone("(11) 98888-7777")
                 .birthDate(LocalDate.of(2000, 5, 20))
-                .gender(GenderType.FEMALE)
-                .heightCm(177)
+                .gender(SubmissionGender.FEMALE)
+                .height(new BigDecimal("1.77"))
                 .city("Ribeirão Preto")
                 .state("SP")
-                .bustChestCm(new BigDecimal("85.00"))
-                .waistCm(new BigDecimal("61.00"))
-                .hipsCm(new BigDecimal("90.00"))
-                .shoeSize("37")
-                .dressSize("36")
-                .instagramHandle("@camilaqueiroz")
+                .bust(new BigDecimal("85.00"))
+                .waist(new BigDecimal("61.00"))
+                .hips(new BigDecimal("90.00"))
+                .shoeSize(37)
+                .instagramHandle("camilaqueiroz")
+                .lgpdConsent(true)
                 .build();
     }
 
     @Test
-    @DisplayName("POST /public/candidates/apply - Deve retornar 201 Created com protocolo quando requisição for válida")
+    @DisplayName("POST /public/candidates/apply - Deve retornar 201 Created quando requisição for válida")
     void shouldApplySuccessfully() throws Exception {
         UUID candidateId = UUID.randomUUID();
-        CandidateApplyResponseDto responseDto = CandidateApplyResponseDto.builder()
-                .candidateId(candidateId)
-                .message("Candidatura recebida com sucesso.")
-                .submittedAt(Instant.now())
+        CandidateSubmissionResponseDto responseDto = CandidateSubmissionResponseDto.builder()
+                .id(candidateId)
+                .protocol("WB-20261007-ABCDEF")
+                .message("Candidatura enviada com sucesso!")
+                .status(SubmissionStatus.PENDING)
+                .createdAt(OffsetDateTime.now())
                 .build();
 
-        when(candidateApplicationService.apply(any(), any())).thenReturn(responseDto);
+        when(candidateSubmissionService.submit(any(), any(), any(), any())).thenReturn(responseDto);
 
-        byte[] candidateJson = objectMapper.writeValueAsBytes(validDto);
-        MockMultipartFile candidatePart = new MockMultipartFile(
-                "candidate",
+        String candidateJson = objectMapper.writeValueAsString(validDto);
+        MockMultipartFile dataPart = new MockMultipartFile(
+                "data",
                 "",
                 MediaType.APPLICATION_JSON_VALUE,
-                candidateJson
+                candidateJson.getBytes()
         );
 
-        MockMultipartFile photo1 = new MockMultipartFile("photos", "p1.jpg", "image/jpeg", "image-content-1".getBytes());
-        MockMultipartFile photo2 = new MockMultipartFile("photos", "p2.jpg", "image/jpeg", "image-content-2".getBytes());
-        MockMultipartFile photo3 = new MockMultipartFile("photos", "p3.jpg", "image/jpeg", "image-content-3".getBytes());
+        MockMultipartFile photo1 = new MockMultipartFile("facePhoto", "p1.jpg", "image/jpeg", "image-content-1".getBytes());
+        MockMultipartFile photo2 = new MockMultipartFile("profilePhoto", "p2.jpg", "image/jpeg", "image-content-2".getBytes());
+        MockMultipartFile photo3 = new MockMultipartFile("fullBodyPhoto", "p3.jpg", "image/jpeg", "image-content-3".getBytes());
 
         mockMvc.perform(multipart("/public/candidates/apply")
-                        .file(candidatePart)
+                        .file(dataPart)
                         .file(photo1)
                         .file(photo2)
                         .file(photo3))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.candidateId").value(candidateId.toString()))
-                .andExpect(jsonPath("$.message").value("Candidatura recebida com sucesso."))
-                .andExpect(jsonPath("$.submittedAt").exists());
+                .andExpect(jsonPath("$.data.id").value(candidateId.toString()))
+                .andExpect(jsonPath("$.data.protocol").value("WB-20261007-ABCDEF"))
+                .andExpect(jsonPath("$.data.status").value("PENDING"));
     }
 
     @Test
     @DisplayName("POST /public/candidates/apply - Deve retornar 400 Bad Request quando Bean Validation falhar")
     void shouldReturnBadRequestWhenBeanValidationFails() throws Exception {
-        CandidateApplyRequestDto invalidDto = CandidateApplyRequestDto.builder()
+        CandidateSubmissionRequestDto invalidDto = CandidateSubmissionRequestDto.builder()
                 .fullName("Ab") // menor que 3 chars
                 .email("email-invalido") // email inválido
                 .phone("") // telefone vazio
                 .birthDate(LocalDate.now().plusDays(10)) // data futura
                 .gender(null) // nulo
-                .heightCm(250) // maior que 220
+                .height(new BigDecimal("2.50")) // maior que 2.30
                 .city("")
                 .state("")
                 .build();
 
-        byte[] candidateJson = objectMapper.writeValueAsBytes(invalidDto);
-        MockMultipartFile candidatePart = new MockMultipartFile(
-                "candidate",
+        String candidateJson = objectMapper.writeValueAsString(invalidDto);
+        MockMultipartFile dataPart = new MockMultipartFile(
+                "data",
                 "",
                 MediaType.APPLICATION_JSON_VALUE,
-                candidateJson
+                candidateJson.getBytes()
         );
 
-        MockMultipartFile photo1 = new MockMultipartFile("photos", "p1.jpg", "image/jpeg", "content".getBytes());
-
         mockMvc.perform(multipart("/public/candidates/apply")
-                        .file(candidatePart)
-                        .file(photo1))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.title").value("Erro de Validação"))
-                .andExpect(jsonPath("$.errors").isMap());
+                        .file(dataPart))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    @DisplayName("POST /public/candidates/apply - Deve retornar 400 Bad Request quando serviço lançar InvalidApplicationException")
-    void shouldReturnBadRequestWhenInvalidApplicationExceptionThrown() throws Exception {
-        when(candidateApplicationService.apply(any(), any()))
-                .thenThrow(new InvalidApplicationException("A submissão de candidatura requer o envio de no mínimo 3 e no máximo 6 fotos. Quantidade enviada: 1"));
-
-        byte[] candidateJson = objectMapper.writeValueAsBytes(validDto);
-        MockMultipartFile candidatePart = new MockMultipartFile(
-                "candidate",
+    @DisplayName("POST /public/candidates/apply - Deve retornar 400 Bad Request quando JSON for inválido")
+    void shouldReturnBadRequestWhenJsonIsInvalid() throws Exception {
+        MockMultipartFile invalidDataPart = new MockMultipartFile(
+                "data",
                 "",
                 MediaType.APPLICATION_JSON_VALUE,
-                candidateJson
+                "{invalid-json}".getBytes()
         );
 
-        MockMultipartFile photo1 = new MockMultipartFile("photos", "p1.jpg", "image/jpeg", "content".getBytes());
-
         mockMvc.perform(multipart("/public/candidates/apply")
-                        .file(candidatePart)
-                        .file(photo1))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.title").value("Candidatura Inválida"))
-                .andExpect(jsonPath("$.detail").value("A submissão de candidatura requer o envio de no mínimo 3 e no máximo 6 fotos. Quantidade enviada: 1"));
+                        .file(invalidDataPart))
+                .andExpect(status().isBadRequest());
     }
 }

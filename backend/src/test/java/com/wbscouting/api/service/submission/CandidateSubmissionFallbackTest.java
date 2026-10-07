@@ -6,7 +6,9 @@ import com.wbscouting.api.dto.CandidateSubmissionResponseDto;
 import com.wbscouting.api.entity.CandidateSubmission;
 import com.wbscouting.api.enums.SubmissionGender;
 import com.wbscouting.api.enums.SubmissionStatus;
+import com.wbscouting.api.entity.Candidate;
 import com.wbscouting.api.repository.CandidatePhotoRepository;
+import com.wbscouting.api.repository.CandidateRepository;
 import com.wbscouting.api.repository.CandidateSubmissionRepository;
 import com.wbscouting.api.service.storage.SupabaseStorageService;
 import org.junit.jupiter.api.AfterEach;
@@ -27,6 +29,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Comparator;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -38,6 +41,9 @@ class CandidateSubmissionFallbackTest {
 
     @Mock
     private CandidateSubmissionRepository repository;
+
+    @Mock
+    private CandidateRepository candidateRepository;
 
     @Mock
     private CandidatePhotoRepository candidatePhotoRepository;
@@ -70,9 +76,10 @@ class CandidateSubmissionFallbackTest {
         // Mock do gerador de protocolo (evita ida ao banco + retorno determinístico nos asserts)
         when(protocolGeneratorService.generateUniqueProtocol()).thenReturn("WB-20261006-TEST");
 
-        // Assinatura do construtor (5 args): repository, candidatePhotoRepository, storageService, properties, protocolGeneratorService
+        // Assinatura do construtor: repository, candidateRepository, candidatePhotoRepository, storageService, properties, protocolGeneratorService
         submissionService = new CandidateSubmissionServiceImpl(
                 repository,
+                candidateRepository,
                 candidatePhotoRepository,
                 storageService,
                 properties,
@@ -117,7 +124,12 @@ class CandidateSubmissionFallbackTest {
                 .lgpdConsent(true)
                 .build();
 
-        when(repository.save(any(CandidateSubmission.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(candidateRepository.saveAndFlush(any(Candidate.class))).thenAnswer(invocation -> {
+            Candidate c = invocation.getArgument(0);
+            c.setId(UUID.randomUUID());
+            return c;
+        });
+        when(repository.saveAndFlush(any(CandidateSubmission.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         CandidateSubmissionResponseDto response = submissionService.submit(
                 request,
@@ -131,7 +143,7 @@ class CandidateSubmissionFallbackTest {
         assertThat(response.getProtocol()).isEqualTo("WB-20261006-TEST"); // mock determinístico
 
         ArgumentCaptor<CandidateSubmission> captor = ArgumentCaptor.forClass(CandidateSubmission.class);
-        verify(repository).save(captor.capture());
+        verify(repository).saveAndFlush(captor.capture());
         CandidateSubmission saved = captor.getValue();
 
         assertThat(saved.getFacePhotoUrl()).contains("/api/v1/storage/local/candidates-uploads/submissions/");

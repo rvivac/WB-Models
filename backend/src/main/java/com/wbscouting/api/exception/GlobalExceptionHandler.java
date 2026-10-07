@@ -241,6 +241,20 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ProblemDetail handleResponseStatusException(org.springframework.web.server.ResponseStatusException ex) {
+        HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
+        if (status == null) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+        String reason = ex.getReason() != null ? ex.getReason() : ex.getMessage();
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, reason);
+        problemDetail.setTitle(status.getReasonPhrase());
+        problemDetail.setType(URI.create("https://wbscouting.com/errors/" + status.value()));
+        problemDetail.setProperty("timestamp", Instant.now());
+        return problemDetail;
+    }
+
     // ============================================================
     // 🛡️ Handler CATCH-ALL genérico: (qualquer exceção SEM handler específico).
     // ANTES (antigo bug de 500 generico):

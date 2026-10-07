@@ -89,7 +89,7 @@ class CandidateApplicationServiceImplTest {
         when(mailProperties.getAgencyNotificationEmail()).thenReturn("agency@wbscouting.com");
 
         UUID generatedId = UUID.randomUUID();
-        when(candidateRepository.save(any(Candidate.class))).thenAnswer(invocation -> {
+        when(candidateRepository.saveAndFlush(any(Candidate.class))).thenAnswer(invocation -> {
             Candidate candidate = invocation.getArgument(0);
             candidate.setId(generatedId);
             return candidate;
@@ -104,7 +104,7 @@ class CandidateApplicationServiceImplTest {
         assertThat(response.getMessage()).isEqualTo("Candidatura recebida com sucesso.");
         assertThat(response.getSubmittedAt()).isNotNull();
 
-        verify(candidateRepository, times(1)).save(any(Candidate.class));
+        verify(candidateRepository, times(1)).saveAndFlush(any(Candidate.class));
         verify(candidatePhotoRepository, times(1)).saveAll(anyList());
         verify(storageService, times(3)).uploadFile(eq("candidates-uploads"), anyString(), any(MultipartFile.class));
         verify(emailService, times(1)).sendCandidateApplicationNotification(eq("agency@wbscouting.com"), any(CandidateApplicationDto.class));
@@ -129,7 +129,7 @@ class CandidateApplicationServiceImplTest {
                 .build();
 
         UUID generatedId = UUID.randomUUID();
-        when(candidateRepository.save(any(Candidate.class))).thenAnswer(invocation -> {
+        when(candidateRepository.saveAndFlush(any(Candidate.class))).thenAnswer(invocation -> {
             Candidate candidate = invocation.getArgument(0);
             candidate.setId(generatedId);
             return candidate;
@@ -139,7 +139,7 @@ class CandidateApplicationServiceImplTest {
 
         assertThat(response).isNotNull();
         assertThat(response.getCandidateId()).isEqualTo(generatedId);
-        verify(candidateRepository, times(1)).save(any(Candidate.class));
+        verify(candidateRepository, times(1)).saveAndFlush(any(Candidate.class));
     }
 
     @Test
@@ -244,7 +244,7 @@ class CandidateApplicationServiceImplTest {
     @DisplayName("Deve falhar e efetuar compensação (deleção no bucket) caso o upload falhe")
     void shouldCompensateStorageFilesWhenUploadFails() {
         UUID generatedId = UUID.randomUUID();
-        when(candidateRepository.save(any(Candidate.class))).thenAnswer(invocation -> {
+        when(candidateRepository.saveAndFlush(any(Candidate.class))).thenAnswer(invocation -> {
             Candidate candidate = invocation.getArgument(0);
             candidate.setId(generatedId);
             return candidate;
@@ -256,7 +256,8 @@ class CandidateApplicationServiceImplTest {
                 .when(storageService).uploadFile(eq("candidates-uploads"), anyString(), any(MultipartFile.class));
 
         assertThatThrownBy(() -> candidateApplicationService.apply(validAdultDto, validPhotos))
-                .isInstanceOf(StorageException.class);
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Falha de conexão com Supabase Storage");
 
         // Verifica que se algum arquivo foi enviado antes do erro, a compensação chamou deleteFile
         verify(candidatePhotoRepository, never()).saveAll(anyList());

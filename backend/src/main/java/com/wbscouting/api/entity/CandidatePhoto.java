@@ -14,17 +14,9 @@ public class CandidatePhoto {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    /**
-     * FK BRUTA para a coluna candidate_id.
-     *
-     * Motivo do mapeamento por UUID direto (não @ManyToOne):
-     * A mesma coluna referencia tanto candidates.id quanto candidate_submissions.id
-     * dependendo do fluxo. O Hibernate NÃO consegue declarar duas FKs na mesma coluna.
-     * Como a ON DELETE CASCADE está declarada no SCHEMA do Supabase (não no JPA), gravar o
-     * UUID aqui é suficiente para garantir a integridade referencial e o cascade no delete.
-     */
-    @Column(name = "candidate_id", nullable = false)
-    private UUID candidateId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "candidate_id", nullable = false)
+    private Candidate candidate;
 
     @Column(name = "storage_path", nullable = false)
     private String storagePath;
@@ -55,22 +47,43 @@ public class CandidatePhoto {
 
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
-    public UUID getCandidateId() { return this.candidateId; }
-    public void setCandidateId(UUID candidateId) { this.candidateId = candidateId; }
 
-    /** Helper (novo): vincula a foto a uma CandidateSubmission via UUID. */
+    public Candidate getCandidate() { return this.candidate; }
+    public void setCandidate(Candidate candidate) { this.candidate = candidate; }
+
+    public UUID getCandidateId() {
+        return (this.candidate != null) ? this.candidate.getId() : null;
+    }
+
+    public void setCandidateId(UUID candidateId) {
+        if (candidateId != null) {
+            if (this.candidate == null) {
+                Candidate c = new Candidate();
+                c.setId(candidateId);
+                this.candidate = c;
+            } else {
+                this.candidate.setId(candidateId);
+            }
+        } else {
+            this.candidate = null;
+        }
+    }
+
+    /** Helper: vincula a foto a uma CandidateSubmission via UUID / proxy Candidate. */
     public void setOwner(CandidateSubmission submission) {
-        this.candidateId = (submission != null) ? submission.getId() : null;
+        if (submission != null) {
+            setCandidateId(submission.getId());
+        }
     }
 
-    /** Helper (novo): vincula a foto a uma entidade Candidate (tabela candidates) via UUID. */
+    /** Helper: vincula a foto a uma entidade Candidate (tabela candidates). */
     public void setOwner(Candidate candidate) {
-        this.candidateId = (candidate != null) ? candidate.getId() : null;
+        this.candidate = candidate;
     }
 
-    /** @deprecated Manter compatibilidade com código antigo que chame getCandidate(). */
+    /** @deprecated Manter compatibilidade com código legado. */
     @Deprecated
-    public UUID resolveOwnerId() { return this.candidateId; }
+    public UUID resolveOwnerId() { return getCandidateId(); }
     public Short getPhotoPosition() { return this.photoPosition; }
     public void setPhotoPosition(Short photoPosition) { this.photoPosition = photoPosition; }
     public String getStoragePath() { return storagePath != null ? storagePath : filePath; }
@@ -99,7 +112,7 @@ public class CandidatePhoto {
          * Builder setter compatível com fluxos de candidatura pública (entidade Candidate).
          * Usado por CandidateService / CandidateApplicationServiceImpl.
          */
-        public CandidatePhotoBuilder candidate(Candidate v) { p.setOwner(v); return this; }
+        public CandidatePhotoBuilder candidate(Candidate v) { p.setCandidate(v); return this; }
 
         /** Builder setter direto por UUID (ÚTIL quando a entidade já tem o id após o save). */
         public CandidatePhotoBuilder candidateId(UUID v) { p.setCandidateId(v); return this; }

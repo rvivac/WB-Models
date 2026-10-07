@@ -109,6 +109,15 @@ class CandidateSubmissionLifecycleE2ETest {
     @MockitoBean
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
+    @MockitoBean
+    private com.wbscouting.api.service.audit.AuditLogService auditLogService;
+
+    @MockitoBean
+    private com.wbscouting.api.repository.AdminLoginHistoryRepository adminLoginHistoryRepository;
+
+    @MockitoBean
+    private com.wbscouting.api.repository.AdminRepository adminRepository;
+
     // Fixtures de Teste
     private CandidateSubmissionRequestDto validSubmissionDto;
     private CandidateSubmission candidateEntity;
@@ -364,6 +373,10 @@ class CandidateSubmissionLifecycleE2ETest {
     @Test
     @DisplayName("TC-07 [Admin Metrics]: Deve retornar contadores agregados por status")
     void shouldReturnApplicationCounts() throws Exception {
+        when(submissionRepository.countByStatusAndConvertedToModelIdIsNull(SubmissionStatus.PENDING)).thenReturn(12L);
+        when(submissionRepository.countByStatusAndConvertedToModelIdIsNull(SubmissionStatus.APPROVED)).thenReturn(3L);
+        when(submissionRepository.countByStatusAndConvertedToModelIdIsNull(SubmissionStatus.REJECTED)).thenReturn(5L);
+        when(submissionRepository.countByConvertedToModelIdIsNull()).thenReturn(20L);
         when(submissionRepository.countByStatus(SubmissionStatus.PENDING)).thenReturn(12L);
         when(submissionRepository.countByStatus(SubmissionStatus.APPROVED)).thenReturn(3L);
         when(submissionRepository.countByStatus(SubmissionStatus.REJECTED)).thenReturn(5L);

@@ -137,15 +137,17 @@ class AdminApplicationControllerTest {
     @Test
     @DisplayName("GET /api/v1/admin/applications/counts deve retornar contadores por status")
     void getCounts_ReturnsOk() throws Exception {
-        when(submissionRepository.countByStatus(SubmissionStatus.PENDING)).thenReturn(10L);
-        when(submissionRepository.countByStatus(SubmissionStatus.APPROVED)).thenReturn(5L);
-        when(submissionRepository.countByStatus(SubmissionStatus.REJECTED)).thenReturn(2L);
-        when(submissionRepository.count()).thenReturn(17L);
+        when(submissionRepository.countByStatusAndConvertedToModelIdIsNull(SubmissionStatus.PENDING)).thenReturn(10L);
+        when(submissionRepository.countByStatusAndConvertedToModelIdIsNull(SubmissionStatus.APPROVED)).thenReturn(5L);
+        when(submissionRepository.countByStatusAndConvertedToModelIdIsNull(SubmissionStatus.REJECTED)).thenReturn(2L);
+        when(submissionRepository.countByStatus(SubmissionStatus.ARCHIVED)).thenReturn(1L);
+        when(submissionRepository.countByConvertedToModelIdIsNull()).thenReturn(17L);
 
         mockMvc.perform(get("/api/v1/admin/applications/counts"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.pending").value(10))
                 .andExpect(jsonPath("$.approved").value(5))
+                .andExpect(jsonPath("$.archived").value(1))
                 .andExpect(jsonPath("$.total").value(17));
     }
 
@@ -183,15 +185,15 @@ class AdminApplicationControllerTest {
     }
 
     @Test
-    @DisplayName("DELETE /api/v1/admin/applications/{id} deve purgar arquivos no storage e retornar 204 No Content")
+    @DisplayName("DELETE /api/v1/admin/applications/{id} deve mover para Arquivo Morto e retornar 204 No Content")
     void deleteApplication_ReturnsNoContent() throws Exception {
         when(submissionRepository.findById(submissionId)).thenReturn(Optional.of(submission));
 
         mockMvc.perform(delete("/api/v1/admin/applications/{id}", submissionId))
                 .andExpect(status().isNoContent());
 
-        verify(storageService, atLeastOnce()).deleteFile(anyString(), anyString());
-        verify(submissionRepository).delete(submission);
+        verify(submissionRepository).save(submission);
+        org.assertj.core.api.Assertions.assertThat(submission.getStatus()).isEqualTo(SubmissionStatus.ARCHIVED);
     }
 
     @Test

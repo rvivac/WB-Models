@@ -51,6 +51,7 @@ public class CandidatePhoto {
     public Candidate getCandidate() { return this.candidate; }
     public void setCandidate(Candidate candidate) { this.candidate = candidate; }
 
+    @Transient
     public UUID getCandidateId() {
         return (this.candidate != null) ? this.candidate.getId() : null;
     }
@@ -83,6 +84,7 @@ public class CandidatePhoto {
 
     /** @deprecated Manter compatibilidade com código legado. */
     @Deprecated
+    @Transient
     public UUID resolveOwnerId() { return getCandidateId(); }
     public Short getPhotoPosition() { return this.photoPosition; }
     public void setPhotoPosition(Short photoPosition) { this.photoPosition = photoPosition; }

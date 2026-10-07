@@ -12,7 +12,11 @@ import java.util.UUID;
 @Repository
 public interface CandidatePhotoRepository extends JpaRepository<CandidatePhoto, UUID> {
 
-    List<CandidatePhoto> findByCandidateIdOrderByDisplayOrderAsc(UUID candidateId);
+    @Query("SELECT cp FROM CandidatePhoto cp WHERE cp.candidate.id = :candidateId ORDER BY cp.displayOrder ASC")
+    List<CandidatePhoto> findByCandidateIdOrderByDisplayOrderAsc(@Param("candidateId") UUID candidateId);
+
+    @Query("SELECT cp FROM CandidatePhoto cp WHERE cp.candidate.id = :candidateId ORDER BY cp.displayOrder ASC")
+    List<CandidatePhoto> findByCandidate_IdOrderByDisplayOrderAsc(@Param("candidateId") UUID candidateId);
 
     @Query("SELECT cp.candidate.id, COUNT(cp) FROM CandidatePhoto cp WHERE cp.candidate.id IN :candidateIds GROUP BY cp.candidate.id")
     List<Object[]> countPhotosByCandidateIds(@Param("candidateIds") List<UUID> candidateIds);

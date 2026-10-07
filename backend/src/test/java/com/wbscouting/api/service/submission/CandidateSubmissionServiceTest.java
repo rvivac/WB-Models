@@ -35,10 +35,16 @@ class CandidateSubmissionServiceTest {
     private CandidateSubmissionRepository repository;
 
     @Mock
+    private com.wbscouting.api.repository.CandidatePhotoRepository candidatePhotoRepository;
+
+    @Mock
     private StorageService storageService;
 
     @Mock
     private SupabaseProperties supabaseProperties;
+
+    @Mock
+    private ProtocolGeneratorService protocolGeneratorService;
 
     @InjectMocks
     private CandidateSubmissionServiceImpl submissionService;
@@ -87,6 +93,7 @@ class CandidateSubmissionServiceTest {
         validJpegBody = new MockMultipartFile("fullBodyPhoto", "body.jpg", "image/jpeg", jpegBytes);
 
         lenient().when(supabaseProperties.resolveBucketCandidates()).thenReturn("candidates-uploads");
+        lenient().when(protocolGeneratorService.generateUniqueProtocol()).thenReturn("WB-20261007-9999");
     }
 
     @Test
@@ -149,9 +156,9 @@ class CandidateSubmissionServiceTest {
     }
 
     @Test
-    @DisplayName("submit - Rejeita arquivo que excede 5MB")
-    void shouldRejectFileExceeding5MB() {
-        byte[] largeBytes = new byte[5 * 1024 * 1024 + 10];
+    @DisplayName("submit - Rejeita arquivo que excede 15MB")
+    void shouldRejectFileExceeding15MB() {
+        byte[] largeBytes = new byte[15 * 1024 * 1024 + 10];
         largeBytes[0] = (byte) 0xFF;
         largeBytes[1] = (byte) 0xD8;
         largeBytes[2] = (byte) 0xFF;
@@ -161,7 +168,7 @@ class CandidateSubmissionServiceTest {
                 adultDto, largeFile, validPngProfile, validJpegBody
         ))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("excede o limite máximo permitido de 5 MB");
+                .hasMessageContaining("excede o limite máximo permitido de 15 MB");
     }
 
     @Test

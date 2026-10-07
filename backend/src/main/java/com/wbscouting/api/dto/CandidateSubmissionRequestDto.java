@@ -18,18 +18,18 @@ public class CandidateSubmissionRequestDto {
 
     @NotBlank(message = "O nome completo é obrigatório")
     @Size(min = 3, max = 120, message = "O nome completo deve possuir entre 3 e 120 caracteres.")
-    @Pattern(regexp = "^[\\p{L} .'-]+$", message = "O nome contém caracteres inválidos.")
+    @Pattern(regexp = "^[\\p{L}\\p{M}\\p{Zs} .'-]+$", message = "O nome contém caracteres inválidos.")
     private String fullName;
 
     @NotBlank(message = "O e-mail é obrigatório")
-    @Email(regexp = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$", message = "E-mail com formato inválido")
+    @Email(message = "E-mail com formato inválido")
     @Size(max = 100, message = "O e-mail não pode exceder 100 caracteres")
     private String email;
 
     @NotBlank(message = "O telefone de contato é obrigatório")
     @Pattern(
-        regexp = "^(\\+?[1-9]\\d{1,14}|\\(?\\d{2}\\)?\\s?\\d{4,5}-?\\d{4})$",
-        message = "Telefone inválido. Utilize o formato internacional E.164 ou nacional (ex: (11) 98765-4321)"
+        regexp = "^(\\+?[0-9\\s()\\-]{8,25})$",
+        message = "Telefone inválido. Utilize o formato nacional ou internacional (ex: (11) 98765-4321 ou +55 11 98765-4321)"
     )
     @Size(max = 25, message = "Telefone deve ter no máximo 25 caracteres")
     private String phone;
@@ -93,4 +93,24 @@ public class CandidateSubmissionRequestDto {
     @NotNull(message = "O aceite dos termos da LGPD é obrigatório")
     @AssertTrue(message = "O aceite dos termos da LGPD deve ser explicitamente concedido")
     private Boolean lgpdConsent;
+
+    public void setGuardianName(String guardianName) {
+        this.guardianName = (guardianName != null && !guardianName.trim().isEmpty()) ? guardianName.trim() : null;
+    }
+
+    public void setGuardianCpf(String guardianCpf) {
+        this.guardianCpf = (guardianCpf != null && !guardianCpf.trim().isEmpty()) ? guardianCpf.trim() : null;
+    }
+
+    public void setGuardianPhone(String guardianPhone) {
+        this.guardianPhone = (guardianPhone != null && !guardianPhone.trim().isEmpty()) ? guardianPhone.trim() : null;
+    }
+
+    public void setGuardianEmail(String guardianEmail) {
+        this.guardianEmail = (guardianEmail != null && !guardianEmail.trim().isEmpty()) ? guardianEmail.trim() : null;
+    }
+
+    public void setInstagramHandle(String instagramHandle) {
+        this.instagramHandle = (instagramHandle != null && !instagramHandle.trim().isEmpty()) ? instagramHandle.trim() : null;
+    }
 }

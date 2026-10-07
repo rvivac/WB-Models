@@ -33,15 +33,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidationExceptions(MethodArgumentNotValidException ex) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Falha na validação dos campos da requisição.");
+        Map<String, String> fieldErrors = new java.util.LinkedHashMap<>();
+        java.util.List<String> errorMessages = new java.util.ArrayList<>();
+        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+            fieldErrors.put(error.getField(), error.getDefaultMessage());
+            errorMessages.add(error.getField() + ": " + error.getDefaultMessage());
+        }
+
+        String detailMsg = errorMessages.isEmpty()
+                ? "Falha na validação dos campos da requisição."
+                : "Falha na validação: " + String.join(" | ", errorMessages);
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, detailMsg);
         problemDetail.setTitle("Erro de Validação");
         problemDetail.setType(URI.create("https://wbscouting.com/errors/validation"));
         problemDetail.setProperty("timestamp", Instant.now());
-
-        Map<String, String> fieldErrors = new HashMap<>();
-        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
-            fieldErrors.put(error.getField(), error.getDefaultMessage());
-        }
         problemDetail.setProperty("errors", fieldErrors);
 
         return problemDetail;

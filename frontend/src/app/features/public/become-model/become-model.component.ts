@@ -586,17 +586,32 @@ export class BecomeModelComponent implements OnInit {
 
     const stateVal = (formVal.state || '').trim().toUpperCase();
 
-    // Payload compatível com ambos os DTOs
+    // Payload rigorosamente tipado e compatível com CandidateSubmissionRequestDto
     const candidateData = {
-      ...formVal,
+      fullName: formVal.fullName ? String(formVal.fullName).trim() : '',
+      email: formVal.email ? String(formVal.email).trim() : '',
+      phone: formVal.phone ? String(formVal.phone).trim() : '',
+      birthDate: formVal.birthDate,
       gender: formVal.gender || 'FEMALE',
+      city: formVal.city ? String(formVal.city).trim() : '',
       state: stateVal,
       height: heightInMeters,
+      bust: formVal.bust ? Number(formVal.bust) : null,
+      waist: formVal.waist ? Number(formVal.waist) : null,
+      hips: formVal.hips ? Number(formVal.hips) : null,
+      shoes: shoeSizeVal,
       shoeSize: shoeSizeVal,
-      eyeColor: formVal.eyes,
-      hairColor: formVal.hair,
-      instagramHandle: instagram,
-      instagram: instagram,
+      eyes: formVal.eyes || null,
+      eyeColor: formVal.eyes || null,
+      hair: formVal.hair || null,
+      hairColor: formVal.hair || null,
+      instagram: instagram || null,
+      instagramHandle: instagram || null,
+      guardianName: this.isMinor ? (formVal.guardianName?.trim() || null) : null,
+      guardianCpf: this.isMinor ? (formVal.guardianCpf?.trim() || null) : null,
+      guardianPhone: this.isMinor ? (formVal.guardianPhone?.trim() || null) : null,
+      guardianEmail: this.isMinor ? (formVal.guardianEmail?.trim() || null) : null,
+      lgpdConsent: !!formVal.lgpdConsent,
       age: this.calculatedAge,
       isMinor: this.isMinor
     };
@@ -626,7 +641,17 @@ export class BecomeModelComponent implements OnInit {
       },
       error: (err) => {
         this.isSubmitting = false;
-        this.submitError = err?.error?.detail || err?.error?.message || 'Falha ao submeter candidatura. Por favor, revise seus dados e tente novamente.';
+        console.error('[become-model] Erro ao submeter candidatura:', err);
+
+        // Se o backend retornou mapa detalhado de erros por campo (Bean Validation)
+        if (err?.error?.errors && typeof err.error.errors === 'object') {
+          const list = Object.entries(err.error.errors)
+            .map(([field, msg]) => `• ${msg}`)
+            .join(' | ');
+          this.submitError = `Falha na validação dos campos: ${list}`;
+        } else {
+          this.submitError = err?.error?.detail || err?.error?.message || 'Falha ao submeter candidatura. Por favor, revise seus dados e tente novamente.';
+        }
       }
     });
   }

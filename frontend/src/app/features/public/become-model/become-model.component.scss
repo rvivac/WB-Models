@@ -460,6 +460,28 @@ input[type="number"] {
     align-items: flex-start;
   }
 
+  .photo-specs-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+
+    .spec-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.65rem;
+      background: var(--bg-surface-alt, #F4F5F4);
+      border: 1px solid var(--border-subtle, #E8EBE8);
+      font-family: var(--font-sans);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      color: var(--wb-primary, #4B584E);
+      border-radius: 0 !important;
+    }
+  }
+
   .photo-counter-badge {
     display: inline-flex;
     align-items: center;
@@ -573,6 +595,15 @@ input[type="number"] {
         text-transform: uppercase;
         color: #8A7C64;
         font-weight: 600;
+      }
+
+      .slot-size-limit {
+        font-family: var(--font-sans);
+        font-size: 0.5625rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #8E9690;
+        font-weight: 500;
       }
     }
 

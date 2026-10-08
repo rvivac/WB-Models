@@ -461,6 +461,11 @@
                 <span class="badge-editorial">{{ 'apply_page.section3_badge' | translate }}</span>
                 <h2 class="section-title font-serif">{{ 'apply_page.section3_title' | translate }}</h2>
                 <p class="section-subtitle">{{ 'apply_page.section3_subtitle' | translate }}</p>
+                <div class="photo-specs-info">
+                  <span class="spec-badge">📷 JPG, PNG, WEBP</span>
+                  <span class="spec-badge">⚖️ {{ 'apply_page.max_file_size_badge' | translate }}</span>
+                  <span class="spec-badge">✨ {{ 'apply_page.no_filters_badge' | translate }}</span>
+                </div>
               </div>
               <div class="photo-counter-badge">
                 <span class="photo-counter-text">{{ 'apply_page.photos_counter' | translate: { count: totalUploadedPhotos } }}</span>
@@ -491,6 +496,9 @@
                         </svg>
                         <span class="slot-requirement-tag">
                           {{ slot.required ? ('apply_page.tag_required' | translate) : ('apply_page.tag_optional' | translate) }}
+                        </span>
+                        <span class="slot-size-limit">
+                          {{ 'apply_page.max_file_size_short' | translate }}
                         </span>
                       </div>
                     }

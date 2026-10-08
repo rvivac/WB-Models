@@ -508,18 +508,25 @@ export class BecomeModelComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
-      if (file.size > 5 * 1024 * 1024) {
-        alert(this.translationService.currentLang() === 'en'
-          ? 'The photo exceeds the maximum allowed size of 5MB.'
-          : 'A foto excede o limite máximo permitido de 5MB.');
+      const maxSizeBytes = 10 * 1024 * 1024; // 10 MB
+      if (file.size > maxSizeBytes) {
+        const errorMsg = this.translationService.currentLang() === 'en'
+          ? `The photo "${file.name}" exceeds the maximum allowed size of 10 MB.`
+          : `A foto "${file.name}" excede o tamanho máximo permitido de 10 MB.`;
+        this.submitError = errorMsg;
+        alert(errorMsg);
+        input.value = '';
         return;
       }
 
       const validMimes = ['image/jpeg', 'image/png', 'image/webp'];
       if (!validMimes.includes(file.type.toLowerCase())) {
-        alert(this.translationService.currentLang() === 'en'
+        const errorMsg = this.translationService.currentLang() === 'en'
           ? 'Invalid photo format. Please use JPG, PNG or WEBP.'
-          : 'Formato de foto inválido. Utilize JPG, PNG ou WEBP.');
+          : 'Formato de foto inválido. Utilize JPG, PNG ou WEBP.';
+        this.submitError = errorMsg;
+        alert(errorMsg);
+        input.value = '';
         return;
       }
 

@@ -371,6 +371,62 @@ public class DataInitializer implements CommandLineRunner {
                 END $$;
             """);
 
+            // 🔄 MIGRAÇÃO AUTOMÁTICA: Sincroniza registros legados de candidate_submissions para candidates
+            jdbcTemplate.execute("""
+                DO $$
+                BEGIN
+                    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'candidate_submissions') THEN
+                        -- 1. Insere em candidates qualquer registro de candidate_submissions que ainda não exista
+                        INSERT INTO public.candidates (
+                            id, protocol, full_name, email, phone, birth_date, age, gender,
+                            height_cm, city, state, bust_chest_cm, waist_cm, hips_cm, shoe_size,
+                            instagram_handle, guardian_name, legal_guardian_name, legal_guardian_contact,
+                            status, lgpd_accepted, lgpd_accepted_at, created_at, updated_at, archived_at
+                        )
+                        SELECT 
+                            cs.id, cs.protocol, cs.full_name, cs.email, cs.phone, cs.birth_date, cs.age, cs.gender::text,
+                            CASE 
+                                WHEN cs.height IS NULL THEN 175.00
+                                WHEN cs.height < 3.0 THEN (cs.height * 100)
+                                ELSE cs.height 
+                            END AS height_cm,
+                            cs.city, cs.state, cs.bust, cs.waist, cs.hips, cs.shoe_size::text,
+                            cs.instagram_handle, cs.guardian_name, cs.guardian_name, cs.guardian_phone,
+                            cs.status::text, COALESCE(cs.lgpd_consent, true),
+                            COALESCE(cs.lgpd_consent_at, cs.created_at, NOW()),
+                            COALESCE(cs.created_at, NOW()), COALESCE(cs.updated_at, NOW()), cs.archived_at
+                        FROM public.candidate_submissions cs
+                        WHERE NOT EXISTS (
+                            SELECT 1 FROM public.candidates c WHERE c.id = cs.id OR (cs.protocol IS NOT NULL AND c.protocol = cs.protocol)
+                        );
+
+                        -- 2. Migra foto de Rosto (face) para candidate_photos
+                        INSERT INTO public.candidate_photos (id, candidate_id, storage_path, file_url, file_path, display_order, photo_position, uploaded_at, created_at)
+                        SELECT gen_random_uuid(), cs.id, cs.face_photo_url, cs.face_photo_url, cs.face_photo_url, 1, 1, COALESCE(cs.created_at, NOW()), COALESCE(cs.created_at, NOW())
+                        FROM public.candidate_submissions cs
+                        WHERE cs.face_photo_url IS NOT NULL AND cs.face_photo_url <> ''
+                          AND EXISTS (SELECT 1 FROM public.candidates c WHERE c.id = cs.id)
+                          AND NOT EXISTS (SELECT 1 FROM public.candidate_photos cp WHERE cp.candidate_id = cs.id AND cp.display_order = 1);
+
+                        -- 3. Migra foto de Perfil (profile) para candidate_photos
+                        INSERT INTO public.candidate_photos (id, candidate_id, storage_path, file_url, file_path, display_order, photo_position, uploaded_at, created_at)
+                        SELECT gen_random_uuid(), cs.id, cs.profile_photo_url, cs.profile_photo_url, cs.profile_photo_url, 2, 2, COALESCE(cs.created_at, NOW()), COALESCE(cs.created_at, NOW())
+                        FROM public.candidate_submissions cs
+                        WHERE cs.profile_photo_url IS NOT NULL AND cs.profile_photo_url <> ''
+                          AND EXISTS (SELECT 1 FROM public.candidates c WHERE c.id = cs.id)
+                          AND NOT EXISTS (SELECT 1 FROM public.candidate_photos cp WHERE cp.candidate_id = cs.id AND cp.display_order = 2);
+
+                        -- 4. Migra foto de Corpo Inteiro (fullBody) para candidate_photos
+                        INSERT INTO public.candidate_photos (id, candidate_id, storage_path, file_url, file_path, display_order, photo_position, uploaded_at, created_at)
+                        SELECT gen_random_uuid(), cs.id, cs.full_body_photo_url, cs.full_body_photo_url, cs.full_body_photo_url, 3, 3, COALESCE(cs.created_at, NOW()), COALESCE(cs.created_at, NOW())
+                        FROM public.candidate_submissions cs
+                        WHERE cs.full_body_photo_url IS NOT NULL AND cs.full_body_photo_url <> ''
+                          AND EXISTS (SELECT 1 FROM public.candidates c WHERE c.id = cs.id)
+                          AND NOT EXISTS (SELECT 1 FROM public.candidate_photos cp WHERE cp.candidate_id = cs.id AND cp.display_order = 3);
+                    END IF;
+                END $$;
+            """);
+
             // ⛔ PRODUÇÃO SEGURA: Composite demo Isabella Fontana APENAS se o modelo ID realmente
             //    pertence a um registro seed H2 (nao queremos inserir midia demo em modelos REAIS
             //    que por coincidencia tenham mesmo UUID em outro ambiente).

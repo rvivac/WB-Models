@@ -15,4 +15,6 @@ public interface ContactChannelRepository extends JpaRepository<ContactChannel, 
     List<ContactChannel> findAllByOrderByDisplayOrderAsc();
 
     List<ContactChannel> findByType(String type);
+
+    List<ContactChannel> findByTypeIgnoreCaseOrderByDisplayOrderAsc(String type);
 }

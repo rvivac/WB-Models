@@ -100,13 +100,74 @@ public class AdminCandidateServiceImpl implements AdminCandidateService {
     public CandidateDetailAdminDto updateStatus(UUID id, CandidateStatusUpdateDto dto) {
         log.info("Atualizando status da candidatura ID: {} para {}", id, dto.getStatus());
 
-        Candidate candidate = candidateRepository.findWithPhotosById(id)
+        Candidate candidate = candidateRepository.findWithPhotosById(id).orElse(null);
+        if (candidate == null) {
+            candidate = candidateRepository.findById(id).orElse(null);
+        }
+
+        String protocol = null;
+        Candidate saved = null;
+        if (candidate != null) {
+            candidate.setStatus(dto.getStatus());
+            candidate.setUpdatedAt(OffsetDateTime.now());
+            saved = candidateRepository.saveAndFlush(candidate);
+            protocol = candidate.getProtocol();
+        }
+
+        if (candidateSubmissionRepository != null) {
+            try {
+                SubmissionStatus subStatus;
+                if (dto.getStatus() == CandidateStatus.REJECTED) {
+                    subStatus = SubmissionStatus.REJECTED;
+                } else if (dto.getStatus() == CandidateStatus.APPROVED) {
+                    subStatus = SubmissionStatus.APPROVED;
+                } else if (dto.getStatus() == CandidateStatus.PENDING) {
+                    subStatus = SubmissionStatus.PENDING;
+                } else if (dto.getStatus() == CandidateStatus.ARCHIVED) {
+                    subStatus = SubmissionStatus.ARCHIVED;
+                } else {
+                    subStatus = SubmissionStatus.valueOf(dto.getStatus().name());
+                }
+
+                final SubmissionStatus finalSubStatus = subStatus;
+                candidateSubmissionRepository.findById(id).ifPresent(s -> {
+                    s.setStatus(finalSubStatus);
+                    s.setReviewedAt(OffsetDateTime.now());
+                    candidateSubmissionRepository.saveAndFlush(s);
+                });
+                if (protocol != null) {
+                    candidateSubmissionRepository.findByProtocol(protocol).ifPresent(s -> {
+                        s.setStatus(finalSubStatus);
+                        s.setReviewedAt(OffsetDateTime.now());
+                        candidateSubmissionRepository.saveAndFlush(s);
+                    });
+                } else {
+                    candidateSubmissionRepository.findById(id).ifPresent(s -> {
+                        if (s.getProtocol() != null) {
+                            candidateRepository.findByProtocol(s.getProtocol()).ifPresent(c -> {
+                                c.setStatus(dto.getStatus());
+                                c.setUpdatedAt(OffsetDateTime.now());
+                                candidateRepository.saveAndFlush(c);
+                            });
+                        }
+                    });
+                }
+            } catch (Exception ignored) {}
+        }
+
+        if (saved != null) {
+            return toDetailDtoWithSignedUrls(saved);
+        }
+
+        CandidateSubmission sub = candidateSubmissionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Candidatura não encontrada com ID: " + id));
-
-        candidate.setStatus(dto.getStatus());
-        Candidate saved = candidateRepository.save(candidate);
-
-        return toDetailDtoWithSignedUrls(saved);
+        if (sub.getProtocol() != null) {
+            Optional<Candidate> cByProt = candidateRepository.findByProtocol(sub.getProtocol());
+            if (cByProt.isPresent()) {
+                return toDetailDtoWithSignedUrls(cByProt.get());
+            }
+        }
+        return toDetailDto(sub);
     }
 
     @Override
@@ -114,13 +175,56 @@ public class AdminCandidateServiceImpl implements AdminCandidateService {
     public CandidateDetailAdminDto updateNotes(UUID id, CandidateNotesUpdateDto dto) {
         log.info("Atualizando anotações internas da candidatura ID: {}", id);
 
-        Candidate candidate = candidateRepository.findWithPhotosById(id)
+        Candidate candidate = candidateRepository.findWithPhotosById(id).orElse(null);
+        if (candidate == null) {
+            candidate = candidateRepository.findById(id).orElse(null);
+        }
+
+        String protocol = null;
+        Candidate saved = null;
+        if (candidate != null) {
+            candidate.setInternalNotes(dto.getInternalNotes());
+            candidate.setUpdatedAt(OffsetDateTime.now());
+            saved = candidateRepository.saveAndFlush(candidate);
+            protocol = candidate.getProtocol();
+        }
+
+        if (candidateSubmissionRepository != null) {
+            candidateSubmissionRepository.findById(id).ifPresent(s -> {
+                s.setFeedbackNotes(dto.getInternalNotes());
+                candidateSubmissionRepository.saveAndFlush(s);
+            });
+            if (protocol != null) {
+                candidateSubmissionRepository.findByProtocol(protocol).ifPresent(s -> {
+                    s.setFeedbackNotes(dto.getInternalNotes());
+                    candidateSubmissionRepository.saveAndFlush(s);
+                });
+            } else {
+                candidateSubmissionRepository.findById(id).ifPresent(s -> {
+                    if (s.getProtocol() != null) {
+                        candidateRepository.findByProtocol(s.getProtocol()).ifPresent(c -> {
+                            c.setInternalNotes(dto.getInternalNotes());
+                            c.setUpdatedAt(OffsetDateTime.now());
+                            candidateRepository.saveAndFlush(c);
+                        });
+                    }
+                });
+            }
+        }
+
+        if (saved != null) {
+            return toDetailDtoWithSignedUrls(saved);
+        }
+
+        CandidateSubmission sub = candidateSubmissionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Candidatura não encontrada com ID: " + id));
-
-        candidate.setInternalNotes(dto.getInternalNotes());
-        Candidate saved = candidateRepository.save(candidate);
-
-        return toDetailDtoWithSignedUrls(saved);
+        if (sub.getProtocol() != null) {
+            Optional<Candidate> cByProt = candidateRepository.findByProtocol(sub.getProtocol());
+            if (cByProt.isPresent()) {
+                return toDetailDtoWithSignedUrls(cByProt.get());
+            }
+        }
+        return toDetailDto(sub);
     }
 
     @Override
@@ -132,7 +236,22 @@ public class AdminCandidateServiceImpl implements AdminCandidateService {
         if (candidate != null) {
             candidate.setStatus(CandidateStatus.ARCHIVED);
             candidate.setArchivedAt(OffsetDateTime.now());
-            candidateRepository.save(candidate);
+            candidateRepository.saveAndFlush(candidate);
+
+            if (candidateSubmissionRepository != null) {
+                candidateSubmissionRepository.findById(id).ifPresent(s -> {
+                    s.setStatus(SubmissionStatus.ARCHIVED);
+                    s.setArchivedAt(OffsetDateTime.now());
+                    candidateSubmissionRepository.saveAndFlush(s);
+                });
+                if (candidate.getProtocol() != null) {
+                    candidateSubmissionRepository.findByProtocol(candidate.getProtocol()).ifPresent(s -> {
+                        s.setStatus(SubmissionStatus.ARCHIVED);
+                        s.setArchivedAt(OffsetDateTime.now());
+                        candidateSubmissionRepository.saveAndFlush(s);
+                    });
+                }
+            }
             log.info("Candidatura ID: {} movida para Arquivo Morto com sucesso.", id);
             return;
         }
@@ -142,7 +261,15 @@ public class AdminCandidateServiceImpl implements AdminCandidateService {
                     .orElseThrow(() -> new ResourceNotFoundException("Candidatura não encontrada com ID: " + id));
             submission.setStatus(SubmissionStatus.ARCHIVED);
             submission.setArchivedAt(OffsetDateTime.now());
-            candidateSubmissionRepository.save(submission);
+            candidateSubmissionRepository.saveAndFlush(submission);
+
+            if (submission.getProtocol() != null) {
+                candidateRepository.findByProtocol(submission.getProtocol()).ifPresent(c -> {
+                    c.setStatus(CandidateStatus.ARCHIVED);
+                    c.setArchivedAt(OffsetDateTime.now());
+                    candidateRepository.saveAndFlush(c);
+                });
+            }
             log.info("Candidatura submission ID: {} movida para Arquivo Morto com sucesso.", id);
         } else {
             throw new ResourceNotFoundException("Candidatura não encontrada com ID: " + id);

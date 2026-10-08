@@ -52,9 +52,13 @@ export class CandidateTableComponent implements OnInit {
   selectedMinor = '';
   searchQuery = '';
   pendingCount = 0;
+  approvedCount = 0;
+  rejectedCount = 0;
   archivedCount = 0;
+  totalCount = 0;
 
-  // Ações de Promoção e Arquivo Morto
+  // Ações de Mudança de Status, Promoção e Arquivo Morto
+  updatingStatusId: string | null = null;
   isPromotingId: string | null = null;
   candidateToArchive: CandidateApplicationRow | null = null;
   isArchiveModalOpen = false;
@@ -287,10 +291,47 @@ export class CandidateTableComponent implements OnInit {
       next: (counts) => {
         if (counts) {
           if (counts.pending !== undefined) this.pendingCount = counts.pending;
+          if (counts.approved !== undefined) this.approvedCount = counts.approved;
+          if (counts.rejected !== undefined) this.rejectedCount = counts.rejected;
           if (counts.archived !== undefined) this.archivedCount = counts.archived;
+          if (counts.total !== undefined) this.totalCount = counts.total;
         }
       },
       error: () => {}
+    });
+  }
+
+  updateCandidateStatus(candidate: CandidateApplicationRow, newStatus: 'APPROVED' | 'REJECTED' | 'PENDING', event: Event): void {
+    event.stopPropagation();
+    if (!candidate || this.updatingStatusId) return;
+
+    this.updatingStatusId = candidate.id;
+    const previousStatus = candidate.status;
+    candidate.status = newStatus;
+
+    const payload = { status: newStatus };
+    const url = `${environment.apiUrl}/admin/applications/${candidate.id}/decision`;
+    const fallbackUrl = `${environment.apiUrl}/admin/candidates/${candidate.id}/status`;
+
+    this.http.patch<any>(url, payload).pipe(
+      catchError(() => this.http.patch<any>(fallbackUrl, payload))
+    ).subscribe({
+      next: () => {
+        this.updatingStatusId = null;
+        const labelMap: Record<string, string> = {
+          'APPROVED': 'Aprovada',
+          'REJECTED': 'Declinada',
+          'PENDING': 'Pendente'
+        };
+        this.showFeedback(`Status de "${candidate.fullName}" atualizado para ${labelMap[newStatus] || newStatus} com sucesso no banco de dados.`);
+        this.loadApplications();
+        this.loadCounts();
+      },
+      error: () => {
+        candidate.status = previousStatus;
+        this.updatingStatusId = null;
+        this.showFeedback('Erro ao atualizar status no banco de dados. Tente novamente.');
+      }
     });
   }
 
@@ -299,7 +340,7 @@ export class CandidateTableComponent implements OnInit {
     if (!candidate || this.isPromotingId) return;
 
     this.isPromotingId = candidate.id;
-    const url = `${environment.apiUrl}/api/v1/admin/candidates/${candidate.id}/promote-to-model`;
+    const url = `${environment.apiUrl}/admin/candidates/${candidate.id}/promote-to-model`;
     const fallbackUrl = `${environment.apiUrl}/admin/applications/${candidate.id}/promote-to-model`;
 
     this.http.post<any>(url, null).pipe(
@@ -335,7 +376,7 @@ export class CandidateTableComponent implements OnInit {
     const candidate = this.candidateToArchive;
     this.isArchiving = true;
 
-    const url = `${environment.apiUrl}/api/v1/admin/candidates/${candidate.id}`;
+    const url = `${environment.apiUrl}/admin/candidates/${candidate.id}`;
     const fallbackUrl = `${environment.apiUrl}/admin/applications/${candidate.id}`;
 
     this.http.delete(url).pipe(

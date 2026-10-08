@@ -56,6 +56,7 @@
         <span *ngIf="isPromoting">Promovendo...</span>
       </button>
       <button 
+        *ngIf="candidate.status !== 'APPROVED'"
         type="button" 
         (click)="updateStatus('APPROVED')" 
         [disabled]="isProcessing"
@@ -64,12 +65,22 @@
         Aprovar
       </button>
       <button 
+        *ngIf="candidate.status !== 'REJECTED'"
         type="button" 
         (click)="updateStatus('REJECTED')" 
         [disabled]="isProcessing"
         class="px-4 py-2 bg-white border border-[#E8EBE8] hover:border-[#4B584E] text-[#222624] text-xs uppercase tracking-[0.15em] transition-all cursor-pointer rounded-none disabled:opacity-50"
       >
         Declinar
+      </button>
+      <button 
+        *ngIf="candidate.status !== 'PENDING'"
+        type="button" 
+        (click)="updateStatus('PENDING')" 
+        [disabled]="isProcessing"
+        class="px-3.5 py-2 bg-[#F4F5F4] border border-[#d2d7d2] hover:bg-[#E8EBE8] text-[#4B584E] text-xs uppercase tracking-[0.15em] transition-all cursor-pointer rounded-none disabled:opacity-50"
+      >
+        Retornar a Pendente
       </button>
       <button 
         type="button" 

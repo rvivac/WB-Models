@@ -97,7 +97,17 @@ public class AdminApplicationController {
 
         CandidateStatus candidateStatus = null;
         if (status != null) {
-            try { candidateStatus = CandidateStatus.valueOf(status.name()); } catch (Exception ignored) {}
+            if (status == SubmissionStatus.DECLINED || status == SubmissionStatus.REJECTED) {
+                candidateStatus = CandidateStatus.REJECTED;
+            } else if (status == SubmissionStatus.APPROVED) {
+                candidateStatus = CandidateStatus.APPROVED;
+            } else if (status == SubmissionStatus.ARCHIVED) {
+                candidateStatus = CandidateStatus.ARCHIVED;
+            } else if (status == SubmissionStatus.PENDING) {
+                candidateStatus = CandidateStatus.PENDING;
+            } else {
+                try { candidateStatus = CandidateStatus.valueOf(status.name()); } catch (Exception ignored) {}
+            }
         }
         String candidateGender = (gender != null) ? gender.name() : null;
 
@@ -152,6 +162,9 @@ public class AdminApplicationController {
         log.info("Buscando detalhes da candidatura ID: {}", id);
         String bucketUrl = resolveBucketBaseUrl();
         Optional<Candidate> opt = candidateRepository.findWithPhotosById(id);
+        if (opt.isEmpty()) {
+            opt = candidateRepository.findById(id);
+        }
         if (opt.isPresent()) {
             return ResponseEntity.ok(CandidateDetailResponseDto.fromCandidate(opt.get(), bucketUrl));
         }
@@ -171,34 +184,80 @@ public class AdminApplicationController {
     ) {
         log.info("Decisão de triagem para candidatura ID: {}, Status: {}", id, decisionDto.getStatus());
         String bucketUrl = resolveBucketBaseUrl();
-        Optional<Candidate> opt = candidateRepository.findWithPhotosById(id);
-        if (opt.isPresent()) {
-            Candidate candidate = opt.get();
+        String reviewerName = extractReviewerName(authentication);
+
+        CandidateStatus newCandidateStatus = null;
+        if (decisionDto.getStatus() == SubmissionStatus.DECLINED || decisionDto.getStatus() == SubmissionStatus.REJECTED) {
+            newCandidateStatus = CandidateStatus.REJECTED;
+        } else if (decisionDto.getStatus() == SubmissionStatus.APPROVED) {
+            newCandidateStatus = CandidateStatus.APPROVED;
+        } else if (decisionDto.getStatus() == SubmissionStatus.ARCHIVED) {
+            newCandidateStatus = CandidateStatus.ARCHIVED;
+        } else if (decisionDto.getStatus() == SubmissionStatus.PENDING) {
+            newCandidateStatus = CandidateStatus.PENDING;
+        } else {
             try {
-                candidate.setStatus(CandidateStatus.valueOf(decisionDto.getStatus().name()));
+                newCandidateStatus = CandidateStatus.valueOf(decisionDto.getStatus().name());
             } catch (Exception ignored) {}
+        }
+
+        // 1. Procura na tabela 'candidates'
+        Optional<Candidate> optCandidate = candidateRepository.findWithPhotosById(id);
+        if (optCandidate.isEmpty()) {
+            optCandidate = candidateRepository.findById(id);
+        }
+        String candidateProtocol = null;
+        Candidate savedCandidate = null;
+
+        if (optCandidate.isPresent()) {
+            Candidate candidate = optCandidate.get();
+            if (newCandidateStatus != null) {
+                candidate.setStatus(newCandidateStatus);
+            }
             if (decisionDto.getInternalNotes() != null) {
                 candidate.setInternalNotes(decisionDto.getInternalNotes());
             }
             candidate.setUpdatedAt(OffsetDateTime.now());
-            Candidate saved = candidateRepository.save(candidate);
-            return ResponseEntity.ok(CandidateDetailResponseDto.fromCandidate(saved, bucketUrl));
+            savedCandidate = candidateRepository.saveAndFlush(candidate);
+            candidateProtocol = candidate.getProtocol();
         }
 
-        CandidateSubmission submission = submissionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Candidatura", "id", id));
-
-        submission.setStatus(decisionDto.getStatus());
-        if (decisionDto.getInternalNotes() != null) {
-            submission.setFeedbackNotes(decisionDto.getInternalNotes());
+        // 2. Procura e sincroniza na tabela 'candidate_submissions'
+        Optional<CandidateSubmission> optSubmission = submissionRepository.findById(id);
+        if (optSubmission.isEmpty() && candidateProtocol != null) {
+            optSubmission = submissionRepository.findByProtocol(candidateProtocol);
         }
 
-        String reviewerName = extractReviewerName(authentication);
-        submission.setReviewedBy(reviewerName);
-        submission.setReviewedAt(OffsetDateTime.now());
+        CandidateSubmission savedSubmission = null;
+        if (optSubmission.isPresent()) {
+            CandidateSubmission submission = optSubmission.get();
+            submission.setStatus(decisionDto.getStatus());
+            if (decisionDto.getInternalNotes() != null) {
+                submission.setFeedbackNotes(decisionDto.getInternalNotes());
+            }
+            submission.setReviewedBy(reviewerName);
+            submission.setReviewedAt(OffsetDateTime.now());
+            savedSubmission = submissionRepository.saveAndFlush(submission);
 
-        CandidateSubmission saved = submissionRepository.save(submission);
-        return ResponseEntity.ok(CandidateDetailResponseDto.fromEntity(saved));
+            if (savedCandidate == null && submission.getProtocol() != null) {
+                Optional<Candidate> cByProt = candidateRepository.findByProtocol(submission.getProtocol());
+                if (cByProt.isPresent()) {
+                    Candidate c = cByProt.get();
+                    if (newCandidateStatus != null) c.setStatus(newCandidateStatus);
+                    if (decisionDto.getInternalNotes() != null) c.setInternalNotes(decisionDto.getInternalNotes());
+                    c.setUpdatedAt(OffsetDateTime.now());
+                    savedCandidate = candidateRepository.saveAndFlush(c);
+                }
+            }
+        }
+
+        if (savedCandidate != null) {
+            return ResponseEntity.ok(CandidateDetailResponseDto.fromCandidate(savedCandidate, bucketUrl));
+        } else if (savedSubmission != null) {
+            return ResponseEntity.ok(CandidateDetailResponseDto.fromEntity(savedSubmission));
+        }
+
+        throw new ResourceNotFoundException("Candidatura", "id", id);
     }
 
     @PostMapping({"/{id}/promote", "/{id}/promote-to-model"})

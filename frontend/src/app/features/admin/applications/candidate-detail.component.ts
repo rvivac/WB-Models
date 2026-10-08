@@ -61,7 +61,7 @@ export class CandidateDetailComponent implements OnInit {
     });
   }
 
-  updateStatus(newStatus: 'APPROVED' | 'REJECTED'): void {
+  updateStatus(newStatus: 'APPROVED' | 'REJECTED' | 'PENDING'): void {
     if (!this.candidate) return;
     this.isProcessing = true;
     this.http.patch<CandidateDetail>(`${environment.apiUrl}/admin/applications/${this.candidate.id}/decision`, {
@@ -76,13 +76,16 @@ export class CandidateDetailComponent implements OnInit {
           this.candidate!.status = newStatus;
         }
         this.isProcessing = false;
-        this.showFeedback(newStatus === 'APPROVED' ? 'Candidatura aprovada com sucesso.' : 'Candidatura declinada.');
+        const msg = newStatus === 'APPROVED' ? 'Candidatura aprovada com sucesso.' : (newStatus === 'PENDING' ? 'Candidatura retornada para Pendente.' : 'Candidatura declinada.');
+        this.showFeedback(msg);
+        if (this.candidate?.id) {
+          this.loadCandidate(this.candidate.id);
+        }
       },
       error: () => {
-        // Fallback otimista
         this.candidate!.status = newStatus;
         this.isProcessing = false;
-        this.showFeedback(newStatus === 'APPROVED' ? 'Candidatura aprovada (modo local).' : 'Candidatura declinada (modo local).');
+        this.showFeedback('Status atualizado localmente.');
       }
     });
   }
@@ -163,7 +166,7 @@ export class CandidateDetailComponent implements OnInit {
     if (!this.candidate || this.isDeleting) return;
     this.isDeleting = true;
 
-    const url = `${environment.apiUrl}/api/v1/admin/candidates/${this.candidate.id}`;
+    const url = `${environment.apiUrl}/admin/candidates/${this.candidate.id}`;
     const fallbackUrl = `${environment.apiUrl}/admin/applications/${this.candidate.id}`;
 
     this.http.delete(url).subscribe({
@@ -202,7 +205,7 @@ export class CandidateDetailComponent implements OnInit {
     if (!this.candidate || this.isPromoting) return;
     this.isPromoting = true;
 
-    const url = `${environment.apiUrl}/api/v1/admin/candidates/${this.candidate.id}/promote-to-model`;
+    const url = `${environment.apiUrl}/admin/candidates/${this.candidate.id}/promote-to-model`;
     const fallbackUrl = `${environment.apiUrl}/admin/applications/${this.candidate.id}/promote-to-model`;
 
     this.http.post(url, {}).subscribe({

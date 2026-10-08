@@ -368,7 +368,7 @@ export class CandidateService {
       params = params.set('search', filters.search.trim());
     }
 
-    return this.http.get<any>(`${this.baseUrl}/api/v1/admin/candidates`, { params }).pipe(
+    return this.http.get<any>(`${this.baseUrl}/admin/candidates`, { params }).pipe(
       map(response => this.normalizePageResponse(response, page, size)),
       catchError((error: HttpErrorResponse) => {
         console.warn('Candidatos da API não acessíveis (HTTP ' + error.status + '), ativando fallback mock offline.', error);
@@ -381,7 +381,7 @@ export class CandidateService {
    * Obtém detalhes de um candidato por ID.
    */
   getCandidateById(id: string): Observable<Candidate> {
-    return this.http.get<any>(`${this.baseUrl}/api/v1/admin/candidates/${id}`).pipe(
+    return this.http.get<any>(`${this.baseUrl}/admin/candidates/${id}`).pipe(
       map(data => this.normalizeCandidate(data)),
       catchError((error: HttpErrorResponse) => {
         console.warn(`Erro ao buscar candidato ${id} da API, procurando no mock local.`);
@@ -405,7 +405,7 @@ export class CandidateService {
       adminNotes: payload.notes ?? payload.adminNotes ?? ''
     };
 
-    return this.http.patch<any>(`${this.baseUrl}/api/v1/admin/candidates/${id}/status`, body).pipe(
+    return this.http.patch<any>(`${this.baseUrl}/admin/candidates/${id}/status`, body).pipe(
       map(data => this.normalizeCandidate(data)),
       catchError(() => {
         console.warn(`Atualizando status offline no mock local para candidato ${id} -> ${payload.status}`);
@@ -453,7 +453,7 @@ export class CandidateService {
       params = params.set('activateImmediately', 'true');
     }
 
-    return this.http.post<any>(`${this.baseUrl}/api/v1/admin/candidates/${id}/promote-to-model`, null, { params }).pipe(
+    return this.http.post<any>(`${this.baseUrl}/admin/candidates/${id}/promote-to-model`, null, { params }).pipe(
       map(data => this.normalizeCandidate(data)),
       catchError(() => {
         console.warn(`Promovendo offline no mock para candidato ${id}`);
@@ -497,7 +497,7 @@ export class CandidateService {
    * DELETE /api/v1/admin/candidates/{id}
    */
   archiveCandidate(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/api/v1/admin/candidates/${id}`).pipe(
+    return this.http.delete<void>(`${this.baseUrl}/admin/candidates/${id}`).pipe(
       catchError(() => {
         return this.http.delete<void>(`${this.baseUrl}/admin/applications/${id}`);
       })

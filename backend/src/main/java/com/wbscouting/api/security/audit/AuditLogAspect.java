@@ -1,6 +1,7 @@
 package com.wbscouting.api.security.audit;
 
 import com.wbscouting.api.entity.Admin;
+import com.wbscouting.api.security.audit.AuditAction;
 import com.wbscouting.api.service.audit.AuditLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

@@ -8,7 +8,6 @@ import com.wbscouting.api.entity.Model;
 import com.wbscouting.api.entity.ModelMedia;
 import com.wbscouting.api.enums.GenderType;
 import com.wbscouting.api.enums.MediaType;
-import com.wbscouting.api.exception.ResourceNotFoundException;
 import com.wbscouting.api.repository.ModelMediaRepository;
 import com.wbscouting.api.repository.ModelRepository;
 import com.wbscouting.api.service.storage.StorageService;

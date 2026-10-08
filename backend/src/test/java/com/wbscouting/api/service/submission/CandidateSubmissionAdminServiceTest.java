@@ -11,7 +11,6 @@ import com.wbscouting.api.enums.SubmissionGender;
 import com.wbscouting.api.enums.SubmissionStatus;
 import com.wbscouting.api.event.CandidateApprovedEvent;
 import com.wbscouting.api.event.CandidatePromotedToCastingEvent;
-import com.wbscouting.api.exception.BusinessException;
 import com.wbscouting.api.exception.ResourceNotFoundException;
 import com.wbscouting.api.repository.CandidateSubmissionRepository;
 import com.wbscouting.api.repository.ModelMediaRepository;

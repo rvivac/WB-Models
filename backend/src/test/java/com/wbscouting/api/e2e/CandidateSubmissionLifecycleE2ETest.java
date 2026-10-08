@@ -22,9 +22,7 @@ import com.wbscouting.api.repository.CandidateSubmissionRepository;
 import com.wbscouting.api.security.JwtAuthenticationEntryPoint;
 import com.wbscouting.api.security.JwtAuthenticationFilter;
 import com.wbscouting.api.security.JwtService;
-import com.wbscouting.api.security.JwtTokenProvider;
 import com.wbscouting.api.service.auth.AuthService;
-import com.wbscouting.api.service.model.ModelService;
 import com.wbscouting.api.service.storage.StorageService;
 import com.wbscouting.api.service.submission.CandidateSubmissionAdminService;
 import com.wbscouting.api.service.submission.CandidateSubmissionService;
@@ -99,9 +97,6 @@ class CandidateSubmissionLifecycleE2ETest {
 
     @MockitoBean
     private JwtService jwtService;
-
-    @MockitoBean
-    private JwtTokenProvider jwtTokenProvider;
 
     @MockitoBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;

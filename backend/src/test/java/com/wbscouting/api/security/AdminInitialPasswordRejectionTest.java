@@ -8,7 +8,9 @@ import com.wbscouting.api.enums.AdminRole;
 import com.wbscouting.api.exception.GlobalExceptionHandler;
 import com.wbscouting.api.repository.AdminLoginHistoryRepository;
 import com.wbscouting.api.repository.AdminRepository;
+import com.wbscouting.api.service.audit.AuditLogService;
 import com.wbscouting.api.service.auth.AuthServiceImpl;
+import com.wbscouting.api.service.auth.TotpService;
 import com.wbscouting.api.service.email.EmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -88,19 +90,12 @@ class AdminInitialPasswordRejectionTest {
                 jwtService,
                 emailService,
                 tokenBlacklistService,
-                mock(com.wbscouting.api.service.auth.TotpService.class)
+                mock(TotpService.class)
         );
 
-        // ============================================================
-        // 🔥 Construtor de AuthController com 4 dependencias (ordem exata requerida):
-        //   1. AuthService                (autenticacao real)
-        //   2. AuditLogService            (mock isolado)
-        //   3. AdminLoginHistoryRepository (mock isolado @Mock linha 49)
-        //   4. AdminRepository             (mock isolado @Mock linha 46)
-        // ============================================================
         AuthController authController = new AuthController(
                 authService,
-                mock(com.wbscouting.api.service.audit.AuditLogService.class),
+                mock(AuditLogService.class),
                 adminLoginHistoryRepository,
                 adminRepository
         );

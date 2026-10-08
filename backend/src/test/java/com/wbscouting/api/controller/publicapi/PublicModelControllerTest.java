@@ -5,7 +5,6 @@ import com.wbscouting.api.enums.GenderType;
 import com.wbscouting.api.security.JwtAuthenticationEntryPoint;
 import com.wbscouting.api.security.JwtAuthenticationFilter;
 import com.wbscouting.api.security.JwtService;
-import com.wbscouting.api.security.JwtTokenProvider;
 import com.wbscouting.api.service.publicapi.PublicModelService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,13 +15,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -39,9 +35,6 @@ class PublicModelControllerTest {
 
     @MockitoBean
     private JwtService jwtService;
-
-    @MockitoBean
-    private JwtTokenProvider jwtTokenProvider;
 
     @MockitoBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;

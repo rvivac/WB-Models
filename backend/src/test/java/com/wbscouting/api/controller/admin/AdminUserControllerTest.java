@@ -40,7 +40,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.wbscouting.api.exception.GlobalExceptionHandler;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 

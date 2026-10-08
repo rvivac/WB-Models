@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wbscouting.api.dto.admin.ChangePasswordRequestDto;
 import com.wbscouting.api.dto.auth.TwoFactorConfirmRequestDto;
 import com.wbscouting.api.dto.auth.TwoFactorConfirmResponseDto;
-import com.wbscouting.api.dto.auth.TwoFactorDisableRequestDto;
 import com.wbscouting.api.dto.auth.TwoFactorSetupResponseDto;
 import com.wbscouting.api.security.JwtAuthenticationEntryPoint;
 import com.wbscouting.api.security.JwtService;

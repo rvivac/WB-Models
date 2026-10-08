@@ -1,11 +1,9 @@
 package com.wbscouting.api.controller.admin;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wbscouting.api.dto.media.ModelCompositeResponseDto;
 import com.wbscouting.api.security.JwtAuthenticationEntryPoint;
 import com.wbscouting.api.security.JwtAuthenticationFilter;
 import com.wbscouting.api.security.JwtService;
-import com.wbscouting.api.security.JwtTokenProvider;
 import com.wbscouting.api.service.media.ModelMediaService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,17 +32,11 @@ class AdminModelCompositeControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @MockitoBean
     private ModelMediaService modelMediaService;
 
     @MockitoBean
     private JwtService jwtService;
-
-    @MockitoBean
-    private JwtTokenProvider jwtTokenProvider;
 
     @MockitoBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;

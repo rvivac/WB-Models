@@ -5,7 +5,6 @@ import com.wbscouting.api.dto.CandidateApplicationDto;
 import com.wbscouting.api.dto.candidate.CandidateApplyRequestDto;
 import com.wbscouting.api.dto.candidate.CandidateApplyResponseDto;
 import com.wbscouting.api.entity.Candidate;
-import com.wbscouting.api.entity.CandidatePhoto;
 import com.wbscouting.api.enums.GenderType;
 import com.wbscouting.api.exception.InvalidApplicationException;
 import com.wbscouting.api.exception.StorageException;

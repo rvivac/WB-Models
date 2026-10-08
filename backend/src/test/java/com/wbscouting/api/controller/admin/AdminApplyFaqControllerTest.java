@@ -3,12 +3,11 @@ package com.wbscouting.api.controller.admin;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wbscouting.api.dto.ApplyFaqCreateUpdateDto;
 import com.wbscouting.api.dto.ApplyFaqDto;
-import com.wbscouting.api.dto.ApplyFaqReorderDto;
 import com.wbscouting.api.dto.ApplyHeaderDto;
 import com.wbscouting.api.exception.GlobalExceptionHandler;
 import com.wbscouting.api.security.JwtAuthenticationEntryPoint;
 import com.wbscouting.api.security.JwtAuthenticationFilter;
-import com.wbscouting.api.security.JwtTokenProvider;
+import com.wbscouting.api.security.JwtService;
 import com.wbscouting.api.service.content.ApplyFaqService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,7 +43,7 @@ class AdminApplyFaqControllerTest {
     private ApplyFaqService applyFaqService;
 
     @MockitoBean
-    private JwtTokenProvider jwtTokenProvider;
+    private JwtService jwtService;
 
     @MockitoBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;

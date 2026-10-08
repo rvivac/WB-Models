@@ -1,7 +1,6 @@
 package com.wbscouting.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wbscouting.api.dto.AuthDTO;
 import com.wbscouting.api.dto.auth.ForgotPasswordRequestDto;
 import com.wbscouting.api.dto.auth.LoginRequestDto;
 import com.wbscouting.api.dto.auth.LoginResponseDto;
@@ -9,7 +8,6 @@ import com.wbscouting.api.dto.auth.ResetPasswordRequestDto;
 import com.wbscouting.api.security.JwtAuthenticationEntryPoint;
 import com.wbscouting.api.security.JwtAuthenticationFilter;
 import com.wbscouting.api.security.JwtService;
-import com.wbscouting.api.security.JwtTokenProvider;
 import com.wbscouting.api.service.auth.AuthService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,9 +42,6 @@ class AuthControllerTest {
 
     @MockitoBean
     private JwtService jwtService;
-
-    @MockitoBean
-    private JwtTokenProvider jwtTokenProvider;
 
     @MockitoBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;

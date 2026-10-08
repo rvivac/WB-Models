@@ -13,7 +13,6 @@ import com.wbscouting.api.enums.SubmissionStatus;
 import com.wbscouting.api.exception.ResourceNotFoundException;
 import com.wbscouting.api.repository.CandidateRepository;
 import com.wbscouting.api.repository.CandidateSubmissionRepository;
-import com.wbscouting.api.service.candidate.AdminCandidateService;
 import com.wbscouting.api.service.storage.StorageService;
 import com.wbscouting.api.specification.AdminCandidateSpecification;
 import com.wbscouting.api.specification.CandidateSubmissionSpecification;
@@ -29,7 +28,6 @@ import org.springframework.data.jpa.domain.Specification;
 import com.wbscouting.api.dto.ApiResponse;
 import com.wbscouting.api.dto.model.ModelAdminResponseDto;
 import com.wbscouting.api.service.submission.CandidateSubmissionAdminService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -53,7 +51,6 @@ import java.util.UUID;
 public class AdminApplicationController {
 
     private final CandidateRepository candidateRepository;
-    private final AdminCandidateService adminCandidateService;
     private final CandidateSubmissionRepository submissionRepository;
     private final CandidateSubmissionAdminService submissionAdminService;
     private final StorageService storageService;

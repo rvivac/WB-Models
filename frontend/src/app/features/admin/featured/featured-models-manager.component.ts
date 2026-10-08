@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ApiService } from '../../../core/services/api.service';
 
@@ -35,7 +36,7 @@ function extractArray(res: any, fallback: any[] = []): any[] {
 @Component({
   selector: 'app-featured-models-manager',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropModule],
+  imports: [CommonModule, FormsModule, DragDropModule, RouterModule],
   templateUrl: './featured-models-manager.component.html',
   styleUrls: ['./featured-models-manager.component.scss']
 })

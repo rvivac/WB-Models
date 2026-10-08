@@ -37,6 +37,12 @@ export class AdminLoginComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    // Se o usuário já estiver com sessão válida ativa, redireciona diretamente ao dashboard
+    if (this.authService.isAuthenticated()) {
+      this.router.navigate(['/admin/dashboard'], { replaceUrl: true });
+      return;
+    }
+
     // 🆕 NUNCA MAIS preencher email/senha automaticamente!
     // Limpa qualquer lembrete de email antigo do localStorage.
     if (typeof localStorage !== 'undefined') {
@@ -138,7 +144,10 @@ export class AdminLoginComponent implements OnInit {
   }
 
   private redirectToTarget(): void {
-    const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/admin/dashboard';
+    let returnUrl = this.route.snapshot.queryParams['returnUrl'];
+    if (!returnUrl || returnUrl === '/' || returnUrl === '' || returnUrl.includes('/login')) {
+      returnUrl = '/admin/dashboard';
+    }
     this.router.navigateByUrl(returnUrl);
   }
 }

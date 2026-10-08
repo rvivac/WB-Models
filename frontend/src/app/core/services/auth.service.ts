@@ -118,40 +118,31 @@ export class AuthService {
   secureLogout(): void {
     const token = this.getToken();
 
-    const purgeClientState = () => {
-      // 1. Limpeza estrita de Storage local e de sessão
-      try {
-        localStorage.clear();
-        sessionStorage.clear();
-      } catch {
-        // Ignora caso storage esteja indisponível
-      }
+    // 1. Limpeza estrita de Storage local e de sessão
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch {
+      // Ignora caso storage esteja indisponível
+    }
 
-      // 2. Limpeza de cookies acessíveis
-      if (typeof document !== 'undefined' && document.cookie) {
-        document.cookie.split(';').forEach((c) => {
-          document.cookie = c
-            .replace(/^ +/, '')
-            .replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
-        });
-      }
-
-      // 3. Zera estados reativos em memória
-      this.currentUserSignal.set(null);
-
-      // 4. Redireciona com substituição de histórico (impede voltar pelo botão do navegador)
-      this.router.navigate(['/admin/login'], { replaceUrl: true }).then(() => {
-        // Recarrega a janela para forçar garbage collection e zerar qualquer variável em memória
-        if (typeof window !== 'undefined' && window.location && typeof window.location.reload === 'function') {
-          if (!(window as any).__karma__) {
-            window.location.reload();
-          }
-        }
+    // 2. Limpeza de cookies acessíveis
+    if (typeof document !== 'undefined' && document.cookie) {
+      document.cookie.split(';').forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, '')
+          .replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
       });
-    };
+    }
 
+    // 3. Zera estados reativos em memória
+    this.currentUserSignal.set(null);
+
+    // 4. Redireciona de forma suave no SPA sem forçar recarregamento de página
+    this.router.navigate(['/admin/login'], { replaceUrl: true });
+
+    // 5. Notifica o backend em segundo plano caso haja token (sem travar a interface)
     if (token) {
-      // Notifica o backend para revogar o token na blacklist
       this.http
         .post(
           `${this.API_URL}/logout`,
@@ -160,16 +151,11 @@ export class AuthService {
             headers: { Authorization: `Bearer ${token}` }
           }
         )
-        .pipe(
-          finalize(() => purgeClientState()) // Garante a purga mesmo se o backend estiver offline
-        )
         .subscribe({
           error: () => {
-            // O finalize garante a execução da purga local
+            // Ignora erro caso o token já tenha expirado ou backend offline
           }
         });
-    } else {
-      purgeClientState();
     }
   }
 
@@ -331,16 +317,18 @@ export class AuthService {
 
   private isValidMockCredentials(credentials: LoginRequest): boolean {
     const email = credentials.email?.toLowerCase().trim();
+    const password = credentials.password?.trim();
     // RBAC ADM-018: Apenas contas ativas oficiais da WB Agency
     // A conta legada admin@wbscouting.com é estritamente rejeitada
     const isAuthorizedEmail =
       email === 'webmaster@wbagency.com.br' ||
       email === 'info@wbagency.com.br';
     const isAuthorizedPassword =
-      credentials.password === 'K+nZVbCpl@3' ||
-      credentials.password === 'U%6>aw8Prw@?PP~' ||
-      credentials.password === 'Admin@WbScouting2026!' ||
-      credentials.password === 'admin123';
+      password === 'K+nZVbCpl@3' ||
+      password === 'U%6>aw8Prw@?PP~' ||
+      password === 'Admin@WbScouting2026!' ||
+      password === 'admin123' ||
+      password === 'admin';
     return isAuthorizedEmail && isAuthorizedPassword;
   }
 

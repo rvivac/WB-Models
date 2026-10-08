@@ -27,9 +27,7 @@
   @if (isVideoError()) {
     <div 
       class="hero-poster-fallback ken-burns absolute inset-0 w-full h-full bg-cover bg-center z-0"
-      [style.background-image]="'url(' + (heroData().posterImageUrl || 'assets/images/hero-poster.jpg') + ')'"
-      fetchpriority="high"
-      decoding="async">
+      [style.background-image]="'url(' + (heroData().posterImageUrl || 'assets/images/hero-poster.jpg') + ')'">
     </div>
   }
 

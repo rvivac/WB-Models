@@ -104,16 +104,24 @@ export class AppComponent implements OnInit {
     } catch { /* noop */ }
   }
 
+  private getInitialUrl(): string {
+    if (typeof window !== 'undefined' && window.location) {
+      return window.location.pathname || '/';
+    }
+    return this.router.url || '/';
+  }
+
   private readonly currentUrl$ = this.router.events.pipe(
     filter((e): e is NavigationEnd => e instanceof NavigationEnd),
     map(e => e.urlAfterRedirects)
   );
 
-  private readonly currentUrl = toSignal(this.currentUrl$, { initialValue: this.router.url });
+  private readonly currentUrl = toSignal(this.currentUrl$, { initialValue: this.getInitialUrl() });
 
   readonly isAdminRoute = computed(() => {
     const url = this.currentUrl();
-    return url ? url.startsWith('/admin') : false;
+    if (!url) return false;
+    return url.startsWith('/admin') || url.startsWith('/login');
   });
 
   readonly showAdminHeader = computed(() => {

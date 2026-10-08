@@ -30,7 +30,7 @@ export class HomeHeroComponent implements OnInit, AfterViewInit, OnDestroy {
   get targetVolume(): number {
     return this.TARGET_VOLUME;
   }
-  private fadeInterval: any;
+  private fadeInterval: ReturnType<typeof setInterval> | null = null;
 
   readonly heroData = signal<HomeHeroPayload>({
     videoUrl: 'assets/videos/wb-presentation.mp4',
@@ -71,13 +71,19 @@ export class HomeHeroComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    clearInterval(this.fadeInterval);
+    if (this.fadeInterval) {
+      clearInterval(this.fadeInterval);
+      this.fadeInterval = null;
+    }
   }
 
   toggleAudio(): void {
     if (this.heroVideo?.nativeElement) {
       const video = this.heroVideo.nativeElement;
-      clearInterval(this.fadeInterval);
+      if (this.fadeInterval) {
+        clearInterval(this.fadeInterval);
+        this.fadeInterval = null;
+      }
 
       if (this.isMuted) {
         // Desmuta e faz fade-in progressivo até 0.05 no próprio vídeo
@@ -91,7 +97,10 @@ export class HomeHeroComponent implements OnInit, AfterViewInit, OnDestroy {
             current = Math.min(this.TARGET_VOLUME, current + 0.02);
             video.volume = Number(current.toFixed(2));
           } else {
-            clearInterval(this.fadeInterval);
+            if (this.fadeInterval) {
+              clearInterval(this.fadeInterval);
+              this.fadeInterval = null;
+            }
           }
         }, 50); // Transição suave
       } else {

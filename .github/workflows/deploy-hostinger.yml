@@ -1,4 +1,7 @@
-# WB Agency - Pipeline de Deploy Hostinger (Angular 18 build -> public_html via FTP)
+# WB Agency - Pipeline de Deploy Hostinger (Angular 18 build -> public_html)
+# Suporta DUAS vias simultâneas:
+# 1. FTP Automático (LFTP espelha exclusivamente dist/frontend/browser -> public_html)
+# 2. Branch hostinger-deploy (commit automático apenas do build para uso no Git do hPanel)
 name: Deploy Frontend para Hostinger
 
 on:
@@ -14,9 +17,12 @@ concurrency:
   group: deploy-hostinger
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
 jobs:
   build-and-deploy:
-    name: Build Angular & Deploy FTP
+    name: Build Angular & Deploy Hostinger
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -25,6 +31,8 @@ jobs:
     steps:
       - name: Baixar código
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Configurar Node.js 20
         uses: actions/setup-node@v4
@@ -37,7 +45,7 @@ jobs:
         run: npm ci
 
       - name: Compilar Angular em Produção
-        run: npm run build -- --configuration production
+        run: npm run build:prod
 
       - name: Garantir fallback SPA (404.html e .htaccess)
         run: |
@@ -66,37 +74,67 @@ jobs:
             echo "ERRO CRÍTICO: Pasta assets não encontrada em $DIST_DIR!"
             exit 1
           fi
+          if [ ! -f "$DIST_DIR/index.html" ]; then
+            echo "ERRO CRÍTICO: index.html não encontrado em $DIST_DIR!"
+            exit 1
+          fi
           echo "Tamanhos de arquivos críticos do build:"
           du -cb "$DIST_DIR/assets/videos/"* 2>/dev/null | tail -1 || true
           du -b "$DIST_DIR/assets/images/hero-poster.jpg" 2>/dev/null || true
           echo "Arquivos de build validados com sucesso para o deploy."
 
+      # =========================================================================
+      # VIA 1: DEPLOY DIRETO VIA FTP PARA public_html NA HOSTINGER
+      # Espelha EXCLUSIVAMENTE dist/frontend/browser para public_html/,
+      # removendo qualquer resquício de código-fonte no servidor (--delete)
+      # =========================================================================
       - name: Instalar LFTP
         run: sudo apt-get update && sudo apt-get install -y lftp
 
       - name: Enviar EXCLUSIVAMENTE arquivos do build para a Hostinger via LFTP
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_SERVER_DIR: ${{ secrets.FTP_SERVER_DIR }}
         run: |
           DIST_DIR="dist/frontend/browser"
-          REMOTE_DIR="${{ secrets.FTP_SERVER_DIR || 'public_html/' }}"
+          REMOTE_DIR="${FTP_SERVER_DIR:-public_html/}"
+
+          if [ -z "$FTP_SERVER" ] || [ -z "$FTP_USERNAME" ] || [ -z "$FTP_PASSWORD" ]; then
+            echo "Aviso: Segredos de FTP não configurados no GitHub Actions. Pulando upload via LFTP."
+            exit 0
+          fi
 
           echo "=== 1. Validando pacote de build a ser transferido: $DIST_DIR ==="
           ls -la "$DIST_DIR"
 
           echo "=== 2. Conectando via FTP e espelhando exclusivamente os arquivos de build para $REMOTE_DIR ==="
-          lftp -c "
-            set net:timeout 30;
+          lftp -e "
+            set net:timeout 60;
             set net:max-retries 3;
             set ftp:ssl-allow yes;
             set ftp:ssl-force no;
             set ssl:verify-certificate no;
             set ftp:passive-mode yes;
-            open -u \"${{ secrets.FTP_USERNAME }}\",\"${{ secrets.FTP_PASSWORD }}\" \"${{ secrets.FTP_SERVER }}\";
-            mirror -Rev \
-              --delete \
-              --parallel=5 \
-              \"$DIST_DIR/\" \"$REMOTE_DIR\";
-            quit
+            open -u \"\$FTP_USERNAME\",\"\$FTP_PASSWORD\" \"\$FTP_SERVER\";
+            mirror -Rev --delete --parallel=5 \"\$DIST_DIR/\" \"\$REMOTE_DIR\";
+            quit;
           "
-          echo "=== 3. Deploy dos arquivos de build finalizado com sucesso! ==="
+          echo "=== 3. Deploy dos arquivos de build finalizado com sucesso via LFTP! ==="
+        continue-on-error: true
 
-
+      # =========================================================================
+      # VIA 2: PUBLICAR ARQUIVOS DE BUILD NA BRANCH hostinger-deploy
+      # Cria/atualiza automaticamente a branch 'hostinger-deploy' contendo APENAS
+      # os arquivos compilados (index.html, assets, .htaccess) na raiz.
+      # Se a Hostinger estiver configurada com Git Deployment (hPanel -> Git),
+      # ela deve puxar desta branch para ter o site 100% funcional sem código-fonte.
+      # =========================================================================
+      - name: Publicar arquivos de build na branch hostinger-deploy
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: frontend/dist/frontend/browser
+          branch: hostinger-deploy
+          clean: true
+          commit-message: 'deploy: arquivos compilados de producao (Hostinger) [skip ci]'

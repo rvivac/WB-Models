@@ -26,8 +26,19 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      // Redireciona e limpa a sessão em 401 (não autenticado), preservando respostas de falha na tela de login
-      if (error.status === 401 && !req.url.includes('/auth/login')) {
+      // Ignora rotas de autenticação para evitar loops infinitos de logout
+      const isAuthUrl =
+        req.url.includes('/auth/login') ||
+        req.url.includes('/auth/logout') ||
+        req.url.includes('/auth/forgot-password') ||
+        req.url.includes('/auth/reset-password');
+
+      const isAlreadyOnLoginPage =
+        typeof window !== 'undefined' &&
+        (window.location.pathname.includes('/login') || window.location.pathname.includes('/admin/login'));
+
+      // Redireciona e limpa a sessão em 401 (não autenticado) apenas se for rota protegida e não estiver já no login
+      if (error.status === 401 && !isAuthUrl && !isAlreadyOnLoginPage) {
         authService.logout();
       }
       return throwError(() => error);

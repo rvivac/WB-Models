@@ -5,17 +5,12 @@ import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
-  const router = inject(Router);
-
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && !req.url.includes('/auth/login')) {
-        authService.logout();
-      } else if (error.status === 403) {
+      if (error.status === 403) {
         console.error('Acesso proibido para este recurso:', req.url);
       }
-
+      // O tratamento de sessão e 401 é centralizado no authInterceptor
       return throwError(() => error);
     })
   );

@@ -567,6 +567,16 @@ export class BecomeModelComponent implements OnInit {
 
     if (this.form.invalid || !this.hasRequiredPhotos) {
       this.form.markAllAsTouched();
+      const isEn = this.translationService.currentLang() === 'en';
+      if (!this.hasRequiredPhotos) {
+        this.submitError = isEn 
+          ? 'Please attach the 3 required photos: Close-up, 45° Profile, and Full Body.'
+          : 'Por favor, anexe as 3 fotos obrigatórias: Rosto Frontal (Close), Perfil 3/4 e Corpo Inteiro.';
+      } else {
+        this.submitError = isEn
+          ? 'Please fill in all mandatory fields highlighted in red before submitting.'
+          : 'Por favor, preencha todos os campos obrigatórios destacados em vermelho antes de enviar.';
+      }
       return;
     }
 

@@ -173,6 +173,7 @@ public class CandidateSubmissionServiceImpl implements CandidateSubmissionServic
                         .legalGuardianContact(StringUtils.hasText(request.getGuardianPhone()) ? request.getGuardianPhone().trim() : null)
                         .status(CandidateStatus.PENDING)
                         .lgpdAccepted(Boolean.TRUE.equals(request.getLgpdConsent()))
+                        .protocol(protocol)
                         .build();
 
                 // Salva e sincroniza IMEDIATAMENTE no banco para garantir que o ID exista na tabela 'candidates'

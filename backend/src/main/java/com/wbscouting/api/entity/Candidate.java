@@ -78,10 +78,16 @@ public class Candidate {
     public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
     public void setUpdatedAt(OffsetDateTime updatedAt) { this.updatedAt = updatedAt; }
 
+    public String getProtocol() { return this.protocol; }
+    public void setProtocol(String protocol) { this.protocol = protocol; }
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
+
+    @Column(name = "protocol", length = 50)
+    private String protocol;
 
     @Column(name = "full_name", length = 200, nullable = false)
     private String fullName;

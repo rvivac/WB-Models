@@ -5,12 +5,20 @@ import com.wbscouting.api.dto.admin.candidate.CandidateApplicationSummaryDto;
 import com.wbscouting.api.dto.admin.candidate.CandidateDecisionRequestDto;
 import com.wbscouting.api.dto.admin.candidate.CandidateDetailResponseDto;
 import com.wbscouting.api.entity.Admin;
+import com.wbscouting.api.entity.Candidate;
 import com.wbscouting.api.entity.CandidateSubmission;
+import com.wbscouting.api.enums.CandidateStatus;
 import com.wbscouting.api.enums.SubmissionGender;
 import com.wbscouting.api.enums.SubmissionStatus;
 import com.wbscouting.api.exception.ResourceNotFoundException;
+import com.wbscouting.api.repository.CandidatePhotoRepository;
+import com.wbscouting.api.repository.CandidateRepository;
 import com.wbscouting.api.repository.CandidateSubmissionRepository;
+import com.wbscouting.api.service.candidate.AdminCandidateService;
 import com.wbscouting.api.service.storage.StorageService;
+import com.wbscouting.api.service.submission.CandidateSubmissionAdminService;
+import com.wbscouting.api.specification.AdminCandidateSpecification;
+import com.wbscouting.api.specification.CandidateSubmissionSpecification;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,11 +29,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import com.wbscouting.api.dto.ApiResponse;
-import com.wbscouting.api.dto.model.ModelResponseDto;
-import com.wbscouting.api.service.submission.CandidateSubmissionAdminService;
-// TASK CIRURGICA #1: Import CORRIGIDO (anteriormente estava apontando para service.submission - package errado)
-import com.wbscouting.api.specification.CandidateSubmissionSpecification;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,6 +39,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.OffsetDateTime;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -45,10 +49,22 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AdminApplicationController {
 
+    private final CandidateRepository candidateRepository;
+    private final CandidatePhotoRepository candidatePhotoRepository;
+    private final AdminCandidateService adminCandidateService;
     private final CandidateSubmissionRepository submissionRepository;
     private final CandidateSubmissionAdminService candidateSubmissionAdminService;
     private final StorageService storageService;
     private final SupabaseProperties supabaseProperties;
+
+    private String resolveBucketBaseUrl() {
+        try {
+            String bucket = supabaseProperties.resolveBucketCandidates();
+            return storageService.getPublicUrl(bucket, "");
+        } catch (Exception e) {
+            return "https://stmytwsdlonpnirqiufq.supabase.co/storage/v1/object/public/candidates-uploads";
+        }
+    }
 
     @GetMapping
     public ResponseEntity<Page<CandidateApplicationSummaryDto>> listApplications(
@@ -58,18 +74,16 @@ public class AdminApplicationController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) SubmissionGender gender,
             @RequestParam(required = false) Boolean isMinor,
-            // 🆕 REGRA 1 e 3: Por PADRAO = false (apenas fichas ainda NAO promovidas para Casting ficam no Scouting Desk).
-            // Permite filtro historico ?includePromoted=true se quiser ver todos (incluindo os ja promovidos de dados antigos).
             @RequestParam(required = false, defaultValue = "false") Boolean includePromoted,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortDirection
     ) {
-        log.info("Consulta administrativa tabular de candidaturas. Status: {}, Search: {}, isMinor: {}, includePromoted={}, Page: {}, Size: {}",
-                status, search, isMinor, includePromoted, page, size);
+        log.info("Consulta administrativa tabular de candidaturas (tabela candidates). Status: {}, Search: {}, isMinor: {}, Page: {}, Size: {}",
+                status, search, isMinor, page, size);
 
         Sort.Direction direction = "ASC".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
         String mappedSortBy = switch (sortBy) {
-            case "height" -> "height";
+            case "height" -> "heightCm";
             case "fullName" -> "fullName";
             case "city" -> "city";
             case "age" -> "age";
@@ -79,27 +93,46 @@ public class AdminApplicationController {
 
         Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size), Sort.by(direction, mappedSortBy));
 
-        // 🆕 REGRA 1 e 3: Se includePromoted=false (DEFAULT), oculta quaisquer registros antigos que JA TIVEREM sido
-        //    promovidos (convertedToModelId != null). Os status APPROVED e REJECTED normais (sem promotion) CONTINUAM
-        //    aparecendo (permanentes na tabela scouting desk por tempo indeterminado).
-        Specification<CandidateSubmission> spec = CandidateSubmissionSpecification.filter(
+        CandidateStatus candidateStatus = null;
+        if (status != null) {
+            try { candidateStatus = CandidateStatus.valueOf(status.name()); } catch (Exception ignored) {}
+        }
+        String candidateGender = (gender != null) ? gender.name() : null;
+
+        Specification<Candidate> candidateSpec = AdminCandidateSpecification.filter(candidateStatus, search, candidateGender, isMinor);
+        Page<Candidate> candidatePage = candidateRepository.findAll(candidateSpec, pageable);
+
+        String bucketUrl = resolveBucketBaseUrl();
+        if (candidatePage.hasContent() || candidateRepository.count() > 0) {
+            Page<CandidateApplicationSummaryDto> result = candidatePage
+                    .map(c -> CandidateApplicationSummaryDto.fromCandidate(c, bucketUrl));
+            return ResponseEntity.ok(result);
+        }
+
+        // Fallback para banco legado (candidate_submissions) caso a tabela candidates esteja vazia
+        Specification<CandidateSubmission> legacySpec = CandidateSubmissionSpecification.filter(
                 search, status, gender, isMinor, null, null, null, null, includePromoted
         );
-
-        Page<CandidateApplicationSummaryDto> result = submissionRepository.findAll(spec, pageable)
+        Page<CandidateApplicationSummaryDto> legacyResult = submissionRepository.findAll(legacySpec, pageable)
                 .map(CandidateApplicationSummaryDto::fromEntity);
-
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(legacyResult);
     }
 
     @GetMapping("/counts")
     public ResponseEntity<Map<String, Long>> getCounts() {
-        // 🆕 REGRA 3: counts da aba principal consideram apenas os NAO promovidos (ainda no scouting desk).
-        long pending = submissionRepository.countByStatusAndConvertedToModelIdIsNull(SubmissionStatus.PENDING);
-        long approved = submissionRepository.countByStatusAndConvertedToModelIdIsNull(SubmissionStatus.APPROVED);
-        long rejected = submissionRepository.countByStatusAndConvertedToModelIdIsNull(SubmissionStatus.REJECTED);
-        long archived = submissionRepository.countByStatus(SubmissionStatus.ARCHIVED);
-        long total = submissionRepository.countByConvertedToModelIdIsNull();
+        long pending = candidateRepository.countByStatus(CandidateStatus.PENDING);
+        long approved = candidateRepository.countByStatus(CandidateStatus.APPROVED);
+        long rejected = candidateRepository.countByStatus(CandidateStatus.REJECTED);
+        long archived = candidateRepository.countByStatus(CandidateStatus.ARCHIVED);
+        long total = pending + approved + rejected;
+
+        if (pending == 0 && approved == 0 && rejected == 0 && archived == 0 && submissionRepository.count() > 0) {
+            pending = submissionRepository.countByStatusAndConvertedToModelIdIsNull(SubmissionStatus.PENDING);
+            approved = submissionRepository.countByStatusAndConvertedToModelIdIsNull(SubmissionStatus.APPROVED);
+            rejected = submissionRepository.countByStatusAndConvertedToModelIdIsNull(SubmissionStatus.REJECTED);
+            archived = submissionRepository.countByStatus(SubmissionStatus.ARCHIVED);
+            total = submissionRepository.countByConvertedToModelIdIsNull();
+        }
 
         return ResponseEntity.ok(Map.of(
                 "pending", pending,
@@ -113,9 +146,14 @@ public class AdminApplicationController {
     @GetMapping("/{id}")
     public ResponseEntity<CandidateDetailResponseDto> getApplicationById(@PathVariable UUID id) {
         log.info("Buscando detalhes da candidatura ID: {}", id);
+        String bucketUrl = resolveBucketBaseUrl();
+        Optional<Candidate> opt = candidateRepository.findWithPhotosById(id);
+        if (opt.isPresent()) {
+            return ResponseEntity.ok(CandidateDetailResponseDto.fromCandidate(opt.get(), bucketUrl));
+        }
+
         CandidateSubmission submission = submissionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Candidatura", "id", id));
-
         return ResponseEntity.ok(CandidateDetailResponseDto.fromEntity(submission));
     }
 
@@ -127,6 +165,21 @@ public class AdminApplicationController {
             Authentication authentication
     ) {
         log.info("Decisão de triagem para candidatura ID: {}, Status: {}", id, decisionDto.getStatus());
+        String bucketUrl = resolveBucketBaseUrl();
+        Optional<Candidate> opt = candidateRepository.findById(id);
+        if (opt.isPresent()) {
+            Candidate candidate = opt.get();
+            try {
+                candidate.setStatus(CandidateStatus.valueOf(decisionDto.getStatus().name()));
+            } catch (Exception ignored) {}
+            if (decisionDto.getInternalNotes() != null) {
+                candidate.setInternalNotes(decisionDto.getInternalNotes());
+            }
+            candidate.setUpdatedAt(OffsetDateTime.now());
+            Candidate saved = candidateRepository.save(candidate);
+            return ResponseEntity.ok(CandidateDetailResponseDto.fromCandidate(saved, bucketUrl));
+        }
+
         CandidateSubmission submission = submissionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Candidatura", "id", id));
 
@@ -145,28 +198,23 @@ public class AdminApplicationController {
 
     @PostMapping({"/{id}/promote", "/{id}/promote-to-model"})
     @AuditAction(action = "PROMOTE", resource = "SCOUTING_CANDIDATE", description = "Promoção de candidato para elenco de modelos")
-    public ResponseEntity<ApiResponse<ModelResponseDto>> promoteCandidateToModel(
+    public ResponseEntity<ApiResponse<Map<String, Object>>> promoteCandidateToModel(
             @PathVariable("id") UUID id,
             @RequestParam(required = false, defaultValue = "true") Boolean activateImmediately,
             Authentication authentication
     ) {
         String reviewerName = extractReviewerName(authentication);
         log.info("Ação operacional de promoção para modelo da candidatura ID: {} por {}", id, reviewerName);
-        ModelResponseDto createdModel = candidateSubmissionAdminService.promoteCandidateToModel(id, reviewerName, activateImmediately);
+        UUID modelId = adminCandidateService.promoteToModel(id, activateImmediately);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Candidato promovido a modelo com sucesso.", createdModel));
+                .body(ApiResponse.success("Candidato promovido a modelo com sucesso.", Map.of("modelId", modelId)));
     }
 
     @DeleteMapping("/{id}")
     @AuditAction(action = "ARCHIVE", resource = "SCOUTING_CANDIDATE", description = "Mover candidatura para Arquivo Morto")
     public ResponseEntity<Void> deleteApplication(@PathVariable UUID id) {
         log.info("Iniciando arquivamento (soft delete) da candidatura ID: {}", id);
-        CandidateSubmission submission = submissionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Candidatura", "id", id));
-
-        submission.setStatus(SubmissionStatus.ARCHIVED);
-        submission.setArchivedAt(OffsetDateTime.now());
-        submissionRepository.save(submission);
+        adminCandidateService.deleteCandidate(id);
         log.info("Candidatura ID: {} movida para Arquivo Morto com sucesso.", id);
         return ResponseEntity.noContent().build();
     }

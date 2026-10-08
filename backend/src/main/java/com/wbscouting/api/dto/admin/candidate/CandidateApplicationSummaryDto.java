@@ -1,6 +1,8 @@
 package com.wbscouting.api.dto.admin.candidate;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.wbscouting.api.entity.Candidate;
+import com.wbscouting.api.entity.CandidatePhoto;
 import com.wbscouting.api.entity.CandidateSubmission;
 import com.wbscouting.api.enums.SubmissionStatus;
 import lombok.AllArgsConstructor;
@@ -83,6 +85,109 @@ public class CandidateApplicationSummaryDto {
     // 🔥 Obs: Construtor vazio eh gerado AUTOMATICAMENTE por @NoArgsConstructor do Lombok. Nao declarar manual (duplicata).
 
     public static CandidateApplicationSummaryDtoBuilder builder() { return new CandidateApplicationSummaryDtoBuilder(); }
+
+    public static CandidateApplicationSummaryDto fromCandidate(Candidate candidate, String defaultStorageBaseUrl) {
+        if (candidate == null) return null;
+
+        String face = null;
+        String profile = null;
+        String fullBody = null;
+        List<PhotoThumbDto> photosArr = new ArrayList<>();
+
+        if (candidate.getPhotos() != null) {
+            for (CandidatePhoto p : candidate.getPhotos()) {
+                String url = p.getFileUrl();
+                if (url == null || url.isBlank()) url = p.getFilePath();
+                if (url == null || url.isBlank()) url = p.getStoragePath();
+                if (url != null && !url.startsWith("http") && defaultStorageBaseUrl != null) {
+                    url = defaultStorageBaseUrl + "/" + url.replaceFirst("^/+", "");
+                }
+
+                int order = p.getDisplayOrder() != null ? p.getDisplayOrder() : 1;
+                String type = switch (order) {
+                    case 1 -> "POLAROID_ROSTO";
+                    case 2 -> "POLAROID_PERFIL";
+                    case 3 -> "CORPO_INTEIRO";
+                    default -> "COMPOSITE";
+                };
+
+                if (order == 1 && face == null) face = url;
+                else if (order == 2 && profile == null) profile = url;
+                else if (order == 3 && fullBody == null) fullBody = url;
+
+                if (url != null) {
+                    photosArr.add(PhotoThumbDto.builder()
+                            .id(p.getId() != null ? p.getId().toString() : "p" + order)
+                            .url(url)
+                            .type(type)
+                            .build());
+                }
+            }
+        }
+
+        if (face == null && !photosArr.isEmpty()) face = photosArr.get(0).getUrl();
+        String cover = face != null ? face : (profile != null ? profile : fullBody);
+
+        Integer heightVal = null;
+        if (candidate.getHeightCm() != null) {
+            heightVal = candidate.getHeightCm().intValue();
+        }
+
+        Integer ageCalculated = candidate.getAge();
+        boolean minor = false;
+        LocalDate bd = candidate.getBirthDate();
+        if (bd != null) {
+            int anos = Period.between(bd, LocalDate.now()).getYears();
+            if (anos >= 0 && anos < 120) {
+                ageCalculated = anos;
+                minor = anos < 18;
+            }
+        } else if (ageCalculated != null) {
+            minor = ageCalculated < 18;
+        }
+
+        Integer shoeSize = null;
+        if (candidate.getShoeSize() != null) {
+            try {
+                shoeSize = Integer.parseInt(candidate.getShoeSize().replaceAll("\\D", ""));
+            } catch (Exception ignored) {}
+        }
+
+        SubmissionStatus submissionStatus = null;
+        if (candidate.getStatus() != null) {
+            try {
+                submissionStatus = SubmissionStatus.valueOf(candidate.getStatus().name());
+            } catch (Exception ignored) {}
+        }
+        if (submissionStatus == null) submissionStatus = SubmissionStatus.PENDING;
+
+        return CandidateApplicationSummaryDto.builder()
+                .id(candidate.getId())
+                .fullName(candidate.getFullName())
+                .email(candidate.getEmail())
+                .phone(candidate.getPhone())
+                .birthDate(bd)
+                .age(ageCalculated)
+                .isMinor(minor)
+                .city(candidate.getCity())
+                .state(candidate.getState())
+                .height(heightVal)
+                .bust(candidate.getBustChestCm())
+                .waist(candidate.getWaistCm())
+                .hips(candidate.getHipsCm())
+                .shoes(shoeSize)
+                .status(submissionStatus)
+                .hasPhotos(!photosArr.isEmpty())
+                .polaroidsCount(photosArr.size())
+                .createdAt(candidate.getCreatedAt())
+                .coverPhoto(cover)
+                .facePhotoUrl(face)
+                .profilePhotoUrl(profile)
+                .fullBodyPhotoUrl(fullBody)
+                .photos(photosArr.isEmpty() ? null : photosArr)
+                .protocol(candidate.getProtocol())
+                .build();
+    }
 
     public static CandidateApplicationSummaryDto fromEntity(CandidateSubmission entity) {
         if (entity == null) return null;

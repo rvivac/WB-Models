@@ -16,6 +16,8 @@ public interface CandidateRepository extends JpaRepository<Candidate, UUID>, Jpa
 
     Page<Candidate> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
+    long countByStatus(com.wbscouting.api.enums.CandidateStatus status);
+
     @EntityGraph(attributePaths = {"photos"})
     Optional<Candidate> findWithPhotosById(UUID id);
 }

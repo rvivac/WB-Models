@@ -539,7 +539,7 @@
           <div class="submit-action-wrapper">
             <button 
               type="submit" 
-              [disabled]="applyForm.invalid || !hasRequiredPhotos || isSubmitting"
+              [disabled]="isSubmitting"
               class="btn-submit-editorial"
             >
               @if (!isSubmitting) {
@@ -554,6 +554,17 @@
                 </span>
               }
             </button>
+
+            <!-- Mensagem de erro diretamente abaixo do botão de enviar -->
+            @if (submitError) {
+              <div class="submit-error-banner" role="alert">
+                <span class="error-badge-icon">⚠️</span>
+                <div class="error-details">
+                  <strong class="error-details-title">{{ 'apply_page.error_title' | translate }}</strong>
+                  <p class="error-details-text">{{ submitError }}</p>
+                </div>
+              </div>
+            }
           </div>
 
         </form>

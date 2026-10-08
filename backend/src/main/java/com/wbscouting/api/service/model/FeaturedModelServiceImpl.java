@@ -3,15 +3,18 @@ package com.wbscouting.api.service.model;
 import com.wbscouting.api.dto.model.FeaturedModelOrderItemDto;
 import com.wbscouting.api.dto.model.FeaturedModelResponseDto;
 import com.wbscouting.api.dto.model.FeaturedModelsReorderRequestDto;
+import com.wbscouting.api.entity.FeaturedModel;
 import com.wbscouting.api.entity.Model;
 import com.wbscouting.api.enums.GenderType;
 import com.wbscouting.api.exception.ResourceNotFoundException;
+import com.wbscouting.api.repository.FeaturedModelRepository;
 import com.wbscouting.api.repository.ModelRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,11 +24,31 @@ import java.util.stream.Collectors;
 public class FeaturedModelServiceImpl implements FeaturedModelService {
 
     private final ModelRepository modelRepository;
+    private final FeaturedModelRepository featuredModelRepository;
 
     @Override
     @Transactional(readOnly = true)
     public List<FeaturedModelResponseDto> getFeaturedHomeModels() {
-        log.debug("Buscando modelos em destaque na Home");
+        log.debug("Buscando modelos em destaque na Home a partir de featured_models e models");
+
+        List<FeaturedModel> featuredEntries = featuredModelRepository.findAllByOrderByDisplayOrderAsc();
+        if (!featuredEntries.isEmpty()) {
+            List<FeaturedModelResponseDto> result = new ArrayList<>();
+            for (FeaturedModel entry : featuredEntries) {
+                Optional<Model> mOpt = modelRepository.findById(entry.getModelId());
+                if (mOpt.isPresent() && Boolean.TRUE.equals(mOpt.get().getIsActive())) {
+                    FeaturedModelResponseDto dto = toDto(mOpt.get());
+                    dto.setDisplayOrder(entry.getDisplayOrder());
+                    dto.setFeaturedOrder(entry.getDisplayOrder());
+                    result.add(dto);
+                }
+            }
+            if (!result.isEmpty()) {
+                return result;
+            }
+        }
+
+        // Fallback para coluna is_featured_home da tabela models
         List<Model> models = modelRepository.findByIsActiveTrueAndIsFeaturedHomeTrueOrderByFeaturedOrderAscStageNameAsc();
         return models.stream()
                 .map(this::toDto)
@@ -48,37 +71,47 @@ public class FeaturedModelServiceImpl implements FeaturedModelService {
             throw new IllegalArgumentException("A lista de modelos em destaque não pode conter IDs duplicados.");
         }
 
-        log.info("Iniciando atualização atômica da vitrine da Home com {} modelos", items.size());
+        log.info("Iniciando atualização da vitrine da Home com {} modelos (sem validação de quantidade mínima)", items.size());
 
-        // 1. Desmarcar modelos atualmente destacados que não estão na nova lista
+        // 1. Limpar tabela featured_models
+        featuredModelRepository.deleteAll();
+
+        // 2. Desmarcar modelos atualmente destacados na tabela models
         List<Model> currentlyFeatured = modelRepository.findByIsActiveTrueAndIsFeaturedHomeTrueOrderByFeaturedOrderAscStageNameAsc();
         for (Model current : currentlyFeatured) {
             if (!uniqueIds.contains(current.getId())) {
                 current.setIsFeaturedHome(false);
                 current.setFeaturedOrder(null);
                 modelRepository.save(current);
-                log.debug("Modelo id='{}' ({}) removido dos destaques da Home", current.getId(), current.getStageName());
             }
         }
 
-        // 2. Atualizar ou promover os modelos da nova lista com a devida ordem
+        // 3. Inserir em featured_models e atualizar flags em models
+        List<FeaturedModel> newFeaturedEntries = new ArrayList<>();
+        int orderCounter = 1;
         for (FeaturedModelOrderItemDto item : items) {
             Model model = modelRepository.findById(item.getModelId())
                     .orElseThrow(() -> new ResourceNotFoundException("Modelo", "id", item.getModelId()));
 
-            if (!Boolean.TRUE.equals(model.getIsActive())) {
-                throw new IllegalArgumentException("Apenas modelos com status ativo podem ser colocados em destaque na Home: " + model.getStageName());
-            }
+            int order = item.getDisplayOrder() != null ? item.getDisplayOrder() : orderCounter;
 
             model.setIsFeaturedHome(true);
-            model.setFeaturedOrder(item.getDisplayOrder());
+            model.setFeaturedOrder(order);
             modelRepository.save(model);
-            log.debug("Modelo id='{}' ({}) atualizado para ordem {}", model.getId(), model.getStageName(), item.getDisplayOrder());
+
+            FeaturedModel entry = FeaturedModel.builder()
+                    .modelId(model.getId())
+                    .displayOrder(order)
+                    .createdAt(OffsetDateTime.now())
+                    .build();
+            newFeaturedEntries.add(entry);
+            orderCounter++;
         }
 
+        featuredModelRepository.saveAllAndFlush(newFeaturedEntries);
         modelRepository.flush();
-        log.info("Vitrine da Home atualizada com sucesso.");
 
+        log.info("Vitrine da Home atualizada com sucesso em featured_models e models.");
         return getFeaturedHomeModels();
     }
 

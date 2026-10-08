@@ -29,6 +29,9 @@ public class AdminInstitutionalTranslationController {
 
     private final SiteContentRepository siteContentRepository;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.wbscouting.api.repository.TranslationRepository translationRepository;
+
     @GetMapping
     public ResponseEntity<List<SectionSummaryDto>> listTranslatableSections() {
         log.info("Listando seções institucionais traduzíveis");
@@ -126,7 +129,33 @@ public class AdminInstitutionalTranslationController {
 
         SiteContent saved = siteContentRepository.save(content);
 
+        if (translationRepository != null) {
+            try {
+                upsertTranslation("pt", normalizedKey + ".headline", ptDto.getHeadline());
+                upsertTranslation("pt", normalizedKey + ".quote", ptDto.getQuote());
+                upsertTranslation("pt", normalizedKey + ".body", ptDto.getBody());
+                upsertTranslation("en", normalizedKey + ".headline", enDto.getHeadline());
+                upsertTranslation("en", normalizedKey + ".quote", enDto.getQuote());
+                upsertTranslation("en", normalizedKey + ".body", enDto.getBody());
+            } catch (Exception ex) {
+                log.warn("Erro ao sincronizar tabela translations: {}", ex.getMessage());
+            }
+        }
+
         return ResponseEntity.ok(toResponseDto(saved, normalizedKey));
+    }
+
+    private void upsertTranslation(String locale, String key, String value) {
+        if (value == null) return;
+        Optional<com.wbscouting.api.entity.Translation> opt = translationRepository.findByLocaleAndKey(locale, key);
+        com.wbscouting.api.entity.Translation t = opt.orElseGet(() -> com.wbscouting.api.entity.Translation.builder()
+                .locale(locale)
+                .key(key)
+                .createdAt(OffsetDateTime.now())
+                .build());
+        t.setValue(value);
+        t.setUpdatedAt(OffsetDateTime.now());
+        translationRepository.save(t);
     }
 
     private SectionTranslationResponseDto toResponseDto(SiteContent content, String sectionKey) {

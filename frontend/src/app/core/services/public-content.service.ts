@@ -87,10 +87,39 @@ export class PublicContentService {
   }
 
   getContactChannels(lang: string = 'pt'): Observable<ContactChannelsPublicDto> {
-    return this.api.get<ContactChannelsPublicDto>('/public/contact-channels', { lang }).pipe(
-      catchError(err => {
-        console.warn('Falha ao carregar canais de contato da API, utilizando defaults:', err);
-        return of(this.defaultContactChannels);
+    return this.api.get<any>('/contact-channels').pipe(
+      map(res => {
+        if (Array.isArray(res) && res.length > 0) {
+          let email = this.defaultContactChannels.email;
+          let whatsappNumber = this.defaultContactChannels.whatsappNumber;
+          let whatsappUrl = this.defaultContactChannels.whatsappUrl;
+          let instagramHandle = this.defaultContactChannels.instagramHandle;
+          let address = this.defaultContactChannels.address;
+          let officeHours = this.defaultContactChannels.officeHours;
+
+          for (const ch of res) {
+            const type = (ch.type || '').toUpperCase();
+            const val = ch.value || '';
+            if (type === 'EMAIL' && val) email = val;
+            if (type === 'WHATSAPP' && val) {
+              whatsappNumber = val.replace(/\D/g, '');
+              whatsappUrl = `https://wa.me/${whatsappNumber}`;
+            }
+            if (type === 'INSTAGRAM' && val) instagramHandle = val;
+            if (type === 'ADDRESS' && val) address = val;
+            if (type === 'OFFICE_HOURS' && val) officeHours = val;
+          }
+          return { email, whatsappNumber, whatsappUrl, instagramHandle, address, officeHours };
+        }
+        if (res && res.email) {
+          return res as ContactChannelsPublicDto;
+        }
+        return this.defaultContactChannels;
+      }),
+      catchError(() => {
+        return this.api.get<ContactChannelsPublicDto>('/public/contact-channels', { lang }).pipe(
+          catchError(() => of(this.defaultContactChannels))
+        );
       })
     );
   }

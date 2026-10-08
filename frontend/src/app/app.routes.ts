@@ -87,6 +87,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/public/contact/contact.component').then(m => m.ContactComponent),
     title: 'Contato & Casting Comercial | WB Agency'
   },
+  {
+    path: 'destaques-home',
+    redirectTo: 'admin/destaques-home',
+    pathMatch: 'full'
+  },
 
   // Rota de Login Administrativo (Pública)
   {
@@ -200,6 +205,11 @@ export const routes: Routes = [
         title: 'Curadoria da Home | WB Agency'
       },
       {
+        path: 'pagina-principal',
+        redirectTo: 'institucional/home',
+        pathMatch: 'full'
+      },
+      {
         path: 'institucional/home',
         loadComponent: () => import('./features/admin/institutional/home-content-manager.component').then(m => m.HomeContentManagerComponent),
         title: 'Gestão da Home | WB Agency'
@@ -212,6 +222,11 @@ export const routes: Routes = [
       {
         path: 'home-content',
         redirectTo: 'institucional/home',
+        pathMatch: 'full'
+      },
+      {
+        path: 'canais-contato',
+        redirectTo: 'institucional/contatos',
         pathMatch: 'full'
       },
       {
@@ -260,6 +275,11 @@ export const routes: Routes = [
         pathMatch: 'full'
       },
       {
+        path: 'idiomas',
+        redirectTo: 'institucional/idiomas',
+        pathMatch: 'full'
+      },
+      {
         path: 'institucional/idiomas',
         loadComponent: () => import('./features/admin/institutional/bilingual-content-editor.component').then(m => m.BilingualContentEditorComponent),
         title: 'Conteúdos Bilíngues (PT/EN) | WB Agency'
@@ -277,6 +297,11 @@ export const routes: Routes = [
       {
         path: 'bilingual-editor',
         redirectTo: 'institucional/idiomas',
+        pathMatch: 'full'
+      },
+      {
+        path: 'destaques',
+        redirectTo: 'destaques-home',
         pathMatch: 'full'
       },
       {

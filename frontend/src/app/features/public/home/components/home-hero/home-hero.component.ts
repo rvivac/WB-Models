@@ -2,6 +2,7 @@ import { Component, OnInit, AfterViewInit, OnDestroy, inject, signal, effect, El
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { PublicContentService, HomeHeroPayload } from '../../../../../core/services/public-content.service';
+import { HomeSettingsService } from '../../../../../core/services/home-settings.service';
 import { TranslationService } from '../../../../../core/services/translation.service';
 import { TranslatePipe } from '../../../../../shared/pipes/translate.pipe';
 
@@ -14,6 +15,7 @@ import { TranslatePipe } from '../../../../../shared/pipes/translate.pipe';
 })
 export class HomeHeroComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly publicContentService = inject(PublicContentService);
+  private readonly homeSettingsService = inject(HomeSettingsService);
   private readonly translationService = inject(TranslationService);
 
   @ViewChild('heroVideo') heroVideo!: ElementRef<HTMLVideoElement>;
@@ -102,22 +104,40 @@ export class HomeHeroComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadHero(lang: string): void {
-    this.publicContentService.getHeroContent(lang).subscribe({
-      next: (data) => {
-        if (data) {
-          const videoUrl = data.videoUrl ? data.videoUrl.replace(/^\/assets\//, 'assets/') : 'assets/videos/wb-presentation.mp4';
-          const posterImageUrl = data.posterImageUrl ? data.posterImageUrl.replace(/^\/assets\//, 'assets/') : 'assets/images/hero-poster.jpg';
+    this.homeSettingsService.getPublicSettings().subscribe({
+      next: (settings) => {
+        if (settings) {
+          const videoUrl = settings.videoUrl ? settings.videoUrl.replace(/^\/assets\//, 'assets/') : 'assets/videos/wb-presentation.mp4';
+          const posterImageUrl = settings.bannerImageUrl ? settings.bannerImageUrl.replace(/^\/assets\//, 'assets/') : 'assets/images/hero-poster.jpg';
           this.heroData.set({
-            ...data,
+            title: settings.heroTitle || 'WB AGENCY',
+            subtitle: settings.heroSubtitle || 'HIGH FASHION & SCOUTING',
             videoUrl,
-            posterImageUrl
+            posterImageUrl,
+            ctaText: 'Ver Elenco',
+            ctaLink: '/models/female'
           });
-          // Tentar reproduzir vídeo se o elemento estiver disponível
           setTimeout(() => this.attemptAutoplay(), 100);
         }
       },
       error: () => {
-        this.isVideoError.set(true);
+        this.publicContentService.getHeroContent(lang).subscribe({
+          next: (data) => {
+            if (data) {
+              const videoUrl = data.videoUrl ? data.videoUrl.replace(/^\/assets\//, 'assets/') : 'assets/videos/wb-presentation.mp4';
+              const posterImageUrl = data.posterImageUrl ? data.posterImageUrl.replace(/^\/assets\//, 'assets/') : 'assets/images/hero-poster.jpg';
+              this.heroData.set({
+                ...data,
+                videoUrl,
+                posterImageUrl
+              });
+              setTimeout(() => this.attemptAutoplay(), 100);
+            }
+          },
+          error: () => {
+            this.isVideoError.set(true);
+          }
+        });
       }
     });
   }

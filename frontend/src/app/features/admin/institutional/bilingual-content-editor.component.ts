@@ -98,10 +98,13 @@ export class BilingualContentEditorComponent implements OnInit {
             }
           };
         } else {
-          this.loadMockFallback(sectionKey);
+          this.errorMessage = `Nenhuma tradução encontrada para a seção ${sectionKey} no banco de dados.`;
         }
       },
-      error: () => this.loadMockFallback(sectionKey)
+      error: (err) => {
+        this.errorMessage = `Erro ao carregar traduções da seção ${sectionKey} do servidor.`;
+        console.error('Falha ao carregar traduções:', err);
+      }
     });
   }
 
@@ -123,7 +126,7 @@ export class BilingualContentEditorComponent implements OnInit {
     this.errorMessage = null;
   }
 
-  isBlockEmpty(block: 'headline' | 'quote' | 'body'): boolean {
+  isBlockEmpty(block: 'headline' | 'quote' | 'body'): string | boolean {
     const pt = this.currentContent.pt[block];
     const en = this.currentContent.en[block];
     return (!pt || pt.trim() === '') && (!en || en.trim() === '');
@@ -184,13 +187,11 @@ export class BilingualContentEditorComponent implements OnInit {
         this.showSuccessFeedback(block);
         this.cancelEditBlock();
       },
-      error: () => {
-        // Fallback local update
+      error: (err) => {
         this.isSaving = false;
-        this.currentContent.pt[block] = this.tempPt[block];
-        this.currentContent.en[block] = this.tempEn[block];
-        this.showSuccessFeedback(block);
-        this.cancelEditBlock();
+        const msg = err?.error?.message || err?.message || 'Falha ao sincronizar com o banco de dados.';
+        this.errorMessage = `Erro ao salvar tradução: ${msg}`;
+        console.error('Falha ao persistir tradução no servidor:', err);
       }
     });
   }
@@ -223,69 +224,6 @@ export class BilingualContentEditorComponent implements OnInit {
         return 'Privacidade & LGPD';
       default:
         return 'Conteúdos Bilíngues';
-    }
-  }
-
-  private loadMockFallback(key: string): void {
-    const canonical = this.getCanonicalKey(key);
-    if (canonical === 'ABOUT_MANIFESTO') {
-      this.currentSectionTitle = 'Manifesto Institucional';
-      this.currentContent = {
-        pt: {
-          headline: 'A Nova Estética do Scouting Global',
-          quote: 'A beleza contemporânea nasce da singularidade e precisão.',
-          body: 'A WB Agency consolidou-se como um núcleo editorial focado no desenvolvimento integral de modelos para os principais mercados da moda internacional. Nossa metodologia rejeita a padronização e prioriza a identidade visual autêntica, conectando talentos a marcas com relevância estética global.'
-        },
-        en: {
-          headline: 'The New Aesthetic of Global Scouting',
-          quote: 'Contemporary beauty stems from uniqueness and precision.',
-          body: 'WB Agency has established itself as an editorial powerhouse dedicated to the comprehensive development of models for premier global fashion markets. Our scouting methodology moves beyond mass standards to foster authentic personal identity, positioning talents at the intersection of high fashion and international relevance.'
-        }
-      };
-    } else if (canonical === 'SCOUTING_GUIDELINES') {
-      this.currentSectionTitle = 'Diretrizes de Scouting';
-      this.currentContent = {
-        pt: {
-          headline: 'Critérios e Recomendações de Envio',
-          quote: 'Transparência, naturalidade e conformidade documental.',
-          body: 'Para avaliação do casting internacional, solicitamos polaroids digitais sem maquiagem e com iluminação natural. Candidatos menores de idade devem submeter a anuência prévia dos responsáveis legais.'
-        },
-        en: {
-          headline: 'Scouting Standards & Submission Guidelines',
-          quote: 'Transparency, natural posture, and legal compliance.',
-          body: 'For international casting evaluation, we require clean digital polaroids without styling or makeup, captured in natural daylight. Submissions from under-age talents strictly require prior verified parental consent.'
-        }
-      };
-    } else if (canonical === 'APPLY_HOW_IT_WORKS') {
-      // 🆕 Mock fallback para Apply Proximos Passos / Como Funciona (se API falhar offline)
-      this.currentSectionTitle = 'Próximos Passos Apply (Como Funciona)';
-      this.currentContent = {
-        pt: {
-          headline: 'Próximos Passos • Como Funciona',
-          quote: 'Transparência total no processo de avaliação de novos talentos.',
-          // 3 passos separados por ||| => frontend faz split e renderiza <ul><li>
-          body: 'Nossa diretoria de casting analisa todas as candidaturas em até 5 dias úteis.|||Em caso de compatibilidade de perfil com nosso casting comercial ou fashion, nossa equipe entrará em contato via telefone ou e-mail cadastrado.|||A WB Agency nunca cobra taxas para avaliação de perfil ou agenciamento inicial.'
-        },
-        en: {
-          headline: 'Next Steps • How It Works',
-          quote: 'Full transparency throughout our new talent evaluation workflow.',
-          body: 'Our casting board reviews every submission within 5 business days.|||When your profile matches our commercial or high fashion rosters, our scouting team contacts you via the phone or email you registered.|||WB Agency never charges assessment fees or upfront agency deposits of any kind.'
-        }
-      };
-    } else {
-      this.currentSectionTitle = 'Termos & Privacidade';
-      this.currentContent = {
-        pt: {
-          headline: 'Termos e Condições de Uso da Plataforma',
-          quote: 'Proteção patrimonial, segurança jurídica e transparência no agenciamento.',
-          body: 'O acesso e a utilização dos serviços da WB Agency regem-se pelas normas de propriedade intelectual e direitos autorais internacionais. O uso não autorizado de books e composites é estritamente proibido.'
-        },
-        en: {
-          headline: 'Terms and Conditions of Platform Use',
-          quote: 'Asset protection, legal compliance, and agency transparency.',
-          body: 'Access to and use of WB Agency services are governed by international intellectual property laws. Unauthorized reproduction of model books and digital composites is strictly prohibited.'
-        }
-      };
     }
   }
 }

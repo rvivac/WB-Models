@@ -34,6 +34,11 @@
       Bloco atualizado com sucesso no servidor e sincronizado em PT/EN.
     </div>
 
+    <!-- Alerta de Erro -->
+    <div *ngIf="errorMessage" class="max-w-full p-3 text-xs bg-red-50 border border-red-200 text-red-800 transition-opacity">
+      {{ errorMessage }}
+    </div>
+
     <div class="bg-white border border-[#E8EBE8] p-6 md:p-8 shadow-sm space-y-6">
       <div class="card-editorial-header flex items-center justify-between">
         <div>

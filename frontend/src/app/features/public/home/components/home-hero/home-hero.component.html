@@ -36,6 +36,12 @@
   <!-- Overlay Editorial com transição suave para o fundo claro (#FBFBF9) -->
   <div class="hero-overlay absolute inset-0 z-10"></div>
 
+  <!-- Conteúdo Editorial: Título & Subtítulo da Home (Supabase) -->
+  <div class="hero-content">
+    <h1 class="hero-headline">{{ heroData().title || 'WB AGENCY' }}</h1>
+    <p class="hero-manifesto">{{ heroData().subtitle || 'HIGH FASHION & SCOUTING' }}</p>
+  </div>
+
   <!-- Controlo de Áudio Editorial (Mute/Unmute) imediatamente acima do scroll -->
   @if (!isVideoError()) {
     <button

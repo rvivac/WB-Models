@@ -2,6 +2,7 @@ import { Injectable, inject, signal, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 import ptTranslations from '../../../assets/i18n/pt.json';
 import enTranslations from '../../../assets/i18n/en.json';
@@ -138,17 +139,38 @@ export class TranslationService {
   }
 
   /**
-   * Loads translation dictionary file via HttpClient.
+   * Salva alterações de textos no banco de dados.
+   */
+  saveTranslations(locale: string, translations: Record<string, string>): Observable<any> {
+    return this.http.put(`${environment.apiUrl}/admin/translations`, { locale, translations }).pipe(
+      tap(() => this.loadTranslations(this.currentLang()).subscribe())
+    );
+  }
+
+  /**
+   * Loads translation dictionary file via HttpClient and merges backend translations.
    */
   private loadTranslations(lang: SupportedLanguage): Observable<Record<string, any>> {
     return this.http.get<Record<string, any>>(`/assets/i18n/${lang}.json`).pipe(
-      tap((data) => {
-        if (data && Object.keys(data).length > 0) {
-          this.translations.set({
-            ...DEFAULT_DICTIONARIES[lang],
-            ...data
-          });
-        }
+      tap((localData) => {
+        const base = {
+          ...DEFAULT_DICTIONARIES[lang],
+          ...(localData || {})
+        };
+        this.translations.set(base);
+
+        // Busca traduções dinâmicas customizadas no banco de dados
+        this.http.get<Record<string, string>>(`${environment.apiUrl}/translations?lang=${lang}`).subscribe({
+          next: (dbData) => {
+            if (dbData && Object.keys(dbData).length > 0) {
+              this.translations.set({
+                ...base,
+                ...dbData
+              });
+            }
+          },
+          error: () => {}
+        });
       }),
       catchError((error) => {
         console.warn(`Failed to load external translations for '${lang}', using bundled translations:`, error);

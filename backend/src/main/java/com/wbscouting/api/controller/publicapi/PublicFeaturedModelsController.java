@@ -1,6 +1,8 @@
 package com.wbscouting.api.controller.publicapi;
 
+import com.wbscouting.api.dto.model.FeaturedModelResponseDto;
 import com.wbscouting.api.dto.publicapi.ModelCardPublicDto;
+import com.wbscouting.api.service.model.FeaturedModelService;
 import com.wbscouting.api.service.publicapi.PublicModelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.CacheControl;
@@ -13,15 +15,16 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @RestController
-@RequestMapping("/public/featured-models")
+@RequestMapping({"/api/v1/featured-models", "/featured-models", "/api/v1/public/featured-models", "/public/featured-models"})
 @RequiredArgsConstructor
 public class PublicFeaturedModelsController {
 
+    private final FeaturedModelService featuredModelService;
     private final PublicModelService publicModelService;
 
     @GetMapping
-    public ResponseEntity<List<ModelCardPublicDto>> getFeaturedModels() {
-        List<ModelCardPublicDto> featured = publicModelService.getFeaturedModels();
+    public ResponseEntity<List<FeaturedModelResponseDto>> getFeaturedModels() {
+        List<FeaturedModelResponseDto> featured = featuredModelService.getFeaturedHomeModels();
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS).cachePublic())
                 .body(featured);

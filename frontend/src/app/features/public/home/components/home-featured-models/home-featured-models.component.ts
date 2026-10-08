@@ -38,7 +38,7 @@ export class HomeFeaturedModelsComponent implements OnInit {
     this.hasError.set(false);
     this.brokenImageIds.set(new Set());
 
-    this.publicModelService.getFeaturedModels(8).subscribe({
+    this.publicModelService.getFeaturedModels().subscribe({
       next: (response) => {
         const items = response?.content || [];
         this.models.set(items);

@@ -340,26 +340,33 @@ export class PublicModelService {
    * ⛔ NÃO HÁ MAIS fallback mock estático: em ERRO de rede/API, os componentes
    *    devem renderizar lista vazia ou mensagem "Nenhum modelo encontrado".
    */
-  getFeaturedModels(limit: number = 8): Observable<PageResponseDto<ModelCardPublicDto>> {
-    return this.api.get<ModelCardPublicDto[]>('/public/models/featured').pipe(
-      switchMap(featuredArray => {
-        const items = this._applyCoverFallbacks((featuredArray || [])).slice(0, limit);
-        if (items.length > 0) {
-          return of({
-            content: items,
-            pageNumber: 0,
-            pageSize: limit,
-            totalElements: items.length,
-            totalPages: 1,
-            isLast: true
-          } as PageResponseDto<ModelCardPublicDto>);
-        }
-        // Fallback lógico (apenas se featured retornou VAZIO com sucesso): utiliza STARS (isStar=true)
-        return this.api.get<PageResponseDto<ModelCardPublicDto>>('/public/models', {
-          isStar: true,
-          size: limit,
-          page: 0
-        }).pipe(map(p => this._applyCoverFallbacksPage(p)));
+  getFeaturedModels(limit?: number): Observable<PageResponseDto<ModelCardPublicDto>> {
+    return this.api.get<any[]>('/featured-models').pipe(
+      map(featuredArray => {
+        const rawList = Array.isArray(featuredArray) ? featuredArray : [];
+        const mappedList: ModelCardPublicDto[] = rawList.map(item => ({
+          id: item.id,
+          stageName: item.stageName || item.artisticName || 'Sem Nome',
+          gender: (item.category === 'COMMERCIAL' || item.gender === 'MALE') ? 'MALE' : 'FEMALE',
+          coverImageUrl: item.coverPhotoUrl || item.primaryPhotoUrl || item.coverImageUrl,
+          heightCm: item.heightCm || item.height,
+          city: item.city || 'São Paulo',
+          isStar: Boolean(item.isStar),
+          isFeaturedHome: true,
+          featuredOrder: item.displayOrder ?? item.featuredOrder ?? 0
+        }));
+
+        const items = this._applyCoverFallbacks(mappedList);
+        const finalItems = (typeof limit === 'number' && limit > 0) ? items.slice(0, limit) : items;
+
+        return {
+          content: finalItems,
+          pageNumber: 0,
+          pageSize: finalItems.length,
+          totalElements: finalItems.length,
+          totalPages: 1,
+          isLast: true
+        } as PageResponseDto<ModelCardPublicDto>;
       })
     );
   }

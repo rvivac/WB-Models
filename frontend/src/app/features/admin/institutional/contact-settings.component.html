@@ -21,6 +21,11 @@
       Campo atualizado e sincronizado com sucesso no servidor.
     </div>
 
+    <!-- Alerta de Erro -->
+    <div *ngIf="errorMessage" class="max-w-full p-3 text-xs bg-red-50 border border-red-200 text-red-800 transition-opacity">
+      {{ errorMessage }}
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
       <!-- COLUNA ESQUERDA: ATENDIMENTO DIRETO & E-MAILS (6 Colunas) -->

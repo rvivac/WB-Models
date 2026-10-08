@@ -580,4 +580,59 @@ public class AdminCandidateServiceImpl implements AdminCandidateService {
     private String resolveBucketName() {
         return supabaseProperties.resolveBucketCandidates();
     }
+
+    private CandidateDetailAdminDto toDetailDto(CandidateSubmission submission) {
+        CandidateStatus candidateStatus = CandidateStatus.PENDING;
+        try {
+            if (submission.getStatus() != null) {
+                if (submission.getStatus() == SubmissionStatus.DECLINED || submission.getStatus() == SubmissionStatus.REJECTED) {
+                    candidateStatus = CandidateStatus.REJECTED;
+                } else if (submission.getStatus() == SubmissionStatus.APPROVED) {
+                    candidateStatus = CandidateStatus.APPROVED;
+                } else if (submission.getStatus() == SubmissionStatus.ARCHIVED) {
+                    candidateStatus = CandidateStatus.ARCHIVED;
+                }
+            }
+        } catch (Exception ignored) {}
+
+        List<CandidatePhotoSignedDto> photos = new ArrayList<>();
+        if (StringUtils.hasText(submission.getFacePhotoUrl())) {
+            photos.add(CandidatePhotoSignedDto.builder().signedUrl(submission.getFacePhotoUrl()).displayOrder(1).build());
+        }
+        if (StringUtils.hasText(submission.getProfilePhotoUrl())) {
+            photos.add(CandidatePhotoSignedDto.builder().signedUrl(submission.getProfilePhotoUrl()).displayOrder(2).build());
+        }
+        if (StringUtils.hasText(submission.getFullBodyPhotoUrl())) {
+            photos.add(CandidatePhotoSignedDto.builder().signedUrl(submission.getFullBodyPhotoUrl()).displayOrder(3).build());
+        }
+        boolean isMinor = submission.getAge() != null ? submission.getAge() < 18 : false;
+        String shoeSizeStr = submission.getShoeSize() != null ? String.valueOf(submission.getShoeSize()) : null;
+
+        return CandidateDetailAdminDto.builder()
+                .id(submission.getId())
+                .fullName(submission.getFullName())
+                .email(submission.getEmail())
+                .phone(submission.getPhone())
+                .birthDate(submission.getBirthDate())
+                .age(submission.getAge())
+                .isMinor(isMinor)
+                .guardianName(submission.getGuardianName())
+                .legalGuardianContact(submission.getGuardianPhone())
+                .gender(submission.getGender() != null ? submission.getGender().name() : null)
+                .heightCm(submission.getHeight())
+                .bustChestCm(submission.getBust())
+                .waistCm(submission.getWaist())
+                .hipsCm(submission.getHips())
+                .shoeSize(shoeSizeStr)
+                .city(submission.getCity())
+                .state(submission.getState())
+                .instagramHandle(submission.getInstagramHandle())
+                .status(candidateStatus)
+                .internalNotes(submission.getFeedbackNotes())
+                .lgpdAccepted(submission.getLgpdConsent())
+                .photos(photos)
+                .createdAt(submission.getCreatedAt() != null ? submission.getCreatedAt() : OffsetDateTime.now())
+                .updatedAt(submission.getUpdatedAt() != null ? submission.getUpdatedAt() : OffsetDateTime.now())
+                .build();
+    }
 }

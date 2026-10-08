@@ -36,6 +36,9 @@ public class ContactChannelsServiceImpl implements ContactChannelsService {
 
     private final SiteContentRepository siteContentRepository;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.wbscouting.api.repository.ContactChannelRepository contactChannelRepository;
+
     @Override
     @Transactional(readOnly = true)
     public ContactChannelsPublicDto getContactChannels(String lang) {
@@ -52,6 +55,29 @@ public class ContactChannelsServiceImpl implements ContactChannelsService {
         String instagramHandle = DEFAULT_INSTAGRAM;
         String address = isEn ? DEFAULT_ADDRESS_EN : DEFAULT_ADDRESS_PT;
         String officeHours = isEn ? DEFAULT_OFFICE_HOURS_EN : DEFAULT_OFFICE_HOURS_PT;
+
+        // Se a tabela dedicada contact_channels tiver registros ativos, sobrepõe os dados institucionais
+        if (contactChannelRepository != null) {
+            try {
+                List<com.wbscouting.api.entity.ContactChannel> activeChannels =
+                        contactChannelRepository.findByActiveTrueOrderByDisplayOrderAsc();
+                for (com.wbscouting.api.entity.ContactChannel ch : activeChannels) {
+                    if ("EMAIL".equalsIgnoreCase(ch.getType()) && org.springframework.util.StringUtils.hasText(ch.getValue())) {
+                        email = ch.getValue().trim();
+                    } else if ("WHATSAPP".equalsIgnoreCase(ch.getType()) && org.springframework.util.StringUtils.hasText(ch.getValue())) {
+                        whatsappNumber = ch.getValue().replaceAll("\\D+", "");
+                    } else if ("INSTAGRAM".equalsIgnoreCase(ch.getType()) && org.springframework.util.StringUtils.hasText(ch.getValue())) {
+                        instagramHandle = sanitizeInstagram(ch.getValue().trim());
+                    } else if ("ADDRESS".equalsIgnoreCase(ch.getType()) && org.springframework.util.StringUtils.hasText(ch.getValue())) {
+                        address = ch.getValue().trim();
+                    } else if ("OFFICE_HOURS".equalsIgnoreCase(ch.getType()) && org.springframework.util.StringUtils.hasText(ch.getValue())) {
+                        officeHours = ch.getValue().trim();
+                    }
+                }
+            } catch (Exception ex) {
+                log.warn("Erro ao ler canais dedicados da tabela contact_channels: {}", ex.getMessage());
+            }
+        }
 
         if (contentOpt.isPresent()) {
             SiteContent content = contentOpt.get();
@@ -130,7 +156,54 @@ public class ContactChannelsServiceImpl implements ContactChannelsService {
         siteContentRepository.save(content);
         log.info("Canais de contato atualizados com sucesso sob a chave '{}'", ContentSectionKey.CONTACT_INFO);
 
+        if (contactChannelRepository != null) {
+            syncChannelsTable(dto);
+        }
+
         return getContactChannels("pt");
+    }
+
+    private void syncChannelsTable(ContactChannelsUpdateRequestDto dto) {
+        try {
+            upsertChannel("EMAIL", dto.getEmail(), "E-mail Oficial", 1);
+            upsertChannel("WHATSAPP", dto.getWhatsappNumber(), "WhatsApp Oficial", 2);
+            if (StringUtils.hasText(dto.getInstagramHandle())) {
+                upsertChannel("INSTAGRAM", dto.getInstagramHandle(), "Instagram Oficial", 3);
+            }
+            if (StringUtils.hasText(dto.getAddressPt())) {
+                upsertChannel("ADDRESS", dto.getAddressPt(), "Endereço Matriz", 4);
+            }
+            if (StringUtils.hasText(dto.getOfficeHoursPt())) {
+                upsertChannel("OFFICE_HOURS", dto.getOfficeHoursPt(), "Horário de Atendimento", 5);
+            }
+        } catch (Exception e) {
+            log.warn("Erro ao sincronizar tabela contact_channels: {}", e.getMessage());
+        }
+    }
+
+    private void upsertChannel(String type, String value, String label, int order) {
+        if (!StringUtils.hasText(value)) return;
+        List<com.wbscouting.api.entity.ContactChannel> existing =
+                contactChannelRepository.findByTypeIgnoreCaseOrderByDisplayOrderAsc(type);
+        if (!existing.isEmpty()) {
+            com.wbscouting.api.entity.ContactChannel ch = existing.get(0);
+            ch.setValue(value.trim());
+            ch.setLabel(label);
+            ch.setActive(true);
+            ch.setUpdatedAt(OffsetDateTime.now());
+            contactChannelRepository.save(ch);
+        } else {
+            com.wbscouting.api.entity.ContactChannel ch = com.wbscouting.api.entity.ContactChannel.builder()
+                    .type(type.toUpperCase())
+                    .value(value.trim())
+                    .label(label)
+                    .active(true)
+                    .displayOrder(order)
+                    .createdAt(OffsetDateTime.now())
+                    .updatedAt(OffsetDateTime.now())
+                    .build();
+            contactChannelRepository.save(ch);
+        }
     }
 
     private String buildWhatsappUrl(String sanitizedNumber, String message) {

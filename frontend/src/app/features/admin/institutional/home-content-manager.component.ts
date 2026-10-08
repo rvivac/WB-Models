@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient, HttpEventType } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import { HomeSettingsService, HomeSettings } from '../../../core/services/home-settings.service';
 
 export interface HomeContentData {
   heroTitle: string;
@@ -25,6 +26,7 @@ export interface HomeContentData {
 export class HomeContentManagerComponent implements OnInit {
   private fb = inject(FormBuilder);
   private http = inject(HttpClient);
+  private homeSettingsService = inject(HomeSettingsService);
 
   form: FormGroup = this.fb.group({
     heroTitle: ['', [Validators.required, Validators.maxLength(50)]],
@@ -100,13 +102,18 @@ export class HomeContentManagerComponent implements OnInit {
   }
 
   loadData(): void {
-    this.http.get<HomeContentData>(`${environment.apiUrl}/admin/institutional/home`).subscribe({
+    this.homeSettingsService.getAdminSettings().subscribe({
       next: (data) => {
-        this.form.patchValue(data);
-        this.currentVideoUrl = data.videoUrl || 'assets/videos/wb-presentation.mp4';
-        this.currentPosterUrl = data.posterUrl || 'assets/images/logo-wb-agency.jpeg';
+        if (data) {
+          this.form.patchValue(data);
+          this.currentVideoUrl = data.videoUrl || '';
+          this.currentPosterUrl = data.bannerImageUrl || '';
+        }
       },
-      error: () => this.loadMockFallback()
+      error: (err) => {
+        this.showFeedback('Erro ao carregar configurações da Home do servidor.');
+        console.error('Falha ao carregar configurações da Home:', err);
+      }
     });
   }
 
@@ -114,17 +121,25 @@ export class HomeContentManagerComponent implements OnInit {
     if (this.form.invalid) return;
 
     this.isSaving = true;
-    this.http.put<HomeContentData>(`${environment.apiUrl}/admin/institutional/home`, this.form.value).subscribe({
+    const payload = {
+      ...this.form.value,
+      videoUrl: this.currentVideoUrl,
+      bannerImageUrl: this.currentPosterUrl
+    };
+
+    this.homeSettingsService.updateSettings(payload).subscribe({
       next: (res) => {
         this.isSaving = false;
         if (res) {
           this.form.patchValue(res);
         }
-        this.showFeedback('Conteúdos da Home atualizados com sucesso!');
+        this.showFeedback('Configurações da Home salvas com sucesso no banco de dados!');
       },
-      error: () => {
+      error: (err) => {
         this.isSaving = false;
-        this.showFeedback('Conteúdos salvos em contingência local.');
+        const msg = err?.error?.message || err?.message || 'Falha na comunicação com o servidor.';
+        this.showFeedback(`Erro ao salvar configurações da Home: ${msg}`);
+        console.error('Falha ao salvar configurações da Home:', err);
       }
     });
   }
@@ -199,18 +214,5 @@ export class HomeContentManagerComponent implements OnInit {
         this.feedbackMessage = '';
       }
     }, 4000);
-  }
-
-  private loadMockFallback(): void {
-    this.form.patchValue({
-      heroTitle: 'WB AGENCY',
-      heroSubtitle: 'EDITORIAL & HIGH FASHION SCOUTING',
-      heroDescription: 'Representação exclusiva, desenvolvimento de talentos e curadoria estética conectada aos maiores mercados globais.',
-      scrollLabel: 'SCROLL',
-      metaTitle: 'WB Agency | Scouting Internacional e Alta Moda',
-      metaDescription: 'Agência de scouting e modelos com foco editorial.'
-    });
-    this.currentVideoUrl = 'assets/videos/wb-presentation.mp4';
-    this.currentPosterUrl = 'assets/images/logo-wb-agency.jpeg';
   }
 }

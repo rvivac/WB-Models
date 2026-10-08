@@ -93,7 +93,10 @@ export class ContactSettingsComponent implements OnInit {
           };
         }
       },
-      error: () => this.loadMockFallback()
+      error: (err) => {
+        this.errorMessage = 'Erro ao carregar canais de contato do servidor. Verifique a conexão com o banco de dados.';
+        console.error('Falha ao carregar canais de contato:', err);
+      }
     });
   }
 
@@ -208,22 +211,11 @@ export class ContactSettingsComponent implements OnInit {
         this.showSuccessFeedback(field);
         this.cancelEdit();
       },
-      error: () => {
-        // Fallback local update if offline
+      error: (err) => {
         this.isSaving = false;
-        if (field === 'address') {
-          this.contactData.address = { ...this.tempAddress };
-        } else if (field.startsWith('socialMedia.')) {
-          const networkKey = field.split('.')[1];
-          if (!this.contactData.socialMedia) {
-            this.contactData.socialMedia = {};
-          }
-          (this.contactData.socialMedia as any)[networkKey] = this.tempValue;
-        } else {
-          this.contactData[field] = this.tempValue;
-        }
-        this.showSuccessFeedback(field);
-        this.cancelEdit();
+        const msg = err?.error?.message || err?.message || 'Falha na comunicação com o servidor.';
+        this.errorMessage = `Erro ao salvar alteração no banco de dados: ${msg}`;
+        console.error(`Erro ao salvar campo ${field}:`, err);
       }
     });
   }
@@ -243,9 +235,5 @@ export class ContactSettingsComponent implements OnInit {
         this.successField = null;
       }
     }, 2500);
-  }
-
-  private loadMockFallback(): void {
-    // Keep initial defaults
   }
 }

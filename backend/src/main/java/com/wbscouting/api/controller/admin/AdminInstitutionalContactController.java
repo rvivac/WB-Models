@@ -27,6 +27,9 @@ public class AdminInstitutionalContactController {
 
     private final SiteContentRepository siteContentRepository;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.wbscouting.api.repository.ContactChannelRepository contactChannelRepository;
+
     @GetMapping
     public ResponseEntity<ContactSettingsDto> getContactSettings() {
         log.info("Consultando canais institucionais de contato e redes sociais");
@@ -134,6 +137,63 @@ public class AdminInstitutionalContactController {
             siteContentRepository.save(legacy);
         } catch (Exception e) {
             log.warn("Falha ao sincronizar com CONTACT_INFO legado: {}", e.getMessage());
+        }
+
+        if (contactChannelRepository != null) {
+            syncDedicatedChannels(dto);
+        }
+    }
+
+    private void syncDedicatedChannels(ContactSettingsDto dto) {
+        try {
+            if (dto.getPrimaryEmail() != null && !dto.getPrimaryEmail().isBlank()) {
+                upsertDedicatedChannel("EMAIL", dto.getPrimaryEmail(), "E-mail Geral & Atendimento", 1);
+            }
+            if (dto.getWhatsapp() != null && !dto.getWhatsapp().isBlank()) {
+                upsertDedicatedChannel("WHATSAPP", dto.getWhatsapp(), "WhatsApp Oficial", 2);
+            }
+            if (dto.getPhone() != null && !dto.getPhone().isBlank()) {
+                upsertDedicatedChannel("PHONE", dto.getPhone(), "Telefone Comercial", 3);
+            }
+            if (dto.getSocialMedia() != null && dto.getSocialMedia().getInstagram() != null && !dto.getSocialMedia().getInstagram().isBlank()) {
+                upsertDedicatedChannel("INSTAGRAM", dto.getSocialMedia().getInstagram(), "Instagram Oficial", 4);
+            }
+            if (dto.getAddress() != null && dto.getAddress().getStreet() != null) {
+                String fullAddr = dto.getAddress().getStreet()
+                        + (dto.getAddress().getComplement() != null ? ", " + dto.getAddress().getComplement() : "")
+                        + " - " + (dto.getAddress().getCity() != null ? dto.getAddress().getCity() : "")
+                        + " - " + (dto.getAddress().getState() != null ? dto.getAddress().getState() : "");
+                upsertDedicatedChannel("ADDRESS", fullAddr, "Endereço Matriz", 5);
+            }
+            if (dto.getBusinessHours() != null && !dto.getBusinessHours().isBlank()) {
+                upsertDedicatedChannel("OFFICE_HOURS", dto.getBusinessHours(), "Horário de Atendimento", 6);
+            }
+        } catch (Exception ex) {
+            log.warn("Falha ao sincronizar tabela contact_channels dedicada: {}", ex.getMessage());
+        }
+    }
+
+    private void upsertDedicatedChannel(String type, String value, String label, int order) {
+        List<com.wbscouting.api.entity.ContactChannel> existing =
+                contactChannelRepository.findByTypeIgnoreCaseOrderByDisplayOrderAsc(type);
+        if (!existing.isEmpty()) {
+            com.wbscouting.api.entity.ContactChannel ch = existing.get(0);
+            ch.setValue(value.trim());
+            ch.setLabel(label);
+            ch.setActive(true);
+            ch.setUpdatedAt(java.time.OffsetDateTime.now());
+            contactChannelRepository.save(ch);
+        } else {
+            com.wbscouting.api.entity.ContactChannel ch = com.wbscouting.api.entity.ContactChannel.builder()
+                    .type(type.toUpperCase())
+                    .value(value.trim())
+                    .label(label)
+                    .active(true)
+                    .displayOrder(order)
+                    .createdAt(java.time.OffsetDateTime.now())
+                    .updatedAt(java.time.OffsetDateTime.now())
+                    .build();
+            contactChannelRepository.save(ch);
         }
     }
 

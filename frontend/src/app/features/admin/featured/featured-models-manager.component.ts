@@ -140,7 +140,7 @@ export class FeaturedModelsManagerComponent implements OnInit {
   }
 
   addToFeatured(model: FeaturedModelSummary): void {
-    if (this.featuredList.length < 8) {
+    if (!this.featuredList.some(m => m.id === model.id)) {
       this.featuredList.push({
         ...model,
         displayOrder: this.featuredList.length + 1
@@ -153,11 +153,6 @@ export class FeaturedModelsManagerComponent implements OnInit {
   }
 
   saveChanges(): void {
-    if (this.featuredList.length > 8) {
-      alert(`A vitrine deve conter no máximo 8 modelos selecionados. (Atual: ${this.featuredList.length})`);
-      return;
-    }
-
     this.isSubmitting = true;
     this.lastErrorMessage = null;
     const payload = {

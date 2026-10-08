@@ -37,6 +37,9 @@ public class AdminInstitutionalHomeController {
     private final StorageService storageService;
     private final SupabaseProperties supabaseProperties;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.wbscouting.api.repository.HomeSettingsRepository homeSettingsRepository;
+
     @GetMapping
     public ResponseEntity<HomeContentDto> getHomeContent() {
         log.info("Consultando configuração vigente da primeira dobra da Home (Hero)");
@@ -82,6 +85,24 @@ public class AdminInstitutionalHomeController {
         content.setPayloadEn(payloadEn);
 
         SiteContent saved = siteContentRepository.save(content);
+
+        if (homeSettingsRepository != null) {
+            try {
+                Optional<com.wbscouting.api.entity.HomeSettings> opt = homeSettingsRepository.findFirstByOrderByUpdatedAtDesc();
+                com.wbscouting.api.entity.HomeSettings hs = opt.orElseGet(com.wbscouting.api.entity.HomeSettings::new);
+                hs.setHeroTitle(dto.getHeroTitle());
+                hs.setHeroSubtitle(dto.getHeroSubtitle());
+                hs.setHeroDescription(dto.getHeroDescription());
+                hs.setScrollLabel(dto.getScrollLabel());
+                hs.setMetaTitle(dto.getMetaTitle());
+                hs.setMetaDescription(dto.getMetaDescription());
+                hs.setUpdatedAt(java.time.OffsetDateTime.now());
+                homeSettingsRepository.save(hs);
+            } catch (Exception ex) {
+                log.warn("Erro ao sincronizar com tabela home_settings: {}", ex.getMessage());
+            }
+        }
+
         return ResponseEntity.ok(toDto(saved));
     }
 
@@ -107,6 +128,16 @@ public class AdminInstitutionalHomeController {
         content.setMediaUrls(mediaUrls);
         siteContentRepository.save(content);
 
+        if (homeSettingsRepository != null) {
+            try {
+                Optional<com.wbscouting.api.entity.HomeSettings> opt = homeSettingsRepository.findFirstByOrderByUpdatedAtDesc();
+                com.wbscouting.api.entity.HomeSettings hs = opt.orElseGet(com.wbscouting.api.entity.HomeSettings::new);
+                hs.setVideoUrl(publicUrl);
+                hs.setUpdatedAt(java.time.OffsetDateTime.now());
+                homeSettingsRepository.save(hs);
+            } catch (Exception ignored) {}
+        }
+
         return ResponseEntity.ok(Map.of("videoUrl", publicUrl));
     }
 
@@ -131,6 +162,16 @@ public class AdminInstitutionalHomeController {
         mediaUrls.put("posterUrl", publicUrl);
         content.setMediaUrls(mediaUrls);
         siteContentRepository.save(content);
+
+        if (homeSettingsRepository != null) {
+            try {
+                Optional<com.wbscouting.api.entity.HomeSettings> opt = homeSettingsRepository.findFirstByOrderByUpdatedAtDesc();
+                com.wbscouting.api.entity.HomeSettings hs = opt.orElseGet(com.wbscouting.api.entity.HomeSettings::new);
+                hs.setBannerImageUrl(publicUrl);
+                hs.setUpdatedAt(java.time.OffsetDateTime.now());
+                homeSettingsRepository.save(hs);
+            } catch (Exception ignored) {}
+        }
 
         return ResponseEntity.ok(Map.of("posterUrl", publicUrl));
     }

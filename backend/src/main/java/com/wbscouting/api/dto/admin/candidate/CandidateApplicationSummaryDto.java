@@ -94,36 +94,38 @@ public class CandidateApplicationSummaryDto {
         String fullBody = null;
         List<PhotoThumbDto> photosArr = new ArrayList<>();
 
-        if (candidate.getPhotos() != null) {
-            for (CandidatePhoto p : candidate.getPhotos()) {
-                String url = p.getFileUrl();
-                if (url == null || url.isBlank()) url = p.getFilePath();
-                if (url == null || url.isBlank()) url = p.getStoragePath();
-                if (url != null && !url.startsWith("http") && defaultStorageBaseUrl != null) {
-                    url = defaultStorageBaseUrl + "/" + url.replaceFirst("^/+", "");
-                }
+        try {
+            if (candidate.getPhotos() != null) {
+                for (CandidatePhoto p : candidate.getPhotos()) {
+                    String url = p.getFileUrl();
+                    if (url == null || url.isBlank()) url = p.getFilePath();
+                    if (url == null || url.isBlank()) url = p.getStoragePath();
+                    if (url != null && !url.startsWith("http") && defaultStorageBaseUrl != null) {
+                        url = defaultStorageBaseUrl + "/" + url.replaceFirst("^/+", "");
+                    }
 
-                int order = p.getDisplayOrder() != null ? p.getDisplayOrder() : 1;
-                String type = switch (order) {
-                    case 1 -> "POLAROID_ROSTO";
-                    case 2 -> "POLAROID_PERFIL";
-                    case 3 -> "CORPO_INTEIRO";
-                    default -> "COMPOSITE";
-                };
+                    int order = p.getDisplayOrder() != null ? p.getDisplayOrder() : 1;
+                    String type = switch (order) {
+                        case 1 -> "POLAROID_ROSTO";
+                        case 2 -> "POLAROID_PERFIL";
+                        case 3 -> "CORPO_INTEIRO";
+                        default -> "COMPOSITE";
+                    };
 
-                if (order == 1 && face == null) face = url;
-                else if (order == 2 && profile == null) profile = url;
-                else if (order == 3 && fullBody == null) fullBody = url;
+                    if (order == 1 && face == null) face = url;
+                    else if (order == 2 && profile == null) profile = url;
+                    else if (order == 3 && fullBody == null) fullBody = url;
 
-                if (url != null) {
-                    photosArr.add(PhotoThumbDto.builder()
-                            .id(p.getId() != null ? p.getId().toString() : "p" + order)
-                            .url(url)
-                            .type(type)
-                            .build());
+                    if (url != null) {
+                        photosArr.add(PhotoThumbDto.builder()
+                                .id(p.getId() != null ? p.getId().toString() : "p" + order)
+                                .url(url)
+                                .type(type)
+                                .build());
+                    }
                 }
             }
-        }
+        } catch (Exception ignored) {}
 
         if (face == null && !photosArr.isEmpty()) face = photosArr.get(0).getUrl();
         String cover = face != null ? face : (profile != null ? profile : fullBody);

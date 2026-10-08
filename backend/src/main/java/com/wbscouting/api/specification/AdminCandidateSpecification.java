@@ -20,7 +20,7 @@ public class AdminCandidateSpecification {
             if (status != null) {
                 predicates.add(cb.equal(root.get("status"), status));
             } else {
-                predicates.add(cb.notEqual(root.get("status"), CandidateStatus.ARCHIVED));
+                predicates.add(cb.or(cb.isNull(root.get("status")), cb.notEqual(root.get("status"), CandidateStatus.ARCHIVED)));
             }
 
             // 2. Filtro opcional por busca textual (full_name ou email)

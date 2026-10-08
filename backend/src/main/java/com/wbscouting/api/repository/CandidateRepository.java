@@ -20,4 +20,8 @@ public interface CandidateRepository extends JpaRepository<Candidate, UUID>, Jpa
 
     @EntityGraph(attributePaths = {"photos"})
     Optional<Candidate> findWithPhotosById(UUID id);
+
+    @Override
+    @EntityGraph(attributePaths = {"photos"})
+    Page<Candidate> findAll(org.springframework.data.jpa.domain.Specification<Candidate> spec, Pageable pageable);
 }

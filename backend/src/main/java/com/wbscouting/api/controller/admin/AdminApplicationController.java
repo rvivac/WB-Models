@@ -35,6 +35,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.wbscouting.api.security.audit.AuditAction;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.OffsetDateTime;
@@ -66,6 +67,7 @@ public class AdminApplicationController {
         }
     }
 
+    @Transactional(readOnly = true)
     @GetMapping
     public ResponseEntity<Page<CandidateApplicationSummaryDto>> listApplications(
             @RequestParam(defaultValue = "0") int page,
@@ -118,6 +120,7 @@ public class AdminApplicationController {
         return ResponseEntity.ok(legacyResult);
     }
 
+    @Transactional(readOnly = true)
     @GetMapping("/counts")
     public ResponseEntity<Map<String, Long>> getCounts() {
         long pending = candidateRepository.countByStatus(CandidateStatus.PENDING);
@@ -143,6 +146,7 @@ public class AdminApplicationController {
         ));
     }
 
+    @Transactional(readOnly = true)
     @GetMapping("/{id}")
     public ResponseEntity<CandidateDetailResponseDto> getApplicationById(@PathVariable UUID id) {
         log.info("Buscando detalhes da candidatura ID: {}", id);
@@ -157,6 +161,7 @@ public class AdminApplicationController {
         return ResponseEntity.ok(CandidateDetailResponseDto.fromEntity(submission));
     }
 
+    @Transactional
     @PatchMapping("/{id}/decision")
     @AuditAction(action = "DECISION", resource = "SCOUTING_CANDIDATE", description = "Triagem de candidatura de modelo")
     public ResponseEntity<CandidateDetailResponseDto> updateDecision(
@@ -166,7 +171,7 @@ public class AdminApplicationController {
     ) {
         log.info("Decisão de triagem para candidatura ID: {}, Status: {}", id, decisionDto.getStatus());
         String bucketUrl = resolveBucketBaseUrl();
-        Optional<Candidate> opt = candidateRepository.findById(id);
+        Optional<Candidate> opt = candidateRepository.findWithPhotosById(id);
         if (opt.isPresent()) {
             Candidate candidate = opt.get();
             try {

@@ -96,7 +96,7 @@ jobs:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_SERVER_DIR: ${{ secrets.FTP_SERVER_DIR != '' && secrets.FTP_SERVER_DIR || 'domains/wbagency.com.br/public_html/' }}
+          FTP_SERVER_DIR: ${{ secrets.FTP_SERVER_DIR }}
         run: |
           DIST_DIR="dist/frontend/browser"
           REMOTE_DIR="${FTP_SERVER_DIR:-domains/wbagency.com.br/public_html/}"

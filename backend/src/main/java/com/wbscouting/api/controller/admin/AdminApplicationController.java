@@ -280,69 +280,6 @@ public class AdminApplicationController {
         return ResponseEntity.ok(ApiResponse.success("Candidatura e mídias removidas com sucesso", null));
     }
 
-    private void purgeCandidateFiles(CandidateSubmission submission) {
-        String candidatesBucket = supabaseProperties.getBuckets().getCandidatesUploads();
-        if (candidatesBucket == null || candidatesBucket.isBlank()) {
-            candidatesBucket = "candidates-uploads";
-        }
-
-        deleteStorageFile(candidatesBucket, submission.getFacePhotoUrl());
-        deleteStorageFile(candidatesBucket, submission.getProfilePhotoUrl());
-        deleteStorageFile(candidatesBucket, submission.getFullBodyPhotoUrl());
-
-        // Também garantir purga se estiver em wb-media-assets
-        deleteStorageFile("wb-media-assets", submission.getFacePhotoUrl());
-        deleteStorageFile("wb-media-assets", submission.getProfilePhotoUrl());
-        deleteStorageFile("wb-media-assets", submission.getFullBodyPhotoUrl());
-    }
-
-    private void deleteStorageFile(String bucket, String urlOrPath) {
-        if (urlOrPath == null || urlOrPath.isBlank()) return;
-        try {
-            String relativePath = extractRelativePath(urlOrPath, bucket);
-            if (relativePath != null && !relativePath.isBlank()) {
-                storageService.deleteFile(bucket, relativePath);
-            }
-        } catch (Exception e) {
-            log.warn("Exclusão de arquivo no bucket '{}' (URL/Path: {}) ignorada ou não encontrado: {}",
-                    bucket, urlOrPath, e.getMessage());
-        }
-    }
-
-    private String extractRelativePath(String urlOrPath, String bucket) {
-        if (urlOrPath == null || urlOrPath.isBlank()) return null;
-
-        String path = urlOrPath;
-        // Se for URL com query params, remove
-        int queryIdx = path.indexOf('?');
-        if (queryIdx >= 0) {
-            path = path.substring(0, queryIdx);
-        }
-
-        // Se contiver /{bucket}/
-        String bucketMarker = "/" + bucket + "/";
-        int bucketIdx = path.indexOf(bucketMarker);
-        if (bucketIdx >= 0) {
-            return path.substring(bucketIdx + bucketMarker.length());
-        }
-
-        // Se contiver "submissions/"
-        int subIdx = path.indexOf("submissions/");
-        if (subIdx >= 0) {
-            return path.substring(subIdx);
-        }
-
-        // Se for caminho http genérico
-        if (path.startsWith("http://") || path.startsWith("https://")) {
-            int lastSlash = path.lastIndexOf('/');
-            if (lastSlash >= 0) {
-                return path.substring(lastSlash + 1);
-            }
-        }
-
-        return path.startsWith("/") ? path.substring(1) : path;
-    }
-
     private String extractReviewerName(Authentication authentication) {
         Authentication auth = authentication != null ? authentication : SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {

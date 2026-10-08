@@ -71,16 +71,32 @@ jobs:
           du -b "$DIST_DIR/assets/images/hero-poster.jpg" 2>/dev/null || true
           echo "Arquivos de build validados com sucesso para o deploy."
 
-      - name: Enviar arquivos do build via FTP para a Hostinger (public_html)
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
-          port: 21
-          timeout: 600000
-          local-dir: ./frontend/dist/frontend/browser/
-          server-dir: ${{ secrets.FTP_SERVER_DIR || 'public_html/' }}
+      - name: Instalar LFTP
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Enviar EXCLUSIVAMENTE arquivos do build para a Hostinger via LFTP
+        run: |
+          DIST_DIR="dist/frontend/browser"
+          REMOTE_DIR="${{ secrets.FTP_SERVER_DIR || 'public_html/' }}"
+
+          echo "=== 1. Validando pacote de build a ser transferido: $DIST_DIR ==="
+          ls -la "$DIST_DIR"
+
+          echo "=== 2. Conectando via FTP e espelhando exclusivamente os arquivos de build para $REMOTE_DIR ==="
+          lftp -c "
+            set net:timeout 30;
+            set net:max-retries 3;
+            set ftp:ssl-allow yes;
+            set ftp:ssl-force no;
+            set ssl:verify-certificate no;
+            set ftp:passive-mode yes;
+            open -u \"${{ secrets.FTP_USERNAME }}\",\"${{ secrets.FTP_PASSWORD }}\" \"${{ secrets.FTP_SERVER }}\";
+            mirror -Rev \
+              --delete \
+              --parallel=5 \
+              \"$DIST_DIR/\" \"$REMOTE_DIR\";
+            quit
+          "
+          echo "=== 3. Deploy dos arquivos de build finalizado com sucesso! ==="
 
 

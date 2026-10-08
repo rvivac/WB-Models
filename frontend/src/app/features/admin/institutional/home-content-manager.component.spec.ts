@@ -81,14 +81,17 @@ describe('HomeContentManagerComponent', () => {
     expect(component.feedbackMessage).toContain('atualizados com sucesso');
   });
 
-  it('não deve enviar formulário inválido ao salvar textos', () => {
+  it('deve permitir salvar formulário com textos vazios', () => {
     fixture.detectChanges();
     httpTesting.expectOne(`${environment.apiUrl}/admin/institutional/home`).flush(mockHomeData);
 
     component.form.patchValue({ heroTitle: '' });
     component.saveTextContent();
 
-    httpTesting.expectNone(`${environment.apiUrl}/admin/institutional/home`);
+    const putReq = httpTesting.expectOne(`${environment.apiUrl}/admin/institutional/home`);
+    expect(putReq.request.method).toBe('PUT');
+    expect(putReq.request.body.heroTitle).toBe('');
+    putReq.flush({ ...mockHomeData, heroTitle: '' });
   });
 
   it('deve realizar upload do vídeo hero com monitoramento de progresso', () => {

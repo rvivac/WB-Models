@@ -394,36 +394,4 @@ public class CandidateSubmissionServiceImpl implements CandidateSubmissionServic
         photo.setPhotoPosition((short) displayOrder);
         return photo;
     }
-
-    /**
-     * Persiste UMA foto filha em candidate_photos com a FK candidate_id correta (compatibilidade).
-     */
-    private void persistirFotoFilha(CandidateSubmission submission,
-                                     String storagePath,
-                                     String publicUrl,
-                                     String photoType,
-                                     int displayOrder,
-                                     String originalFileName) {
-        CandidatePhoto photo = CandidatePhoto.builder()
-                .candidateId(submission.getId())
-                .storagePath(storagePath)
-                .filePath(storagePath)
-                .fileUrl(publicUrl)
-                .displayOrder(displayOrder)
-                .photoPosition((short) displayOrder)
-                .build();
-        // photoType não é coluna própria do JPA? A entidade não tem photo_type.
-        // A coluna mais próxima que existe no schema é photo_position. Os DTOs do admin usam
-        // POLAROID_ROSTO / POLAROID_PERFIL / CORPO_INTEIRO via displayOrder, então tá tudo OK.
-        try {
-            candidatePhotoRepository.save(photo);
-        } catch (Exception e) {
-            log.error("[CANDIDATE_PHOTOS] Falha ao salvar foto filha (type={}, order={}, submissionId={}). {}",
-                    photoType, displayOrder, submission.getId(), e.getMessage(), e);
-            throw e; // força rollback transacional (rollbackFor=Exception.class)
-        }
-        // originalFileName não persiste (a entidade não tem coluna), mas o log facilita debug.
-        log.debug("[CANDIDATE_PHOTOS] Foto persistida: submission={} | type={} | order={} | file={}",
-                submission.getId(), photoType, displayOrder, originalFileName);
-    }
 }

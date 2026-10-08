@@ -1,6 +1,5 @@
 package com.wbscouting.api.controller.publicapi;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wbscouting.api.dto.AboutPageDto;
 import com.wbscouting.api.exception.GlobalExceptionHandler;
 import com.wbscouting.api.security.JwtAuthenticationEntryPoint;
@@ -29,9 +28,6 @@ class PublicInstitutionalAboutControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @MockitoBean
     private AboutPageService aboutPageService;

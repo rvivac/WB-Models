@@ -73,6 +73,10 @@ public class AuditLogService {
         }
     }
 
+    public void logAction(String adminEmail, String action, String resourceType, String resourceId, String description) {
+        recordLogAsync(null, adminEmail, action, resourceType, resourceId, description, null, null, null);
+    }
+
     /**
      * Consulta paginada e filtrada exclusiva para Webmasters.
      */

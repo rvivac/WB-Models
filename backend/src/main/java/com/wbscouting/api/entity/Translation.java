@@ -29,7 +29,7 @@ public class Translation {
     @Column(name = "translation_key", nullable = false, length = 250)
     private String key;
 
-    @Column(name = "translation_value", columnDefinition = "TEXT", nullable = false)
+    @Column(name = "translation_value", columnDefinition = "TEXT", nullable = true)
     private String value;
 
     @CreationTimestamp

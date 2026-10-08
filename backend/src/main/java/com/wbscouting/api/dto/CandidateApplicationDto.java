@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -46,7 +45,7 @@ public class CandidateApplicationDto {
     private Boolean lgpdAccepted;
     private OffsetDateTime createdAt;
 
-    @Default
+    @Builder.Default
     private List<CandidatePhotoDto> photos = new ArrayList<>();
 
     // 🔥 Fallback builder manual (classe principal) p/ MavenWrapper 3.6.3 (@Builder Lombok pode nao gerar)

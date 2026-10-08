@@ -6,7 +6,6 @@ import com.wbscouting.api.entity.SiteContent;
 import com.wbscouting.api.repository.HomeSettingsRepository;
 import com.wbscouting.api.repository.SiteContentRepository;
 import com.wbscouting.api.security.audit.AuditAction;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -51,7 +50,7 @@ public class AdminHomeSettingsController {
     @PutMapping
     @Transactional
     @AuditAction(action = "UPDATE", resource = "HOME_SETTINGS", description = "Atualização de configurações da página principal")
-    public ResponseEntity<HomeSettingsDto> updateHomeSettings(@Valid @RequestBody HomeSettingsDto dto) {
+    public ResponseEntity<HomeSettingsDto> updateHomeSettings(@RequestBody HomeSettingsDto dto) {
         log.info("Atualizando configurações da Home via admin: heroTitle='{}'", dto.getHeroTitle());
 
         Optional<HomeSettings> opt = homeSettingsRepository.findFirstByOrderByUpdatedAtDesc();

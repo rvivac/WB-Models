@@ -1,6 +1,5 @@
 package com.wbscouting.api.service.publicapi;
 
-import com.wbscouting.api.dto.publicapi.MediaPublicDto;
 import com.wbscouting.api.dto.publicapi.ModelCardPublicDto;
 import com.wbscouting.api.dto.publicapi.ModelDetailPublicDto;
 import com.wbscouting.api.dto.publicapi.PageResponseDto;
@@ -8,8 +7,6 @@ import com.wbscouting.api.entity.Model;
 import com.wbscouting.api.entity.ModelMedia;
 import com.wbscouting.api.enums.GenderType;
 import com.wbscouting.api.enums.MediaType;
-import com.wbscouting.api.exception.ResourceNotFoundException;
-import com.wbscouting.api.repository.ModelMediaRepository;
 import com.wbscouting.api.repository.ModelRepository;
 import com.wbscouting.api.repository.specification.ModelSpecification;
 import com.wbscouting.api.service.storage.SupabaseStorageService;
@@ -24,9 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.time.LocalDate;
-import java.time.Period;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -37,7 +31,6 @@ import java.util.stream.Collectors;
 public class PublicModelServiceImpl implements PublicModelService {
 
     private final ModelRepository modelRepository;
-    private final ModelMediaRepository modelMediaRepository;
     private final PublicModelDetailService publicModelDetailService;
     private final SupabaseStorageService storageService;
 

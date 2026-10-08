@@ -152,8 +152,12 @@ export class CandidateDetailComponent implements OnInit {
     if (event.key === 'ArrowLeft') this.prevPhoto();
   }
 
-  // Exclusão Segura
+  // Exclusão Segura Permanente (Apenas REJECTED)
   openDeleteConfirmation(): void {
+    if (this.candidate?.status !== 'REJECTED') {
+      this.showFeedback('Apenas candidaturas com status DECLINADO podem ser permanentemente excluídas.');
+      return;
+    }
     this.deleteConfirmInput = '';
     this.isDeleteModalOpen = true;
   }
@@ -166,26 +170,33 @@ export class CandidateDetailComponent implements OnInit {
     if (!this.candidate || this.isDeleting) return;
     this.isDeleting = true;
 
-    const url = `${environment.apiUrl}/admin/candidates/${this.candidate.id}`;
-    const fallbackUrl = `${environment.apiUrl}/admin/applications/${this.candidate.id}`;
+    const url = `${environment.apiUrl}/admin/applications/${this.candidate.id}`;
 
     this.http.delete(url).subscribe({
       next: () => {
         this.isDeleting = false;
         this.isDeleteModalOpen = false;
-        this.router.navigate(['/admin/candidaturas']);
+        this.showFeedback('Candidatura e mídias removidas com sucesso.');
+        setTimeout(() => {
+          this.router.navigate(['/admin/candidaturas']);
+        }, 500);
       },
       error: () => {
+        // Fallback para rota legacy se necessário
+        const fallbackUrl = `${environment.apiUrl}/admin/candidates/${this.candidate!.id}`;
         this.http.delete(fallbackUrl).subscribe({
           next: () => {
             this.isDeleting = false;
             this.isDeleteModalOpen = false;
-            this.router.navigate(['/admin/candidaturas']);
+            this.showFeedback('Candidatura removida com sucesso.');
+            setTimeout(() => {
+              this.router.navigate(['/admin/candidaturas']);
+            }, 500);
           },
-          error: () => {
+          error: (err) => {
             this.isDeleting = false;
-            this.isDeleteModalOpen = false;
-            this.router.navigate(['/admin/candidaturas']);
+            const errMsg = err?.error?.message || 'Erro ao excluir candidatura. Verifique se o status está DECLINADO.';
+            this.showFeedback(errMsg);
           }
         });
       }
@@ -193,6 +204,10 @@ export class CandidateDetailComponent implements OnInit {
   }
 
   // Promoção para Casting
+  promoteToCasting(id?: string): void {
+    this.openPromoteModal();
+  }
+
   openPromoteModal(): void {
     this.isPromoteModalOpen = true;
   }
@@ -205,35 +220,32 @@ export class CandidateDetailComponent implements OnInit {
     if (!this.candidate || this.isPromoting) return;
     this.isPromoting = true;
 
-    const url = `${environment.apiUrl}/admin/candidates/${this.candidate.id}/promote-to-model`;
+    const url = `${environment.apiUrl}/admin/applications/${this.candidate.id}/promote`;
     const fallbackUrl = `${environment.apiUrl}/admin/applications/${this.candidate.id}/promote-to-model`;
 
     this.http.post(url, {}).subscribe({
       next: () => {
         this.isPromoting = false;
         this.isPromoteModalOpen = false;
-        this.showFeedback('Candidato(a) promovido(a) para Modelo Oficial com sucesso! Redirecionando para /admin/models...');
+        this.showFeedback('Candidato promovido a casting com sucesso! Redirecionando para /admin/models...');
         setTimeout(() => {
           this.router.navigate(['/admin/models']);
-        }, 1200);
+        }, 600);
       },
       error: () => {
         this.http.post(fallbackUrl, {}).subscribe({
           next: () => {
             this.isPromoting = false;
             this.isPromoteModalOpen = false;
-            this.showFeedback('Candidato(a) promovido(a) para Modelo Oficial com sucesso! Redirecionando para /admin/models...');
+            this.showFeedback('Candidato promovido a casting com sucesso! Redirecionando para /admin/models...');
             setTimeout(() => {
               this.router.navigate(['/admin/models']);
-            }, 1200);
+            }, 600);
           },
-          error: () => {
+          error: (err) => {
             this.isPromoting = false;
-            this.isPromoteModalOpen = false;
-            this.showFeedback('Promoção registrada com sucesso! Redirecionando para /admin/models...');
-            setTimeout(() => {
-              this.router.navigate(['/admin/models']);
-            }, 1200);
+            const msg = err?.error?.message || 'Erro ao promover candidato ao casting.';
+            this.showFeedback(msg);
           }
         });
       }

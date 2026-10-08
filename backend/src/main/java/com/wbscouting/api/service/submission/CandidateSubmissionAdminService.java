@@ -16,15 +16,21 @@ public interface CandidateSubmissionAdminService {
 
     CandidateSubmissionResponseDto getSubmissionById(UUID id);
 
+    CandidateSubmissionResponseDto updateStatus(UUID id, CandidateStatusUpdateDto dto, String adminEmail);
+
     CandidateSubmissionResponseDto updateSubmissionStatus(UUID id, CandidateStatusUpdateDto updateDto, String reviewer);
 
     CandidateSubmissionResponseDto updateSubmissionStatus(UUID id, UpdateSubmissionStatusDto updateDto, String reviewer);
+
+    com.wbscouting.api.dto.model.ModelAdminResponseDto promoteToModel(UUID submissionId, String adminEmail);
 
     CandidateSubmissionResponseDto promoteToModel(UUID submissionId, String reviewer, Boolean activateImmediately);
 
     com.wbscouting.api.dto.model.ModelResponseDto promoteCandidateToModel(UUID submissionId);
 
     com.wbscouting.api.dto.model.ModelResponseDto promoteCandidateToModel(UUID submissionId, String reviewer, Boolean activateImmediately);
+
+    void deletePermanently(UUID id, String adminEmail);
 
     /**
      * Exclusão definitiva (Hard Delete) da candidatura.

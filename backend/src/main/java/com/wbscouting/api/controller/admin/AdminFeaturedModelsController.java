@@ -36,7 +36,6 @@ public class AdminFeaturedModelsController {
         return ResponseEntity.ok(featuredModelService.updateFeaturedHomeModels(requestDto));
     }
 
-    @SuppressWarnings("unchecked")
     private FeaturedModelsReorderRequestDto parsePayload(Object raw) {
         if (raw == null) {
             return new FeaturedModelsReorderRequestDto();

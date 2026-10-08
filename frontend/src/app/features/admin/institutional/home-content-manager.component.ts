@@ -29,12 +29,12 @@ export class HomeContentManagerComponent implements OnInit {
   private homeSettingsService = inject(HomeSettingsService);
 
   form: FormGroup = this.fb.group({
-    heroTitle: ['', [Validators.required, Validators.maxLength(50)]],
-    heroSubtitle: ['', [Validators.required, Validators.maxLength(80)]],
-    heroDescription: ['', [Validators.required, Validators.maxLength(250)]],
-    scrollLabel: ['SCROLL', [Validators.required]],
-    metaTitle: ['', [Validators.required]],
-    metaDescription: ['', [Validators.required]]
+    heroTitle: ['', [Validators.maxLength(50)]],
+    heroSubtitle: ['', [Validators.maxLength(80)]],
+    heroDescription: ['', [Validators.maxLength(250)]],
+    scrollLabel: ['SCROLL'],
+    metaTitle: [''],
+    metaDescription: ['']
   });
 
   currentVideoUrl = '';

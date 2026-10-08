@@ -29,11 +29,11 @@ public class SiteContent {
     private String sectionKey;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "payload_pt", columnDefinition = "jsonb", nullable = false)
+    @Column(name = "payload_pt", columnDefinition = "jsonb", nullable = true)
     private Map<String, Object> payloadPt;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "payload_en", columnDefinition = "jsonb", nullable = false)
+    @Column(name = "payload_en", columnDefinition = "jsonb", nullable = true)
     private Map<String, Object> payloadEn;
 
     @JdbcTypeCode(SqlTypes.JSON)

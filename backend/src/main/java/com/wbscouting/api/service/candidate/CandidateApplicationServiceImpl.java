@@ -158,7 +158,7 @@ public class CandidateApplicationServiceImpl implements CandidateApplicationServ
             if (root instanceof StorageException se) {
                 // StorageException NAO TEM handler no GlobalExceptionHandler → convertemos para IllegalArgumentException
                 // (mesmo padrao do composite upload que resolveu o 500 generico de PDF!)
-                log.warn("[APPLY CANDIDATURA] StorageException convertida para IllegalArgumentException para HTTP 400 amigavel. Motivo original: {}", motivo);
+                log.warn("[APPLY CANDIDATURA] StorageException convertida para IllegalArgumentException para HTTP 400 amigavel. Motivo original: {}. Detalhes: {}", motivo, se.getMessage());
                 throw new IllegalArgumentException("Não foi possível concluir a candidatura. " + motivo);
             }
             // QUALQUER outra excecao (NPE, SQLException, RLS Supabase, IllegalArgumentException etc):

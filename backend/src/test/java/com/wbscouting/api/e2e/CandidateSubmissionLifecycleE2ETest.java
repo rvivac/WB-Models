@@ -353,7 +353,7 @@ class CandidateSubmissionLifecycleE2ETest {
     @Test
     @DisplayName("TC-06 [Admin Query]: Deve listar candidaturas com paginação e filtros")
     void shouldListApplicationsWithFilters() throws Exception {
-        when(submissionRepository.findAll(any(Specification.class), any(Pageable.class)))
+        when(submissionRepository.findAll(org.mockito.ArgumentMatchers.<Specification<CandidateSubmission>>any(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(candidateEntity)));
 
         mockMvc.perform(get("/api/v1/admin/applications")

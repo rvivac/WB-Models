@@ -9,7 +9,6 @@ import com.wbscouting.api.exception.InvalidFileException;
 import com.wbscouting.api.repository.SiteContentRepository;
 import com.wbscouting.api.service.storage.StorageService;
 import com.wbscouting.api.service.storage.SupabaseStorageService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -53,7 +52,7 @@ public class AdminInstitutionalHomeController {
     @PutMapping
     @AuditAction(action = "UPDATE", resource = "INSTITUTIONAL_HOME", description = "Atualização de textos e metadados da Home")
     public ResponseEntity<HomeContentDto> updateHomeContent(
-            @Valid @RequestBody HomeContentDto dto,
+            @RequestBody HomeContentDto dto,
             Authentication authentication
     ) {
         log.info("Atualizando textos institucionais e metadados SEO da Home");

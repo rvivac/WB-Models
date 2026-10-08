@@ -2,6 +2,7 @@ package com.wbscouting.api.service.submission;
 
 import com.wbscouting.api.dto.CandidateSubmissionResponseDto;
 import com.wbscouting.api.dto.UpdateSubmissionStatusDto;
+import com.wbscouting.api.dto.model.ModelAdminResponseDto;
 import com.wbscouting.api.dto.model.ModelResponseDto;
 import com.wbscouting.api.dto.submission.CandidateStatusUpdateDto;
 import com.wbscouting.api.entity.CandidatePhoto;
@@ -21,6 +22,7 @@ import com.wbscouting.api.repository.CandidatePhotoRepository;
 import com.wbscouting.api.repository.CandidateSubmissionRepository;
 import com.wbscouting.api.repository.ModelMediaRepository;
 import com.wbscouting.api.repository.ModelRepository;
+import com.wbscouting.api.service.audit.AuditLogService;
 import com.wbscouting.api.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,8 +38,8 @@ import org.springframework.util.StringUtils;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 
 @Slf4j
@@ -51,6 +53,10 @@ public class CandidateSubmissionAdminServiceImpl implements CandidateSubmissionA
     private final CandidatePhotoRepository candidatePhotoRepository;
     private final StorageService storageService;
     private final ApplicationEventPublisher eventPublisher;
+    private final AuditLogService auditLogService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.wbscouting.api.repository.CandidateRepository candidateRepository;
 
     @Value("${supabase.buckets.candidates-uploads:candidates-uploads}")
     private String candidatesBucketName;
@@ -74,12 +80,35 @@ public class CandidateSubmissionAdminServiceImpl implements CandidateSubmissionA
 
     @Override
     @Transactional
+    public CandidateSubmissionResponseDto updateStatus(UUID id, CandidateStatusUpdateDto dto, String adminEmail) {
+        CandidateSubmission submission = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Candidatura não encontrada: " + id));
+
+        SubmissionStatus newStatus = dto.getStatus();
+
+        // Não permitir reverter se já promovido
+        if (submission.getPromotedModelId() != null) {
+            throw new BusinessException("Candidatura já promovida a modelo não pode ter seu status alterado.");
+        }
+
+        submission.setStatus(newStatus != null ? newStatus.name() : null);
+        submission.setFeedbackNotes(dto.getFeedbackNotes());
+        submission.setReviewedBy(adminEmail);
+        submission.setReviewedAt(OffsetDateTime.now());
+
+        CandidateSubmission updated = repository.save(submission);
+
+        if (updated.getStatus() == SubmissionStatus.APPROVED) {
+            eventPublisher.publishEvent(new CandidateApprovedEvent(this, updated, adminEmail));
+        }
+
+        return CandidateSubmissionResponseDto.fromEntity(updated);
+    }
+
+    @Override
+    @Transactional
     public CandidateSubmissionResponseDto updateSubmissionStatus(UUID id, CandidateStatusUpdateDto updateDto, String reviewer) {
-        UpdateSubmissionStatusDto dto = UpdateSubmissionStatusDto.builder()
-                .status(updateDto.getStatus())
-                .adminNotes(updateDto.getFeedbackNotes())
-                .build();
-        return updateSubmissionStatus(id, dto, reviewer);
+        return updateStatus(id, updateDto, reviewer);
     }
 
     @Override
@@ -245,8 +274,136 @@ public class CandidateSubmissionAdminServiceImpl implements CandidateSubmissionA
 
     @Override
     @Transactional
+    public ModelAdminResponseDto promoteToModel(UUID submissionId, String adminEmail) {
+        CandidateSubmission submission = repository.findById(submissionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Candidatura não encontrada: " + submissionId));
+
+        String statusStr = submission.getStatus() != null ? submission.getStatus().name() : "";
+        if (!"APPROVED".equalsIgnoreCase(statusStr)) {
+            throw new BusinessException("Apenas candidaturas aprovadas podem ser promovidas a casting.");
+        }
+
+        if (submission.getPromotedModelId() != null) {
+            throw new DuplicatePromotionException("Esta candidatura já foi promovida ao casting.");
+        }
+
+        // 1. Criar e Persistir o Modelo
+        Integer heightCm = null;
+        if (submission.getHeight() != null) {
+            if (submission.getHeight().compareTo(BigDecimal.valueOf(3)) < 0) {
+                heightCm = submission.getHeight().multiply(BigDecimal.valueOf(100)).intValue();
+            } else {
+                heightCm = submission.getHeight().intValue();
+            }
+        }
+
+        GenderType gender = (submission.getGender() == SubmissionGender.FEMALE) ? GenderType.FEMALE : GenderType.MALE;
+
+        Model model = Model.builder()
+                .stageName(submission.getFullName())
+                .gender(gender)
+                .isActive(true)
+                .isStar(false)
+                .isFeaturedHome(false)
+                .birthDate(submission.getBirthDate())
+                .heightCm(heightCm)
+                .bustChestCm(submission.getBust())
+                .waistCm(submission.getWaist())
+                .hipsCm(submission.getHips())
+                .shoeSize(submission.getShoeSize() != null ? String.valueOf(submission.getShoeSize()) : null)
+                .hairColor(submission.getHairColor())
+                .eyesColor(submission.getEyeColor())
+                .city(submission.getCity())
+                .instagramUrl(submission.getInstagramHandle())
+                .primaryPhotoUrl(submission.getFacePhotoUrl())
+                .build();
+
+        Model savedModel = modelRepository.save(model);
+
+        // 2. Migrar Fotos para model_media
+        List<ModelMedia> mediaList = new ArrayList<>();
+
+        if (submission.getFacePhotoUrl() != null && !submission.getFacePhotoUrl().isBlank()) {
+            mediaList.add(ModelMedia.builder()
+                    .model(savedModel)
+                    .mediaType(MediaType.POLAROID)
+                    .fileUrl(submission.getFacePhotoUrl())
+                    .filePath("migrated/face_" + savedModel.getId())
+                    .displayOrder(0)
+                    .isCover(true)
+                    .isActive(true)
+                    .build());
+        }
+
+        if (submission.getProfilePhotoUrl() != null && !submission.getProfilePhotoUrl().isBlank()) {
+            mediaList.add(ModelMedia.builder()
+                    .model(savedModel)
+                    .mediaType(MediaType.POLAROID)
+                    .fileUrl(submission.getProfilePhotoUrl())
+                    .filePath("migrated/profile_" + savedModel.getId())
+                    .displayOrder(1)
+                    .isCover(false)
+                    .isActive(true)
+                    .build());
+        }
+
+        if (submission.getFullBodyPhotoUrl() != null && !submission.getFullBodyPhotoUrl().isBlank()) {
+            mediaList.add(ModelMedia.builder()
+                    .model(savedModel)
+                    .mediaType(MediaType.POLAROID)
+                    .fileUrl(submission.getFullBodyPhotoUrl())
+                    .filePath("migrated/fullbody_" + savedModel.getId())
+                    .displayOrder(2)
+                    .isCover(false)
+                    .isActive(true)
+                    .build());
+        }
+
+        if (!mediaList.isEmpty()) {
+            modelMediaRepository.saveAll(mediaList);
+        }
+
+        // 3. Vincular promoção e retirar da esteira de candidaturas ativas
+        submission.setPromotedModelId(savedModel.getId());
+        submission.setStatus("PROMOTED");
+        submission.setArchivedAt(OffsetDateTime.now());
+        repository.save(submission);
+
+        if (candidateRepository != null) {
+            try {
+                if (submission.getProtocol() != null) {
+                    candidateRepository.findByProtocol(submission.getProtocol()).ifPresent(c -> {
+                        c.setStatus(com.wbscouting.api.enums.CandidateStatus.ARCHIVED);
+                        c.setUpdatedAt(OffsetDateTime.now());
+                        candidateRepository.save(c);
+                    });
+                }
+                candidateRepository.findById(submissionId).ifPresent(c -> {
+                    c.setStatus(com.wbscouting.api.enums.CandidateStatus.ARCHIVED);
+                    c.setUpdatedAt(OffsetDateTime.now());
+                    candidateRepository.save(c);
+                });
+            } catch (Exception ignored) {}
+        }
+
+        auditLogService.logAction(adminEmail, "PROMOTE_CANDIDATE", "CandidateSubmission", 
+                submission.getId().toString(), "Promovido para modelo ID: " + savedModel.getId());
+
+        eventPublisher.publishEvent(new CandidatePromotedToCastingEvent(
+                this,
+                submission,
+                savedModel.getId(),
+                adminEmail,
+                mediaList.size()
+        ));
+
+        return toAdminResponseDto(savedModel);
+    }
+
+    @Override
+    @Transactional
     public CandidateSubmissionResponseDto promoteToModel(UUID submissionId, String reviewer, Boolean activateImmediately) {
-        promoteCandidateToModel(submissionId, reviewer, activateImmediately);
+        promoteToModel(submissionId, reviewer);
         CandidateSubmission updated = repository.findById(submissionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Candidatura não encontrada com ID: " + submissionId));
         return CandidateSubmissionResponseDto.fromEntity(updated);
@@ -254,66 +411,115 @@ public class CandidateSubmissionAdminServiceImpl implements CandidateSubmissionA
 
     @Override
     @Transactional
-    public void deleteSubmission(UUID submissionId, String operator) {
-        log.warn("[HARD-DELETE] Operador '{}' solicitou exclusão definitiva da candidatura ID: {}", operator, submissionId);
+    public void deletePermanently(UUID id, String adminEmail) {
+        CandidateSubmission submission = repository.findById(id).orElse(null);
 
-        CandidateSubmission submission = repository.findById(submissionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Candidatura não encontrada com ID: " + submissionId));
-
-        // ================================
-        // REGRA ADM-018: SÓ EXCLUI SE DECLINED
-        // ================================
-        // Também aceitamos REJECTED como alias LEGADO para não travar registros antigos.
-        SubmissionStatus status = submission.getStatus();
-        boolean isDeclinedOrLegacyRejected =
-                status == SubmissionStatus.DECLINED || status == SubmissionStatus.REJECTED;
-
-        if (!isDeclinedOrLegacyRejected) {
-            throw new BusinessException(
-                    "Apenas candidaturas com status DECLINADO podem ser excluídas definitivamente. " +
-                    "Status atual: '" + status + "'. Decline a candidatura primeiro."
-            );
+        if (submission == null && candidateRepository != null) {
+            Optional<com.wbscouting.api.entity.Candidate> optC = candidateRepository.findById(id);
+            if (optC.isPresent()) {
+                com.wbscouting.api.entity.Candidate c = optC.get();
+                if (c.getProtocol() != null) {
+                    submission = repository.findByProtocol(c.getProtocol()).orElse(null);
+                }
+                if (submission == null) {
+                    if (c.getStatus() != com.wbscouting.api.enums.CandidateStatus.REJECTED) {
+                        throw new BusinessException("Apenas candidaturas com status DECLINADO podem ser permanentemente excluídas.");
+                    }
+                    candidateRepository.delete(c);
+                    auditLogService.logAction(adminEmail, "PURGE_CANDIDATE", "Candidate", 
+                            id.toString(), "Candidatura expurgada definitivamente.");
+                    return;
+                }
+            }
         }
 
-        // ================================
-        // PASSO 1: Remover arquivos físicos no Supabase Storage
-        // ================================
+        if (submission == null) {
+            throw new ResourceNotFoundException("Candidatura não encontrada: " + id);
+        }
+
+        // Trava de segurança: só pode excluir se for DECLINADO (REJECTED ou DECLINED)
+        String statusStr = submission.getStatus() != null ? submission.getStatus().name() : "";
+        boolean isDeclinedOrRejected = "REJECTED".equalsIgnoreCase(statusStr) || "DECLINED".equalsIgnoreCase(statusStr);
+
+        if (!isDeclinedOrRejected) {
+            throw new BusinessException("Apenas candidaturas com status DECLINADO podem ser permanentemente excluídas.");
+        }
+
+        // 1. Excluir fotos do Supabase Storage
+        purgeStorageFiles(submission);
+
+        // 2. Remover do banco
+        repository.delete(submission);
+        if (candidateRepository != null) {
+            try {
+                if (submission.getProtocol() != null) {
+                    candidateRepository.findByProtocol(submission.getProtocol()).ifPresent(candidateRepository::delete);
+                }
+                candidateRepository.findById(id).ifPresent(candidateRepository::delete);
+            } catch (Exception ignored) {}
+        }
+
+        auditLogService.logAction(adminEmail, "PURGE_CANDIDATE", "CandidateSubmission", 
+                id.toString(), "Candidatura e fotos expurgadas definitivamente.");
+    }
+
+    @Override
+    @Transactional
+    public void deleteSubmission(UUID submissionId, String operator) {
+        deletePermanently(submissionId, operator);
+    }
+
+    private void purgeStorageFiles(CandidateSubmission submission) {
         try {
             List<CandidatePhoto> photos = candidatePhotoRepository
-                    .findByCandidateIdOrderByDisplayOrderAsc(submissionId);
+                    .findByCandidateIdOrderByDisplayOrderAsc(submission.getId());
 
             for (CandidatePhoto photo : photos) {
                 String path = resolveStoragePath(photo);
                 if (StringUtils.hasText(path)) {
                     try {
                         storageService.deleteFile(candidatesBucketName, path);
-                        log.info("[HARD-DELETE][STORAGE] Arquivo removido do bucket {}: {}", candidatesBucketName, path);
+                        log.info("[PURGE][STORAGE] Arquivo removido do bucket {}: {}", candidatesBucketName, path);
                     } catch (Exception ex) {
-                        log.warn("[HARD-DELETE][STORAGE] Falha ao remover arquivo {} (continuando por causa do cascade DB). Motivo: {}",
-                                path, ex.getMessage());
+                        log.warn("[PURGE][STORAGE] Falha ao remover arquivo {}: {}", path, ex.getMessage());
                     }
                 }
             }
 
-            // Também tenta apagar as 3 URLs de foto canonizadas na submission
-            // (Algumas submissões antigas não tem linha em candidate_photos e só usam face/profile/body URL)
             tryDeleteRawPhotoUrl(submission.getFacePhotoUrl(), "face");
             tryDeleteRawPhotoUrl(submission.getProfilePhotoUrl(), "profile");
             tryDeleteRawPhotoUrl(submission.getFullBodyPhotoUrl(), "body");
 
         } catch (Exception storageEx) {
-            log.error("[HARD-DELETE][STORAGE] Erro na rotina de exclusão de arquivos. Continuando para o cascade do DB. Motivo: {}",
-                    storageEx.getMessage(), storageEx);
+            log.error("[PURGE][STORAGE] Erro na rotina de exclusão de arquivos: {}", storageEx.getMessage());
         }
+    }
 
-        // ================================
-        // PASSO 2: Exclui a submission do banco
-        //         (ON DELETE CASCADE remove automaticamente as linhas em candidate_photos)
-        // ================================
-        repository.delete(submission);
-
-        log.info("[HARD-DELETE][COMMIT] Candidatura ID: {} (protocolo={}) excluída definitivamente por '{}'. Fotos em cascade e arquivos de storage removidos.",
-                submission.getId(), submission.getProtocol(), operator);
+    private ModelAdminResponseDto toAdminResponseDto(Model model) {
+        return ModelAdminResponseDto.builder()
+                .id(model.getId())
+                .stageName(model.getStageName())
+                .gender(model.getGender())
+                .isActive(model.getIsActive())
+                .isStar(model.getIsStar())
+                .isFeaturedHome(model.getIsFeaturedHome())
+                .featuredOrder(model.getFeaturedOrder())
+                .birthDate(model.getBirthDate())
+                .heightCm(model.getHeightCm())
+                .bustChestCm(model.getBustChestCm())
+                .waistCm(model.getWaistCm())
+                .hipsCm(model.getHipsCm())
+                .shoeSize(model.getShoeSize())
+                .hairColor(model.getHairColor())
+                .eyesColor(model.getEyesColor())
+                .city(model.getCity())
+                .nationality(model.getNationality())
+                .dressSize(model.getDressSize())
+                .instagramUrl(model.getInstagramUrl())
+                .primaryPhotoUrl(model.getPrimaryPhotoUrl())
+                .createdAt(model.getCreatedAt())
+                .updatedAt(model.getUpdatedAt())
+                .build();
     }
 
     // ============================================================

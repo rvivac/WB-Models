@@ -1,6 +1,5 @@
 package com.wbscouting.api.controller.publicapi;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wbscouting.api.dto.publicapi.ModelCardPublicDto;
 import com.wbscouting.api.enums.GenderType;
 import com.wbscouting.api.security.JwtAuthenticationEntryPoint;
@@ -34,9 +33,6 @@ class PublicModelControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @MockitoBean
     private PublicModelService publicModelService;

@@ -103,7 +103,7 @@ class AdminCandidateQueryServiceImplTest {
     @DisplayName("Deve listar candidaturas com PageResponseDto e contagem agregada de fotos sem gerar Signed URLs")
     void listCandidates_ReturnsPageResponseDto() {
         Page<Candidate> candidatePage = new PageImpl<>(List.of(candidate));
-        when(candidateRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(candidatePage);
+        when(candidateRepository.findAll(org.mockito.ArgumentMatchers.<Specification<Candidate>>any(), any(Pageable.class))).thenReturn(candidatePage);
         when(candidatePhotoRepository.countPhotosByCandidateIds(List.of(candidateId)))
                 .thenReturn(List.<Object[]>of(new Object[]{candidateId, 2L}));
 

@@ -1,9 +1,7 @@
 package com.wbscouting.api.controller.publicapi;
 
 import com.wbscouting.api.dto.model.FeaturedModelResponseDto;
-import com.wbscouting.api.dto.publicapi.ModelCardPublicDto;
 import com.wbscouting.api.service.model.FeaturedModelService;
-import com.wbscouting.api.service.publicapi.PublicModelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +18,6 @@ import java.util.concurrent.TimeUnit;
 public class PublicFeaturedModelsController {
 
     private final FeaturedModelService featuredModelService;
-    private final PublicModelService publicModelService;
 
     @GetMapping
     public ResponseEntity<List<FeaturedModelResponseDto>> getFeaturedModels() {

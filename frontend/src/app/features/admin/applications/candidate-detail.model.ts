@@ -30,7 +30,9 @@ export interface CandidateDetail {
     hair: string;
   };
   photos: CandidateMedia[];
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'PROMOTED';
+  promotedModelId?: string;
+  convertedToModelId?: string;
   internalNotes?: string;
   lgpdConsent: boolean;
   lgpdConsentAt: string;

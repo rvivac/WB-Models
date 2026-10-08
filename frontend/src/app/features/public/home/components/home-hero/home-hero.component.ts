@@ -119,8 +119,9 @@ export class HomeHeroComponent implements OnInit, AfterViewInit, OnDestroy {
           const videoUrl = settings.videoUrl ? settings.videoUrl.replace(/^\/assets\//, 'assets/') : 'assets/videos/wb-presentation.mp4';
           const posterImageUrl = settings.bannerImageUrl ? settings.bannerImageUrl.replace(/^\/assets\//, 'assets/') : 'assets/images/hero-poster.jpg';
           this.heroData.set({
-            title: settings.heroTitle || 'WB AGENCY',
-            subtitle: settings.heroSubtitle || 'HIGH FASHION & SCOUTING',
+            title: settings.heroTitle ?? '',
+            subtitle: settings.heroSubtitle ?? '',
+            description: settings.heroDescription ?? '',
             videoUrl,
             posterImageUrl,
             ctaText: 'Ver Elenco',

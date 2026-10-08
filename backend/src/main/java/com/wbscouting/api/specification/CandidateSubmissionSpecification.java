@@ -70,6 +70,7 @@ public class CandidateSubmissionSpecification {
             // ============================================================
             if (includePromoted == null || !Boolean.TRUE.equals(includePromoted)) {
                 predicates.add(cb.notEqual(root.get("status"), SubmissionStatus.PROMOTED));
+                predicates.add(cb.isNull(root.get("convertedToModelId")));
             }
 
             // 1. Busca textual em fullName, email, city ou protocol

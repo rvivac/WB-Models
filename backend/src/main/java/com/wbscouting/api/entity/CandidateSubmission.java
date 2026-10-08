@@ -208,6 +208,15 @@ public class CandidateSubmission {
     public void setReviewedAt(OffsetDateTime reviewedAt) { this.reviewedAt = reviewedAt; }
     public void setFeedbackNotes(String feedbackNotes) { this.feedbackNotes = feedbackNotes; }
     public void setConvertedToModelId(UUID convertedToModelId) { this.convertedToModelId = convertedToModelId; }
+    public UUID getPromotedModelId() { return this.convertedToModelId; }
+    public void setPromotedModelId(UUID promotedModelId) { this.convertedToModelId = promotedModelId; }
+    public void setStatus(String statusStr) {
+        if (statusStr != null) {
+            try {
+                this.status = SubmissionStatus.valueOf(statusStr.toUpperCase());
+            } catch (Exception ignored) {}
+        }
+    }
     public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
     public void setUpdatedAt(OffsetDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

@@ -202,7 +202,11 @@ export class CandidateTableComponent implements OnInit {
 
     this.http.get<any>(`${environment.apiUrl}/admin/applications`, { params }).subscribe({
       next: (res) => {
-        const items = res.content || [];
+        const rawItems = res.content || [];
+        // Filtro estrito: candidatos já promovidos ao casting não devem ser renderizados no Scouting Desk
+        const items = rawItems.filter((item: any) =>
+          item.status !== 'PROMOTED' && !item.promotedModelId && !item.convertedToModelId
+        );
         this.applications = items.map((item: any) => {
           // ================================================================
           // 🆕 SOLUCAO SEM LÓGICA, SEM REGEX, 100% INFALIVEL:
@@ -340,28 +344,33 @@ export class CandidateTableComponent implements OnInit {
     if (!candidate || this.isPromotingId) return;
 
     this.isPromotingId = candidate.id;
-    const url = `${environment.apiUrl}/admin/candidates/${candidate.id}/promote-to-model`;
+    const url = `${environment.apiUrl}/admin/applications/${candidate.id}/promote`;
     const fallbackUrl = `${environment.apiUrl}/admin/applications/${candidate.id}/promote-to-model`;
 
     this.http.post<any>(url, null).pipe(
       catchError(() => this.http.post<any>(fallbackUrl, null))
     ).subscribe({
-      next: (res) => {
+      next: () => {
         this.isPromotingId = null;
         this.applications = this.applications.filter(a => a.id !== candidate.id);
         this.totalElements = Math.max(0, this.totalElements - 1);
         this.loadCounts();
-        this.showFeedback(`Candidato(a) "${candidate.fullName}" promovido(a) a Modelo! Criado no elenco oficial.`);
+        this.showFeedback(`Candidato(a) "${candidate.fullName}" promovido(a) a Casting com sucesso! Perfil criado em /admin/models.`);
       },
-      error: () => {
+      error: (err) => {
         this.isPromotingId = null;
-        this.showFeedback('Erro ao promover candidato. Tente novamente.');
+        const msg = err?.error?.message || 'Erro ao promover candidato. Tente novamente.';
+        this.showFeedback(msg);
       }
     });
   }
 
   openArchiveModal(candidate: CandidateApplicationRow, event: Event): void {
     event.stopPropagation();
+    if (candidate.status !== 'REJECTED') {
+      this.showFeedback('Apenas candidaturas com status DECLINADO podem ser permanentemente excluídas.');
+      return;
+    }
     this.candidateToArchive = candidate;
     this.isArchiveModalOpen = true;
   }
@@ -376,8 +385,8 @@ export class CandidateTableComponent implements OnInit {
     const candidate = this.candidateToArchive;
     this.isArchiving = true;
 
-    const url = `${environment.apiUrl}/admin/candidates/${candidate.id}`;
-    const fallbackUrl = `${environment.apiUrl}/admin/applications/${candidate.id}`;
+    const url = `${environment.apiUrl}/admin/applications/${candidate.id}`;
+    const fallbackUrl = `${environment.apiUrl}/admin/candidates/${candidate.id}`;
 
     this.http.delete(url).pipe(
       catchError(() => this.http.delete(fallbackUrl))
@@ -388,13 +397,14 @@ export class CandidateTableComponent implements OnInit {
         this.applications = this.applications.filter(a => a.id !== candidate.id);
         this.totalElements = Math.max(0, this.totalElements - 1);
         this.loadCounts();
-        this.showFeedback(`Candidato(a) "${candidate.fullName}" movido(a) para o Arquivo Morto.`);
+        this.showFeedback(`Candidato(a) "${candidate.fullName}" e suas mídias foram permanentemente excluídos.`);
         this.candidateToArchive = null;
       },
-      error: () => {
+      error: (err) => {
         this.isArchiving = false;
         this.isArchiveModalOpen = false;
-        this.showFeedback('Erro ao mover para o Arquivo Morto. Tente novamente.');
+        const msg = err?.error?.message || 'Erro ao excluir definitivamente a candidatura.';
+        this.showFeedback(msg);
         this.candidateToArchive = null;
       }
     });

@@ -34,11 +34,20 @@
   <!-- Overlay Editorial com transição suave para o fundo claro (#FBFBF9) -->
   <div class="hero-overlay absolute inset-0 z-10"></div>
 
-  <!-- Conteúdo Editorial: Título & Subtítulo da Home (Supabase) -->
-  <div class="hero-content">
-    <h1 class="hero-headline">{{ heroData().title || 'WB AGENCY' }}</h1>
-    <p class="hero-manifesto">{{ heroData().subtitle || 'HIGH FASHION & SCOUTING' }}</p>
-  </div>
+  <!-- Conteúdo Editorial: Título, Subtítulo & Descrição da Home com Renderização Segura -->
+  @if (heroData().title || heroData().subtitle || heroData().description) {
+    <div class="hero-content">
+      @if (heroData().title) {
+        <h1 class="hero-headline">{{ heroData().title }}</h1>
+      }
+      @if (heroData().subtitle) {
+        <p class="hero-manifesto">{{ heroData().subtitle }}</p>
+      }
+      @if (heroData().description) {
+        <p class="hero-manifesto text-xs max-w-xl opacity-80 mt-1">{{ heroData().description }}</p>
+      }
+    </div>
+  }
 
   <!-- Controlo de Áudio Editorial (Mute/Unmute) imediatamente acima do scroll -->
   @if (!isVideoError()) {

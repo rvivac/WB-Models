@@ -95,7 +95,7 @@ class CandidateSubmissionAdminServiceTest {
     @DisplayName("listSubmissions - Deve retornar página mapeada para DTO")
     void shouldListSubmissions() {
         Page<CandidateSubmission> page = new PageImpl<>(List.of(sampleSubmission));
-        when(repository.findAll(nullable(Specification.class), any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
+        when(repository.findAll(org.mockito.ArgumentMatchers.<Specification<CandidateSubmission>>any(), any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
 
         Page<CandidateSubmissionResponseDto> result = adminService.listSubmissions(null, PageRequest.of(0, 10));
 
@@ -229,7 +229,7 @@ class CandidateSubmissionAdminServiceTest {
                 .isInstanceOf(com.wbscouting.api.exception.DuplicatePromotionException.class)
                 .hasMessageContaining("já foi promovida");
 
-        verify(modelRepository, never()).save(any());
+        verify(modelRepository, never()).save(any(Model.class));
     }
 
     @Test

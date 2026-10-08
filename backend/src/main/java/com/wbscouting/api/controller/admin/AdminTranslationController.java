@@ -51,15 +51,15 @@ public class AdminTranslationController {
         if (dto.getTranslations() != null) {
             itemsToSave.putAll(dto.getTranslations());
         }
-        if (dto.getKey() != null && dto.getValue() != null) {
-            itemsToSave.put(dto.getKey(), dto.getValue());
+        if (dto.getKey() != null && !dto.getKey().isBlank()) {
+            itemsToSave.put(dto.getKey(), dto.getValue() != null ? dto.getValue() : "");
         }
 
         int updatedCount = 0;
         for (Map.Entry<String, String> entry : itemsToSave.entrySet()) {
             String key = entry.getKey();
-            String value = entry.getValue();
-            if (key == null || value == null) continue;
+            if (key == null || key.isBlank()) continue;
+            String value = entry.getValue() != null ? entry.getValue() : "";
 
             Optional<Translation> existingOpt = translationRepository.findByLocaleAndKey(locale, key);
             Translation entity;

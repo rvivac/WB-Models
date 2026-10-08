@@ -11,12 +11,10 @@ import com.wbscouting.api.enums.CandidateStatus;
 import com.wbscouting.api.enums.SubmissionGender;
 import com.wbscouting.api.enums.SubmissionStatus;
 import com.wbscouting.api.exception.ResourceNotFoundException;
-import com.wbscouting.api.repository.CandidatePhotoRepository;
 import com.wbscouting.api.repository.CandidateRepository;
 import com.wbscouting.api.repository.CandidateSubmissionRepository;
 import com.wbscouting.api.service.candidate.AdminCandidateService;
 import com.wbscouting.api.service.storage.StorageService;
-import com.wbscouting.api.service.submission.CandidateSubmissionAdminService;
 import com.wbscouting.api.specification.AdminCandidateSpecification;
 import com.wbscouting.api.specification.CandidateSubmissionSpecification;
 
@@ -29,11 +27,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import com.wbscouting.api.dto.ApiResponse;
+import com.wbscouting.api.dto.model.ModelAdminResponseDto;
+import com.wbscouting.api.service.submission.CandidateSubmissionAdminService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import com.wbscouting.api.security.audit.AuditAction;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -51,10 +53,9 @@ import java.util.UUID;
 public class AdminApplicationController {
 
     private final CandidateRepository candidateRepository;
-    private final CandidatePhotoRepository candidatePhotoRepository;
     private final AdminCandidateService adminCandidateService;
     private final CandidateSubmissionRepository submissionRepository;
-    private final CandidateSubmissionAdminService candidateSubmissionAdminService;
+    private final CandidateSubmissionAdminService submissionAdminService;
     private final StorageService storageService;
     private final SupabaseProperties supabaseProperties;
 
@@ -261,26 +262,25 @@ public class AdminApplicationController {
     }
 
     @PostMapping({"/{id}/promote", "/{id}/promote-to-model"})
-    @AuditAction(action = "PROMOTE", resource = "SCOUTING_CANDIDATE", description = "Promoção de candidato para elenco de modelos")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> promoteCandidateToModel(
-            @PathVariable("id") UUID id,
-            @RequestParam(required = false, defaultValue = "true") Boolean activateImmediately,
-            Authentication authentication
-    ) {
-        String reviewerName = extractReviewerName(authentication);
-        log.info("Ação operacional de promoção para modelo da candidatura ID: {} por {}", id, reviewerName);
-        UUID modelId = adminCandidateService.promoteToModel(id, activateImmediately);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Candidato promovido a modelo com sucesso.", Map.of("modelId", modelId)));
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'WEBMASTER', 'CONTENT_ADMIN')")
+    public ResponseEntity<ApiResponse<ModelAdminResponseDto>> promote(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails,
+            Authentication authentication) {
+        String adminEmail = userDetails != null ? userDetails.getUsername() : extractReviewerName(authentication);
+        ModelAdminResponseDto model = submissionAdminService.promoteToModel(id, adminEmail);
+        return ResponseEntity.ok(ApiResponse.success("Candidato promovido a casting com sucesso", model));
     }
 
     @DeleteMapping("/{id}")
-    @AuditAction(action = "ARCHIVE", resource = "SCOUTING_CANDIDATE", description = "Mover candidatura para Arquivo Morto")
-    public ResponseEntity<Void> deleteApplication(@PathVariable UUID id) {
-        log.info("Iniciando arquivamento (soft delete) da candidatura ID: {}", id);
-        adminCandidateService.deleteCandidate(id);
-        log.info("Candidatura ID: {} movida para Arquivo Morto com sucesso.", id);
-        return ResponseEntity.noContent().build();
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'WEBMASTER', 'CONTENT_ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> delete(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails,
+            Authentication authentication) {
+        String adminEmail = userDetails != null ? userDetails.getUsername() : extractReviewerName(authentication);
+        submissionAdminService.deletePermanently(id, adminEmail);
+        return ResponseEntity.ok(ApiResponse.success("Candidatura e mídias removidas com sucesso", null));
     }
 
     private void purgeCandidateFiles(CandidateSubmission submission) {

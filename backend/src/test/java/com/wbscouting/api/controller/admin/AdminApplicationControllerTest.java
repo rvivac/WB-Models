@@ -118,7 +118,7 @@ class AdminApplicationControllerTest {
     @Test
     @DisplayName("GET /api/v1/admin/applications deve retornar 200 OK com página de candidaturas")
     void listApplications_ReturnsOk() throws Exception {
-        when(submissionRepository.findAll(any(Specification.class), any(Pageable.class)))
+        when(submissionRepository.findAll(org.mockito.ArgumentMatchers.<Specification<CandidateSubmission>>any(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(submission)));
 
         mockMvc.perform(get("/api/v1/admin/applications")

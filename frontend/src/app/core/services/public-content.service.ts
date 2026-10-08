@@ -14,6 +14,7 @@ export interface HomeHeroPayload {
   posterImageUrl?: string;
   title?: string;
   subtitle?: string;
+  description?: string;
   ctaText?: string;
   ctaLink?: string;
 }

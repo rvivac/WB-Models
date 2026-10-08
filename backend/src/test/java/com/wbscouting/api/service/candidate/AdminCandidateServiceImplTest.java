@@ -116,7 +116,7 @@ class AdminCandidateServiceImplTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Candidate> candidatePage = new PageImpl<>(List.of(candidate), pageable, 1);
 
-        when(candidateRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(candidatePage);
+        when(candidateRepository.findAll(org.mockito.ArgumentMatchers.<Specification<Candidate>>any(), eq(pageable))).thenReturn(candidatePage);
         when(candidatePhotoRepository.countPhotosByCandidateIds(List.of(candidateId)))
                 .thenReturn(List.<Object[]>of(new Object[]{candidateId, 2L}));
 
@@ -140,7 +140,7 @@ class AdminCandidateServiceImplTest {
     @DisplayName("Deve retornar página vazia quando nenhuma candidatura for encontrada")
     void listCandidates_Empty() {
         Pageable pageable = PageRequest.of(0, 10);
-        when(candidateRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(Page.empty(pageable));
+        when(candidateRepository.findAll(org.mockito.ArgumentMatchers.<Specification<Candidate>>any(), eq(pageable))).thenReturn(Page.empty(pageable));
 
         Page<CandidateListItemAdminDto> result = adminCandidateService.listCandidates(
                 null, null, null, null, pageable

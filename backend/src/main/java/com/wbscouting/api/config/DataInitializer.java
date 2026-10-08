@@ -15,8 +15,6 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.HashSet;
 
 @Slf4j
 @Component
@@ -237,27 +235,6 @@ public class DataInitializer implements CommandLineRunner {
                 defaultEmail, AdminRole.WEBMASTER, defaultEmail, defaultPassword);
     }
 
-    private void upsertAdminInicialLocal() {
-        try {
-            var opt = adminRepository.findByEmail(defaultEmail.trim().toLowerCase());
-            if (opt.isPresent()) {
-                Admin a = opt.get();
-                a.setName(defaultName);
-                a.setPasswordHash(passwordEncoder.encode(defaultPassword));
-                a.setRole(AdminRole.WEBMASTER);
-                a.setIsActive(true);
-                a.setMustChangePassword(false);
-                a.setIs2faEnabled(false);
-                adminRepository.save(a);
-                log.info("[ADMIN INIT][H2] Admin ATUALIZADO via UPSERT: {}. Senha atualizada.", defaultEmail);
-            } else {
-                criarAdminInicial();
-            }
-        } catch (Exception e) {
-            log.warn("[ADMIN INIT][H2] Falhou findByEmail UPSERT local. Criando admin novo. Motivo: {}", e.getMessage());
-            criarAdminInicial();
-        }
-    }
 
     private void inserirModelosExemploH2() {
         String[] nomes = {

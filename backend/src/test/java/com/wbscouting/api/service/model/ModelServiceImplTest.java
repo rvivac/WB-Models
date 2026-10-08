@@ -175,7 +175,7 @@ class ModelServiceImplTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Model> page = new PageImpl<>(List.of(model), pageable, 1);
 
-        when(modelRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
+        when(modelRepository.findAll(org.mockito.ArgumentMatchers.<Specification<Model>>any(), eq(pageable))).thenReturn(page);
 
         Page<ModelAdminResponseDto> result = modelService.listAdminModels(GenderType.FEMALE, true, true, "Gisele", pageable);
 

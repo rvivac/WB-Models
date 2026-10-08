@@ -9,7 +9,6 @@ import com.wbscouting.api.entity.ModelMedia;
 import com.wbscouting.api.enums.GenderType;
 import com.wbscouting.api.enums.MediaType;
 import com.wbscouting.api.exception.ResourceNotFoundException;
-import com.wbscouting.api.repository.ModelMediaRepository;
 import com.wbscouting.api.repository.ModelRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,7 +25,6 @@ import org.springframework.data.jpa.domain.Specification;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,9 +37,6 @@ class PublicModelServiceImplTest {
 
     @Mock
     private ModelRepository modelRepository;
-
-    @Mock
-    private ModelMediaRepository modelMediaRepository;
 
     @Mock
     private PublicModelDetailService publicModelDetailService;
@@ -99,7 +94,7 @@ class PublicModelServiceImplTest {
     @DisplayName("Deve listar casting público com paginação e filtros")
     void listModels_Success() {
         Page<Model> page = new PageImpl<>(List.of(model));
-        when(modelRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+        when(modelRepository.findAll(org.mockito.ArgumentMatchers.<Specification<Model>>any(), any(Pageable.class))).thenReturn(page);
 
         PageResponseDto<ModelCardPublicDto> response = publicModelService.listModels(GenderType.FEMALE, true, 0, 24);
 

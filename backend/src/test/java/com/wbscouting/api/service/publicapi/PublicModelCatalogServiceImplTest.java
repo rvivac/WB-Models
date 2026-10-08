@@ -77,7 +77,7 @@ class PublicModelCatalogServiceImplTest {
     @DisplayName("Deve listar modelos ativos e resolver foto de capa priorizando is_cover e primeira BOOK sem N+1")
     void shouldListActiveModelsWithPaginationAndCoverPhoto() {
         Page<Model> page = new PageImpl<>(List.of(model1, model2));
-        when(modelRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+        when(modelRepository.findAll(org.mockito.ArgumentMatchers.<Specification<Model>>any(), any(Pageable.class))).thenReturn(page);
 
         // Model 1 possui foto is_cover = true
         ModelMedia coverMediaModel1 = ModelMedia.builder()
@@ -129,7 +129,7 @@ class PublicModelCatalogServiceImplTest {
     @DisplayName("Deve usar fallback para primaryPhotoUrl se modelo não tiver fotos de mídia")
     void shouldFallbackToPrimaryPhotoUrlWhenNoMedia() {
         Page<Model> page = new PageImpl<>(List.of(model1));
-        when(modelRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+        when(modelRepository.findAll(org.mockito.ArgumentMatchers.<Specification<Model>>any(), any(Pageable.class))).thenReturn(page);
         when(modelMediaRepository.findByModelIdInAndIsActiveTrueOrderByDisplayOrderAsc(List.of(modelId1)))
                 .thenReturn(Collections.emptyList());
 
@@ -142,13 +142,13 @@ class PublicModelCatalogServiceImplTest {
     @Test
     @DisplayName("Deve limitar o tamanho de página ao máximo de 48 itens")
     void shouldEnforceMaxPageSizeOf48() {
-        when(modelRepository.findAll(any(Specification.class), any(Pageable.class)))
+        when(modelRepository.findAll(org.mockito.ArgumentMatchers.<Specification<Model>>any(), any(Pageable.class)))
                 .thenReturn(Page.empty());
 
         catalogService.listModels(null, null, null, 0, 100, "stageName,asc");
 
         ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
-        verify(modelRepository).findAll(any(Specification.class), captor.capture());
+        verify(modelRepository).findAll(org.mockito.ArgumentMatchers.<Specification<Model>>any(), captor.capture());
 
         assertThat(captor.getValue().getPageSize()).isEqualTo(48);
     }
@@ -156,7 +156,7 @@ class PublicModelCatalogServiceImplTest {
     @Test
     @DisplayName("Deve retornar página vazia sem consultar mídias quando não houver modelos")
     void shouldReturnEmptyPageWhenNoModelsFound() {
-        when(modelRepository.findAll(any(Specification.class), any(Pageable.class)))
+        when(modelRepository.findAll(org.mockito.ArgumentMatchers.<Specification<Model>>any(), any(Pageable.class)))
                 .thenReturn(Page.empty());
 
         PageResponseDto<ModelCardPublicDto> result = catalogService.listModels(null, null, null, 0, 24, null);

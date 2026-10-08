@@ -1,9 +1,6 @@
 package com.wbscouting.api.controller.publicapi;
 
 import com.wbscouting.api.dto.publicapi.ModelCardPublicDto;
-import com.wbscouting.api.dto.publicapi.ModelDetailPublicDto;
-import com.wbscouting.api.dto.publicapi.PageResponseDto;
-import com.wbscouting.api.enums.GenderType;
 import com.wbscouting.api.service.publicapi.PublicModelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.CacheControl;
@@ -11,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @RestController

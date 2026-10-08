@@ -14,12 +14,9 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,7 +48,6 @@ class JwtForgedTokenRejectionTest {
     private FilterChain filterChain;
 
     private Admin admin;
-    private UserDetails userDetails;
 
     @BeforeEach
     void setUp() {
@@ -73,12 +69,6 @@ class JwtForgedTokenRejectionTest {
                 .role(AdminRole.SUPER_ADMIN)
                 .isActive(true)
                 .build();
-
-        userDetails = new User(
-                "admin@wbscouting.com",
-                "hashed-secret",
-                Collections.emptyList()
-        );
     }
 
     @AfterEach

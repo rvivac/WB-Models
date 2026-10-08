@@ -90,7 +90,7 @@ public class AdminInstitutionalContactController {
             Object value = entry.getValue();
 
             if (("address".equals(key) || "socialMedia".equals(key)) && value instanceof Map<?, ?> nestedPatch) {
-                Map<String, Object> currentNested = payload.get(key) instanceof Map ? new LinkedHashMap<>((Map<String, Object>) payload.get(key)) : new LinkedHashMap<>();
+                Map<String, Object> currentNested = new LinkedHashMap<>(castToMap(payload.get(key)));
                 for (Map.Entry<?, ?> nestedEntry : nestedPatch.entrySet()) {
                     if (nestedEntry.getKey() != null) {
                         currentNested.put(nestedEntry.getKey().toString(), nestedEntry.getValue());
@@ -231,12 +231,24 @@ public class AdminInstitutionalContactController {
         return map;
     }
 
-    @SuppressWarnings("unchecked")
+    private static Map<String, Object> castToMap(Object obj) {
+        if (obj instanceof Map<?, ?> map) {
+            Map<String, Object> result = new LinkedHashMap<>();
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                if (entry.getKey() != null) {
+                    result.put(entry.getKey().toString(), entry.getValue());
+                }
+            }
+            return result;
+        }
+        return Collections.emptyMap();
+    }
+
     private ContactSettingsDto toDto(SiteContent content) {
         Map<String, Object> pt = content.getPayloadPt() != null ? content.getPayloadPt() : Collections.emptyMap();
 
-        Map<String, Object> addrMap = pt.get("address") instanceof Map ? (Map<String, Object>) pt.get("address") : Collections.emptyMap();
-        Map<String, Object> smMap = pt.get("socialMedia") instanceof Map ? (Map<String, Object>) pt.get("socialMedia") : Collections.emptyMap();
+        Map<String, Object> addrMap = castToMap(pt.get("address"));
+        Map<String, Object> smMap = castToMap(pt.get("socialMedia"));
 
         ContactSettingsDto.AddressDto address = ContactSettingsDto.AddressDto.builder()
                 .street(getString(addrMap, "street", "Avenida Paulista, 1000"))

@@ -1,0 +1,473 @@
+{
+    "description": "DO NOT DELETE THIS FILE. This file is used to keep track of which files have been synced in the most recent deployment. If you delete this file a resync will need to be done (which can take a while) - read more: https://github.com/SamKirkland/FTP-Deploy-Action",
+    "version": "1.0.0",
+    "generatedTime": 1791457479199,
+    "data": [
+        {
+            "type": "file",
+            "name": ".htaccess",
+            "size": 746,
+            "hash": "c1a4d2638a0a4c4487085858169abd743a88ca1f928132b111f6e922a20d84a0"
+        },
+        {
+            "type": "file",
+            "name": "404.html",
+            "size": 42224,
+            "hash": "375807b07be115d3fbaa4e92bc3f5a05fd974f890f3d007d1298281cd8763742"
+        },
+        {
+            "type": "folder",
+            "name": "assets"
+        },
+        {
+            "type": "file",
+            "name": "chunk-333DXJ54.js",
+            "size": 29146,
+            "hash": "6d291815c4eb546efa0853e234760166f67b8ec0174529c3eaebfd510759dd16"
+        },
+        {
+            "type": "file",
+            "name": "chunk-5WBSDX54.js",
+            "size": 10055,
+            "hash": "ce36e257f5bb94108c5d428668ea09647e602bfb433a33e7850799893ba36475"
+        },
+        {
+            "type": "file",
+            "name": "chunk-6MVZYCBY.js",
+            "size": 502,
+            "hash": "0b613f5c0c9b7a71be4b4757b989132f972bda99000227da0f293372b022cd3e"
+        },
+        {
+            "type": "file",
+            "name": "chunk-7XJ6VY5G.js",
+            "size": 46993,
+            "hash": "ebbf06afea9a305c9ce04fbc0c23bbf7651eef62c7bf5501c87ac13b4e5d8869"
+        },
+        {
+            "type": "file",
+            "name": "chunk-BHSX4JBA.js",
+            "size": 98134,
+            "hash": "e30d46aa109a4ebe90c0634bfafe3bb84b10c211e9963b7889fc58e67d0acb6d"
+        },
+        {
+            "type": "file",
+            "name": "chunk-BYBNXNDE.js",
+            "size": 716,
+            "hash": "e214ae9f368f7d502d29bd9289e025e925d91da1e350fae5efbf06a6d7aed077"
+        },
+        {
+            "type": "file",
+            "name": "chunk-C6TY57VS.js",
+            "size": 59882,
+            "hash": "e6dbdbed9657fc29d9a255e186ac87672da7e8b47fc38a0d69c2e76aaf47d01e"
+        },
+        {
+            "type": "file",
+            "name": "chunk-C7ITHJUC.js",
+            "size": 21125,
+            "hash": "e08dc7cc86429d8a440f1fc069ed10d1915d90ecec9cf5108b7ff01185241d2f"
+        },
+        {
+            "type": "file",
+            "name": "chunk-CNEMRDJN.js",
+            "size": 5181,
+            "hash": "36352e7245421e17307ec33fc99e9ec79728e9b8ca0c1593c8c2014a872f29ee"
+        },
+        {
+            "type": "file",
+            "name": "chunk-DKYPH2DC.js",
+            "size": 28174,
+            "hash": "4aaa81bd5b54e829f7d96be2f844629b28d37244c980ff801c537bd21eb027c5"
+        },
+        {
+            "type": "file",
+            "name": "chunk-DLZI7GNT.js",
+            "size": 5007,
+            "hash": "d8e52d752e8ec5fa2d621e5c48ca464cc6ca54cdcdb774a76d5c7f2fcd3e8772"
+        },
+        {
+            "type": "file",
+            "name": "chunk-DPDZ57AH.js",
+            "size": 70892,
+            "hash": "7d8623e6dada5e3f4f1d722d42760ae33fb2feea2ee584f4829047292f5f6521"
+        },
+        {
+            "type": "file",
+            "name": "chunk-DSDAKM7C.js",
+            "size": 2465,
+            "hash": "efa72a9fde0fcb79ccd0f8ebef045b7ec4c806ec434b7fcf10ee02053652e4bc"
+        },
+        {
+            "type": "file",
+            "name": "chunk-ELVA5SHQ.js",
+            "size": 37937,
+            "hash": "bc37bc7996b20a92529e181b6b28ca2e43efe81ddf0e38a3a3cea0e368e4e848"
+        },
+        {
+            "type": "file",
+            "name": "chunk-GIT25Q7P.js",
+            "size": 4710,
+            "hash": "30138cfe688f83e1d15ef2693ecbd36e7d56b75b143062950be9e14b4903e72c"
+        },
+        {
+            "type": "file",
+            "name": "chunk-H242XCDH.js",
+            "size": 61062,
+            "hash": "e72128fb5452f97e6476ee651fcc17ee684d0a97880cd2d941b56648eadc1e63"
+        },
+        {
+            "type": "file",
+            "name": "chunk-HSQUVYG3.js",
+            "size": 51874,
+            "hash": "fa85330cb547a7fc4eff18eaa9f586d91e22c998b089eee1f0207b35a76283f7"
+        },
+        {
+            "type": "file",
+            "name": "chunk-JL7H4EZ4.js",
+            "size": 26195,
+            "hash": "0f44c8dec7c4045b11e1de0d29c44deeb11709c0131bc8210cc714113b384db6"
+        },
+        {
+            "type": "file",
+            "name": "chunk-KYD6NJWQ.js",
+            "size": 213,
+            "hash": "73e791b6532b0b0c6cde70cc3812fe42b98382835eb212b181dd6fef2633aceb"
+        },
+        {
+            "type": "file",
+            "name": "chunk-LZBIL2ER.js",
+            "size": 19149,
+            "hash": "25cc08305659a2faee7c1bb1869ac7d36fdd529cb53d629c369d9b765bdc42d6"
+        },
+        {
+            "type": "file",
+            "name": "chunk-M4XNQV5I.js",
+            "size": 22461,
+            "hash": "d3a3bd07dc7d19267e8fddf61db7de477833300b7bdd08cb9dcd4c20b75dce0d"
+        },
+        {
+            "type": "file",
+            "name": "chunk-OPMMLGQA.js",
+            "size": 43221,
+            "hash": "aebe51376809768b36372238fb56817404f693137b872f2acf9324296e61cef8"
+        },
+        {
+            "type": "file",
+            "name": "chunk-OCMRRBQX.js",
+            "size": 4703,
+            "hash": "056d3483efa1d86d009e7f7b27c949d325f1666c63c5cfba49b4ece56e6f4871"
+        },
+        {
+            "type": "file",
+            "name": "chunk-PKDFJE5N.js",
+            "size": 34157,
+            "hash": "3cdd3fc86435e732fc6eb313171c1575b4e7149f874bd26469f52de213557ac9"
+        },
+        {
+            "type": "file",
+            "name": "chunk-Q6IKI6XG.js",
+            "size": 22566,
+            "hash": "7c9cd1e46230e26bf611db67a6f38f56602dc77638c6a44fd1b3fe15accf6cc3"
+        },
+        {
+            "type": "file",
+            "name": "chunk-R3YVQDCN.js",
+            "size": 60100,
+            "hash": "2dd985b8c8cb6dc19664c54e83017edf6ce1bdf1bc3efdc9eab62f5e00b7246c"
+        },
+        {
+            "type": "file",
+            "name": "chunk-SAV34OLA.js",
+            "size": 40389,
+            "hash": "f834de4e3ee01e78a5de32a1619d42c3885a3de406c00fda4e36ce05456b5542"
+        },
+        {
+            "type": "file",
+            "name": "chunk-SM3HJO2I.js",
+            "size": 829,
+            "hash": "1fd0ab2e6c193986b9918d68acc90e85d1ac769a99ce567c876f02672fd21120"
+        },
+        {
+            "type": "file",
+            "name": "chunk-TBBWJRBK.js",
+            "size": 30590,
+            "hash": "aeb01cfaa25f640fa6c49ab7488d581c36b0264baec7f20fe73017b871dc3e2e"
+        },
+        {
+            "type": "file",
+            "name": "chunk-TBHHWGG4.js",
+            "size": 13022,
+            "hash": "165766658b45bb0c04c75163637d683fc412fa183de538b60df077d6008c7445"
+        },
+        {
+            "type": "file",
+            "name": "chunk-TG4UFLUY.js",
+            "size": 1418,
+            "hash": "b16102046c84e58f6e19357383645d29450278b40edf27fd40a7b31ccbdd5a4f"
+        },
+        {
+            "type": "file",
+            "name": "chunk-VMDOVCOZ.js",
+            "size": 40087,
+            "hash": "1f31136a28410b541f77078244aa0156aa0015602e827c4e3f34239049e7d40c"
+        },
+        {
+            "type": "file",
+            "name": "chunk-VSJQLFHR.js",
+            "size": 90004,
+            "hash": "ec5ee906530085f03b1dc5e65dcf62567996e4c69c76990ce7637fdec388cb91"
+        },
+        {
+            "type": "file",
+            "name": "chunk-W34PN23P.js",
+            "size": 9560,
+            "hash": "df5e5177246046de531c478b71cfd87ffe3a276854a02f913a7e05164b16aaaf"
+        },
+        {
+            "type": "file",
+            "name": "chunk-WDSCXD2J.js",
+            "size": 14969,
+            "hash": "7e2c409b383144749b3a89637c014427473320d42e691bd52a77f38a105ce896"
+        },
+        {
+            "type": "file",
+            "name": "chunk-XONYVYJ3.js",
+            "size": 18317,
+            "hash": "4cab55113ec899eacd56b62df5bde7297d75040dbbd32c421b7b95f5aa64567d"
+        },
+        {
+            "type": "file",
+            "name": "chunk-YBLLAUXD.js",
+            "size": 188991,
+            "hash": "9743c3f20f05b26fe9310705f809bd71dc69e2056694f8a5d8e609ff66656b92"
+        },
+        {
+            "type": "file",
+            "name": "chunk-YFUAH5PV.js",
+            "size": 16825,
+            "hash": "3f0ad1ae2a3b4ac4b227e03d4bb7d02ef3a2a3224e49a82075b5b4e6afc4793b"
+        },
+        {
+            "type": "file",
+            "name": "chunk-YT6RYQOQ.js",
+            "size": 4895,
+            "hash": "79a021b486d72fc6d59d64ca186bfaa0ff3da412495d2411a4cdc0dac07d1dc6"
+        },
+        {
+            "type": "file",
+            "name": "chunk-Z2HD5DMO.js",
+            "size": 680,
+            "hash": "a0dbe319db4e34d9b083dd7f4064b26d64388ac1b62c34da10c106859d5b5359"
+        },
+        {
+            "type": "file",
+            "name": "chunk-Z53DGSGO.js",
+            "size": 28753,
+            "hash": "1394fa8051c573f02c945619aa31234ca493ee55315f23bb286a3861b0fead53"
+        },
+        {
+            "type": "file",
+            "name": "chunk-ZIILAIDE.js",
+            "size": 35187,
+            "hash": "e07d124ab95b723d8c43e8477ae27c3e4e9945244abbec1a26499879ecdb0603"
+        },
+        {
+            "type": "file",
+            "name": "favicon.ico",
+            "size": 15086,
+            "hash": "f9102be80297c0529207607be5277b4f90bca89d65988fa1771b91c7894e815f"
+        },
+        {
+            "type": "file",
+            "name": "index.html",
+            "size": 42224,
+            "hash": "375807b07be115d3fbaa4e92bc3f5a05fd974f890f3d007d1298281cd8763742"
+        },
+        {
+            "type": "file",
+            "name": "main-XVG4SHE2.js",
+            "size": 73698,
+            "hash": "bc69d419a65a2392cd86b683ec7447d3ed983e5612f26bb6cb47e91e8ea32b25"
+        },
+        {
+            "type": "file",
+            "name": "polyfills-FFHMD2TL.js",
+            "size": 34519,
+            "hash": "69dcea045643dd0de998a3cd0ccbbb46b46bff2651a87a56c73c28eb208e8f98"
+        },
+        {
+            "type": "file",
+            "name": "styles-NRJYO46C.css",
+            "size": 68412,
+            "hash": "79dcf376411250d71c1cfbbbcd51fc59302e26e046bbd31735c1c4d3ae7dc2a1"
+        },
+        {
+            "type": "folder",
+            "name": "assets/i18n"
+        },
+        {
+            "type": "folder",
+            "name": "assets/images"
+        },
+        {
+            "type": "folder",
+            "name": "assets/videos"
+        },
+        {
+            "type": "file",
+            "name": "assets/i18n/en.json",
+            "size": 20628,
+            "hash": "b680f5300c2c0309feaa8fa3b7076b1f1f619f5bc59af64e46446615dd1f1b4f"
+        },
+        {
+            "type": "file",
+            "name": "assets/i18n/pt.json",
+            "size": 21384,
+            "hash": "aacc4a584aa3b8ff866d4bb8b99d49df4e30fb070873725a185c7899cebbd260"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/Logo - Copia.jpeg",
+            "size": 15835,
+            "hash": "9dbf0b044c9111865214d130d0698d9325f794fd0bfd79196af4ef2ae48f6293"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/Logo.jpeg",
+            "size": 36070,
+            "hash": "9956fd94a375e3e7e5f9802dd6406abe7c4027eadfeae73ef5c0893f9b3da1e8"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/WhatsApp Image 2026-09-20 at 12.03.45.jpeg",
+            "size": 105694,
+            "hash": "00107eb7ddfed1ef9bd8cc308f3280fd58d1f79d2b5d5ea77eb1df66eb575eab"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/WhatsApp Image 2026-09-20 at 12.03.48 (1).jpeg",
+            "size": 64381,
+            "hash": "f1d830d8ff3575af7b6f14441d7039b414ef9dba0baf71e17dedd6da7c812405"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/WhatsApp Image 2026-09-20 at 12.03.48.jpeg",
+            "size": 60063,
+            "hash": "7fbcb8d68e2dae830c2a60544f4f1810f526cd8aa78f7fc0d7ad3c1ff9691aec"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/WhatsApp Image 2026-09-20 at 12.03.49 (1).jpeg",
+            "size": 48776,
+            "hash": "ad5f0d652d2e968f61f8170298935907d57487b88d2ffa079eafd17400ff411a"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/WhatsApp Image 2026-09-20 at 12.03.49 (2).jpeg",
+            "size": 74337,
+            "hash": "6fa7a992dbaab02664dffdf2a129f68c6ae3c126830d1e5e329e225d7dadb251"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/WhatsApp Image 2026-09-20 at 12.03.49 (3).jpeg",
+            "size": 54843,
+            "hash": "694d9783ae8f7565fb7d8fbc04a26b883dcd2d106e25ba7851a63b72864ab19b"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/WhatsApp Image 2026-09-20 at 12.03.49.jpeg",
+            "size": 65393,
+            "hash": "e7a2db7304d61c7b2081a70ed1dc9748d7abc4cbc0b608f01088b39c4cb67d4a"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/WhatsApp Image 2026-09-20 at 12.03.50 (1).jpeg",
+            "size": 259364,
+            "hash": "99281336426d585747ae48d170acb36ded1fd0bbb139da5d5028b5223a0fad5e"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/WhatsApp Image 2026-09-20 at 12.03.50 (2).jpeg",
+            "size": 158477,
+            "hash": "810d4066f6d21eb6b6e0ed51db2d80aed11cf87b8dfd960c4bede6a68397cb3c"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/WhatsApp Image 2026-09-20 at 12.03.50 (3).jpeg",
+            "size": 109199,
+            "hash": "b4ae951993ea8513817bbbdc114e034745ed71753dc5f8d7ff49e4cc14022a70"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/WhatsApp Image 2026-09-20 at 12.03.50 (4).jpeg",
+            "size": 63801,
+            "hash": "253bbbbd3842878b2667b24e6218b38d5120b20dce8b014adf7473695038c2a3"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/WhatsApp Image 2026-09-20 at 12.03.50.jpeg",
+            "size": 130779,
+            "hash": "93dc079e7181bc74b5382237645249fa3e3edaddb02faa5005570703d8b6e1d1"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/WhatsApp Image 2026-09-20 at 12.03.51.jpeg",
+            "size": 80618,
+            "hash": "65ec14f2e837eabc7f07d0193ba786f52c66c9bc03b3d452f24900835d931dfd"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/hero-poster.jpg",
+            "size": 36070,
+            "hash": "9956fd94a375e3e7e5f9802dd6406abe7c4027eadfeae73ef5c0893f9b3da1e8"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/logo-wb-agency-gold.png",
+            "size": 78338,
+            "hash": "ae3d8b4d3e2894b4706a7242c275525cb2d2e41588571bd1a460e58d0bf088f6"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/logo-wb-agency-light.png",
+            "size": 84142,
+            "hash": "2eb8864b7696087e15b5260e609f655e63dea178a32416d70aec3b2f5a3ec42a"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/logo-wb-agency-sage.png",
+            "size": 84457,
+            "hash": "fd9ea447c001978ee303eb25a809c743037cc724fbe1e8e3f59a7192f8ad314f"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/logo-wb-agency.jpeg",
+            "size": 36070,
+            "hash": "9956fd94a375e3e7e5f9802dd6406abe7c4027eadfeae73ef5c0893f9b3da1e8"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/logo-wb-agency.png",
+            "size": 84457,
+            "hash": "fd9ea447c001978ee303eb25a809c743037cc724fbe1e8e3f59a7192f8ad314f"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/placeholder-polaroid.jpg",
+            "size": 36070,
+            "hash": "9956fd94a375e3e7e5f9802dd6406abe7c4027eadfeae73ef5c0893f9b3da1e8"
+        },
+        {
+            "type": "file",
+            "name": "assets/images/wb-agency-logo.jpg",
+            "size": 32843,
+            "hash": "7cf6ff3372bf71c2155e93395492d4a26269b79258f74ffdd57f047aa2cd1eda"
+        },
+        {
+            "type": "file",
+            "name": "assets/videos/wb-presentation.mp4",
+            "size": 5906958,
+            "hash": "859888c08fa8853a7580c26f767d77b78bd9cd83ee46710f659a4f672b84a19f"
+        }
+    ]
+}

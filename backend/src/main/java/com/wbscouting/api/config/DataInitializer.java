@@ -345,6 +345,32 @@ public class DataInitializer implements CommandLineRunner {
             // Garante coluna updated_by em site_contents
             jdbcTemplate.execute("ALTER TABLE public.site_contents ADD COLUMN IF NOT EXISTS updated_by UUID NULL;");
 
+            // Garante que candidate_photos referencie 'candidates' (e não a tabela legada 'candidate_submissions')
+            jdbcTemplate.execute("""
+                DO $$
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.table_constraints
+                        WHERE table_schema = 'public'
+                          AND table_name = 'candidate_photos'
+                          AND constraint_name = 'fk_candidate_photos_submission'
+                    ) THEN
+                        ALTER TABLE public.candidate_photos DROP CONSTRAINT fk_candidate_photos_submission;
+                    END IF;
+
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.table_constraints
+                        WHERE table_schema = 'public'
+                          AND table_name = 'candidate_photos'
+                          AND constraint_name = 'fk_candidate_photos_candidate'
+                    ) THEN
+                        ALTER TABLE public.candidate_photos
+                        ADD CONSTRAINT fk_candidate_photos_candidate
+                        FOREIGN KEY (candidate_id) REFERENCES public.candidates(id) ON DELETE CASCADE;
+                    END IF;
+                END $$;
+            """);
+
             // ⛔ PRODUÇÃO SEGURA: Composite demo Isabella Fontana APENAS se o modelo ID realmente
             //    pertence a um registro seed H2 (nao queremos inserir midia demo em modelos REAIS
             //    que por coincidencia tenham mesmo UUID em outro ambiente).

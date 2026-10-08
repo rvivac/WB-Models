@@ -85,43 +85,18 @@ jobs:
 
       # =========================================================================
       # VIA 1: DEPLOY DIRETO VIA FTP PARA public_html NA HOSTINGER
-      # Espelha EXCLUSIVAMENTE dist/frontend/browser para public_html/,
-      # removendo qualquer resquício de código-fonte no servidor (--delete)
+      # Espelha EXCLUSIVAMENTE dist/frontend/browser para public_html/
       # =========================================================================
-      - name: Instalar LFTP
-        run: sudo apt-get update && sudo apt-get install -y lftp
-
-      - name: Enviar EXCLUSIVAMENTE arquivos do build para a Hostinger via LFTP
+      - name: Deploy Frontend via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_SERVER_DIR: ${{ secrets.FTP_SERVER_DIR }}
-        run: |
-          DIST_DIR="dist/frontend/browser"
-          REMOTE_DIR="${FTP_SERVER_DIR:-domains/wbagency.com.br/public_html/}"
-
-          if [ -z "$FTP_SERVER" ] || [ -z "$FTP_USERNAME" ] || [ -z "$FTP_PASSWORD" ]; then
-            echo "Aviso: Segredos de FTP não configurados no GitHub Actions. Pulando upload via LFTP."
-            exit 0
-          fi
-
-          echo "=== 1. Validando pacote de build a ser transferido: $DIST_DIR ==="
-          ls -la "$DIST_DIR"
-
-          echo "=== 2. Conectando via FTP e espelhando exclusivamente os arquivos de build para $REMOTE_DIR ==="
-          lftp -e "
-            set net:timeout 60;
-            set net:max-retries 3;
-            set ftp:ssl-allow yes;
-            set ftp:ssl-force no;
-            set ssl:verify-certificate no;
-            set ftp:passive-mode yes;
-            open -u \"\$FTP_USERNAME\",\"\$FTP_PASSWORD\" \"\$FTP_SERVER\";
-            mirror -Rev --delete --parallel=5 \"\$DIST_DIR/\" \"\$REMOTE_DIR\";
-            quit;
-          "
-          echo "=== 3. Deploy dos arquivos de build finalizado com sucesso via LFTP! ==="
+          TARGET_DIR: ${{ secrets.FTP_SERVER_DIR != '' && secrets.FTP_SERVER_DIR || 'domains/wbagency.com.br/public_html/' }}
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./frontend/dist/frontend/browser/
+          server-dir: ${{ env.TARGET_DIR }}
         continue-on-error: true
 
       # =========================================================================

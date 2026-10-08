@@ -138,8 +138,12 @@ export class AuthService {
     // 3. Zera estados reativos em memória
     this.currentUserSignal.set(null);
 
-    // 4. Redireciona de forma suave no SPA sem forçar recarregamento de página
-    this.router.navigate(['/admin/login'], { replaceUrl: true });
+    // 4. Redireciona no SPA para /admin/login SOMENTE se não for a página inicial pública ('/')
+    // Se o usuário estiver na Home pública ('/'), limpa as credenciais silenciosamente sem ejetar o visitante
+    const isPublicHome = typeof window !== 'undefined' && (window.location.pathname === '/' || window.location.pathname === '');
+    if (!isPublicHome) {
+      this.router.navigate(['/admin/login'], { replaceUrl: true });
+    }
 
     // 5. Notifica o backend em segundo plano caso haja token (sem travar a interface)
     if (token) {

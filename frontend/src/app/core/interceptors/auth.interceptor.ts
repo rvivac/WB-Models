@@ -37,8 +37,15 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         typeof window !== 'undefined' &&
         (window.location.pathname.includes('/login') || window.location.pathname.includes('/admin/login'));
 
-      // Redireciona e limpa a sessão em 401 (não autenticado) apenas se for rota protegida e não estiver já no login
-      if (error.status === 401 && !isAuthUrl && !isAlreadyOnLoginPage) {
+      const isCurrentRouteAdmin =
+        typeof window !== 'undefined' &&
+        window.location.pathname.startsWith('/admin');
+
+      // CRÍTICO: Redireciona e limpa a sessão em 401 (não autenticado) SOMENTE se:
+      // 1. A requisição for comprovadamente administrativa (isAdminRequest); OU
+      // 2. O usuário estiver navegando dentro da área administrativa (isCurrentRouteAdmin).
+      // NUNCA redirecionar um visitante público na Home ('/') ou rotas institucionais para o login!
+      if (error.status === 401 && !isAuthUrl && !isAlreadyOnLoginPage && (isAdminRequest || isCurrentRouteAdmin)) {
         authService.logout();
       }
       return throwError(() => error);

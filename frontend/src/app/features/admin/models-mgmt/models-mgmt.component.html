@@ -217,28 +217,6 @@
           </tbody>
         </table>
       </div>
-
-      <!-- 🔍 PAINEL DE DEBUG DA API (paginação Spring Data) -->
-      <div class="dbg-panel" style="margin-top:18px;padding:12px 16px;border:1px dashed #b7c0ba;border-radius:4px;background:#F4F5F4;font-family:ui-monospace,Consolas,monospace;font-size:11px;color:#5F6661;">
-        <div style="font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.14em;font-size:10px;">🔍 Diagnóstico da Resposta /admin/models (Render Backend)</div>
-        <div>▶ models().length = <b style="color:#4B584E">{{ models().length }}</b></div>
-        <div>▶ totalElements = <b>{{ totalElements() }}</b></div>
-        <div>▶ totalPages = <b>{{ totalPages() }}</b></div>
-        <div>▶ page(size) = <b>{{ page() }}</b>({{ pageSize() }})</div>
-        @if (isLoading()) {
-          <div>▶ isLoading = <b style="padding:2px 8px;border-radius:3px;background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;">⏳ CARREGANDO</b></div>
-        } @else {
-          <div>▶ isLoading = <b style="padding:2px 8px;border-radius:3px;background:#DCFCE7;color:#166534;border:1px solid #86EFAC;">✅ CONCLUÍDO</b></div>
-        }
-        <div style="margin-top:8px;word-break:break-all;">
-          ▶ 1º modelo (se existir):<br/>
-          @if (models().length > 0) {
-            <pre style="font-size:10px;color:#772E2E;background:white;padding:6px;border:1px solid #E8EBE8;white-space:pre-wrap;max-height:120px;overflow:auto;margin:4px 0 0 0;">{{ models()[0] | json }}</pre>
-          } @else {
-            <code style="font-size:10px;color:#B91C1C;">(nenhum item na lista — content.length === 0)</code>
-          }
-        </div>
-      </div>
   }
   </div>
   </div>

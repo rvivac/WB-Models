@@ -73,6 +73,11 @@ public class AdminHomeSettingsController {
         entity.setFooterHubs(dto.getFooterHubs());
         entity.setFooterPressBookingUrl(dto.getFooterPressBookingUrl());
         entity.setFooterApplyUrl(dto.getFooterApplyUrl());
+        entity.setDisclaimerActive(dto.getDisclaimerActive() != null ? dto.getDisclaimerActive() : false);
+        entity.setDisclaimerTitle(dto.getDisclaimerTitle() != null ? dto.getDisclaimerTitle() : "");
+        entity.setDisclaimerText(dto.getDisclaimerText() != null ? dto.getDisclaimerText() : "");
+        entity.setDisclaimerLinkUrl(dto.getDisclaimerLinkUrl() != null ? dto.getDisclaimerLinkUrl() : "");
+        entity.setDisclaimerLinkLabel(dto.getDisclaimerLinkLabel() != null ? dto.getDisclaimerLinkLabel() : "");
         entity.setUpdatedAt(OffsetDateTime.now());
 
         HomeSettings saved = homeSettingsRepository.saveAndFlush(entity);
@@ -92,6 +97,11 @@ public class AdminHomeSettingsController {
             map.put("footerHubs", dto.getFooterHubs());
             map.put("footerPressBookingUrl", dto.getFooterPressBookingUrl());
             map.put("footerApplyUrl", dto.getFooterApplyUrl());
+            map.put("disclaimerActive", dto.getDisclaimerActive() != null ? dto.getDisclaimerActive() : false);
+            map.put("disclaimerTitle", dto.getDisclaimerTitle() != null ? dto.getDisclaimerTitle() : "");
+            map.put("disclaimerText", dto.getDisclaimerText() != null ? dto.getDisclaimerText() : "");
+            map.put("disclaimerLinkUrl", dto.getDisclaimerLinkUrl() != null ? dto.getDisclaimerLinkUrl() : "");
+            map.put("disclaimerLinkLabel", dto.getDisclaimerLinkLabel() != null ? dto.getDisclaimerLinkLabel() : "");
             sc.setPayloadPt(map);
             sc.setPayloadEn(map);
             sc.setUpdatedAt(OffsetDateTime.now());

@@ -1,5 +1,6 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HomeSettingsService, HomeSettings } from '../../../../../core/services/home-settings.service';
 
 @Component({
   selector: 'app-home-hero',
@@ -10,6 +11,13 @@ import { CommonModule } from '@angular/common';
 })
 export class HomeHeroComponent implements OnInit, OnDestroy {
   @ViewChild('heroVideo') heroVideoRef?: ElementRef<HTMLVideoElement>;
+
+  private readonly homeSettingsService = inject(HomeSettingsService);
+
+  content: HomeSettings | null = null;
+  videoUrl: string = 'assets/videos/wb-presentation.mp4';
+  posterUrl: string = 'assets/images/hero-poster.jpg';
+  showDisclaimerModal: boolean = true;
 
   showSplashLogo = signal<boolean>(true);
   isMuted = signal<boolean>(true);
@@ -24,6 +32,27 @@ export class HomeHeroComponent implements OnInit, OnDestroy {
     this.timerId = setTimeout(() => {
       this.showSplashLogo.set(false);
     }, 1000);
+
+    this.loadHomeData();
+  }
+
+  loadHomeData(): void {
+    this.homeSettingsService.getPublicSettings().subscribe({
+      next: (data) => {
+        if (data) {
+          this.content = data;
+          if (data.videoUrl?.trim()) {
+            this.videoUrl = data.videoUrl.trim();
+          }
+          if (data.posterUrl?.trim() || data.bannerImageUrl?.trim()) {
+            this.posterUrl = (data.posterUrl || data.bannerImageUrl)!.trim();
+          }
+        }
+      },
+      error: (err) => {
+        console.warn('Não foi possível carregar configurações personalizadas da Home, usando padrões.', err);
+      }
+    });
   }
 
   ngOnDestroy(): void {

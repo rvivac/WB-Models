@@ -59,7 +59,38 @@ public class HomeSettings {
     @Column(name = "footer_apply_url", length = 255, nullable = true)
     private String footerApplyUrl;
 
+    @Column(name = "disclaimer_active", nullable = true)
+    private Boolean disclaimerActive;
+
+    @Column(name = "disclaimer_title", length = 255, nullable = true)
+    private String disclaimerTitle;
+
+    @Column(name = "disclaimer_text", columnDefinition = "TEXT", nullable = true)
+    private String disclaimerText;
+
+    @Column(name = "disclaimer_link_url", length = 1000, nullable = true)
+    private String disclaimerLinkUrl;
+
+    @Column(name = "disclaimer_link_label", length = 100, nullable = true)
+    private String disclaimerLinkLabel;
+
     @UpdateTimestamp
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
+
+    // Explicit getters and setters
+    public Boolean getDisclaimerActive() { return disclaimerActive; }
+    public void setDisclaimerActive(Boolean disclaimerActive) { this.disclaimerActive = disclaimerActive; }
+
+    public String getDisclaimerTitle() { return disclaimerTitle; }
+    public void setDisclaimerTitle(String disclaimerTitle) { this.disclaimerTitle = disclaimerTitle; }
+
+    public String getDisclaimerText() { return disclaimerText; }
+    public void setDisclaimerText(String disclaimerText) { this.disclaimerText = disclaimerText; }
+
+    public String getDisclaimerLinkUrl() { return disclaimerLinkUrl; }
+    public void setDisclaimerLinkUrl(String disclaimerLinkUrl) { this.disclaimerLinkUrl = disclaimerLinkUrl; }
+
+    public String getDisclaimerLinkLabel() { return disclaimerLinkLabel; }
+    public void setDisclaimerLinkLabel(String disclaimerLinkLabel) { this.disclaimerLinkLabel = disclaimerLinkLabel; }
 }

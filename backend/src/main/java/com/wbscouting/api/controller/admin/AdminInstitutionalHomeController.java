@@ -68,18 +68,40 @@ public class AdminInstitutionalHomeController {
         Map<String, Object> payloadPt = content.getPayloadPt() != null ? new HashMap<>(content.getPayloadPt()) : new HashMap<>();
         payloadPt.put("heroTitle", dto.getHeroTitle());
         payloadPt.put("heroSubtitle", dto.getHeroSubtitle());
+        payloadPt.put("heroDescription", dto.getHeroDescription());
         payloadPt.put("scrollLabel", dto.getScrollLabel());
         payloadPt.put("metaTitle", dto.getMetaTitle());
         payloadPt.put("metaDescription", dto.getMetaDescription());
+        payloadPt.put("disclaimerActive", dto.getDisclaimerActive() != null ? dto.getDisclaimerActive() : false);
+        payloadPt.put("disclaimerTitle", dto.getDisclaimerTitle() != null ? dto.getDisclaimerTitle() : "");
+        payloadPt.put("disclaimerText", dto.getDisclaimerText() != null ? dto.getDisclaimerText() : "");
+        payloadPt.put("disclaimerLinkUrl", dto.getDisclaimerLinkUrl() != null ? dto.getDisclaimerLinkUrl() : "");
+        payloadPt.put("disclaimerLinkLabel", dto.getDisclaimerLinkLabel() != null ? dto.getDisclaimerLinkLabel() : "");
         content.setPayloadPt(payloadPt);
 
         Map<String, Object> payloadEn = content.getPayloadEn() != null ? new HashMap<>(content.getPayloadEn()) : new HashMap<>();
         payloadEn.put("heroTitle", dto.getHeroTitle());
         payloadEn.put("heroSubtitle", dto.getHeroSubtitle());
+        payloadEn.put("heroDescription", dto.getHeroDescription());
         payloadEn.put("scrollLabel", dto.getScrollLabel());
         payloadEn.put("metaTitle", dto.getMetaTitle());
         payloadEn.put("metaDescription", dto.getMetaDescription());
+        payloadEn.put("disclaimerActive", dto.getDisclaimerActive() != null ? dto.getDisclaimerActive() : false);
+        payloadEn.put("disclaimerTitle", dto.getDisclaimerTitle() != null ? dto.getDisclaimerTitle() : "");
+        payloadEn.put("disclaimerText", dto.getDisclaimerText() != null ? dto.getDisclaimerText() : "");
+        payloadEn.put("disclaimerLinkUrl", dto.getDisclaimerLinkUrl() != null ? dto.getDisclaimerLinkUrl() : "");
+        payloadEn.put("disclaimerLinkLabel", dto.getDisclaimerLinkLabel() != null ? dto.getDisclaimerLinkLabel() : "");
         content.setPayloadEn(payloadEn);
+
+        // Se videoUrl ou posterUrl forem informados diretamente via JSON
+        Map<String, Object> mediaUrls = content.getMediaUrls() != null ? new HashMap<>(content.getMediaUrls()) : new HashMap<>();
+        if (dto.getVideoUrl() != null && !dto.getVideoUrl().isBlank()) {
+            mediaUrls.put("videoUrl", dto.getVideoUrl().trim());
+        }
+        if (dto.getPosterUrl() != null && !dto.getPosterUrl().isBlank()) {
+            mediaUrls.put("posterUrl", dto.getPosterUrl().trim());
+        }
+        content.setMediaUrls(mediaUrls);
 
         SiteContent saved = siteContentRepository.save(content);
 
@@ -89,9 +111,21 @@ public class AdminInstitutionalHomeController {
                 com.wbscouting.api.entity.HomeSettings hs = opt.orElseGet(com.wbscouting.api.entity.HomeSettings::new);
                 hs.setHeroTitle(dto.getHeroTitle());
                 hs.setHeroSubtitle(dto.getHeroSubtitle());
+                hs.setHeroDescription(dto.getHeroDescription());
                 hs.setScrollLabel(dto.getScrollLabel());
                 hs.setMetaTitle(dto.getMetaTitle());
                 hs.setMetaDescription(dto.getMetaDescription());
+                if (dto.getVideoUrl() != null && !dto.getVideoUrl().isBlank()) {
+                    hs.setVideoUrl(dto.getVideoUrl().trim());
+                }
+                if (dto.getPosterUrl() != null && !dto.getPosterUrl().isBlank()) {
+                    hs.setBannerImageUrl(dto.getPosterUrl().trim());
+                }
+                hs.setDisclaimerActive(dto.getDisclaimerActive() != null ? dto.getDisclaimerActive() : false);
+                hs.setDisclaimerTitle(dto.getDisclaimerTitle() != null ? dto.getDisclaimerTitle() : "");
+                hs.setDisclaimerText(dto.getDisclaimerText() != null ? dto.getDisclaimerText() : "");
+                hs.setDisclaimerLinkUrl(dto.getDisclaimerLinkUrl() != null ? dto.getDisclaimerLinkUrl() : "");
+                hs.setDisclaimerLinkLabel(dto.getDisclaimerLinkLabel() != null ? dto.getDisclaimerLinkLabel() : "");
                 hs.setUpdatedAt(java.time.OffsetDateTime.now());
                 homeSettingsRepository.save(hs);
             } catch (Exception ex) {
@@ -176,14 +210,25 @@ public class AdminInstitutionalHomeController {
         Map<String, Object> pt = content.getPayloadPt() != null ? content.getPayloadPt() : Collections.emptyMap();
         Map<String, Object> media = content.getMediaUrls() != null ? content.getMediaUrls() : Collections.emptyMap();
 
+        Boolean disclaimerActive = false;
+        if (pt.containsKey("disclaimerActive") && pt.get("disclaimerActive") != null) {
+            disclaimerActive = Boolean.parseBoolean(pt.get("disclaimerActive").toString());
+        }
+
         return HomeContentDto.builder()
                 .heroTitle(getString(pt, "heroTitle", "WB AGENCY"))
                 .heroSubtitle(getString(pt, "heroSubtitle", "EDITORIAL & HIGH FASHION SCOUTING"))
+                .heroDescription(getString(pt, "heroDescription", ""))
                 .scrollLabel(getString(pt, "scrollLabel", "SCROLL"))
                 .metaTitle(getString(pt, "metaTitle", "WB Agency | Scouting Internacional e Alta Moda"))
                 .metaDescription(getString(pt, "metaDescription", "Agência de scouting e modelos com foco editorial."))
                 .videoUrl(getString(media, "videoUrl", "assets/videos/wb-presentation.mp4"))
                 .posterUrl(getString(media, "posterUrl", "assets/images/logo-wb-agency.jpeg"))
+                .disclaimerActive(disclaimerActive)
+                .disclaimerTitle(getString(pt, "disclaimerTitle", ""))
+                .disclaimerText(getString(pt, "disclaimerText", ""))
+                .disclaimerLinkUrl(getString(pt, "disclaimerLinkUrl", ""))
+                .disclaimerLinkLabel(getString(pt, "disclaimerLinkLabel", ""))
                 .build();
     }
 
@@ -195,6 +240,11 @@ public class AdminInstitutionalHomeController {
         payloadPt.put("scrollLabel", "SCROLL");
         payloadPt.put("metaTitle", "WB Agency | Scouting Internacional e Alta Moda");
         payloadPt.put("metaDescription", "Agência de scouting e modelos com foco editorial.");
+        payloadPt.put("disclaimerActive", false);
+        payloadPt.put("disclaimerTitle", "");
+        payloadPt.put("disclaimerText", "");
+        payloadPt.put("disclaimerLinkUrl", "");
+        payloadPt.put("disclaimerLinkLabel", "");
 
         Map<String, Object> mediaUrls = new HashMap<>();
         mediaUrls.put("videoUrl", "assets/videos/wb-presentation.mp4");

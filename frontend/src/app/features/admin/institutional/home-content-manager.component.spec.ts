@@ -18,7 +18,12 @@ describe('HomeContentManagerComponent', () => {
     metaTitle: 'WB Agency | Scouting Internacional e Alta Moda',
     metaDescription: 'Agência de scouting e modelos com foco editorial.',
     videoUrl: 'https://storage.wb.agency/hero.mp4',
-    bannerImageUrl: 'https://storage.wb.agency/poster.webp'
+    bannerImageUrl: 'https://storage.wb.agency/poster.webp',
+    disclaimerActive: true,
+    disclaimerTitle: 'AVISO IMPORTANTE',
+    disclaimerText: 'Casting internacional aberto.',
+    disclaimerLinkUrl: 'https://wb.agency/casting',
+    disclaimerLinkLabel: 'PARTICIPAR'
   };
 
   beforeEach(async () => {
@@ -36,36 +41,47 @@ describe('HomeContentManagerComponent', () => {
     httpTesting.verify();
   });
 
-  it('deve carregar os dados vigentes da Home via GET /admin/home-settings', () => {
+  function flushAdminSettings(data: any = mockHomeData) {
+    const reqs = httpTesting.match((r) => r.url.startsWith(`${environment.apiUrl}/admin/institutional/home`));
+    reqs.forEach((r) => r.flush(data));
+  }
+
+  it('deve carregar os dados vigentes da Home via GET /admin/institutional/home', () => {
     fixture.detectChanges();
 
-    const req = httpTesting.expectOne(`${environment.apiUrl}/admin/home-settings`);
-    expect(req.request.method).toBe('GET');
-    req.flush(mockHomeData);
+    flushAdminSettings();
 
     expect(component.form.get('heroTitle')?.value).toBe('WB AGENCY');
     expect(component.form.get('heroSubtitle')?.value).toBe('EDITORIAL & HIGH FASHION SCOUTING');
     expect(component.form.get('scrollLabel')?.value).toBe('SCROLL');
+    expect(component.form.get('disclaimerActive')?.value).toBeTrue();
+    expect(component.form.get('disclaimerTitle')?.value).toBe('AVISO IMPORTANTE');
+    expect(component.form.get('disclaimerText')?.value).toBe('Casting internacional aberto.');
     expect(component.currentVideoUrl).toBe('https://storage.wb.agency/hero.mp4');
     expect(component.currentPosterUrl).toBe('https://storage.wb.agency/poster.webp');
   });
 
-  it('deve atualizar textos institucionais essenciais do Hero via PUT', () => {
+  it('deve atualizar textos institucionais e Disclaimer da Home via PUT', () => {
     fixture.detectChanges();
-    httpTesting.expectOne(`${environment.apiUrl}/admin/home-settings`).flush(mockHomeData);
+    flushAdminSettings();
 
     component.form.patchValue({
       heroTitle: 'NOVO TITULO',
-      scrollLabel: 'EXPLORAR'
+      scrollLabel: 'EXPLORAR',
+      disclaimerActive: true,
+      disclaimerTitle: 'ALERTA ATUALIZADO',
+      disclaimerText: 'Novas inscrições abertas.'
     });
 
     component.saveTextContent();
     expect(component.isSaving).toBeTrue();
 
-    const putReq = httpTesting.expectOne(`${environment.apiUrl}/admin/home-settings`);
+    const putReq = httpTesting.expectOne(`${environment.apiUrl}/admin/institutional/home`);
     expect(putReq.request.method).toBe('PUT');
     expect(putReq.request.body.heroTitle).toBe('NOVO TITULO');
     expect(putReq.request.body.scrollLabel).toBe('EXPLORAR');
+    expect(putReq.request.body.disclaimerActive).toBeTrue();
+    expect(putReq.request.body.disclaimerTitle).toBe('ALERTA ATUALIZADO');
 
     putReq.flush({ ...mockHomeData, heroTitle: 'NOVO TITULO', scrollLabel: 'EXPLORAR' });
 
@@ -75,7 +91,7 @@ describe('HomeContentManagerComponent', () => {
 
   it('deve realizar upload do vídeo hero com monitoramento de progresso', () => {
     fixture.detectChanges();
-    httpTesting.expectOne(`${environment.apiUrl}/admin/home-settings`).flush(mockHomeData);
+    flushAdminSettings();
 
     const videoFile = new File(['dummy video content'], 'hero.mp4', { type: 'video/mp4' });
     const event = { target: { files: [videoFile] } } as unknown as Event;
@@ -102,7 +118,7 @@ describe('HomeContentManagerComponent', () => {
 
   it('deve rejeitar vídeo com tamanho superior a 50MB', () => {
     fixture.detectChanges();
-    httpTesting.expectOne(`${environment.apiUrl}/admin/home-settings`).flush(mockHomeData);
+    flushAdminSettings();
 
     const bigBlob = new Blob([new Uint8Array(51 * 1024 * 1024)]);
     const bigFile = new File([bigBlob], 'huge.mp4', { type: 'video/mp4' });
@@ -116,7 +132,7 @@ describe('HomeContentManagerComponent', () => {
 
   it('deve realizar upload do poster de contingência', () => {
     fixture.detectChanges();
-    httpTesting.expectOne(`${environment.apiUrl}/admin/home-settings`).flush(mockHomeData);
+    flushAdminSettings();
 
     const posterFile = new File(['dummy poster content'], 'poster.webp', { type: 'image/webp' });
     const event = { target: { files: [posterFile] } } as unknown as Event;
@@ -133,7 +149,7 @@ describe('HomeContentManagerComponent', () => {
 
   it('deve rejeitar imagem poster com tamanho superior a 10MB', () => {
     fixture.detectChanges();
-    httpTesting.expectOne(`${environment.apiUrl}/admin/home-settings`).flush(mockHomeData);
+    flushAdminSettings();
 
     const bigBlob = new Blob([new Uint8Array(11 * 1024 * 1024)]);
     const bigFile = new File([bigBlob], 'huge.jpg', { type: 'image/jpeg' });

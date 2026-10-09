@@ -1,14 +1,14 @@
 <div class="space-y-8 bg-[#FBFBF9] min-h-[calc(100vh-4rem)] p-6 md:p-10 selection:bg-[#4B584E] selection:text-white">
 
-  <!-- BARRA DE NAVEGAÇÃO SUPERIOR (PRESERVADA) -->
+  <!-- BARRA DE NAVEGAÇÃO SUPERIOR -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E8EBE8] pb-6 gap-4">
     <div class="flex items-center gap-4">
       <a routerLink="/admin" class="flex items-center gap-2 px-3 py-1.5 border border-[#E8EBE8] bg-white text-xs uppercase tracking-[0.15em] text-[#5F6661] hover:text-[#4B584E] hover:border-[#4B584E] transition-all rounded-none">
         &larr; Painel Geral
       </a>
       <div>
-        <h1 class="text-xl font-serif uppercase tracking-wider text-[#222624]">Gestão da Home (Hero)</h1>
-        <p class="text-xs text-[#5F6661] tracking-wide mt-1">Configure o vídeo principal, poster de contingência e títulos da primeira dobra.</p>
+        <h1 class="text-xl font-serif uppercase tracking-wider text-[#222624]">Gestão da Home (Hero & Disclaimer)</h1>
+        <p class="text-xs text-[#5F6661] tracking-wide mt-1">Configure o vídeo principal, poster fallback, títulos da primeira dobra e avisos flutuantes.</p>
       </div>
     </div>
 
@@ -28,118 +28,399 @@
     </div>
   </div>
 
+  <!-- Feedback Toast / Alerta -->
+  <div *ngIf="feedbackMessage" class="p-3 text-xs bg-emerald-50 border border-emerald-200 text-emerald-800 transition-opacity rounded-none">
+    {{ feedbackMessage }}
+  </div>
+
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-    <!-- COLUNA ESQUERDA: VÍDEO HERO E CAPA (6 Colunas) -->
+    <!-- COLUNA ESQUERDA: VÍDEO HERO E CAPA FALLBACK (6 Colunas) -->
     <div class="lg:col-span-6 space-y-6">
 
-      <!-- Bloco de Vídeo Hero -->
-      <div class="bg-white border border-[#E8EBE8] p-6 shadow-sm space-y-4 rounded-none">
+      <!-- BLOCO: VÍDEO HERO COM SELETOR E PRÉ-VISUALIZAÇÃO AO VIVO -->
+      <div class="bg-white border border-[#E8EBE8] p-6 shadow-sm space-y-5 rounded-none">
         <div class="flex items-center justify-between border-b border-[#E8EBE8] pb-3">
-          <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">Vídeo de Fundo (Hero Video)</h2>
-          <span class="text-[10px] text-[#5F6661] uppercase tracking-wider">MP4 / WEBM até 50MB</span>
+          <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624] font-semibold">Vídeo de Fundo (Hero Video)</h2>
+          <span class="text-[10px] text-[#5F6661] uppercase tracking-wider font-mono">MP4 / WEBM</span>
         </div>
 
-        <div class="relative aspect-video bg-black overflow-hidden border border-[#E8EBE8] rounded-none">
-          <video 
-            *ngIf="currentVideoUrl" 
-            [src]="currentVideoUrl" 
-            controls 
-            muted 
-            class="w-full h-full object-cover"
-          ></video>
-          <div *ngIf="!currentVideoUrl" class="w-full h-full flex items-center justify-center text-xs text-[#5F6661] uppercase">
-            Nenhum vídeo configurado
+        <!-- Seletor de Origem do Vídeo -->
+        <div class="space-y-2">
+          <label class="block text-[11px] font-sans tracking-[0.15em] uppercase text-[#5F6661]">Fonte do Vídeo</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button 
+              type="button"
+              (click)="selectVideoType('default')"
+              [class.bg-[#4B584E]]="videoSourceType === 'default'"
+              [class.text-white]="videoSourceType === 'default'"
+              [class.bg-[#FBFBF9]]="videoSourceType !== 'default'"
+              [class.text-[#222624]]="videoSourceType !== 'default'"
+              class="px-3 py-2 border border-[#E8EBE8] text-[10px] uppercase tracking-wider text-center transition-all cursor-pointer rounded-none"
+            >
+              Padrão Local
+            </button>
+            <button 
+              type="button"
+              (click)="selectVideoType('external')"
+              [class.bg-[#4B584E]]="videoSourceType === 'external'"
+              [class.text-white]="videoSourceType === 'external'"
+              [class.bg-[#FBFBF9]]="videoSourceType !== 'external'"
+              [class.text-[#222624]]="videoSourceType !== 'external'"
+              class="px-3 py-2 border border-[#E8EBE8] text-[10px] uppercase tracking-wider text-center transition-all cursor-pointer rounded-none"
+            >
+              URL Externa
+            </button>
+            <button 
+              type="button"
+              (click)="selectVideoType('upload')"
+              [class.bg-[#4B584E]]="videoSourceType === 'upload'"
+              [class.text-white]="videoSourceType === 'upload'"
+              [class.bg-[#FBFBF9]]="videoSourceType !== 'upload'"
+              [class.text-[#222624]]="videoSourceType !== 'upload'"
+              class="px-3 py-2 border border-[#E8EBE8] text-[10px] uppercase tracking-wider text-center transition-all cursor-pointer rounded-none"
+            >
+              Novo Upload
+            </button>
           </div>
         </div>
 
-        <div 
-          class="border-2 border-dashed border-[#E8EBE8] hover:border-[#4B584E] bg-[#FBFBF9] p-6 text-center transition-colors cursor-pointer rounded-none"
-          (click)="videoInput.click()"
-        >
-          <input #videoInput type="file" accept="video/mp4,video/webm" class="hidden" (change)="onVideoSelected($event)">
-          <p class="text-xs uppercase tracking-[0.18em] font-sans text-[#222624] font-medium">Substituir Vídeo Principal</p>
-          <p class="text-[10px] text-[#5F6661] mt-0.5">Resolução recomendada: 1080p (Bitrate otimizado)</p>
+        <!-- Campo de URL Externa (se selecionado) -->
+        <div *ngIf="videoSourceType === 'external'" class="space-y-1.5 animate-fade-in">
+          <label class="block text-[10px] font-mono uppercase tracking-wider text-[#5F6661]">URL do Vídeo (Supabase / CDN)</label>
+          <input 
+            type="url" 
+            [(ngModel)]="externalVideoInput"
+            (ngModelChange)="onExternalVideoChange()"
+            placeholder="https://exemplo.com/video.mp4"
+            class="w-full px-3 py-2 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none font-mono"
+          />
         </div>
 
-        <div *ngIf="isVideoUploading" class="space-y-1 pt-2">
-          <div class="flex justify-between text-[11px] text-[#5F6661]">
-            <span>Enviando vídeo para o bucket...</span>
-            <span class="font-mono">{{ videoUploadProgress }}%</span>
+        <!-- Botão de Upload Direto (se selecionado) -->
+        <div *ngIf="videoSourceType === 'upload'" class="space-y-2 animate-fade-in">
+          <div 
+            class="border-2 border-dashed border-[#E8EBE8] hover:border-[#4B584E] bg-[#FBFBF9] p-5 text-center transition-colors cursor-pointer rounded-none"
+            (click)="videoInput.click()"
+          >
+            <input #videoInput type="file" accept="video/mp4,video/webm" class="hidden" (change)="onVideoSelected($event)">
+            <p class="text-xs uppercase tracking-[0.18em] font-sans text-[#222624] font-medium">Selecionar Arquivo MP4</p>
+            <p class="text-[10px] text-[#5F6661] mt-0.5">Teto máximo: 50MB (Bitrate balanceado para web)</p>
           </div>
-          <div class="w-full bg-[#E8EBE8] h-1">
-            <div class="bg-[#4B584E] h-1 transition-all duration-200" [style.width.%]="videoUploadProgress"></div>
+
+          <div *ngIf="isVideoUploading" class="space-y-1 pt-1">
+            <div class="flex justify-between text-[11px] text-[#5F6661]">
+              <span>Enviando para o Supabase Storage...</span>
+              <span class="font-mono">{{ videoUploadProgress }}%</span>
+            </div>
+            <div class="w-full bg-[#E8EBE8] h-1">
+              <div class="bg-[#4B584E] h-1 transition-all duration-200" [style.width.%]="videoUploadProgress"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preview Funcional ao Vivo com error handler -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-[11px] text-[#5F6661]">
+            <span class="uppercase tracking-wider">Pré-visualização do Vídeo</span>
+            <span class="font-mono text-[10px] truncate max-w-[260px]">{{ currentVideoUrl }}</span>
+          </div>
+          <div class="relative aspect-video bg-black overflow-hidden border border-[#E8EBE8] rounded-none">
+            <video 
+              *ngIf="currentVideoUrl && !videoHasError" 
+              [src]="currentVideoUrl" 
+              controls 
+              muted 
+              (error)="onVideoError()"
+              class="w-full h-full object-cover"
+            ></video>
+            <div *ngIf="videoHasError" class="w-full h-full flex flex-col items-center justify-center p-4 bg-[#1B1E1C] text-center text-xs text-[#E5A8A8]">
+              <span class="font-semibold uppercase tracking-wider mb-1">Vídeo Indisponível</span>
+              <span class="text-[10px] text-neutral-400">O link externo falhou. O site aplicará automaticamente o vídeo padrão de fallback.</span>
+            </div>
+            <div *ngIf="!currentVideoUrl && !videoHasError" class="w-full h-full flex items-center justify-center text-xs text-[#5F6661] uppercase">
+              Nenhum vídeo configurado
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Bloco de Poster Fallback -->
-      <div class="bg-white border border-[#E8EBE8] p-6 shadow-sm space-y-4 rounded-none">
+      <!-- BLOCO: CAPA FALLBACK (POSTER) COM SELETOR E PRÉ-VISUALIZAÇÃO -->
+      <div class="bg-white border border-[#E8EBE8] p-6 shadow-sm space-y-5 rounded-none">
         <div class="flex items-center justify-between border-b border-[#E8EBE8] pb-3">
-          <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">Capa de Contingência (Poster Fallback)</h2>
-          <span class="text-[10px] text-[#5F6661] uppercase tracking-wider">JPG / WEBP até 10MB</span>
+          <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624] font-semibold">Capa Fallback (Poster de Contingência)</h2>
+          <span class="text-[10px] text-[#5F6661] uppercase tracking-wider font-mono">JPG / WEBP</span>
         </div>
 
-        <div class="flex items-center gap-4">
-          <div class="w-32 aspect-video bg-[#F4F5F4] border border-[#E8EBE8] overflow-hidden shrink-0 rounded-none">
-            <img *ngIf="currentPosterUrl" [src]="currentPosterUrl" alt="Poster Capa" class="w-full h-full object-cover">
-          </div>
-          <div class="space-y-2 flex-1">
-            <p class="text-xs text-[#5F6661] leading-relaxed">
-              Exibida antes da inicialização do vídeo ou em dispositivos com economia de bateria.
-            </p>
+        <!-- Seletor de Origem do Poster -->
+        <div class="space-y-2">
+          <label class="block text-[11px] font-sans tracking-[0.15em] uppercase text-[#5F6661]">Fonte da Imagem de Capa</label>
+          <div class="grid grid-cols-3 gap-2">
             <button 
-              type="button" 
-              (click)="posterInput.click()" 
-              class="px-3 py-1.5 bg-white border border-[#E8EBE8] hover:border-[#4B584E] text-[#222624] text-[10px] uppercase tracking-wider cursor-pointer rounded-none"
+              type="button"
+              (click)="selectPosterType('default')"
+              [class.bg-[#4B584E]]="posterSourceType === 'default'"
+              [class.text-white]="posterSourceType === 'default'"
+              [class.bg-[#FBFBF9]]="posterSourceType !== 'default'"
+              [class.text-[#222624]]="posterSourceType !== 'default'"
+              class="px-3 py-2 border border-[#E8EBE8] text-[10px] uppercase tracking-wider text-center transition-all cursor-pointer rounded-none"
             >
-              Carregar Nova Imagem
+              Padrão Local
             </button>
+            <button 
+              type="button"
+              (click)="selectPosterType('external')"
+              [class.bg-[#4B584E]]="posterSourceType === 'external'"
+              [class.text-white]="posterSourceType === 'external'"
+              [class.bg-[#FBFBF9]]="posterSourceType !== 'external'"
+              [class.text-[#222624]]="posterSourceType !== 'external'"
+              class="px-3 py-2 border border-[#E8EBE8] text-[10px] uppercase tracking-wider text-center transition-all cursor-pointer rounded-none"
+            >
+              URL Externa
+            </button>
+            <button 
+              type="button"
+              (click)="selectPosterType('upload')"
+              [class.bg-[#4B584E]]="posterSourceType === 'upload'"
+              [class.text-white]="posterSourceType === 'upload'"
+              [class.bg-[#FBFBF9]]="posterSourceType !== 'upload'"
+              [class.text-[#222624]]="posterSourceType !== 'upload'"
+              class="px-3 py-2 border border-[#E8EBE8] text-[10px] uppercase tracking-wider text-center transition-all cursor-pointer rounded-none"
+            >
+              Novo Upload
+            </button>
+          </div>
+        </div>
+
+        <!-- Se padrão, alternar entre hero-poster e logo -->
+        <div *ngIf="posterSourceType === 'default'" class="flex gap-2">
+          <button 
+            type="button" 
+            (click)="selectDefaultPoster('poster')"
+            [class.border-[#4B584E]]="currentPosterUrl === DEFAULT_POSTER_URL"
+            [class.bg-[#F4F8F5]]="currentPosterUrl === DEFAULT_POSTER_URL"
+            class="px-3 py-1.5 border border-[#E8EBE8] text-[10px] uppercase tracking-wider text-[#222624] cursor-pointer rounded-none"
+          >
+            Poster Editorial (/hero-poster.jpg)
+          </button>
+          <button 
+            type="button" 
+            (click)="selectDefaultPoster('logo')"
+            [class.border-[#4B584E]]="currentPosterUrl === LOGO_POSTER_URL"
+            [class.bg-[#F4F8F5]]="currentPosterUrl === LOGO_POSTER_URL"
+            class="px-3 py-1.5 border border-[#E8EBE8] text-[10px] uppercase tracking-wider text-[#222624] cursor-pointer rounded-none"
+          >
+            Logo Institucional (/logo-wb-agency.jpeg)
+          </button>
+        </div>
+
+        <!-- Campo de URL Externa (se selecionado) -->
+        <div *ngIf="posterSourceType === 'external'" class="space-y-1.5 animate-fade-in">
+          <label class="block text-[10px] font-mono uppercase tracking-wider text-[#5F6661]">URL da Imagem (Supabase / CDN)</label>
+          <input 
+            type="url" 
+            [(ngModel)]="externalPosterInput"
+            (ngModelChange)="onExternalPosterChange()"
+            placeholder="https://exemplo.com/poster.webp"
+            class="w-full px-3 py-2 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none font-mono"
+          />
+        </div>
+
+        <!-- Botão de Upload Direto (se selecionado) -->
+        <div *ngIf="posterSourceType === 'upload'" class="space-y-2 animate-fade-in">
+          <div 
+            class="border-2 border-dashed border-[#E8EBE8] hover:border-[#4B584E] bg-[#FBFBF9] p-5 text-center transition-colors cursor-pointer rounded-none"
+            (click)="posterInput.click()"
+          >
             <input #posterInput type="file" accept="image/jpeg,image/webp,image/png" class="hidden" (change)="onPosterSelected($event)">
+            <p class="text-xs uppercase tracking-[0.18em] font-sans text-[#222624] font-medium">Selecionar Imagem de Capa</p>
+            <p class="text-[10px] text-[#5F6661] mt-0.5">Teto máximo: 10MB (Formatos recomendados: WEBP / JPG)</p>
+          </div>
+
+          <div *ngIf="isPosterUploading" class="space-y-1 pt-1">
+            <div class="flex justify-between text-[11px] text-[#5F6661]">
+              <span>Enviando para o Supabase Storage...</span>
+              <span class="font-mono">{{ posterUploadProgress }}%</span>
+            </div>
+            <div class="w-full bg-[#E8EBE8] h-1">
+              <div class="bg-[#4B584E] h-1 transition-all duration-200" [style.width.%]="posterUploadProgress"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preview da Capa -->
+        <div class="flex items-center gap-4">
+          <div class="w-36 aspect-video bg-[#F4F5F4] border border-[#E8EBE8] overflow-hidden shrink-0 rounded-none relative">
+            <img 
+              *ngIf="currentPosterUrl && !posterHasError" 
+              [src]="currentPosterUrl" 
+              (error)="onPosterError()" 
+              alt="Poster Capa" 
+              class="w-full h-full object-cover"
+            />
+            <div *ngIf="posterHasError" class="w-full h-full flex items-center justify-center bg-[#F4F5F4] text-[9px] text-[#A85F5F] p-1 text-center font-mono">
+              Falha na imagem
+            </div>
+          </div>
+          <div class="space-y-1 flex-1 text-xs text-[#5F6661]">
+            <p class="font-mono text-[10px] text-[#222624] truncate">{{ currentPosterUrl }}</p>
+            <p class="text-[11px] leading-relaxed">
+              Exibida instantaneamente antes da execução do vídeo em navegadores móveis e conexões lentas.
+            </p>
           </div>
         </div>
       </div>
 
     </div>
 
-    <!-- COLUNA DIREITA: TEXTOS ESSENCIAIS DO HERO & METADADOS (6 Colunas) -->
+    <!-- COLUNA DIREITA: TEXTOS DO HERO E NOVO CARD DE DISCLAIMER (6 Colunas) -->
     <div class="lg:col-span-6 space-y-6">
       <form [formGroup]="form" class="space-y-6">
 
+        <!-- CARD 1: TEXTOS DE ABERTURA (HERO) - SEM TEXTO EXPLICATIVO, APENAS INPUTS LIMPOS -->
         <div class="bg-white border border-[#E8EBE8] p-6 shadow-sm space-y-5 rounded-none">
           <div class="border-b border-[#E8EBE8] pb-3">
-            <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">Textos de Abertura (Hero)</h2>
-            <p class="text-[11px] text-[#5F6661] mt-0.5">Tipografia sobreposta ao vídeo da dobra de abertura.</p>
+            <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624] font-semibold">Textos de Abertura (Hero)</h2>
           </div>
 
           <div>
-            <label for="heroTitle" class="block text-[11px] font-sans tracking-[0.18em] uppercase text-[#222624] mb-1.5">Título Principal</label>
+            <label for="heroTitle" class="block text-[11px] font-sans tracking-[0.18em] uppercase text-[#222624] mb-1.5">Título de Abertura</label>
             <input 
               id="heroTitle"
               type="text" 
               formControlName="heroTitle" 
+              placeholder="Ex: WB AGENCY"
               class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] focus:bg-white rounded-none"
             />
           </div>
 
           <div>
-            <label for="heroSubtitle" class="block text-[11px] font-sans tracking-[0.18em] uppercase text-[#222624] mb-1.5">Subtítulo Editorial</label>
+            <label for="heroSubtitle" class="block text-[11px] font-sans tracking-[0.18em] uppercase text-[#222624] mb-1.5">Subtítulo</label>
             <input 
               id="heroSubtitle"
               type="text" 
               formControlName="heroSubtitle" 
+              placeholder="Ex: EDITORIAL & HIGH FASHION SCOUTING"
               class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] focus:bg-white rounded-none"
             />
           </div>
 
           <div>
-            <label for="scrollLabel" class="block text-[11px] font-sans tracking-[0.18em] uppercase text-[#222624] mb-1.5">Rótulo de Rolagem</label>
+            <label for="scrollLabel" class="block text-[11px] font-sans tracking-[0.18em] uppercase text-[#222624] mb-1.5">Indicador de Scroll</label>
             <input 
               id="scrollLabel"
               type="text" 
               formControlName="scrollLabel" 
+              placeholder="SCROLL"
               class="w-32 px-3 py-2 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] focus:bg-white rounded-none font-mono uppercase"
             />
+          </div>
+        </div>
+
+        <!-- CARD 2: NOVO CARD - AVISO / DISCLAIMER EM DESTAQUE (OPCIONAL) -->
+        <div class="bg-white border-2 border-[#4B584E]/40 p-6 shadow-sm space-y-5 rounded-none relative">
+          
+          <!-- Cabeçalho do Card de Disclaimer com Destaque Editorial -->
+          <div class="flex items-center justify-between border-b border-[#E8EBE8] pb-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 bg-[#C2A87E] inline-block"></span>
+                <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624] font-semibold">Aviso / Disclaimer em Destaque (Opcional)</h2>
+              </div>
+              <p class="text-[11px] text-[#5F6661] mt-0.5">Janela flutuante no canto inferior direito da Home pública para comunicados importantes.</p>
+            </div>
+            
+            <!-- Chave Seletora (Toggle Switch) -->
+            <label class="flex items-center gap-2.5 cursor-pointer select-none">
+              <span class="text-[10px] font-mono uppercase tracking-wider text-[#4B584E] font-bold">
+                {{ form.get('disclaimerActive')?.value ? 'ATIVO' : 'DESATIVADO' }}
+              </span>
+              <input 
+                type="checkbox" 
+                formControlName="disclaimerActive" 
+                class="w-4 h-4 text-[#4B584E] focus:ring-[#4B584E] border-[#E8EBE8] rounded-none cursor-pointer"
+              />
+            </label>
+          </div>
+
+          <!-- Campos do Disclaimer -->
+          <div class="space-y-4" [class.opacity-50]="!form.get('disclaimerActive')?.value">
+
+            <div>
+              <label for="disclaimerTitle" class="block text-[11px] font-sans tracking-[0.18em] uppercase text-[#222624] mb-1.5">
+                Título do Alerta
+              </label>
+              <input 
+                id="disclaimerTitle"
+                type="text" 
+                formControlName="disclaimerTitle" 
+                placeholder="Ex: Aviso Importante, Temporada de Casting Aberta"
+                class="w-full px-3 py-2 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] focus:bg-white rounded-none"
+              />
+            </div>
+
+            <div>
+              <label for="disclaimerText" class="block text-[11px] font-sans tracking-[0.18em] uppercase text-[#222624] mb-1.5">
+                Mensagem / Texto do Alerta
+              </label>
+              <textarea 
+                id="disclaimerText"
+                rows="3"
+                formControlName="disclaimerText" 
+                placeholder="Ex: A WB Agency nunca cobra taxas para testes fotográficos ou triagem de perfil. Não compartilhe senhas ou dados bancários."
+                class="w-full px-3 py-2 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] focus:bg-white rounded-none leading-relaxed"
+              ></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="disclaimerLinkUrl" class="block text-[11px] font-sans tracking-[0.18em] uppercase text-[#222624] mb-1.5">
+                  Link Opcional (URL)
+                </label>
+                <input 
+                  id="disclaimerLinkUrl"
+                  type="text" 
+                  formControlName="disclaimerLinkUrl" 
+                  placeholder="Ex: /apply ou https://..."
+                  class="w-full px-3 py-2 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] focus:bg-white rounded-none font-mono"
+                />
+              </div>
+
+              <div>
+                <label for="disclaimerLinkLabel" class="block text-[11px] font-sans tracking-[0.18em] uppercase text-[#222624] mb-1.5">
+                  Rótulo do Botão
+                </label>
+                <input 
+                  id="disclaimerLinkLabel"
+                  type="text" 
+                  formControlName="disclaimerLinkLabel" 
+                  placeholder="Ex: Saiba Mais, Ver Detalhes"
+                  class="w-full px-3 py-2 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] focus:bg-white rounded-none"
+                />
+              </div>
+            </div>
+
+            <!-- Mini Preview Editorial da Janela Flutuante -->
+            <div *ngIf="form.get('disclaimerActive')?.value" class="pt-2">
+              <span class="block text-[10px] font-mono uppercase tracking-wider text-[#5F6661] mb-1.5">Pré-visualização da Janela Flutuante:</span>
+              <div class="bg-[#1B1E1C] text-white p-4 border-l-4 border-[#C2A87E] shadow-md rounded-none">
+                <div class="flex items-start justify-between gap-4">
+                  <div>
+                    <h4 class="font-serif text-xs tracking-wider uppercase text-[#C2A87E]">
+                      {{ form.get('disclaimerTitle')?.value || 'Aviso Importante' }}
+                    </h4>
+                    <p class="text-[11px] text-neutral-300 mt-1 leading-relaxed">
+                      {{ form.get('disclaimerText')?.value || 'A WB Agency nunca cobra taxas para avaliação de novos talentos.' }}
+                    </p>
+                    <span *ngIf="form.get('disclaimerLinkUrl')?.value" class="inline-block mt-2 text-[10px] tracking-[0.2em] uppercase text-white underline">
+                      {{ form.get('disclaimerLinkLabel')?.value || 'Saiba Mais' }} &rarr;
+                    </span>
+                  </div>
+                  <span class="text-neutral-400 text-xs">✕</span>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 

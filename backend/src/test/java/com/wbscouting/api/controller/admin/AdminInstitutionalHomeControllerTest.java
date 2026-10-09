@@ -87,6 +87,7 @@ class AdminInstitutionalHomeControllerTest {
 
         SupabaseProperties.Buckets buckets = new SupabaseProperties.Buckets();
         when(supabaseProperties.getBuckets()).thenReturn(buckets);
+        when(supabaseProperties.resolveBucketSiteAssets()).thenReturn("site-assets");
     }
 
     @Test

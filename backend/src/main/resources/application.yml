@@ -94,9 +94,9 @@ app:
     allow-credentials: true
     max-age: 3600
   mail:
-    from-address: ${APP_MAIL_FROM_ADDRESS:no-reply@wbscouting.com}
-    from-name: ${APP_MAIL_FROM_NAME:WB Scouting}
-    agency-notification-email: ${APP_MAIL_AGENCY_NOTIFICATION:contato@wbscouting.com}
+    from-address: ${APP_MAIL_FROM_ADDRESS:no-reply@wbagency.com.br}
+    from-name: ${APP_MAIL_FROM_NAME:WB Agency}
+    agency-notification-email: ${APP_MAIL_AGENCY_NOTIFICATION:info@wbagency.com.br}
     reset-password-base-url: ${APP_MAIL_RESET_BASE_URL:http://localhost:4200/admin/reset-password}
 
 supabase:

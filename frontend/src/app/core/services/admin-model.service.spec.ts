@@ -127,11 +127,10 @@ describe('AdminModelService', () => {
     req.flush({ ...dummyModel, isStar: true });
   });
 
-  it('deve acionar fallback mock quando o backend estiver inacessível no getModels', () => {
+  it('deve acionar fallback de página vazia sem mocks quando o backend estiver inacessível no getModels', () => {
     service.getModels().subscribe((res) => {
       expect(res).toBeTruthy();
-      expect(res.content.length).toBeGreaterThan(0);
-      expect(res.content[0].stageName).toBe('Isabella Fontana');
+      expect(res.content.length).toBe(0);
     });
 
     const req = httpMock.expectOne((r) => r.url === baseUrl);

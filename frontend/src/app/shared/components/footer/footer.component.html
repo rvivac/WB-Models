@@ -52,13 +52,14 @@
         </ul>
       </div>
 
-      <!-- COLUNA 3: CONTATO DIRETO E REDES SOCIAIS DINÂMICAS DO BANCO (3 Colunas) -->
+      <!-- Coluna de Contato Real -->
       <div class="md:col-span-3 space-y-4">
         <h4 class="text-xs font-sans uppercase tracking-[0.25em] text-[#222624] font-semibold border-b border-[#E8EBE8] pb-2">
           {{ 'footer.contact_title' | translate }}
         </h4>
         <ul class="space-y-3 text-xs tracking-wide text-[#5F6661]">
-          <!-- E-mail Principal Dinâmico -->
+          
+          <!-- E-mail Real (Aparece somente se configurado no Admin) -->
           <li *ngIf="contactData?.primaryEmail">
             <a 
               [href]="'mailto:' + contactData.primaryEmail" 
@@ -68,7 +69,7 @@
             </a>
           </li>
 
-          <!-- WhatsApp Oficial Dinâmico -->
+          <!-- WhatsApp Real (Aparece somente se configurado no Admin) -->
           <li *ngIf="contactData?.whatsapp">
             <a 
               [href]="'https://wa.me/' + cleanWhatsAppNumber(contactData.whatsapp)" 
@@ -80,7 +81,17 @@
             </a>
           </li>
 
-          <!-- Redes Sociais Dinâmicas do Banco -->
+          <!-- Telefone Fixo (Aparece somente se diferente do WhatsApp e preenchido) -->
+          <li *ngIf="contactData?.phone && contactData.phone !== contactData.whatsapp">
+            <a 
+              [href]="'tel:' + cleanWhatsAppNumber(contactData.phone)" 
+              class="hover:text-[#4B584E] transition-colors block py-0.5 font-mono"
+            >
+              {{ contactData.phone }}
+            </a>
+          </li>
+
+          <!-- Redes Sociais Reais cadastradas no Admin -->
           <li *ngIf="(contactData.socialMediaList?.length || 0) > 0" class="pt-2">
             <span class="block text-[10px] uppercase tracking-[0.2em] text-[#222624] font-medium mb-2">
               {{ 'footer.social_title' | translate }}

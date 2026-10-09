@@ -11,20 +11,20 @@ describe('ContactSettingsComponent', () => {
   let httpMock: HttpTestingController;
 
   const mockContactData: ContactSettingsData = {
-    primaryEmail: 'contato@wbscouting.com',
-    scoutingEmail: 'scouting@wbscouting.com',
-    pressEmail: 'press@wbscouting.com',
-    phone: '+55 11 99999-9999',
-    whatsapp: '+55 11 99999-9999',
+    primaryEmail: 'contato@wbagency.com.br',
+    scoutingEmail: 'scouting@wbagency.com.br',
+    pressEmail: 'press@wbagency.com.br',
+    phone: '+55 11 98765-4321',
+    whatsapp: '+55 11 98765-4321',
     whatsappDefaultMessage: 'Olá! Gostaria de falar com a equipe de atendimento da WB Agency.',
     businessHours: 'Segunda a Sexta: 09h às 18h (GMT-3)',
     address: {
-      street: 'Avenida Paulista, 1000',
-      complement: 'Conjunto 1402',
-      neighborhood: 'Bela Vista',
+      street: 'Alameda Santos, 500',
+      complement: 'Conjunto 100',
+      neighborhood: 'Cerqueira César',
       city: 'São Paulo',
       state: 'SP',
-      zipCode: '01310-100',
+      zipCode: '01418-000',
       country: 'Brasil'
     },
     socialMedia: {
@@ -64,8 +64,8 @@ describe('ContactSettingsComponent', () => {
     req.flush(mockContactData);
 
     expect(component).toBeTruthy();
-    expect(component.contactData.primaryEmail).toBe('contato@wbscouting.com');
-    expect(component.contactData.whatsapp).toBe('+55 11 99999-9999');
+    expect(component.contactData.primaryEmail).toBe('contato@wbagency.com.br');
+    expect(component.contactData.whatsapp).toBe('+55 11 98765-4321');
     expect(component.editingField).toBeNull();
   });
 
@@ -75,7 +75,7 @@ describe('ContactSettingsComponent', () => {
 
     component.startEdit('whatsapp', component.contactData.whatsapp);
     expect(component.editingField).toBe('whatsapp');
-    expect(component.tempValue).toBe('+55 11 99999-9999');
+    expect(component.tempValue).toBe('+55 11 98765-4321');
 
     component.cancelEdit();
     expect(component.editingField).toBeNull();
@@ -86,16 +86,16 @@ describe('ContactSettingsComponent', () => {
     fixture.detectChanges();
     httpMock.expectOne(`${environment.apiUrl}/admin/institutional/contact`).flush(mockContactData);
 
-    component.startEdit('primaryEmail', 'novo@wbscouting.com');
-    component.tempValue = 'novo@wbscouting.com';
+    component.startEdit('primaryEmail', 'novo@wbagency.com.br');
+    component.tempValue = 'novo@wbagency.com.br';
     component.saveField('primaryEmail');
 
     const req = httpMock.expectOne(`${environment.apiUrl}/admin/institutional/contact`);
     expect(req.request.method).toBe('PATCH');
-    expect(req.request.body).toEqual({ primaryEmail: 'novo@wbscouting.com' });
-    req.flush({ ...mockContactData, primaryEmail: 'novo@wbscouting.com' });
+    expect(req.request.body).toEqual({ primaryEmail: 'novo@wbagency.com.br' });
+    req.flush({ ...mockContactData, primaryEmail: 'novo@wbagency.com.br' });
 
-    expect(component.contactData.primaryEmail).toBe('novo@wbscouting.com');
+    expect(component.contactData.primaryEmail).toBe('novo@wbagency.com.br');
     expect(component.editingField).toBeNull();
     expect(component.successField).toBe('primaryEmail');
 

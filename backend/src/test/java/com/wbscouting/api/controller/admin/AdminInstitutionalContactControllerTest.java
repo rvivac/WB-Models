@@ -60,11 +60,11 @@ class AdminInstitutionalContactControllerTest {
     @BeforeEach
     void setUp() {
         Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("primaryEmail", "contato@wbscouting.com");
-        payload.put("scoutingEmail", "scouting@wbscouting.com");
-        payload.put("pressEmail", "press@wbscouting.com");
-        payload.put("phone", "+55 11 99999-9999");
-        payload.put("whatsapp", "+55 11 99999-9999");
+        payload.put("primaryEmail", "contato@wbagency.com.br");
+        payload.put("scoutingEmail", "scouting@wbagency.com.br");
+        payload.put("pressEmail", "press@wbagency.com.br");
+        payload.put("phone", "+55 11 98765-4321");
+        payload.put("whatsapp", "+55 11 98765-4321");
         payload.put("whatsappDefaultMessage", "Olá! Gostaria de falar com a equipe de atendimento da WB Agency.");
         payload.put("businessHours", "Segunda a Sexta: 09h às 18h (GMT-3)");
 
@@ -102,8 +102,8 @@ class AdminInstitutionalContactControllerTest {
 
         mockMvc.perform(get("/api/v1/admin/institutional/contact"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.primaryEmail").value("contato@wbscouting.com"))
-                .andExpect(jsonPath("$.whatsapp").value("+55 11 99999-9999"))
+                .andExpect(jsonPath("$.primaryEmail").value("contato@wbagency.com.br"))
+                .andExpect(jsonPath("$.whatsapp").value("+55 11 98765-4321"))
                 .andExpect(jsonPath("$.address.city").value("São Paulo"))
                 .andExpect(jsonPath("$.socialMedia.instagram").value("https://instagram.com/wbagency"))
                 .andExpect(jsonPath("$.socialMediaList[0].name").value("TikTok"));
@@ -116,9 +116,9 @@ class AdminInstitutionalContactControllerTest {
         when(siteContentRepository.save(any(SiteContent.class))).thenAnswer(inv -> inv.getArgument(0));
 
         ContactSettingsDto dto = ContactSettingsDto.builder()
-                .primaryEmail("novo@wbscouting.com")
-                .scoutingEmail("talentos@wbscouting.com")
-                .pressEmail("imprensa@wbscouting.com")
+                .primaryEmail("novo@wbagency.com.br")
+                .scoutingEmail("talentos@wbagency.com.br")
+                .pressEmail("imprensa@wbagency.com.br")
                 .phone("+55 11 3333-4444")
                 .whatsapp("+55 11 98888-7777")
                 .whatsappDefaultMessage("Olá equipe!")
@@ -144,7 +144,7 @@ class AdminInstitutionalContactControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.primaryEmail").value("novo@wbscouting.com"))
+                .andExpect(jsonPath("$.primaryEmail").value("novo@wbagency.com.br"))
                 .andExpect(jsonPath("$.whatsapp").value("+55 11 98888-7777"))
                 .andExpect(jsonPath("$.address.street").value("Rua Oscar Freire, 500"))
                 .andExpect(jsonPath("$.socialMediaList[0].name").value("Pinterest"));
@@ -155,8 +155,8 @@ class AdminInstitutionalContactControllerTest {
     void updateContactSettings_InvalidEmail_ReturnsBadRequest() throws Exception {
         ContactSettingsDto dto = ContactSettingsDto.builder()
                 .primaryEmail("email-invalido")
-                .phone("+55 11 99999-9999")
-                .whatsapp("+55 11 99999-9999")
+                .phone("+55 11 98888-7777")
+                .whatsapp("+55 11 98888-7777")
                 .build();
 
         mockMvc.perform(put("/api/v1/admin/institutional/contact")

@@ -38,6 +38,9 @@ class PublicContactControllerTest {
     private I18nDictionaryService i18nDictionaryService;
 
     @MockitoBean
+    private com.wbscouting.api.repository.SiteContentRepository siteContentRepository;
+
+    @MockitoBean
     private JwtTokenProvider jwtTokenProvider;
 
     @MockitoBean
@@ -50,10 +53,10 @@ class PublicContactControllerTest {
     @DisplayName("GET /api/v1/public/contact-channels - Deve retornar 200 OK com cabeçalho de cache de 600s")
     void getContactChannels_ReturnsOkWithCacheHeader() throws Exception {
         ContactChannelsPublicDto dto = ContactChannelsPublicDto.builder()
-                .email("contato@wbscouting.com")
-                .whatsappNumber("5511999999999")
-                .whatsappUrl("https://wa.me/5511999999999?text=Ol%C3%A1")
-                .instagramHandle("@wbscouting")
+                .email("contato@wbagency.com.br")
+                .whatsappNumber("5511987654321")
+                .whatsappUrl("https://wa.me/5511987654321?text=Ol%C3%A1")
+                .instagramHandle("@wbagency")
                 .address("São Paulo - SP, Brasil")
                 .officeHours("Segunda a Sexta, das 09h às 18h")
                 .build();
@@ -63,10 +66,10 @@ class PublicContactControllerTest {
         mockMvc.perform(get("/api/v1/public/contact-channels?lang=pt"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Cache-Control", "max-age=600, public"))
-                .andExpect(jsonPath("$.email").value("contato@wbscouting.com"))
-                .andExpect(jsonPath("$.whatsappNumber").value("5511999999999"))
-                .andExpect(jsonPath("$.whatsappUrl").value("https://wa.me/5511999999999?text=Ol%C3%A1"))
-                .andExpect(jsonPath("$.instagramHandle").value("@wbscouting"));
+                .andExpect(jsonPath("$.email").value("contato@wbagency.com.br"))
+                .andExpect(jsonPath("$.whatsappNumber").value("5511987654321"))
+                .andExpect(jsonPath("$.whatsappUrl").value("https://wa.me/5511987654321?text=Ol%C3%A1"))
+                .andExpect(jsonPath("$.instagramHandle").value("@wbagency"));
     }
 
     @Test
@@ -84,5 +87,18 @@ class PublicContactControllerTest {
                 .andExpect(header().string("Cache-Control", "max-age=300, public"))
                 .andExpect(jsonPath("$.HOME_HERO.title").value("WB Scouting"))
                 .andExpect(jsonPath("$.ABOUT_US.description").value("Agência de Modelos"));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/public/institutional/contact - Deve retornar 200 OK com DTO vazio se não houver dados no banco")
+    void getInstitutionalContact_ReturnsEmptyWhenNotFound() throws Exception {
+        when(siteContentRepository.findBySectionKey("contact")).thenReturn(java.util.Optional.empty());
+        when(siteContentRepository.findBySectionKey(com.wbscouting.api.constant.ContentSectionKey.CONTACT_INFO)).thenReturn(java.util.Optional.empty());
+
+        mockMvc.perform(get("/api/v1/public/institutional/contact"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", "max-age=300, public"))
+                .andExpect(jsonPath("$.primaryEmail").doesNotExist())
+                .andExpect(jsonPath("$.socialMediaList").isEmpty());
     }
 }

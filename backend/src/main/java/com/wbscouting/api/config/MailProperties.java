@@ -7,9 +7,9 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "app.mail")
 public class MailProperties {
 
-    private String fromAddress = "no-reply@wbscouting.com";
-    private String fromName = "WB Scouting";
-    private String agencyNotificationEmail = "contato@wbscouting.com";
+    private String fromAddress = "no-reply@wbagency.com.br";
+    private String fromName = "WB Agency";
+    private String agencyNotificationEmail = "info@wbagency.com.br";
     private String resetPasswordBaseUrl = "http://localhost:4200/admin/reset-password";
 
     public String getFromAddress() { return fromAddress; }

@@ -26,16 +26,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ContactChannelsServiceImpl implements ContactChannelsService {
 
-    private static final String DEFAULT_EMAIL = "info@wbagency.com.br";
-    private static final String DEFAULT_WHATSAPP = "5511970656003";
-    private static final String DEFAULT_MESSAGE_PT = "Olá! Gostaria de mais informações sobre a agência WB Agency.";
-    private static final String DEFAULT_MESSAGE_EN = "Hello! I would like more information about WB Agency.";
-    private static final String DEFAULT_INSTAGRAM = "@wbagency";
-    private static final String DEFAULT_ADDRESS_PT = "São Paulo - SP, Brasil";
-    private static final String DEFAULT_ADDRESS_EN = "São Paulo - SP, Brazil";
-    private static final String DEFAULT_OFFICE_HOURS_PT = "Segunda a Sexta, das 09h às 18h";
-    private static final String DEFAULT_OFFICE_HOURS_EN = "Monday to Friday, 9:00 AM - 6:00 PM";
-
     private final SiteContentRepository siteContentRepository;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -51,12 +41,12 @@ public class ContactChannelsServiceImpl implements ContactChannelsService {
             contentOpt = siteContentRepository.findBySectionKey("contact");
         }
 
-        String email = DEFAULT_EMAIL;
-        String whatsappNumber = DEFAULT_WHATSAPP;
-        String defaultMessage = isEn ? DEFAULT_MESSAGE_EN : DEFAULT_MESSAGE_PT;
-        String instagramHandle = DEFAULT_INSTAGRAM;
-        String address = isEn ? DEFAULT_ADDRESS_EN : DEFAULT_ADDRESS_PT;
-        String officeHours = isEn ? DEFAULT_OFFICE_HOURS_EN : DEFAULT_OFFICE_HOURS_PT;
+        String email = null;
+        String whatsappNumber = null;
+        String defaultMessage = null;
+        String instagramHandle = null;
+        String address = null;
+        String officeHours = null;
 
         // Se a tabela dedicada contact_channels tiver registros ativos, sobrepõe os dados institucionais
         if (contactChannelRepository != null) {
@@ -107,24 +97,24 @@ public class ContactChannelsServiceImpl implements ContactChannelsService {
             }
 
             if (isEn) {
-                email = sanitizeVal(getString(en, "email", getString(pt, "email", DEFAULT_EMAIL)), DEFAULT_EMAIL);
-                whatsappNumber = sanitizeVal(getString(en, "whatsappNumber", getString(pt, "whatsappNumber", DEFAULT_WHATSAPP)), DEFAULT_WHATSAPP);
-                defaultMessage = getString(en, "whatsappDefaultMessage", getString(pt, "whatsappDefaultMessage", DEFAULT_MESSAGE_EN));
-                instagramHandle = sanitizeInstagram(getString(en, "instagramHandle", getString(pt, "instagramHandle", DEFAULT_INSTAGRAM)));
-                address = getString(en, "address", getString(pt, "address", DEFAULT_ADDRESS_EN));
-                officeHours = getString(en, "officeHours", getString(pt, "officeHours", DEFAULT_OFFICE_HOURS_EN));
+                email = sanitizeVal(getString(en, "email", getString(pt, "email", email)), email);
+                whatsappNumber = sanitizeVal(getString(en, "whatsappNumber", getString(pt, "whatsappNumber", whatsappNumber)), whatsappNumber);
+                defaultMessage = getString(en, "whatsappDefaultMessage", getString(pt, "whatsappDefaultMessage", defaultMessage));
+                instagramHandle = sanitizeInstagram(getString(en, "instagramHandle", getString(pt, "instagramHandle", instagramHandle)));
+                address = getString(en, "address", getString(pt, "address", address));
+                officeHours = getString(en, "officeHours", getString(pt, "officeHours", officeHours));
             } else {
-                email = sanitizeVal(getString(pt, "email", DEFAULT_EMAIL), DEFAULT_EMAIL);
-                whatsappNumber = sanitizeVal(getString(pt, "whatsappNumber", DEFAULT_WHATSAPP), DEFAULT_WHATSAPP);
-                defaultMessage = getString(pt, "whatsappDefaultMessage", DEFAULT_MESSAGE_PT);
-                instagramHandle = sanitizeInstagram(getString(pt, "instagramHandle", DEFAULT_INSTAGRAM));
-                address = getString(pt, "address", DEFAULT_ADDRESS_PT);
-                officeHours = getString(pt, "officeHours", DEFAULT_OFFICE_HOURS_PT);
+                email = sanitizeVal(getString(pt, "email", email), email);
+                whatsappNumber = sanitizeVal(getString(pt, "whatsappNumber", whatsappNumber), whatsappNumber);
+                defaultMessage = getString(pt, "whatsappDefaultMessage", defaultMessage);
+                instagramHandle = sanitizeInstagram(getString(pt, "instagramHandle", instagramHandle));
+                address = getString(pt, "address", address);
+                officeHours = getString(pt, "officeHours", officeHours);
             }
         }
 
         String sanitizedNumber = whatsappNumber != null ? whatsappNumber.replaceAll("\\D+", "") : "";
-        String whatsappUrl = buildWhatsappUrl(sanitizedNumber, defaultMessage);
+        String whatsappUrl = !sanitizedNumber.isBlank() ? buildWhatsappUrl(sanitizedNumber, defaultMessage) : null;
 
         return ContactChannelsPublicDto.builder()
                 .email(email)
@@ -148,7 +138,7 @@ public class ContactChannelsServiceImpl implements ContactChannelsService {
         payloadPt.put("email", dto.getEmail().trim());
         payloadPt.put("whatsappNumber", cleanNumber);
         payloadPt.put("whatsappDefaultMessage", dto.getWhatsappDefaultMessagePt().trim());
-        payloadPt.put("instagramHandle", dto.getInstagramHandle() != null ? dto.getInstagramHandle().trim() : DEFAULT_INSTAGRAM);
+        payloadPt.put("instagramHandle", dto.getInstagramHandle() != null ? dto.getInstagramHandle().trim() : "");
         payloadPt.put("address", dto.getAddressPt().trim());
         payloadPt.put("officeHours", dto.getOfficeHoursPt().trim());
 
@@ -158,7 +148,7 @@ public class ContactChannelsServiceImpl implements ContactChannelsService {
         payloadEn.put("whatsappDefaultMessage", StringUtils.hasText(dto.getWhatsappDefaultMessageEn())
                 ? dto.getWhatsappDefaultMessageEn().trim()
                 : dto.getWhatsappDefaultMessagePt().trim());
-        payloadEn.put("instagramHandle", dto.getInstagramHandle() != null ? dto.getInstagramHandle().trim() : DEFAULT_INSTAGRAM);
+        payloadEn.put("instagramHandle", dto.getInstagramHandle() != null ? dto.getInstagramHandle().trim() : "");
         payloadEn.put("address", StringUtils.hasText(dto.getAddressEn())
                 ? dto.getAddressEn().trim()
                 : dto.getAddressPt().trim());
@@ -261,7 +251,7 @@ public class ContactChannelsServiceImpl implements ContactChannelsService {
 
     private String sanitizeInstagram(String val) {
         if (!StringUtils.hasText(val) || val.contains("wbscouting")) {
-            return DEFAULT_INSTAGRAM;
+            return null;
         }
         return val;
     }

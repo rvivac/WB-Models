@@ -34,10 +34,18 @@ public class AdminInstitutionalContactController {
     public ResponseEntity<ContactSettingsDto> getContactSettings() {
         log.info("Consultando canais institucionais de contato e redes sociais");
 
-        SiteContent content = siteContentRepository.findBySectionKey(SECTION_CONTACT)
-                .orElseGet(this::createDefaultContactContent);
+        Optional<SiteContent> contentOpt = siteContentRepository.findBySectionKey(SECTION_CONTACT);
+        if (contentOpt.isEmpty()) {
+            contentOpt = siteContentRepository.findBySectionKey(ContentSectionKey.CONTACT_INFO);
+        }
 
-        return ResponseEntity.ok(toDto(content));
+        if (contentOpt.isEmpty()) {
+            return ResponseEntity.ok(ContactSettingsDto.builder()
+                    .socialMediaList(Collections.emptyList())
+                    .build());
+        }
+
+        return ResponseEntity.ok(toDto(contentOpt.get()));
     }
 
     @PutMapping
@@ -49,7 +57,7 @@ public class AdminInstitutionalContactController {
         log.info("Atualizando canais de contato e redes sociais da agência");
 
         SiteContent content = siteContentRepository.findBySectionKey(SECTION_CONTACT)
-                .orElseGet(this::createDefaultContactContent);
+                .orElseGet(() -> SiteContent.builder().sectionKey(SECTION_CONTACT).build());
 
         UUID adminId = extractAdminId(authentication);
         if (adminId != null) {
@@ -76,7 +84,7 @@ public class AdminInstitutionalContactController {
         log.info("Atualizando campos individuais dos canais de contato: {}", patchUpdates.keySet());
 
         SiteContent content = siteContentRepository.findBySectionKey(SECTION_CONTACT)
-                .orElseGet(this::createDefaultContactContent);
+                .orElseGet(() -> SiteContent.builder().sectionKey(SECTION_CONTACT).build());
 
         UUID adminId = extractAdminId(authentication);
         if (adminId != null) {
@@ -124,10 +132,16 @@ public class AdminInstitutionalContactController {
             payloadPt.put("whatsappNumber", cleanWhatsapp);
             String instagram = (dto.getSocialMedia() != null && dto.getSocialMedia().getInstagram() != null && !dto.getSocialMedia().getInstagram().isBlank())
                     ? dto.getSocialMedia().getInstagram().trim()
-                    : "@wbagency";
-            payloadPt.put("instagramHandle", instagram);
-            payloadPt.put("address", dto.getAddress() != null ? dto.getAddress().getCity() + " - " + dto.getAddress().getState() : "São Paulo - SP");
-            payloadPt.put("officeHours", dto.getBusinessHours());
+                    : null;
+            if (instagram != null) {
+                payloadPt.put("instagramHandle", instagram);
+            }
+            if (dto.getAddress() != null && dto.getAddress().getCity() != null) {
+                payloadPt.put("address", dto.getAddress().getCity() + (dto.getAddress().getState() != null ? " - " + dto.getAddress().getState() : ""));
+            }
+            if (dto.getBusinessHours() != null) {
+                payloadPt.put("officeHours", dto.getBusinessHours());
+            }
 
             if (dto.getSocialMediaList() != null) {
                 List<Map<String, String>> smList = new ArrayList<>();
@@ -286,21 +300,21 @@ public class AdminInstitutionalContactController {
         Map<String, Object> addrMap = castToMap(pt.get("address"));
         Map<String, Object> smMap = castToMap(pt.get("socialMedia"));
 
-        ContactSettingsDto.AddressDto address = ContactSettingsDto.AddressDto.builder()
-                .street(getString(addrMap, "street", "Avenida Paulista, 1000"))
-                .complement(getString(addrMap, "complement", "Conjunto 1402"))
-                .neighborhood(getString(addrMap, "neighborhood", "Bela Vista"))
-                .city(getString(addrMap, "city", "São Paulo"))
-                .state(getString(addrMap, "state", "SP"))
-                .zipCode(getString(addrMap, "zipCode", "01310-100"))
-                .country(getString(addrMap, "country", "Brasil"))
+        ContactSettingsDto.AddressDto address = addrMap.isEmpty() ? null : ContactSettingsDto.AddressDto.builder()
+                .street(getString(addrMap, "street", null))
+                .complement(getString(addrMap, "complement", null))
+                .neighborhood(getString(addrMap, "neighborhood", null))
+                .city(getString(addrMap, "city", null))
+                .state(getString(addrMap, "state", null))
+                .zipCode(getString(addrMap, "zipCode", null))
+                .country(getString(addrMap, "country", null))
                 .build();
 
-        ContactSettingsDto.SocialMediaDto socialMedia = ContactSettingsDto.SocialMediaDto.builder()
-                .instagram(getString(smMap, "instagram", "https://instagram.com/wbagency"))
-                .linkedin(getString(smMap, "linkedin", "https://linkedin.com/company/wbagency"))
-                .facebook(getString(smMap, "facebook", ""))
-                .tiktok(getString(smMap, "tiktok", "https://tiktok.com/@wbagency"))
+        ContactSettingsDto.SocialMediaDto socialMedia = smMap.isEmpty() ? null : ContactSettingsDto.SocialMediaDto.builder()
+                .instagram(getString(smMap, "instagram", null))
+                .linkedin(getString(smMap, "linkedin", null))
+                .facebook(getString(smMap, "facebook", null))
+                .tiktok(getString(smMap, "tiktok", null))
                 .build();
 
         List<ContactSettingsDto.SocialMediaItemDto> socialMediaList = new ArrayList<>();
@@ -324,60 +338,17 @@ public class AdminInstitutionalContactController {
         }
 
         return ContactSettingsDto.builder()
-                .primaryEmail(getString(pt, "primaryEmail", "info@wbagency.com.br"))
-                .scoutingEmail(getString(pt, "scoutingEmail", "scouting@wbagency.com.br"))
-                .pressEmail(getString(pt, "pressEmail", "press@wbagency.com.br"))
-                .phone(getString(pt, "phone", "+55 11 97065-6003"))
-                .whatsapp(getString(pt, "whatsapp", "+55 11 97065-6003"))
-                .whatsappDefaultMessage(getString(pt, "whatsappDefaultMessage", "Olá! Gostaria de falar com a equipe de atendimento da WB Agency."))
-                .businessHours(getString(pt, "businessHours", "Segunda a Sexta: 09h às 18h (GMT-3)"))
+                .primaryEmail(getString(pt, "primaryEmail", getString(pt, "email", null)))
+                .scoutingEmail(getString(pt, "scoutingEmail", null))
+                .pressEmail(getString(pt, "pressEmail", null))
+                .phone(getString(pt, "phone", null))
+                .whatsapp(getString(pt, "whatsapp", getString(pt, "whatsappNumber", null)))
+                .whatsappDefaultMessage(getString(pt, "whatsappDefaultMessage", null))
+                .businessHours(getString(pt, "businessHours", getString(pt, "officeHours", null)))
                 .address(address)
                 .socialMedia(socialMedia)
                 .socialMediaList(socialMediaList)
                 .build();
-    }
-
-    private SiteContent createDefaultContactContent() {
-        ContactSettingsDto defaultDto = ContactSettingsDto.builder()
-                .primaryEmail("info@wbagency.com.br")
-                .scoutingEmail("scouting@wbagency.com.br")
-                .pressEmail("press@wbagency.com.br")
-                .phone("+55 11 97065-6003")
-                .whatsapp("+55 11 97065-6003")
-                .whatsappDefaultMessage("Olá! Gostaria de falar com a equipe de atendimento da WB Agency.")
-                .businessHours("Segunda a Sexta: 09h às 18h (GMT-3)")
-                .address(ContactSettingsDto.AddressDto.builder()
-                        .street("Avenida Paulista, 1000")
-                        .complement("Conjunto 1402")
-                        .neighborhood("Bela Vista")
-                        .city("São Paulo")
-                        .state("SP")
-                        .zipCode("01310-100")
-                        .country("Brasil")
-                        .build())
-                .socialMedia(ContactSettingsDto.SocialMediaDto.builder()
-                        .instagram("https://instagram.com/wbagency")
-                        .linkedin("https://linkedin.com/company/wbagency")
-                        .facebook("")
-                        .tiktok("https://tiktok.com/@wbagency")
-                        .build())
-                .socialMediaList(List.of(
-                        ContactSettingsDto.SocialMediaItemDto.builder()
-                                .id(UUID.randomUUID().toString())
-                                .name("Instagram")
-                                .url("https://instagram.com/wbagency")
-                                .build()
-                ))
-                .build();
-
-        Map<String, Object> payload = toMap(defaultDto);
-        SiteContent content = SiteContent.builder()
-                .sectionKey(SECTION_CONTACT)
-                .payloadPt(payload)
-                .payloadEn(payload)
-                .build();
-
-        return siteContentRepository.save(content);
     }
 
     private String getString(Map<String, Object> map, String key, String defaultValue) {

@@ -64,12 +64,13 @@ export class PublicContentService {
   };
 
   private readonly defaultContactChannels: ContactChannelsPublicDto = {
-    email: 'info@wbagency.com.br',
-    whatsappNumber: '5511970656003',
-    whatsappUrl: 'https://wa.me/5511970656003',
-    instagramHandle: '@wbagency',
-    address: 'São Paulo - SP, Brasil',
-    officeHours: 'Segunda a Sexta, das 09h às 18h'
+    email: '',
+    whatsappNumber: '',
+    whatsappUrl: '',
+    instagramHandle: '',
+    address: '',
+    officeHours: '',
+    socialMediaList: []
   };
 
   getHeroContent(lang: string = 'pt'): Observable<HomeHeroPayload> {

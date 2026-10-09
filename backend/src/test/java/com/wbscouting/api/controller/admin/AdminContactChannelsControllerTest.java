@@ -45,6 +45,9 @@ class AdminContactChannelsControllerTest {
     private ContactChannelsService contactChannelsService;
 
     @MockitoBean
+    private com.wbscouting.api.repository.ContactChannelRepository contactChannelRepository;
+
+    @MockitoBean
     private JwtTokenProvider jwtTokenProvider;
 
     @MockitoBean
@@ -57,15 +60,15 @@ class AdminContactChannelsControllerTest {
     @DisplayName("PUT /api/v1/admin/contact-channels - Deve atualizar e retornar 200 OK")
     void updateContactChannels_ReturnsOk() throws Exception {
         UUID adminId = UUID.randomUUID();
-        Admin admin = Admin.builder().id(adminId).email("admin@wbscouting.com").build();
+        Admin admin = Admin.builder().id(adminId).email("admin@wbagency.com.br").build();
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(admin, null, List.of());
 
         ContactChannelsUpdateRequestDto request = ContactChannelsUpdateRequestDto.builder()
-                .email("contato@wbscouting.com")
+                .email("contato@wbagency.com.br")
                 .whatsappNumber("5511999998888")
                 .whatsappDefaultMessagePt("Olá!")
                 .whatsappDefaultMessageEn("Hello!")
-                .instagramHandle("@wbscouting")
+                .instagramHandle("@wbagency")
                 .addressPt("Av. Paulista, 1000")
                 .addressEn("Paulista Ave, 1000")
                 .officeHoursPt("09h às 18h")
@@ -73,10 +76,10 @@ class AdminContactChannelsControllerTest {
                 .build();
 
         ContactChannelsPublicDto responseDto = ContactChannelsPublicDto.builder()
-                .email("contato@wbscouting.com")
+                .email("contato@wbagency.com.br")
                 .whatsappNumber("5511999998888")
                 .whatsappUrl("https://wa.me/5511999998888?text=Ol%C3%A1%21")
-                .instagramHandle("@wbscouting")
+                .instagramHandle("@wbagency")
                 .address("Av. Paulista, 1000")
                 .officeHours("09h às 18h")
                 .build();
@@ -89,7 +92,7 @@ class AdminContactChannelsControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("contato@wbscouting.com"))
+                .andExpect(jsonPath("$.email").value("contato@wbagency.com.br"))
                 .andExpect(jsonPath("$.whatsappNumber").value("5511999998888"))
                 .andExpect(jsonPath("$.whatsappUrl").value("https://wa.me/5511999998888?text=Ol%C3%A1%21"));
     }
@@ -115,7 +118,7 @@ class AdminContactChannelsControllerTest {
     @DisplayName("PUT /api/v1/admin/contact-channels - Deve retornar 400 Bad Request quando WhatsApp contiver caracteres não numéricos")
     void updateContactChannels_InvalidWhatsapp_ReturnsBadRequest() throws Exception {
         ContactChannelsUpdateRequestDto request = ContactChannelsUpdateRequestDto.builder()
-                .email("contato@wbscouting.com")
+                .email("contato@wbagency.com.br")
                 .whatsappNumber("telefone-invalido")
                 .whatsappDefaultMessagePt("Olá!")
                 .addressPt("Av. Paulista, 1000")

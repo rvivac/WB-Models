@@ -13,9 +13,9 @@ export interface SocialMediaItem {
 }
 
 export interface ContactData {
-  primaryEmail: string;
-  phone?: string;
-  whatsapp?: string;
+  primaryEmail?: string | null;
+  phone?: string | null;
+  whatsapp?: string | null;
   socialMediaList?: SocialMediaItem[];
 }
 
@@ -41,81 +41,59 @@ export class FooterComponent implements OnInit {
   isLoadingContent = signal<boolean>(false);
 
   contactData: ContactData = {
-    primaryEmail: 'contato@wbscouting.com',
-    whatsapp: '+55 11 99999-9999',
-    socialMediaList: [
-      { name: 'Instagram', url: 'https://instagram.com/wbagency' },
-      { name: 'LinkedIn', url: 'https://linkedin.com/company/wbagency' }
-    ]
+    primaryEmail: null,
+    whatsapp: null,
+    phone: null,
+    socialMediaList: []
   };
 
   constructor() {
     // Recarrega os canais institucionais se houver troca de idioma em tempo de execução
     effect(() => {
-      const lang = this.translate.currentLang();
-      this.loadContactInfo(lang);
+      this.translate.currentLang();
+      this.loadRealContactData();
     });
   }
 
   ngOnInit(): void {
-    // Inicialização orquestrada reativamente pelo constructor effect()
+    this.loadRealContactData();
   }
 
-  loadContactInfo(lang: string = 'pt'): void {
-    const langParam = lang === 'en' ? 'en' : 'pt';
-    this.http.get<any>(`${environment.apiUrl}/public/institutional/contact?lang=${langParam}`).subscribe({
+  loadRealContactData(): void {
+    this.http.get<any>(`${environment.apiUrl}/public/institutional/contact`).subscribe({
       next: (res) => {
-        if (res) this.applyContactSettings(res);
+        if (res) {
+          this.contactData = {
+            primaryEmail: res.primaryEmail || res.email || null,
+            whatsapp: res.whatsapp || null,
+            phone: res.phone || null,
+            socialMediaList: Array.isArray(res.socialMediaList) ? res.socialMediaList : []
+          };
+        }
       },
-      error: () => {
-        this.http.get<any[]>(`${environment.apiUrl}/public/contact-channels?lang=${langParam}`).subscribe({
-          next: (channels) => {
-            if (Array.isArray(channels) && channels.length > 0) {
-              this.mapFromContactChannels(channels);
-            }
-          },
-          error: (err) => console.warn('[FOOTER] Usando contatos padrão:', err)
-        });
+      error: (err) => {
+        console.warn('[FOOTER] Não foi possível carregar contatos da API:', err);
+        // PROIBIDO injetar e-mails ou telefones falsos aqui!
       }
     });
   }
 
+  loadContactInfo(lang: string = 'pt'): void {
+    this.loadRealContactData();
+  }
+
   applyContactSettings(res: any): void {
-    this.contactData.primaryEmail = res.primaryEmail || res.email || this.contactData.primaryEmail;
-    this.contactData.whatsapp = res.whatsapp || res.whatsappNumber || this.contactData.whatsapp;
-    this.contactData.phone = res.phone || this.contactData.phone;
-
-    if (Array.isArray(res.socialMediaList) && res.socialMediaList.length > 0) {
-      this.contactData.socialMediaList = res.socialMediaList;
-    } else if (res.socialMedia && typeof res.socialMedia === 'object') {
-      const list: SocialMediaItem[] = [];
-      Object.entries(res.socialMedia).forEach(([key, val]) => {
-        if (val && typeof val === 'string') {
-          list.push({ name: key.toUpperCase(), url: val });
-        }
-      });
-      if (list.length > 0) this.contactData.socialMediaList = list;
-    }
+    if (!res) return;
+    this.contactData = {
+      primaryEmail: res.primaryEmail || res.email || null,
+      whatsapp: res.whatsapp || res.whatsappNumber || null,
+      phone: res.phone || null,
+      socialMediaList: Array.isArray(res.socialMediaList) ? res.socialMediaList : []
+    };
   }
 
-  mapFromContactChannels(channels: any[]): void {
-    const emailChannel = channels.find(c => c.type === 'EMAIL' || c.channelName?.toLowerCase().includes('email'));
-    if (emailChannel?.value) this.contactData.primaryEmail = emailChannel.value;
-
-    const waChannel = channels.find(c => c.type === 'WHATSAPP' || c.channelName?.toLowerCase().includes('whatsapp'));
-    if (waChannel?.value) this.contactData.whatsapp = waChannel.value;
-
-    const socials = channels.filter(c => c.type === 'SOCIAL');
-    if (socials.length > 0) {
-      this.contactData.socialMediaList = socials.map(s => ({
-        name: s.label || s.channelName || 'Link',
-        url: s.value || s.url
-      }));
-    }
-  }
-
-  cleanWhatsAppNumber(num?: string): string {
-    return num ? num.replace(/\D/g, '') : '5511999999999';
+  cleanWhatsAppNumber(num?: string | null): string {
+    return num ? num.replace(/\D/g, '') : '';
   }
 
   openInstitutionalModal(sectionKey: 'TERMS' | 'PRIVACY'): void {

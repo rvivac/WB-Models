@@ -61,17 +61,17 @@ describe('PublicContentService', () => {
   it('should get contact channels from API', () => {
     service.getContactChannels('pt').subscribe(data => {
       expect(data).toBeTruthy();
-      expect(data.email).toBe('contato@wbscouting.com');
-      expect(data.whatsappNumber).toBe('5511999999999');
+      expect(data.email).toBe('contato@wbagency.com.br');
+      expect(data.whatsappNumber).toBe('5511987654321');
     });
 
     const req = httpTesting.expectOne(`${environment.apiUrl}/public/contact-channels?lang=pt`);
     expect(req.request.method).toBe('GET');
     req.flush({
-      email: 'contato@wbscouting.com',
-      whatsappNumber: '5511999999999',
-      whatsappUrl: 'https://wa.me/5511999999999',
-      instagramHandle: '@wbscouting',
+      email: 'contato@wbagency.com.br',
+      whatsappNumber: '5511987654321',
+      whatsappUrl: 'https://wa.me/5511987654321',
+      instagramHandle: '@wbagency',
       address: 'São Paulo - SP',
       officeHours: '09h às 18h'
     });
@@ -80,8 +80,8 @@ describe('PublicContentService', () => {
   it('should fallback to default contact channels on HTTP error', () => {
     service.getContactChannels('pt').subscribe(data => {
       expect(data).toBeTruthy();
-      expect(data.email).toBe('info@wbagency.com.br');
-      expect(data.whatsappNumber).toBe('5511970656003');
+      expect(data.email).toBe('');
+      expect(data.whatsappNumber).toBe('');
     });
 
     const req = httpTesting.expectOne(`${environment.apiUrl}/public/contact-channels?lang=pt`);

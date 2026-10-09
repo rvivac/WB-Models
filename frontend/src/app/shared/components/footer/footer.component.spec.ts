@@ -49,8 +49,9 @@ describe('FooterComponent', () => {
     expect(compiled.textContent).toContain('Contato');
     expect(compiled.textContent).toContain('Quero ser Modelo');
 
-    // Email padrão de fallback
-    expect(compiled.textContent).toContain('contato@wbscouting.com');
+    // Não deve conter e-mail falso de fallback
+    expect(compiled.textContent).not.toContain('contato@wbscouting.com');
+    expect(compiled.textContent).not.toContain('99999-9999');
 
     // Verificação de ausência de textos antigos e link de acesso restrito (regra: jamais recolocar)
     expect(compiled.textContent).not.toContain('PARIS • MILAN • NEW YORK • SÃO PAULO');
@@ -71,7 +72,7 @@ describe('FooterComponent', () => {
 
   it('should clean whatsapp number correctly', () => {
     expect(component.cleanWhatsAppNumber('+55 (11) 97065-6003')).toBe('5511970656003');
-    expect(component.cleanWhatsAppNumber(undefined)).toBe('5511999999999');
+    expect(component.cleanWhatsAppNumber(undefined)).toBe('');
   });
 
   it('should update contactData and render dynamic social networks from API', () => {
@@ -121,11 +122,15 @@ describe('FooterComponent', () => {
     expect(compiled.textContent).toContain('About Us');
     expect(compiled.textContent).toContain('Contact');
     expect(compiled.textContent).toContain('Become a Model');
-    expect(compiled.textContent).toContain('Social Media');
     expect(compiled.textContent).toContain('All rights reserved.');
     expect(compiled.textContent).toContain('Terms of Use');
     expect(compiled.textContent).toContain('Privacy & GDPR');
     expect(compiled.textContent).not.toContain('Restricted Access');
+
+    // Se houver redes sociais cadastradas, deve exibir Social Media
+    component.contactData.socialMediaList = [{ name: 'Instagram', url: 'https://instagram.com/wb' }];
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Social Media');
   });
 
   it('should open institutional modal for TERMS and load content', () => {

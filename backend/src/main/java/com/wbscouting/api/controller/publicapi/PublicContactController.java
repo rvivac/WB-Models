@@ -45,13 +45,7 @@ public class PublicContactController {
             return ResponseEntity.ok()
                     .cacheControl(CacheControl.maxAge(300, TimeUnit.SECONDS).cachePublic())
                     .body(ContactSettingsDto.builder()
-                            .primaryEmail("info@wbagency.com.br")
-                            .phone("+55 11 97065-6003")
-                            .whatsapp("+55 11 97065-6003")
-                            .socialMediaList(List.of(
-                                    ContactSettingsDto.SocialMediaItemDto.builder().name("Instagram").url("https://instagram.com/wbagency").build(),
-                                    ContactSettingsDto.SocialMediaItemDto.builder().name("LinkedIn").url("https://linkedin.com/company/wbagency").build()
-                            ))
+                            .socialMediaList(Collections.emptyList())
                             .build());
         }
 
@@ -74,10 +68,10 @@ public class PublicContactController {
     private ContactSettingsDto toContactSettingsDto(SiteContent content) {
         Map<String, Object> pt = content.getPayloadPt() != null ? content.getPayloadPt() : Collections.emptyMap();
 
-        String primaryEmail = getString(pt, "primaryEmail", getString(pt, "email", "info@wbagency.com.br"));
-        String phone = getString(pt, "phone", "+55 11 97065-6003");
-        String whatsapp = getString(pt, "whatsapp", getString(pt, "whatsappNumber", "+55 11 97065-6003"));
-        String businessHours = getString(pt, "businessHours", getString(pt, "officeHours", "Segunda a Sexta: 09h às 18h (GMT-3)"));
+        String primaryEmail = getString(pt, "primaryEmail", getString(pt, "email", null));
+        String phone = getString(pt, "phone", null);
+        String whatsapp = getString(pt, "whatsapp", getString(pt, "whatsappNumber", null));
+        String businessHours = getString(pt, "businessHours", getString(pt, "officeHours", null));
 
         List<ContactSettingsDto.SocialMediaItemDto> socialMediaList = new ArrayList<>();
         Object smListObj = pt.get("socialMediaList");

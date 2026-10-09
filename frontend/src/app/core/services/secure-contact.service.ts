@@ -20,7 +20,7 @@ export function formatPhoneNumber(phone?: string): string {
 }
 
 export function formatInstagramHandle(handle?: string): string {
-  if (!handle) return '@wbagency';
+  if (!handle) return '';
   let clean = handle.trim();
   clean = clean.replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/\/$/, '');
   if (!clean.startsWith('@')) {
@@ -30,7 +30,7 @@ export function formatInstagramHandle(handle?: string): string {
 }
 
 export function formatInstagramUrl(handle?: string): string {
-  if (!handle) return 'https://www.instagram.com/wbagency/';
+  if (!handle) return '';
   let clean = handle.trim();
   if (clean.startsWith('http://') || clean.startsWith('https://')) {
     return clean.endsWith('/') ? clean : clean + '/';
@@ -45,11 +45,11 @@ export function formatInstagramUrl(handle?: string): string {
 export class SecureContactService {
   private readonly publicContentService = inject(PublicContentService);
 
-  private readonly _email = signal<string>('info@wbagency.com.br');
-  private readonly _phone = signal<string>('+55 (11) 97065-6003');
-  private readonly _whatsappUrl = signal<string>('https://wa.me/5511970656003');
-  private readonly _instagramHandle = signal<string>('@wbagency');
-  private readonly _instagramUrl = signal<string>('https://www.instagram.com/wbagency/');
+  private readonly _email = signal<string>('');
+  private readonly _phone = signal<string>('');
+  private readonly _whatsappUrl = signal<string>('');
+  private readonly _instagramHandle = signal<string>('');
+  private readonly _instagramUrl = signal<string>('');
   private readonly _socialMediaList = signal<Array<{ id?: string; name: string; url: string }>>([]);
 
   constructor() {

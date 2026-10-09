@@ -52,24 +52,24 @@ export class ContactSettingsComponent implements OnInit {
   private http = inject(HttpClient);
 
   contactData: ContactSettingsData = {
-    primaryEmail: 'info@wbagency.com.br',
-    scoutingEmail: 'scouting@wbagency.com.br',
-    pressEmail: 'press@wbagency.com.br',
-    phone: '+55 11 97065-6003',
-    whatsapp: '+55 11 97065-6003',
-    whatsappDefaultMessage: 'Olá! Gostaria de falar com a equipe de atendimento da WB Agency.',
-    businessHours: 'Segunda a Sexta: 09h às 18h (GMT-3)',
+    primaryEmail: '',
+    scoutingEmail: '',
+    pressEmail: '',
+    phone: '',
+    whatsapp: '',
+    whatsappDefaultMessage: '',
+    businessHours: '',
     address: {
-      street: 'Avenida Paulista, 1000',
-      complement: 'Conjunto 1402',
-      neighborhood: 'Bela Vista',
-      city: 'São Paulo',
-      state: 'SP',
-      zipCode: '01310-100',
-      country: 'Brasil'
+      street: '',
+      complement: '',
+      neighborhood: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      country: ''
     },
     socialMedia: {
-      instagram: 'https://instagram.com/wbagency',
+      instagram: '',
       facebook: ''
     }
   };

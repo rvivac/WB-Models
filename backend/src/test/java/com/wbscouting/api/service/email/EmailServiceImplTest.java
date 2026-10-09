@@ -103,7 +103,7 @@ class EmailServiceImplTest {
                 ))
                 .build();
 
-        emailService.sendCandidateApplicationNotification("contato@wbscouting.com", candidateDto);
+        emailService.sendCandidateApplicationNotification("info@wbagency.com.br", candidateDto);
 
         verify(mailSender, times(1)).send(mimeMessage);
         verify(templateEngine, times(1)).process(eq("email/candidate-application"), any(Context.class));
@@ -119,7 +119,7 @@ class EmailServiceImplTest {
                 .build();
 
         assertThatCode(() ->
-                emailService.sendCandidateApplicationNotification("contato@wbscouting.com", candidateDto)
+                emailService.sendCandidateApplicationNotification("info@wbagency.com.br", candidateDto)
         ).doesNotThrowAnyException();
     }
 }

@@ -42,7 +42,7 @@ class CandidateServiceTest {
 
     @BeforeEach
     void setUp() {
-        when(mailProperties.getAgencyNotificationEmail()).thenReturn("contato@wbscouting.com");
+        when(mailProperties.getAgencyNotificationEmail()).thenReturn("info@wbagency.com.br");
     }
 
     @Test
@@ -80,7 +80,7 @@ class CandidateServiceTest {
 
         // Verifica que disparou para a agência
         verify(emailService, times(1)).sendCandidateApplicationNotification(
-                eq("contato@wbscouting.com"),
+                eq("info@wbagency.com.br"),
                 any(CandidateApplicationDto.class)
         );
 

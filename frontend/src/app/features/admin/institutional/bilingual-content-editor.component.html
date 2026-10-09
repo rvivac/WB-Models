@@ -452,7 +452,18 @@
               class="colored-text-input font-sans text-xs leading-relaxed resize-y"
             ></textarea>
           </div>
-        </div>
+      </div>
+      
+      <!-- Botão de Salvar Seção Modular Completa -->
+      <div class="flex justify-end pt-4 border-t border-[#E8EBE8]">
+        <button 
+          type="button" 
+          (click)="saveContent()" 
+          [disabled]="isSaving"
+          class="px-6 py-2.5 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-[0.2em] font-sans transition-all rounded-none cursor-pointer"
+        >
+          Salvar {{ currentSectionTitle }}
+        </button>
       </div>
 
     </div>

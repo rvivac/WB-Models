@@ -216,6 +216,9 @@ export class BilingualContentEditorComponent implements OnInit {
             }
           };
 
+          this.tempPt = { ...this.currentContent.pt };
+          this.tempEn = { ...this.currentContent.en };
+
           if (canonicalKey === 'TERMS' || canonicalKey === 'PRIVACY') {
             this.tempPt.content = ptContent;
             this.tempEn.content = enContent;
@@ -249,9 +252,14 @@ export class BilingualContentEditorComponent implements OnInit {
   }
 
   startEditBlock(block: 'headline' | 'quote' | 'sectionTitle' | 'body'): void {
+    // Preserva o que já foi digitado no bloco anterior
+    if (this.editingBlock) {
+      this.currentContent.pt[this.editingBlock] = this.tempPt[this.editingBlock];
+      this.currentContent.en[this.editingBlock] = this.tempEn[this.editingBlock];
+    }
     this.editingBlock = block;
-    this.tempPt = { ...this.currentContent.pt };
-    this.tempEn = { ...this.currentContent.en };
+    this.tempPt[block] = this.currentContent.pt[block] || '';
+    this.tempEn[block] = this.currentContent.en[block] || '';
     this.errorMessage = null;
     setTimeout(() => {
       const el = document.getElementById('field-pt-' + block);
@@ -343,24 +351,28 @@ export class BilingualContentEditorComponent implements OnInit {
     this.errorMessage = null;
 
     const canonicalKey = this.getCanonicalKey(this.activeSection);
-    const contentPt = this.tempPt.content || '';
-    const contentEn = this.tempEn.content || '';
+    const contentPt = this.tempPt.content || this.currentContent.pt.content || '';
+    const contentEn = this.tempEn.content || this.currentContent.en.content || '';
 
     this.currentContent.pt.content = contentPt;
     this.currentContent.pt.body = contentPt;
     this.currentContent.en.content = contentEn;
     this.currentContent.en.body = contentEn;
+    this.tempPt.content = contentPt;
+    this.tempEn.content = contentEn;
 
     const payload = {
       translations: {
-        pt: { content: contentPt },
-        en: { content: contentEn }
+        pt: { content: contentPt, body: contentPt },
+        en: { content: contentEn, body: contentEn }
       },
       pt: {
-        content: contentPt
+        content: contentPt,
+        body: contentPt
       },
       en: {
-        content: contentEn
+        content: contentEn,
+        body: contentEn
       }
     };
 
@@ -368,21 +380,19 @@ export class BilingualContentEditorComponent implements OnInit {
       next: () => {
         this.isSaving = false;
         this.showSuccessFeedback('all');
+        try { alert(`Conteúdo de ${this.currentSectionTitle} salvo com sucesso!`); } catch {}
       },
       error: (err) => {
         this.isSaving = false;
         const msg = err?.error?.message || err?.message || 'Falha ao sincronizar com o banco de dados.';
         this.errorMessage = `Erro ao salvar conteúdo: ${msg}`;
         console.error('Falha ao persistir traduções:', err);
+        try { alert(`Erro ao salvar conteúdo: ${msg}`); } catch {}
       }
     });
   }
 
   saveCurrentSection(): void {
-    if (this.activeSection === 'TERMS' || this.activeSection === 'PRIVACY') {
-      this.saveCurrentSimpleSection();
-      return;
-    }
     this.saveContent();
   }
 
@@ -409,8 +419,19 @@ export class BilingualContentEditorComponent implements OnInit {
       this.currentContent.en[this.editingBlock] = this.tempEn[this.editingBlock];
     }
 
+    if (this.currentContent.pt.body) {
+      this.currentContent.pt.content = this.currentContent.pt.body;
+    }
+    if (this.currentContent.en.body) {
+      this.currentContent.en.content = this.currentContent.en.body;
+    }
+
     const canonicalKey = this.getCanonicalKey(this.activeSection);
     const payload = {
+      translations: {
+        pt: this.currentContent.pt,
+        en: this.currentContent.en
+      },
       pt: this.currentContent.pt,
       en: this.currentContent.en
     };
@@ -420,12 +441,14 @@ export class BilingualContentEditorComponent implements OnInit {
         this.isSaving = false;
         this.showSuccessFeedback('all');
         this.cancelEditBlock();
+        try { alert(`Conteúdo de ${this.currentSectionTitle} salvo com sucesso!`); } catch {}
       },
       error: (err) => {
         this.isSaving = false;
         const msg = err?.error?.message || err?.message || 'Falha ao sincronizar com o banco de dados.';
         this.errorMessage = `Erro ao salvar conteúdo: ${msg}`;
         console.error('Falha ao persistir traduções:', err);
+        try { alert(`Erro ao salvar conteúdo: ${msg}`); } catch {}
       }
     });
   }

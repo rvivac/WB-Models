@@ -33,7 +33,7 @@ describe('HomeHeroComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should display transparent splash logo initially and remove it after exactly 1000ms', fakeAsync(() => {
+  it('should display transparent splash logo initially and remove it after exactly 2000ms', fakeAsync(() => {
     fixture.detectChanges();
     flushPublicSettings();
 
@@ -52,31 +52,14 @@ describe('HomeHeroComponent', () => {
     expect(compiled.textContent).not.toContain('Ver Elenco');
     expect(compiled.textContent).not.toContain('Seja Modelo');
 
-    // Avança o temporizador em 1000ms
-    tick(1000);
+    // Avança o temporizador em 2000ms
+    tick(2000);
     fixture.detectChanges();
 
     // Logo desaparece deixando o vídeo livre
     expect(component.showSplashLogo()).toBeFalse();
     compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('img[alt="WB Agency"]')).toBeNull();
-  }));
-
-  it('should customize splash logo duration according to server settings', fakeAsync(() => {
-    fixture.detectChanges();
-    flushPublicSettings({ splashDurationMs: 2500 });
-
-    expect(component.showSplashLogo()).toBeTrue();
-
-    tick(1500);
-    fixture.detectChanges();
-    // Aos 1500ms ainda deve estar ativo (pois configurado para 2500ms)
-    expect(component.showSplashLogo()).toBeTrue();
-
-    tick(1000);
-    fixture.detectChanges();
-    // Aos 2500ms deve encerrar
-    expect(component.showSplashLogo()).toBeFalse();
   }));
 
   it('should contain looping background video element and bind dynamic poster and video', () => {

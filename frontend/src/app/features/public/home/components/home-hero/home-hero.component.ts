@@ -26,19 +26,12 @@ export class HomeHeroComponent implements OnInit, OnDestroy {
   readonly TARGET_VOLUME: number = 0.05;
   private timerId?: any;
   private fadeInterval?: any;
-  private splashStartTime: number = 0;
-  private splashDurationMs: number = 1000;
 
   ngOnInit(): void {
-    // Recupera duração configurada prévia do localStorage para evitar delay de rede
-    const cachedDuration = typeof localStorage !== 'undefined' ? localStorage.getItem('wb_splash_duration_ms') : null;
-    this.splashDurationMs = cachedDuration ? (Number(cachedDuration) || 1000) : 1000;
-    this.splashStartTime = Date.now();
-
-    // Inicia o splash com a duração prevista
+    // Exibe o splash por exatamente 2 segundos e encerra
     this.timerId = setTimeout(() => {
       this.showSplashLogo.set(false);
-    }, this.splashDurationMs);
+    }, 2000);
 
     this.loadHomeData();
   }
@@ -53,28 +46,6 @@ export class HomeHeroComponent implements OnInit, OnDestroy {
           }
           if (data.posterUrl?.trim() || data.bannerImageUrl?.trim()) {
             this.posterUrl = (data.posterUrl || data.bannerImageUrl)!.trim();
-          }
-
-          // Ajusta a duração do splash caso configurada no servidor
-          if (data.splashDurationMs && data.splashDurationMs > 0) {
-            this.splashDurationMs = data.splashDurationMs;
-            try {
-              if (typeof localStorage !== 'undefined') {
-                localStorage.setItem('wb_splash_duration_ms', String(data.splashDurationMs));
-              }
-            } catch {}
-
-            // Se o splash ainda estiver ativo, recalcula o tempo restante exato
-            if (this.showSplashLogo()) {
-              if (this.timerId) {
-                clearTimeout(this.timerId);
-              }
-              const elapsed = Date.now() - this.splashStartTime;
-              const remaining = Math.max(0, this.splashDurationMs - elapsed);
-              this.timerId = setTimeout(() => {
-                this.showSplashLogo.set(false);
-              }, remaining);
-            }
           }
         }
       },

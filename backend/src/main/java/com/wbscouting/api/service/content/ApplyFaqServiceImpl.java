@@ -228,29 +228,46 @@ public class ApplyFaqServiceImpl implements ApplyFaqService {
 
         // Redundância e sincronização com site_contents (SCOUTING_FAQ)
         try {
-            List<Map<String, Object>> mapList = new ArrayList<>();
+            List<Map<String, Object>> mapListPt = new ArrayList<>();
+            List<Map<String, Object>> mapListEn = new ArrayList<>();
             for (int i = 0; i < saved.size(); i++) {
                 ApplyFaq f = saved.get(i);
-                Map<String, Object> map = new LinkedHashMap<>();
-                map.put("id", f.getId() != null ? f.getId().toString() : null);
-                map.put("order", i + 1);
-                map.put("displayOrder", i);
-                map.put("question", f.getQuestion());
-                map.put("answer", f.getAnswer());
-                map.put("questionEn", f.getQuestionEn());
-                map.put("answerEn", f.getAnswerEn());
-                map.put("isActive", f.getIsActive());
-                mapList.add(map);
+                Map<String, Object> mapPt = new LinkedHashMap<>();
+                mapPt.put("id", f.getId() != null ? f.getId().toString() : null);
+                mapPt.put("order", i + 1);
+                mapPt.put("displayOrder", i);
+                mapPt.put("question", f.getQuestion());
+                mapPt.put("answer", f.getAnswer());
+                mapPt.put("questionEn", f.getQuestionEn());
+                mapPt.put("answerEn", f.getAnswerEn());
+                mapPt.put("isActive", f.getIsActive());
+                mapListPt.add(mapPt);
+
+                Map<String, Object> mapEn = new LinkedHashMap<>();
+                mapEn.put("id", f.getId() != null ? f.getId().toString() : null);
+                mapEn.put("order", i + 1);
+                mapEn.put("displayOrder", i);
+                String qEn = (f.getQuestionEn() != null && !f.getQuestionEn().isBlank()) ? f.getQuestionEn() : f.getQuestion();
+                String aEn = (f.getAnswerEn() != null && !f.getAnswerEn().isBlank()) ? f.getAnswerEn() : f.getAnswer();
+                mapEn.put("question", qEn);
+                mapEn.put("answer", aEn);
+                mapEn.put("questionEn", f.getQuestionEn());
+                mapEn.put("answerEn", f.getAnswerEn());
+                mapEn.put("isActive", f.getIsActive());
+                mapListEn.add(mapEn);
             }
 
             var sc = siteContentRepository.findBySectionKey("SCOUTING_FAQ")
                     .orElseGet(() -> com.wbscouting.api.entity.SiteContent.builder().sectionKey("SCOUTING_FAQ").build());
 
-            Map<String, Object> syncPayload = new LinkedHashMap<>();
-            syncPayload.put("items", mapList);
+            Map<String, Object> syncPayloadPt = new LinkedHashMap<>();
+            syncPayloadPt.put("items", mapListPt);
 
-            sc.setPayloadPt(syncPayload);
-            sc.setPayloadEn(syncPayload);
+            Map<String, Object> syncPayloadEn = new LinkedHashMap<>();
+            syncPayloadEn.put("items", mapListEn);
+
+            sc.setPayloadPt(syncPayloadPt);
+            sc.setPayloadEn(syncPayloadEn);
             sc.setUpdatedAt(OffsetDateTime.now());
             siteContentRepository.save(sc);
         } catch (Exception ex) {

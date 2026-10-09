@@ -25,13 +25,13 @@ public class AdminApplyFaqController {
     private final ApplyFaqService applyFaqService;
 
     // FAQ CRUD
-    @GetMapping({"/api/v1/admin/apply-faq", "/admin/apply-faq"})
+    @GetMapping({"/api/v1/admin/apply-faq", "/admin/apply-faq", "/api/v1/admin/apply-faq/", "/admin/apply-faq/"})
     public ResponseEntity<List<ApplyFaqDto>> getAllFaqs() {
         log.info("Admin listando todas as perguntas de FAQ de candidatura");
         return ResponseEntity.ok(applyFaqService.getAllFaqs());
     }
 
-    @PostMapping({"/api/v1/admin/apply-faq", "/admin/apply-faq"})
+    @PostMapping({"/api/v1/admin/apply-faq", "/admin/apply-faq", "/api/v1/admin/apply-faq/", "/admin/apply-faq/"})
     @com.wbscouting.api.security.audit.AuditAction(action = "CREATE", resource = "APPLY_FAQ", description = "Criação de pergunta de FAQ")
     public ResponseEntity<ApplyFaqDto> createFaq(@Valid @RequestBody ApplyFaqCreateUpdateDto dto) {
         log.info("Admin cadastrando nova pergunta de FAQ");
@@ -40,7 +40,7 @@ public class AdminApplyFaqController {
     }
 
     // 3. Endpoint para salvar/sincronizar a lista completa em lote via PUT na raiz (Resolve o 405)
-    @PutMapping({"/api/v1/admin/apply-faq", "/admin/apply-faq"})
+    @PutMapping({"/api/v1/admin/apply-faq", "/admin/apply-faq", "/api/v1/admin/apply-faq/", "/admin/apply-faq/"})
     @com.wbscouting.api.security.audit.AuditAction(action = "UPDATE_ALL", resource = "APPLY_FAQ", description = "Atualização de lista completa de FAQs")
     public ResponseEntity<List<ApplyFaqDto>> saveAllBatch(@RequestBody Object payload) {
         log.info("Admin salvando/sincronizando lista completa de FAQ em lote via PUT");

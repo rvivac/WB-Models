@@ -95,7 +95,7 @@ describe('BilingualContentEditorComponent', () => {
     });
 
     expect(component.activeSection).toBe('SCOUTING');
-    expect(component.currentSectionTitle).toBe('Configurações do Form. de Quero de Modelo');
+    expect(component.currentSectionTitle).toBe('Configurações do Form. de Quero ser Modelo');
     expect(component.faqList.length).toBe(1);
     expect(component.faqList[0].question).toBe('Critérios PT');
     expect(component.faqList[0].questionEn).toBe('Guidelines EN');

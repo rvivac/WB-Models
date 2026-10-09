@@ -51,6 +51,21 @@ export class BilingualContentEditorComponent implements OnInit {
   activeSection = 'ABOUT_MANIFESTO';
   currentSectionTitle = 'Sobre Nós';
 
+  get selectedSectionKey(): string {
+    return this.activeSection;
+  }
+  set selectedSectionKey(val: string) {
+    this.activeSection = val;
+  }
+
+  loadSectionData(key: string): void {
+    this.loadSection(key);
+  }
+
+  onSectionChange(key: string): void {
+    this.loadSection(key);
+  }
+
   currentContent: BilingualContentState = {
     pt: {
       headline: 'A Nova Estética do Scouting Global',
@@ -96,27 +111,79 @@ export class BilingualContentEditorComponent implements OnInit {
     }
 
     if (sectionKey === 'TERMS' || sectionKey === 'PRIVACY') {
-      this.http.get<any>(`${environment.apiUrl}/public/content/${sectionKey}?lang=pt`).subscribe({
+      const canonicalKey = this.getCanonicalKey(sectionKey);
+      this.http.get<any>(`${environment.apiUrl}/admin/institutional/translations/${canonicalKey}`).subscribe({
         next: (res) => {
-          const ptVal = res?.content || res?.body || '';
-          this.tempPt.content = ptVal;
-          this.currentContent.pt.content = ptVal;
-          this.currentContent.pt.body = ptVal;
-        },
-        error: (err) => {
-          console.warn(`[I18N] Erro ao carregar PT para ${sectionKey}:`, err);
-        }
-      });
+          // Extrai o texto de PT
+          const ptText = 
+            res?.translations?.pt?.content || 
+            res?.translations?.pt?.body || 
+            res?.payloadPt?.content || 
+            res?.payloadPt?.body || 
+            res?.content || 
+            res?.body || 
+            '';
 
-      this.http.get<any>(`${environment.apiUrl}/public/content/${sectionKey}?lang=en`).subscribe({
-        next: (resEn) => {
-          const enVal = resEn?.content || resEn?.body || '';
-          this.tempEn.content = enVal;
-          this.currentContent.en.content = enVal;
-          this.currentContent.en.body = enVal;
+          // Extrai o texto de EN
+          const enText = 
+            res?.translations?.en?.content || 
+            res?.translations?.en?.body || 
+            res?.payloadEn?.content || 
+            res?.payloadEn?.body || 
+            res?.contentEn || 
+            '';
+
+          this.tempPt = { ...this.tempPt, content: ptText };
+          this.tempEn = { ...this.tempEn, content: enText };
+          this.currentContent.pt.content = ptText;
+          this.currentContent.pt.body = ptText;
+          this.currentContent.en.content = enText;
+          this.currentContent.en.body = enText;
+
+          // Se um dos campos vier vazio, busca fallback pelo endpoint público
+          if (!ptText || !ptText.trim()) {
+            this.http.get<any>(`${environment.apiUrl}/public/content/${sectionKey}?lang=pt`).subscribe({
+              next: (r) => {
+                const val = r?.content || r?.body || (typeof r === 'string' ? r : '');
+                if (val) {
+                  this.tempPt.content = val;
+                  this.currentContent.pt.content = val;
+                  this.currentContent.pt.body = val;
+                }
+              }
+            });
+          }
+          if (!enText || !enText.trim()) {
+            this.http.get<any>(`${environment.apiUrl}/public/content/${sectionKey}?lang=en`).subscribe({
+              next: (r) => {
+                const val = r?.content || r?.body || (typeof r === 'string' ? r : '');
+                if (val) {
+                  this.tempEn.content = val;
+                  this.currentContent.en.content = val;
+                  this.currentContent.en.body = val;
+                }
+              }
+            });
+          }
         },
         error: (err) => {
-          console.warn(`[I18N] Erro ao carregar EN para ${sectionKey}:`, err);
+          console.warn(`[I18N] Erro ao carregar traduções admin para ${sectionKey}. Aplicando fallback público:`, err);
+          this.http.get<any>(`${environment.apiUrl}/public/content/${sectionKey}?lang=pt`).subscribe({
+            next: (r) => {
+              const val = r?.content || r?.body || (typeof r === 'string' ? r : '');
+              this.tempPt = { ...this.tempPt, content: val };
+              this.currentContent.pt.content = val;
+              this.currentContent.pt.body = val;
+            }
+          });
+          this.http.get<any>(`${environment.apiUrl}/public/content/${sectionKey}?lang=en`).subscribe({
+            next: (r) => {
+              const val = r?.content || r?.body || (typeof r === 'string' ? r : '');
+              this.tempEn = { ...this.tempEn, content: val };
+              this.currentContent.en.content = val;
+              this.currentContent.en.body = val;
+            }
+          });
         }
       });
       return;
@@ -309,6 +376,14 @@ export class BilingualContentEditorComponent implements OnInit {
         console.error('Falha ao persistir traduções:', err);
       }
     });
+  }
+
+  saveCurrentSection(): void {
+    if (this.activeSection === 'TERMS' || this.activeSection === 'PRIVACY') {
+      this.saveCurrentSimpleSection();
+      return;
+    }
+    this.saveContent();
   }
 
   saveSimpleSection(): void {

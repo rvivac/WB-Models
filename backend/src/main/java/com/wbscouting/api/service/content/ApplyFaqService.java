@@ -22,6 +22,8 @@ public interface ApplyFaqService {
 
     List<ApplyFaqDto> updateAllFaqs(List<ApplyFaqDto> items);
 
+    List<ApplyFaqDto> saveBatch(Object payload);
+
     ApplyFaqDto createFaq(ApplyFaqCreateUpdateDto dto);
 
     ApplyFaqDto updateFaq(UUID id, ApplyFaqCreateUpdateDto dto);

@@ -179,7 +179,7 @@ class AdminApplyFaqControllerTest {
                 .order(1)
                 .build();
 
-        when(applyFaqService.updateAllFaqs(any())).thenReturn(List.of(item));
+        when(applyFaqService.saveBatch(any())).thenReturn(List.of(item));
 
         java.util.Map<String, Object> payload = java.util.Map.of("items", List.of(item));
 

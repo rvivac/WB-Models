@@ -90,7 +90,7 @@ export class BilingualContentEditorComponent implements OnInit {
   successBlock: string | null = null;
   errorMessage: string | null = null;
 
-  faqList: Array<{ question: string; answer: string; questionEn: string; answerEn: string }> = [];
+  faqList: Array<{ id?: string | null; question: string; answer: string; questionEn: string; answerEn: string }> = [];
 
   ngOnInit(): void {
     this.loadSection(this.activeSection);
@@ -573,16 +573,30 @@ export class BilingualContentEditorComponent implements OnInit {
     this.isSaving = true;
     this.errorMessage = null;
 
-    this.http.put(`${environment.apiUrl}/admin/apply-faq`, { items: this.faqList }).subscribe({
+    const payload = {
+      items: this.faqList.map((item, index) => ({
+        id: item.id || null,
+        question: item.question,
+        answer: item.answer,
+        questionEn: item.questionEn,
+        answerEn: item.answerEn,
+        displayOrder: index + 1
+      }))
+    };
+
+    this.http.put<any>(`${environment.apiUrl}/admin/apply-faq`, payload).subscribe({
       next: () => {
         this.isSaving = false;
         this.showSuccessFeedback('faq');
+        alert('Perguntas e respostas atualizadas com sucesso!');
+        this.loadSectionData('SCOUTING'); // Recarrega com os IDs gerados
       },
       error: (err) => {
         this.isSaving = false;
         const msg = err?.error?.message || err?.message || 'Falha ao sincronizar FAQ com o servidor.';
         this.errorMessage = `Erro ao salvar FAQ: ${msg}`;
         console.error('Erro ao salvar FAQ:', err);
+        alert('Erro ao salvar FAQ. Verifique os dados.');
       }
     });
   }
@@ -592,6 +606,7 @@ export class BilingualContentEditorComponent implements OnInit {
       next: (res) => {
         if (res && res.items && Array.isArray(res.items) && res.items.length > 0) {
           this.faqList = res.items.map((item: any) => ({
+            id: item.id || null,
             question: item.question || '',
             answer: item.answer || '',
             questionEn: item.questionEn || item.question_en || '',
@@ -599,6 +614,7 @@ export class BilingualContentEditorComponent implements OnInit {
           }));
         } else if (Array.isArray(res) && res.length > 0) {
           this.faqList = res.map((item: any) => ({
+            id: item.id || null,
             question: item.question || '',
             answer: item.answer || '',
             questionEn: item.questionEn || item.question_en || '',

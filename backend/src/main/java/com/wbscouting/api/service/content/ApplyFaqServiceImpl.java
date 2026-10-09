@@ -124,84 +124,146 @@ public class ApplyFaqServiceImpl implements ApplyFaqService {
 
     @Override
     @Transactional
-    public List<ApplyFaqDto> updateAllFaqs(List<ApplyFaqDto> items) {
-        if (items == null) {
-            items = Collections.emptyList();
+    public List<ApplyFaqDto> saveBatch(Object payload) {
+        List<?> rawList = null;
+        if (payload instanceof List<?> list) {
+            rawList = list;
+        } else if (payload instanceof Map<?, ?> map) {
+            Object itemsObj = map.containsKey("items") ? map.get("items") : map;
+            if (itemsObj instanceof List<?> list) {
+                rawList = list;
+            }
         }
-        if (items.size() > 10) {
+
+        if (rawList == null) {
+            rawList = Collections.emptyList();
+        }
+
+        if (rawList.size() > 10) {
             throw new IllegalArgumentException("Máximo de 10 perguntas e respostas permitidas.");
         }
 
-        // 1. Sincronização direta na tabela public.apply_faqs
-        try {
-            applyFaqRepository.deleteAll();
-            List<ApplyFaq> entities = new ArrayList<>();
-            for (int i = 0; i < items.size(); i++) {
-                ApplyFaqDto item = items.get(i);
-                ApplyFaq faq = ApplyFaq.builder()
-                        .question(item.getQuestion() != null ? item.getQuestion().trim() : "")
-                        .answer(item.getAnswer() != null ? item.getAnswer().trim() : "")
-                        .questionEn(item.getQuestionEn() != null ? item.getQuestionEn().trim() : "")
-                        .answerEn(item.getAnswerEn() != null ? item.getAnswerEn().trim() : "")
+        List<ApplyFaq> existingFaqs = applyFaqRepository.findAll();
+        Map<UUID, ApplyFaq> existingMap = existingFaqs.stream()
+                .filter(f -> f.getId() != null)
+                .collect(Collectors.toMap(ApplyFaq::getId, f -> f, (a, b) -> a));
+
+        Set<UUID> keptIds = new HashSet<>();
+        List<ApplyFaq> toSave = new ArrayList<>();
+
+        for (int i = 0; i < rawList.size(); i++) {
+            Object itemObj = rawList.get(i);
+            String question = "";
+            String answer = "";
+            String questionEn = null;
+            String answerEn = null;
+            Boolean isActive = true;
+            String idStr = null;
+
+            if (itemObj instanceof Map<?, ?> map) {
+                idStr = map.get("id") != null ? map.get("id").toString().trim() : null;
+                question = map.get("question") != null ? map.get("question").toString().trim() : "";
+                answer = map.get("answer") != null ? map.get("answer").toString().trim() : "";
+                questionEn = map.get("questionEn") != null ? map.get("questionEn").toString().trim()
+                        : (map.get("question_en") != null ? map.get("question_en").toString().trim() : null);
+                answerEn = map.get("answerEn") != null ? map.get("answerEn").toString().trim()
+                        : (map.get("answer_en") != null ? map.get("answer_en").toString().trim() : null);
+                if (map.get("isActive") instanceof Boolean b) {
+                    isActive = b;
+                }
+            } else if (itemObj instanceof ApplyFaqDto dto) {
+                idStr = dto.getId() != null ? dto.getId().toString() : null;
+                question = dto.getQuestion() != null ? dto.getQuestion().trim() : "";
+                answer = dto.getAnswer() != null ? dto.getAnswer().trim() : "";
+                questionEn = dto.getQuestionEn() != null ? dto.getQuestionEn().trim() : null;
+                answerEn = dto.getAnswerEn() != null ? dto.getAnswerEn().trim() : null;
+                if (dto.getIsActive() != null) {
+                    isActive = dto.getIsActive();
+                }
+            }
+
+            UUID uuid = null;
+            if (idStr != null && !idStr.isBlank()) {
+                try {
+                    uuid = UUID.fromString(idStr);
+                } catch (Exception ignored) {}
+            }
+
+            ApplyFaq entity;
+            if (uuid != null && existingMap.containsKey(uuid)) {
+                // Se tiver id válido existente no banco, atualiza
+                entity = existingMap.get(uuid);
+                entity.setQuestion(question);
+                entity.setAnswer(answer);
+                entity.setQuestionEn(questionEn);
+                entity.setAnswerEn(answerEn);
+                entity.setDisplayOrder(i);
+                entity.setIsActive(isActive);
+                keptIds.add(uuid);
+            } else {
+                // Se for item novo (sem id ou não encontrado), cria
+                entity = ApplyFaq.builder()
+                        .question(question)
+                        .answer(answer)
+                        .questionEn(questionEn)
+                        .answerEn(answerEn)
                         .displayOrder(i)
-                        .isActive(item.getIsActive() != null ? item.getIsActive() : true)
+                        .isActive(isActive)
                         .build();
-                entities.add(faq);
             }
-            if (!entities.isEmpty()) {
-                applyFaqRepository.saveAll(entities);
-            }
-            log.info("Persistidos {} itens diretamente na tabela apply_faqs", entities.size());
-        } catch (Exception ex) {
-            log.warn("Erro ao gravar em applyFaqRepository: {}", ex.getMessage());
+            toSave.add(entity);
         }
 
-        // 2. Redundância e sincronização com site_contents (SCOUTING_FAQ)
-        List<Map<String, Object>> mapList = new ArrayList<>();
-        List<ApplyFaqDto> result = new ArrayList<>();
-
-        for (int i = 0; i < items.size(); i++) {
-            ApplyFaqDto item = items.get(i);
-            Map<String, Object> map = new LinkedHashMap<>();
-            map.put("order", i + 1);
-            map.put("displayOrder", i);
-            map.put("question", item.getQuestion() != null ? item.getQuestion().trim() : "");
-            map.put("answer", item.getAnswer() != null ? item.getAnswer().trim() : "");
-            map.put("questionEn", item.getQuestionEn() != null ? item.getQuestionEn().trim() : "");
-            map.put("answerEn", item.getAnswerEn() != null ? item.getAnswerEn().trim() : "");
-            map.put("isActive", item.getIsActive() != null ? item.getIsActive() : true);
-            mapList.add(map);
-
-            result.add(ApplyFaqDto.builder()
-                    .id(item.getId() != null ? item.getId() : UUID.nameUUIDFromBytes(("scouting_faq_" + i).getBytes()))
-                    .question(item.getQuestion() != null ? item.getQuestion().trim() : "")
-                    .answer(item.getAnswer() != null ? item.getAnswer().trim() : "")
-                    .questionEn(item.getQuestionEn() != null ? item.getQuestionEn().trim() : "")
-                    .answerEn(item.getAnswerEn() != null ? item.getAnswerEn().trim() : "")
-                    .order(i + 1)
-                    .displayOrder(i)
-                    .isActive(item.getIsActive() != null ? item.getIsActive() : true)
-                    .updatedAt(OffsetDateTime.now())
-                    .build());
+        // Se algum item foi removido da lista, exclui do banco
+        List<ApplyFaq> toDelete = existingFaqs.stream()
+                .filter(f -> !keptIds.contains(f.getId()))
+                .toList();
+        if (!toDelete.isEmpty()) {
+            applyFaqRepository.deleteAll(toDelete);
+            log.info("Removidos {} itens de FAQ excluídos pelo administrador", toDelete.size());
         }
 
+        List<ApplyFaq> saved = applyFaqRepository.saveAll(toSave);
+        log.info("Salvos/atualizados {} itens de FAQ com displayOrder sequencial", saved.size());
+
+        // Redundância e sincronização com site_contents (SCOUTING_FAQ)
         try {
+            List<Map<String, Object>> mapList = new ArrayList<>();
+            for (int i = 0; i < saved.size(); i++) {
+                ApplyFaq f = saved.get(i);
+                Map<String, Object> map = new LinkedHashMap<>();
+                map.put("id", f.getId() != null ? f.getId().toString() : null);
+                map.put("order", i + 1);
+                map.put("displayOrder", i);
+                map.put("question", f.getQuestion());
+                map.put("answer", f.getAnswer());
+                map.put("questionEn", f.getQuestionEn());
+                map.put("answerEn", f.getAnswerEn());
+                map.put("isActive", f.getIsActive());
+                mapList.add(map);
+            }
+
             var sc = siteContentRepository.findBySectionKey("SCOUTING_FAQ")
                     .orElseGet(() -> com.wbscouting.api.entity.SiteContent.builder().sectionKey("SCOUTING_FAQ").build());
 
-            Map<String, Object> payload = new LinkedHashMap<>();
-            payload.put("items", mapList);
+            Map<String, Object> syncPayload = new LinkedHashMap<>();
+            syncPayload.put("items", mapList);
 
-            sc.setPayloadPt(payload);
-            sc.setPayloadEn(payload);
+            sc.setPayloadPt(syncPayload);
+            sc.setPayloadEn(syncPayload);
             sc.setUpdatedAt(OffsetDateTime.now());
             siteContentRepository.save(sc);
         } catch (Exception ex) {
-            log.warn("Erro ao atualizar SCOUTING_FAQ em siteContentRepository: {}", ex.getMessage());
+            log.warn("Erro ao sincronizar SCOUTING_FAQ em siteContentRepository: {}", ex.getMessage());
         }
 
-        log.info("Lista de {} perguntas e respostas salva em apply_faqs e site_contents", items.size());
-        return result;
+        return saved.stream().map(this::toDto).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public List<ApplyFaqDto> updateAllFaqs(List<ApplyFaqDto> items) {
+        return saveBatch(items);
     }
 
     private ApplyFaqDto fromMap(Map<?, ?> map, int index) {

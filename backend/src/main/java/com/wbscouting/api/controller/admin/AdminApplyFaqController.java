@@ -39,43 +39,13 @@ public class AdminApplyFaqController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
+    // 3. Endpoint para salvar/sincronizar a lista completa em lote via PUT na raiz (Resolve o 405)
     @PutMapping({"/api/v1/admin/apply-faq", "/admin/apply-faq"})
     @com.wbscouting.api.security.audit.AuditAction(action = "UPDATE_ALL", resource = "APPLY_FAQ", description = "Atualização de lista completa de FAQs")
-    public ResponseEntity<List<ApplyFaqDto>> updateAllFaqs(@RequestBody Object payload) {
-        log.info("Admin atualizando lista completa de perguntas e respostas de FAQ");
-        List<ApplyFaqDto> items = new java.util.ArrayList<>();
-        List<?> list = null;
-        if (payload instanceof List<?> l) {
-            list = l;
-        } else if (payload instanceof java.util.Map<?, ?> map) {
-            Object raw = map.containsKey("items") ? map.get("items") : map;
-            if (raw instanceof List<?> l) {
-                list = l;
-            }
-        }
-
-        if (list != null) {
-            for (int i = 0; i < list.size(); i++) {
-                Object obj = list.get(i);
-                if (obj instanceof java.util.Map<?, ?> map) {
-                    String q = map.get("question") != null ? map.get("question").toString() : "";
-                    String a = map.get("answer") != null ? map.get("answer").toString() : "";
-                    String qEn = map.get("questionEn") != null ? map.get("questionEn").toString() : (map.get("question_en") != null ? map.get("question_en").toString() : "");
-                    String aEn = map.get("answerEn") != null ? map.get("answerEn").toString() : (map.get("answer_en") != null ? map.get("answer_en").toString() : "");
-                    boolean active = map.get("isActive") instanceof Boolean b ? b : true;
-                    items.add(ApplyFaqDto.builder()
-                            .question(q)
-                            .answer(a)
-                            .questionEn(qEn)
-                            .answerEn(aEn)
-                            .order(i + 1)
-                            .displayOrder(i)
-                            .isActive(active)
-                            .build());
-                }
-            }
-        }
-        return ResponseEntity.ok(applyFaqService.updateAllFaqs(items));
+    public ResponseEntity<List<ApplyFaqDto>> saveAllBatch(@RequestBody Object payload) {
+        log.info("Admin salvando/sincronizando lista completa de FAQ em lote via PUT");
+        List<ApplyFaqDto> updatedList = applyFaqService.saveBatch(payload);
+        return ResponseEntity.ok(updatedList);
     }
 
     @PutMapping({"/api/v1/admin/apply-faq/{id}", "/admin/apply-faq/{id}"})

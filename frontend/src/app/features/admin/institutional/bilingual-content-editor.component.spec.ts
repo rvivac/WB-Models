@@ -140,6 +140,7 @@ describe('BilingualContentEditorComponent', () => {
     fixture.detectChanges();
     httpMock.expectOne(`${environment.apiUrl}/admin/institutional/translations/ABOUT_MANIFESTO`).flush(mockResponse);
 
+    spyOn(window, 'alert');
     component.activeSection = 'SCOUTING';
     component.faqList = [
       { question: 'Pergunta Teste', answer: 'Resposta Teste', questionEn: 'Test Question', answerEn: 'Test Answer' }
@@ -152,6 +153,10 @@ describe('BilingualContentEditorComponent', () => {
     expect(req.request.body.items.length).toBe(1);
     expect(req.request.body.items[0].question).toBe('Pergunta Teste');
     req.flush({ items: component.faqList });
+
+    const faqReq = httpMock.expectOne(`${environment.apiUrl}/admin/apply-faq`);
+    expect(faqReq.request.method).toBe('GET');
+    faqReq.flush({ items: component.faqList });
 
     expect(component.isSaving).toBeFalse();
     expect(component.successBlock).toBe('faq');

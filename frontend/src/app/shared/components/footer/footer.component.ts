@@ -96,16 +96,20 @@ export class FooterComponent implements OnInit {
     return num ? num.replace(/\D/g, '') : '';
   }
 
-  openInstitutionalModal(sectionKey: 'TERMS' | 'PRIVACY'): void {
+  isCurrentLangEn(): boolean {
     const currentLang = typeof this.translate.currentLang === 'function' ? this.translate.currentLang() : 'pt';
-    const isEn = (currentLang || 'pt').startsWith('en');
+    return (currentLang || 'pt').startsWith('en');
+  }
+
+  openInstitutionalModal(sectionKey: 'TERMS' | 'PRIVACY'): void {
+    const isEn = this.isCurrentLangEn();
     const fallbackKey = sectionKey === 'TERMS' ? 'footer.terms_content' : 'footer.privacy_content';
 
     // 1. Define o título do Modal
     this.modalTitle.set(
       sectionKey === 'TERMS' 
         ? (isEn ? 'Terms of Use' : 'Termos de Uso')
-        : (isEn ? 'Privacy & LGPD' : 'Privacidade & LGPD')
+        : (isEn ? 'Privacy & GDPR' : 'Privacidade & LGPD')
     );
 
     // 2. Abre o modal com loading
@@ -114,9 +118,15 @@ export class FooterComponent implements OnInit {
     this.isModalOpen.set(true);
 
     const lang = isEn ? 'en' : 'pt';
+    const cacheBuster = Date.now();
 
-    // 3. Consulta a API
-    this.http.get<any>(`${environment.apiUrl}/public/content/${sectionKey}?lang=${lang}`).subscribe({
+    // 3. Consulta a API com blindagem anti-cache
+    this.http.get<any>(`${environment.apiUrl}/public/content/${sectionKey}?lang=${lang}&_t=${cacheBuster}`, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      }
+    }).subscribe({
       next: (res) => {
         this.isLoadingContent.set(false);
 

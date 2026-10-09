@@ -171,9 +171,9 @@
           type="button" 
           (click)="closeModal()" 
           class="text-xs uppercase tracking-wider text-[#5F6661] hover:text-[#222624] px-2 py-1 transition-colors cursor-pointer"
-          aria-label="Fechar"
+          [attr.aria-label]="isCurrentLangEn() ? 'Close' : 'Fechar'"
         >
-          ✕ Fechar
+          ✕ {{ isCurrentLangEn() ? 'Close' : 'Fechar' }}
         </button>
       </div>
 

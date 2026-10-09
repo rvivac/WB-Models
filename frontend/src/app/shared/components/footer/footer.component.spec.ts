@@ -140,7 +140,7 @@ describe('FooterComponent', () => {
     expect(component.modalTitle()).toBe('Termos de Uso');
     expect(component.isLoadingContent()).toBeTrue();
 
-    const req = httpTesting.expectOne(`${environment.apiUrl}/public/content/TERMS?lang=pt`);
+    const req = httpTesting.expectOne((r) => r.urlWithParams.includes('/public/content/TERMS') && r.urlWithParams.includes('lang=pt'));
     expect(req.request.method).toBe('GET');
     req.flush({ content: 'Termos e Condições WB Agency' });
 
@@ -160,9 +160,9 @@ describe('FooterComponent', () => {
     translationService.setLanguage('en');
     component.openInstitutionalModal('PRIVACY');
     expect(component.isModalOpen()).toBeTrue();
-    expect(component.modalTitle()).toBe('Privacy & LGPD');
+    expect(component.modalTitle()).toBe('Privacy & GDPR');
 
-    const req = httpTesting.expectOne(`${environment.apiUrl}/public/content/PRIVACY?lang=en`);
+    const req = httpTesting.expectOne((r) => r.urlWithParams.includes('/public/content/PRIVACY') && r.urlWithParams.includes('lang=en'));
     expect(req.request.method).toBe('GET');
     req.flush({ content: 'Privacy Policy WB Agency' });
 
@@ -177,7 +177,7 @@ describe('FooterComponent', () => {
     const httpTesting = TestBed.inject(HttpTestingController);
     component.openInstitutionalModal('TERMS');
 
-    const req = httpTesting.expectOne(`${environment.apiUrl}/public/content/TERMS?lang=pt`);
+    const req = httpTesting.expectOne((r) => r.urlWithParams.includes('/public/content/TERMS') && r.urlWithParams.includes('lang=pt'));
     req.error(new ProgressEvent('Network error'));
 
     expect(component.isLoadingContent()).toBeFalse();

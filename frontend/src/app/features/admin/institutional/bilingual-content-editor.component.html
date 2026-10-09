@@ -20,7 +20,7 @@
         >
           <option value="ABOUT_MANIFESTO">Sobre Nós</option>
           <option value="TERMS">Termos de Uso</option>
-          <option value="PRIVACY">Privacidade & LGPD</option>
+          <option value="PRIVACY">Privacidade & LGPD / Privacy & GDPR</option>
           <option value="SCOUTING">Configurações do Form. de Quero ser Modelo</option>
         </select>
 
@@ -51,7 +51,7 @@
       {{ errorMessage }}
     </div>
 
-    <!-- BLOCO SIMPLIFICADO: TERMOS DE USO OU PRIVACIDADE & LGPD -->
+    <!-- BLOCO SIMPLIFICADO: TERMOS DE USO OU PRIVACIDADE & LGPD / GDPR -->
     <div *ngIf="selectedSectionKey === 'TERMS' || selectedSectionKey === 'PRIVACY'" class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white border border-[#E8EBE8] p-6 shadow-sm">
       
       <!-- Coluna PT-BR -->
@@ -75,7 +75,7 @@
         <div class="flex items-center justify-between border-b border-[#E8EBE8] pb-2">
           <span class="text-[10px] font-mono uppercase tracking-widest text-[#C2A87E] font-bold">EN-US</span>
           <span class="text-xs font-serif uppercase tracking-wider text-[#222624]">
-            {{ selectedSectionKey === 'TERMS' ? 'Terms of Use Copy' : 'Privacy & LGPD Copy' }}
+            {{ selectedSectionKey === 'TERMS' ? 'Terms of Use Copy' : 'Privacy & GDPR Copy' }}
           </span>
         </div>
         <textarea 
@@ -93,7 +93,7 @@
           (click)="saveCurrentSection()" 
           class="px-6 py-2.5 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-[0.2em] rounded-none cursor-pointer"
         >
-          Salvar {{ selectedSectionKey === 'TERMS' ? 'Termos de Uso' : 'Privacidade & LGPD' }}
+          Salvar {{ selectedSectionKey === 'TERMS' ? 'Termos de Uso' : 'Privacidade & LGPD / Privacy & GDPR' }}
         </button>
       </div>
 

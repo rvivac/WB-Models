@@ -21,6 +21,10 @@ public class HomeSettingsDto {
     private String metaTitle;
     private String metaDescription;
     private String scrollLabel;
+    private String footerDescription;
+    private String footerHubs;
+    private String footerPressBookingUrl;
+    private String footerApplyUrl;
 
     public static HomeSettingsDto fromEntity(HomeSettings entity) {
         if (entity == null) return null;
@@ -35,6 +39,10 @@ public class HomeSettingsDto {
                 .metaTitle(entity.getMetaTitle())
                 .metaDescription(entity.getMetaDescription())
                 .scrollLabel(entity.getScrollLabel())
+                .footerDescription(entity.getFooterDescription() != null ? entity.getFooterDescription() : "Agência de modelos e gestão internacional de talentos. Representação exclusiva, editorial e comercial com inteligência e inovação.")
+                .footerHubs(entity.getFooterHubs() != null ? entity.getFooterHubs() : "PARIS • MILAN • NEW YORK • SÃO PAULO")
+                .footerPressBookingUrl(entity.getFooterPressBookingUrl() != null ? entity.getFooterPressBookingUrl() : "/contato")
+                .footerApplyUrl(entity.getFooterApplyUrl() != null ? entity.getFooterApplyUrl() : "/apply")
                 .build();
     }
 }

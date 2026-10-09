@@ -72,6 +72,10 @@ public class AdminInstitutionalHomeController {
         payloadPt.put("scrollLabel", dto.getScrollLabel());
         payloadPt.put("metaTitle", dto.getMetaTitle());
         payloadPt.put("metaDescription", dto.getMetaDescription());
+        payloadPt.put("footerDescription", dto.getFooterDescription());
+        payloadPt.put("footerHubs", dto.getFooterHubs());
+        payloadPt.put("footerPressBookingUrl", dto.getFooterPressBookingUrl());
+        payloadPt.put("footerApplyUrl", dto.getFooterApplyUrl());
         content.setPayloadPt(payloadPt);
 
         Map<String, Object> payloadEn = content.getPayloadEn() != null ? new HashMap<>(content.getPayloadEn()) : new HashMap<>();
@@ -81,6 +85,10 @@ public class AdminInstitutionalHomeController {
         payloadEn.put("scrollLabel", dto.getScrollLabel());
         payloadEn.put("metaTitle", dto.getMetaTitle());
         payloadEn.put("metaDescription", dto.getMetaDescription());
+        payloadEn.put("footerDescription", dto.getFooterDescription());
+        payloadEn.put("footerHubs", dto.getFooterHubs());
+        payloadEn.put("footerPressBookingUrl", dto.getFooterPressBookingUrl());
+        payloadEn.put("footerApplyUrl", dto.getFooterApplyUrl());
         content.setPayloadEn(payloadEn);
 
         SiteContent saved = siteContentRepository.save(content);
@@ -95,6 +103,10 @@ public class AdminInstitutionalHomeController {
                 hs.setScrollLabel(dto.getScrollLabel());
                 hs.setMetaTitle(dto.getMetaTitle());
                 hs.setMetaDescription(dto.getMetaDescription());
+                hs.setFooterDescription(dto.getFooterDescription());
+                hs.setFooterHubs(dto.getFooterHubs());
+                hs.setFooterPressBookingUrl(dto.getFooterPressBookingUrl());
+                hs.setFooterApplyUrl(dto.getFooterApplyUrl());
                 hs.setUpdatedAt(java.time.OffsetDateTime.now());
                 homeSettingsRepository.save(hs);
             } catch (Exception ex) {
@@ -186,6 +198,10 @@ public class AdminInstitutionalHomeController {
                 .scrollLabel(getString(pt, "scrollLabel", "SCROLL"))
                 .metaTitle(getString(pt, "metaTitle", "WB Agency | Scouting Internacional e Alta Moda"))
                 .metaDescription(getString(pt, "metaDescription", "Agência de scouting e modelos com foco editorial."))
+                .footerDescription(getString(pt, "footerDescription", "Agência de modelos e gestão internacional de talentos. Representação exclusiva, editorial e comercial com inteligência e inovação."))
+                .footerHubs(getString(pt, "footerHubs", "PARIS • MILAN • NEW YORK • SÃO PAULO"))
+                .footerPressBookingUrl(getString(pt, "footerPressBookingUrl", "/contato"))
+                .footerApplyUrl(getString(pt, "footerApplyUrl", "/apply"))
                 .videoUrl(getString(media, "videoUrl", "assets/videos/wb-presentation.mp4"))
                 .posterUrl(getString(media, "posterUrl", "assets/images/logo-wb-agency.jpeg"))
                 .build();
@@ -199,6 +215,10 @@ public class AdminInstitutionalHomeController {
         payloadPt.put("scrollLabel", "SCROLL");
         payloadPt.put("metaTitle", "WB Agency | Scouting Internacional e Alta Moda");
         payloadPt.put("metaDescription", "Agência de scouting e modelos com foco editorial.");
+        payloadPt.put("footerDescription", "Agência de modelos e gestão internacional de talentos. Representação exclusiva, editorial e comercial com inteligência e inovação.");
+        payloadPt.put("footerHubs", "PARIS • MILAN • NEW YORK • SÃO PAULO");
+        payloadPt.put("footerPressBookingUrl", "/contato");
+        payloadPt.put("footerApplyUrl", "/apply");
 
         Map<String, Object> mediaUrls = new HashMap<>();
         mediaUrls.put("videoUrl", "assets/videos/wb-presentation.mp4");

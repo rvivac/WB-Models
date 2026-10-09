@@ -1,101 +1,52 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { HttpClient, HttpEventType } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
-import { HomeSettingsService, HomeSettings } from '../../../core/services/home-settings.service';
-
-export interface HomeContentData {
-  heroTitle: string;
-  heroSubtitle: string;
-  heroDescription: string;
-  scrollLabel: string;
-  metaTitle: string;
-  metaDescription: string;
-  videoUrl?: string;
-  posterUrl?: string;
-}
+import { HomeSettingsService } from '../../../core/services/home-settings.service';
 
 @Component({
   selector: 'app-home-content-manager',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './home-content-manager.component.html',
   styleUrls: ['./home-content-manager.component.scss']
 })
 export class HomeContentManagerComponent implements OnInit {
-  private fb = inject(FormBuilder);
-  private http = inject(HttpClient);
-  private homeSettingsService = inject(HomeSettingsService);
+  private readonly fb = inject(FormBuilder);
+  private readonly http = inject(HttpClient);
+  private readonly homeSettingsService = inject(HomeSettingsService);
 
-  form: FormGroup = this.fb.group({
+  readonly form: FormGroup = this.fb.group({
     heroTitle: ['', [Validators.maxLength(50)]],
     heroSubtitle: ['', [Validators.maxLength(80)]],
     heroDescription: ['', [Validators.maxLength(250)]],
-    scrollLabel: ['SCROLL'],
-    metaTitle: [''],
-    metaDescription: ['']
+    footerDescription: [
+      'Agência de modelos e gestão internacional de talentos. Representação exclusiva, editorial e comercial com inteligência e inovação.',
+      [Validators.required]
+    ],
+    footerHubs: [
+      'PARIS • MILAN • NEW YORK • SÃO PAULO',
+      [Validators.required]
+    ],
+    footerPressBookingUrl: [
+      '/contato',
+      [Validators.required]
+    ],
+    footerApplyUrl: [
+      '/apply',
+      [Validators.required]
+    ]
   });
 
   currentVideoUrl = '';
   currentPosterUrl = '';
 
-  editingField: string | null = null;
-  tempFieldValues: { [key: string]: string } = {};
-
   isSaving = false;
   isVideoUploading = false;
   videoUploadProgress = 0;
   feedbackMessage = '';
-
-  startEdit(field: string): void {
-    this.editingField = field;
-    this.tempFieldValues[field] = this.form.get(field)?.value || '';
-    setTimeout(() => {
-      const el = document.getElementById(field);
-      if (el) {
-        el.focus();
-      }
-    }, 50);
-  }
-
-  cancelEdit(): void {
-    if (this.editingField && this.tempFieldValues[this.editingField] !== undefined) {
-      this.form.get(this.editingField)?.setValue(this.tempFieldValues[this.editingField]);
-    }
-    this.editingField = null;
-  }
-
-  saveField(field: string): void {
-    if (this.form.get(field)?.invalid) return;
-    this.saveTextContent();
-    this.editingField = null;
-  }
-
-  isFieldEmpty(field: string): boolean {
-    const val = this.form.get(field)?.value;
-    return val === null || val === undefined || (typeof val === 'string' && val.trim() === '');
-  }
-
-  getFieldStatusClass(field: string): string {
-    if (this.editingField === field) {
-      return 'status-editing';
-    }
-    if (this.isFieldEmpty(field)) {
-      return 'status-empty';
-    }
-    return 'status-ready';
-  }
-
-  getFieldStatusLabel(field: string): string {
-    if (this.editingField === field) {
-      return 'Em Edição';
-    }
-    if (this.isFieldEmpty(field)) {
-      return 'Vazio';
-    }
-    return 'Salvo';
-  }
 
   ngOnInit(): void {
     this.loadData();
@@ -105,7 +56,15 @@ export class HomeContentManagerComponent implements OnInit {
     this.homeSettingsService.getAdminSettings().subscribe({
       next: (data) => {
         if (data) {
-          this.form.patchValue(data);
+          this.form.patchValue({
+            heroTitle: data.heroTitle || '',
+            heroSubtitle: data.heroSubtitle || '',
+            heroDescription: data.heroDescription || '',
+            footerDescription: data.footerDescription || 'Agência de modelos e gestão internacional de talentos. Representação exclusiva, editorial e comercial com inteligência e inovação.',
+            footerHubs: data.footerHubs || 'PARIS • MILAN • NEW YORK • SÃO PAULO',
+            footerPressBookingUrl: data.footerPressBookingUrl || '/contato',
+            footerApplyUrl: data.footerApplyUrl || '/apply'
+          });
           this.currentVideoUrl = data.videoUrl || '';
           this.currentPosterUrl = data.bannerImageUrl || '';
         }
@@ -133,13 +92,13 @@ export class HomeContentManagerComponent implements OnInit {
         if (res) {
           this.form.patchValue(res);
         }
-        this.showFeedback('Configurações da Home salvas com sucesso no banco de dados!');
+        this.showFeedback('Configurações salvas com sucesso!');
       },
       error: (err) => {
         this.isSaving = false;
         const msg = err?.error?.message || err?.message || 'Falha na comunicação com o servidor.';
-        this.showFeedback(`Erro ao salvar configurações da Home: ${msg}`);
-        console.error('Falha ao salvar configurações da Home:', err);
+        this.showFeedback(`Erro ao salvar: ${msg}`);
+        console.error('Falha ao salvar configurações:', err);
       }
     });
   }

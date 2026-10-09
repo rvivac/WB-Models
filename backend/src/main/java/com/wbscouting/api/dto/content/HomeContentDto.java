@@ -22,6 +22,12 @@ public class HomeContentDto {
     private String videoUrl;
     private String posterUrl;
 
+    // Novos campos editoriais do Rodapé
+    private String footerDescription;
+    private String footerHubs;
+    private String footerPressBookingUrl;
+    private String footerApplyUrl;
+
     // ============================================================
     // 🔥 GETTERS EXPLICITOS (Lombok @Data NAO processa no mvnw 3.6.3 Render)
     // ============================================================
@@ -33,6 +39,11 @@ public class HomeContentDto {
     public String getMetaDescription() { return metaDescription; }
     public String getVideoUrl() { return videoUrl; }
     public String getPosterUrl() { return posterUrl; }
+
+    public String getFooterDescription() { return footerDescription; }
+    public String getFooterHubs() { return footerHubs; }
+    public String getFooterPressBookingUrl() { return footerPressBookingUrl; }
+    public String getFooterApplyUrl() { return footerApplyUrl; }
 
     // ============================================================
     // 🔥 SETTERS EXPLICITOS
@@ -46,11 +57,15 @@ public class HomeContentDto {
     public void setVideoUrl(String videoUrl) { this.videoUrl = videoUrl; }
     public void setPosterUrl(String posterUrl) { this.posterUrl = posterUrl; }
 
+    public void setFooterDescription(String footerDescription) { this.footerDescription = footerDescription; }
+    public void setFooterHubs(String footerHubs) { this.footerHubs = footerHubs; }
+    public void setFooterPressBookingUrl(String footerPressBookingUrl) { this.footerPressBookingUrl = footerPressBookingUrl; }
+    public void setFooterApplyUrl(String footerApplyUrl) { this.footerApplyUrl = footerApplyUrl; }
+
     // ============================================================
     // 🔥 BUILDER MANUAL FALLBACK (evita erro cannot find symbol builder() no mvnw)
     // ============================================================
     public static HomeContentDtoBuilder manualBuilder() { return new HomeContentDtoBuilder(); }
-    // alias: builder() aponta para builder manual (compativel com assinatura Lombok)
     public static HomeContentDtoBuilder builder() { return new HomeContentDtoBuilder(); }
 
     public static class HomeContentDtoBuilder {
@@ -63,6 +78,12 @@ public class HomeContentDto {
         public HomeContentDtoBuilder metaDescription(String v) { h.setMetaDescription(v); return this; }
         public HomeContentDtoBuilder videoUrl(String v) { h.setVideoUrl(v); return this; }
         public HomeContentDtoBuilder posterUrl(String v) { h.setPosterUrl(v); return this; }
+
+        public HomeContentDtoBuilder footerDescription(String v) { h.setFooterDescription(v); return this; }
+        public HomeContentDtoBuilder footerHubs(String v) { h.setFooterHubs(v); return this; }
+        public HomeContentDtoBuilder footerPressBookingUrl(String v) { h.setFooterPressBookingUrl(v); return this; }
+        public HomeContentDtoBuilder footerApplyUrl(String v) { h.setFooterApplyUrl(v); return this; }
+
         public HomeContentDto build() { return h; }
     }
 }

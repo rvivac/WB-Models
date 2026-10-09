@@ -1,90 +1,104 @@
-<footer class="site-footer">
-  <div class="container footer-content">
-    <!-- Bloco Marca & Slogan Editorial -->
-    <div class="footer-brand">
-      <a routerLink="/" class="footer-logo-link flex items-center" aria-label="WB Agency Home">
-        <img 
-          src="assets/images/logo-wb-agency.png" 
-          alt="WB Agency" 
-          class="footer-logo-img"
-        >
-      </a>
-      <p class="brand-desc">
-        {{ 'footer.slogan' | translate }}
-      </p>
-      <div class="brand-badge tracking-editorial">
-        PARIS &bull; MILAN &bull; NEW YORK &bull; SÃO PAULO
-      </div>
-    </div>
-
-    <!-- Grupos de Links -->
-    <div class="footer-links-group">
-      <!-- Navegação Institucional -->
-      <div class="links-col">
-        <h4 class="col-title tracking-editorial">{{ 'footer.navigation' | translate }}</h4>
-        <ul>
-          <li><a routerLink="/">{{ 'nav.home' | translate }}</a></li>
-          <li><a routerLink="/models/female">{{ 'nav.female' | translate }}</a></li>
-          <li><a routerLink="/models/male">{{ 'nav.male' | translate }}</a></li>
-          <li><a routerLink="/models/stars">{{ 'nav.stars' | translate }}</a></li>
-          <li><a routerLink="/sobre">{{ 'nav.about' | translate }}</a></li>
-          <li><a routerLink="/apply">{{ 'nav.apply' | translate }}</a></li>
-          <li><a routerLink="/contact">{{ 'nav.contact' | translate }}</a></li>
-        </ul>
-      </div>
-
-      <!-- Canais Oficiais de Contato (Consumidos da API) -->
-      <div class="links-col">
-        <h4 class="col-title tracking-editorial">{{ 'footer.contact' | translate }}</h4>
-        <ul class="contact-list">
-          <li>
-            <a [href]="'mailto:' + contactChannels().email" class="contact-link">
-              <span class="contact-label">{{ 'footer.email' | translate }}:</span>
-              <span class="contact-val">{{ contactChannels().email }}</span>
-            </a>
-          </li>
-          <li>
-            <a [href]="contactChannels().whatsappUrl" target="_blank" rel="noopener noreferrer" class="contact-link whatsapp-link">
-              <span class="contact-label">WhatsApp:</span>
-              <span class="contact-val">{{ formatPhone(contactChannels().whatsappNumber) }}</span>
-            </a>
-          </li>
-          <li>
-            <a [href]="getInstagramUrl()" target="_blank" rel="noopener noreferrer" class="contact-link">
-              <span class="contact-label">Instagram:</span>
-              <span class="contact-val">{{ contactChannels().instagramHandle }}</span>
-            </a>
-          </li>
-          <li class="contact-item-static">
-            <span class="contact-label">{{ 'footer.address' | translate }}:</span>
-            <span class="contact-val">{{ contactChannels().address }}</span>
-          </li>
-          <li class="contact-item-static">
-            <span class="contact-label">{{ 'footer.hours' | translate }}:</span>
-            <span class="contact-val">{{ contactChannels().officeHours }}</span>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Plataforma & Institucional -->
-      <div class="links-col">
-        <h4 class="col-title tracking-editorial">{{ 'footer.platform' | translate }}</h4>
-        <ul>
-          <li><a routerLink="/contact">{{ 'footer.press_booking' | translate }}</a></li>
-          <li><a routerLink="/apply">{{ 'footer.apply_talent' | translate }}</a></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <div class="footer-bottom">
-    <div class="container bottom-inner">
-      <p>&copy; {{ currentYear }} {{ 'footer.rights' | translate }}</p>
-      <p class="credits">
-        <a href="https://www.rvivacguild.com.br" target="_blank" rel="noopener noreferrer" class="credits-link">
-          {{ 'footer.credits' | translate }}
+<footer class="w-full bg-[#FFFFFF] border-t border-[#E8EBE8] text-[#222624] select-none rounded-none">
+  <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 pt-16 pb-12">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-16">
+      
+      <!-- COLUNA 1: LOGO EM DESTAQUE + MANIFESTO + CIDADES (6 Colunas) -->
+      <div class="md:col-span-6 lg:col-span-6 space-y-6">
+        <!-- Logo aumentado proporcionalmente -->
+        <a routerLink="/" class="inline-block group">
+          <img 
+            src="assets/images/logo-wb-agency.jpeg" 
+            alt="WB Agency" 
+            class="h-14 md:h-16 w-auto object-contain transition-opacity group-hover:opacity-85"
+          />
         </a>
+
+        <!-- Texto Descritivo Institucional Reativo -->
+        <p class="text-xs sm:text-sm text-[#5F6661] leading-relaxed max-w-md font-sans">
+          {{ footerDescription() }}
+        </p>
+
+        <!-- Hubs Internacionais Reativos -->
+        <div class="pt-2">
+          <p class="text-[11px] font-sans uppercase tracking-[0.25em] text-[#222624] font-medium">
+            {{ footerHubs() }}
+          </p>
+        </div>
+      </div>
+
+      <!-- COLUNA 2: PLATAFORMA / NAVEGAÇÃO (3 Colunas) -->
+      <div class="md:col-span-3 lg:col-span-3 space-y-4">
+        <h4 class="text-xs font-sans uppercase tracking-[0.25em] text-[#222624] font-semibold border-b border-[#E8EBE8] pb-2">
+          Plataforma
+        </h4>
+        <ul class="space-y-3 text-xs tracking-wide text-[#5F6661]">
+          <li>
+            <a routerLink="/modelos" class="hover:text-[#4B584E] transition-colors block py-0.5">
+              Casting &amp; Modelos
+            </a>
+          </li>
+          <li>
+            <a [routerLink]="footerPressBookingUrl()" class="hover:text-[#4B584E] transition-colors block py-0.5">
+              Imprensa &amp; Booking
+            </a>
+          </li>
+          <li>
+            <a [routerLink]="footerApplyUrl()" class="hover:text-[#4B584E] transition-colors block py-0.5">
+              Inscrição de Novos Talentos
+            </a>
+          </li>
+          <li>
+            <a routerLink="/sobre" class="hover:text-[#4B584E] transition-colors block py-0.5">
+              Sobre a Agência
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- COLUNA 3: CONTATO DIRETO & SOCIAL (3 Colunas) -->
+      <div class="md:col-span-3 lg:col-span-3 space-y-4">
+        <h4 class="text-xs font-sans uppercase tracking-[0.25em] text-[#222624] font-semibold border-b border-[#E8EBE8] pb-2">
+          Contato
+        </h4>
+        <ul class="space-y-3 text-xs tracking-wide text-[#5F6661]">
+          <li>
+            <a href="mailto:contato@wbscouting.com" class="hover:text-[#4B584E] transition-colors block py-0.5">
+              contato&#64;wbscouting.com
+            </a>
+          </li>
+          <li>
+            <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" class="hover:text-[#4B584E] transition-colors block py-0.5">
+              +55 (11) 99999-9999
+            </a>
+          </li>
+          <li class="pt-2">
+            <span class="block text-[10px] uppercase tracking-[0.2em] text-[#222624] font-medium mb-2">Redes Sociais</span>
+            <div class="flex items-center gap-4 text-xs">
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="text-[#5F6661] hover:text-[#4B584E] transition-colors uppercase tracking-widest text-[11px]">
+                Instagram
+              </a>
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="text-[#5F6661] hover:text-[#4B584E] transition-colors uppercase tracking-widest text-[11px]">
+                LinkedIn
+              </a>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- SUB-FOOTER: LINHA DIVISÓRIA E COPYRIGHT -->
+    <div class="border-t border-[#E8EBE8] mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-[#5F6661] tracking-wide">
+      <p>
+        &copy; {{ currentYear }} WB Agency. Todos os direitos reservados.
       </p>
+      <div class="flex items-center gap-6 text-[10px] uppercase tracking-[0.15em]">
+        <a routerLink="/termos" class="hover:text-[#4B584E] transition-colors">Termos de Uso</a>
+        <span>&bull;</span>
+        <a routerLink="/privacidade" class="hover:text-[#4B584E] transition-colors">Privacidade &amp; LGPD</a>
+        <span>&bull;</span>
+        <a routerLink="/admin/login" class="hover:text-[#4B584E] transition-colors text-neutral-400">Acesso Restrito</a>
+      </div>
     </div>
   </div>
 </footer>

@@ -14,6 +14,10 @@ export interface HomeSettings {
   metaTitle?: string;
   metaDescription?: string;
   scrollLabel?: string;
+  footerDescription?: string;
+  footerHubs?: string;
+  footerPressBookingUrl?: string;
+  footerApplyUrl?: string;
 }
 
 @Injectable({

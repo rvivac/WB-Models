@@ -42,6 +42,10 @@ public class PublicHomeSettingsController {
                     .metaTitle("WB Agency | Editorial & High Fashion Scouting")
                     .metaDescription("Agência de scouting e gestão de carreira de modelos para o mercado internacional da moda.")
                     .scrollLabel("Explore o Elenco")
+                    .footerDescription("Agência de modelos e gestão internacional de talentos. Representação exclusiva, editorial e comercial com inteligência e inovação.")
+                    .footerHubs("PARIS • MILAN • NEW YORK • SÃO PAULO")
+                    .footerPressBookingUrl("/contato")
+                    .footerApplyUrl("/apply")
                     .updatedAt(OffsetDateTime.now())
                     .build();
             settings = homeSettingsRepository.saveAndFlush(settings);

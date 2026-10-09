@@ -30,9 +30,9 @@ describe('HomeComponent - Vitrine Stars', () => {
     fixture.detectChanges();
   });
 
-  it('deve instanciar o componente e renderizar o elemento app-home-featured-models', () => {
+  it('deve instanciar o componente e não renderizar o elemento app-home-featured-models', () => {
     expect(component).toBeTruthy();
     const featuredSection = fixture.debugElement.query(By.css('app-home-featured-models'));
-    expect(featuredSection).withContext('O seletor da vitrine Stars deve estar presente no DOM da Home').not.toBeNull();
+    expect(featuredSection).withContext('O seletor da vitrine Stars não deve estar presente no DOM da Home').toBeNull();
   });
 });

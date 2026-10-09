@@ -18,6 +18,10 @@ public class ApplyFaqCreateUpdateDto {
     @NotBlank(message = "A resposta é obrigatória")
     private String answer;
 
+    private String questionEn;
+
+    private String answerEn;
+
     private Integer displayOrder;
 
     private Boolean isActive;

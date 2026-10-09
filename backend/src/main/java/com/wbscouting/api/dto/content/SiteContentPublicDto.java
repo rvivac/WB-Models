@@ -19,8 +19,12 @@ public class SiteContentPublicDto {
     private Map<String, Object> payload;
     private Map<String, Object> mediaUrls;
     private String lang;
+    private String content;
 
     public String getContent() {
+        if (content != null && !content.isBlank()) {
+            return content;
+        }
         if (payload != null && payload.containsKey("content") && payload.get("content") != null) {
             return payload.get("content").toString();
         }
@@ -28,5 +32,8 @@ public class SiteContentPublicDto {
             return payload.get("body").toString();
         }
         return null;
+    }
+    public void setContent(String content) {
+        this.content = content;
     }
 }

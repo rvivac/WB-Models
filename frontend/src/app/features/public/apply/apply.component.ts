@@ -1,7 +1,8 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
+import { TranslationService } from '../../../core/services/translation.service';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { CandidateApplicationRequest, CandidatePhotoUpload } from '../../../shared/models/candidate.interface';
 
@@ -15,6 +16,7 @@ import { CandidateApplicationRequest, CandidatePhotoUpload } from '../../../shar
 export class ApplyComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(ApiService);
+  public readonly translate = inject(TranslationService);
 
   faqItems: Array<{ question: string; answer: string }> = [];
   expandedFaqIndex: number | null = null;
@@ -24,14 +26,29 @@ export class ApplyComponent implements OnInit {
   readonly submissionSuccess = signal<boolean>(false);
   readonly submissionError = signal<string | null>(null);
 
+  constructor() {
+    effect(() => {
+      const lang = this.translate.currentLang();
+      this.loadFaqs(lang);
+    });
+  }
+
   ngOnInit(): void {
-    this.api.get<any[]>('/public/apply-faq').subscribe({
+    this.loadFaqs(this.translate.currentLang());
+  }
+
+  loadFaqs(lang: string = 'pt'): void {
+    const langParam = lang?.startsWith('en') ? 'en' : 'pt';
+    this.api.get<any[]>(`/public/apply-faq?lang=${langParam}`).subscribe({
       next: (faqs) => {
         if (faqs && Array.isArray(faqs)) {
-          this.faqItems = faqs;
+          this.faqItems = faqs.map(item => ({
+            question: (langParam === 'en' && item.questionEn) ? item.questionEn : item.question,
+            answer: (langParam === 'en' && item.answerEn) ? item.answerEn : item.answer
+          }));
         }
       },
-      error: () => {}
+      error: (err) => console.warn('[APPLY] Erro ao carregar FAQs:', err)
     });
   }
 

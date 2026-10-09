@@ -28,6 +28,12 @@ public class ApplyFaq {
     @Column(name = "answer", columnDefinition = "TEXT", nullable = false)
     private String answer;
 
+    @Column(name = "question_en", columnDefinition = "TEXT")
+    private String questionEn;
+
+    @Column(name = "answer_en", columnDefinition = "TEXT")
+    private String answerEn;
+
     @Column(name = "display_order", nullable = false)
     @Builder.Default
     private Integer displayOrder = 0;

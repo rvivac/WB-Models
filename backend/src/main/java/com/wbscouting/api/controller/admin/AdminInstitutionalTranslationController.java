@@ -139,24 +139,24 @@ public class AdminInstitutionalTranslationController {
 
         SiteContent saved = siteContentRepository.save(content);
 
-        // Sincroniza aliases para TERMS e PRIVACY se existirem
+        // Sincroniza aliases bidirecionalmente para TERMS e PRIVACY garantindo persistencia em ambas as chaves
         if ("TERMS".equals(normalizedKey) || SECTION_TERMS_OF_USE.equals(normalizedKey)) {
-            siteContentRepository.findBySectionKey(SECTION_TERMS_OF_USE).ifPresent(legacy -> {
-                if (!legacy.getId().equals(saved.getId())) {
-                    legacy.setPayloadPt(saved.getPayloadPt());
-                    legacy.setPayloadEn(saved.getPayloadEn());
-                    siteContentRepository.save(legacy);
-                }
-            });
+            String targetAlias = "TERMS".equals(normalizedKey) ? SECTION_TERMS_OF_USE : "TERMS";
+            SiteContent aliasContent = siteContentRepository.findBySectionKey(targetAlias)
+                    .orElseGet(() -> SiteContent.builder().sectionKey(targetAlias).build());
+            aliasContent.setPayloadPt(saved.getPayloadPt());
+            aliasContent.setPayloadEn(saved.getPayloadEn());
+            aliasContent.setUpdatedAt(OffsetDateTime.now());
+            siteContentRepository.save(aliasContent);
         }
         if ("PRIVACY".equals(normalizedKey) || SECTION_PRIVACY_POLICY.equals(normalizedKey)) {
-            siteContentRepository.findBySectionKey(SECTION_PRIVACY_POLICY).ifPresent(legacy -> {
-                if (!legacy.getId().equals(saved.getId())) {
-                    legacy.setPayloadPt(saved.getPayloadPt());
-                    legacy.setPayloadEn(saved.getPayloadEn());
-                    siteContentRepository.save(legacy);
-                }
-            });
+            String targetAlias = "PRIVACY".equals(normalizedKey) ? SECTION_PRIVACY_POLICY : "PRIVACY";
+            SiteContent aliasContent = siteContentRepository.findBySectionKey(targetAlias)
+                    .orElseGet(() -> SiteContent.builder().sectionKey(targetAlias).build());
+            aliasContent.setPayloadPt(saved.getPayloadPt());
+            aliasContent.setPayloadEn(saved.getPayloadEn());
+            aliasContent.setUpdatedAt(OffsetDateTime.now());
+            siteContentRepository.save(aliasContent);
         }
 
         if (translationRepository != null) {

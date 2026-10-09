@@ -61,11 +61,21 @@ public class SiteContentServiceImpl implements SiteContentService {
         String resolvedLang = resolveLanguage(lang);
         Map<String, Object> resolvedPayload = resolvePayloadByLanguage(content, resolvedLang);
 
+        String extractedContent = null;
+        if (resolvedPayload != null) {
+            if (resolvedPayload.containsKey("content") && resolvedPayload.get("content") != null) {
+                extractedContent = resolvedPayload.get("content").toString();
+            } else if (resolvedPayload.containsKey("body") && resolvedPayload.get("body") != null) {
+                extractedContent = resolvedPayload.get("body").toString();
+            }
+        }
+
         return SiteContentPublicDto.builder()
                 .sectionKey(content.getSectionKey())
                 .payload(resolvedPayload)
                 .mediaUrls(content.getMediaUrls())
                 .lang(resolvedLang)
+                .content(extractedContent)
                 .build();
     }
 
@@ -296,6 +306,7 @@ public class SiteContentServiceImpl implements SiteContentService {
         String normalized = switch (upper) {
             case "TERMS_OF_USE" -> "TERMS";
             case "PRIVACY_POLICY" -> "PRIVACY";
+            case "ABOUT", "MANIFESTO" -> "ABOUT_MANIFESTO";
             default -> upper;
         };
 
@@ -310,6 +321,9 @@ public class SiteContentServiceImpl implements SiteContentService {
         }
         if ("PRIVACY".equals(normalized)) {
             return siteContentRepository.findBySectionKey("PRIVACY_POLICY");
+        }
+        if ("ABOUT_MANIFESTO".equals(normalized)) {
+            return siteContentRepository.findBySectionKey("ABOUT");
         }
         return Optional.empty();
     }

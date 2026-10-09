@@ -90,6 +90,15 @@ public class ApplyFaqServiceImpl implements ApplyFaqService {
     @Transactional(readOnly = true)
     public List<ApplyFaqDto> getAllFaqs() {
         try {
+            List<ApplyFaq> faqs = applyFaqRepository.findAllByOrderByDisplayOrderAsc();
+            if (!faqs.isEmpty()) {
+                return faqs.stream().map(this::toDto).collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+            log.warn("Erro ao buscar faqs de applyFaqRepository: {}", e.getMessage());
+        }
+
+        try {
             var scOpt = siteContentRepository.findBySectionKey("SCOUTING_FAQ");
             if (scOpt.isPresent() && scOpt.get().getPayloadPt() != null) {
                 Object itemsObj = scOpt.get().getPayloadPt().get("items");
@@ -110,15 +119,6 @@ public class ApplyFaqServiceImpl implements ApplyFaqService {
             log.warn("Erro ao buscar FAQs de site_contents: {}", e.getMessage());
         }
 
-        try {
-            List<ApplyFaq> faqs = applyFaqRepository.findAllByOrderByDisplayOrderAsc();
-            if (!faqs.isEmpty()) {
-                return faqs.stream().map(this::toDto).collect(Collectors.toList());
-            }
-        } catch (Exception e) {
-            log.warn("Erro ao buscar faqs de applyFaqRepository: {}", e.getMessage());
-        }
-
         return getDefaultFaqs();
     }
 
@@ -132,6 +132,31 @@ public class ApplyFaqServiceImpl implements ApplyFaqService {
             throw new IllegalArgumentException("Máximo de 10 perguntas e respostas permitidas.");
         }
 
+        // 1. Sincronização direta na tabela public.apply_faqs
+        try {
+            applyFaqRepository.deleteAll();
+            List<ApplyFaq> entities = new ArrayList<>();
+            for (int i = 0; i < items.size(); i++) {
+                ApplyFaqDto item = items.get(i);
+                ApplyFaq faq = ApplyFaq.builder()
+                        .question(item.getQuestion() != null ? item.getQuestion().trim() : "")
+                        .answer(item.getAnswer() != null ? item.getAnswer().trim() : "")
+                        .questionEn(item.getQuestionEn() != null ? item.getQuestionEn().trim() : "")
+                        .answerEn(item.getAnswerEn() != null ? item.getAnswerEn().trim() : "")
+                        .displayOrder(i)
+                        .isActive(item.getIsActive() != null ? item.getIsActive() : true)
+                        .build();
+                entities.add(faq);
+            }
+            if (!entities.isEmpty()) {
+                applyFaqRepository.saveAll(entities);
+            }
+            log.info("Persistidos {} itens diretamente na tabela apply_faqs", entities.size());
+        } catch (Exception ex) {
+            log.warn("Erro ao gravar em applyFaqRepository: {}", ex.getMessage());
+        }
+
+        // 2. Redundância e sincronização com site_contents (SCOUTING_FAQ)
         List<Map<String, Object>> mapList = new ArrayList<>();
         List<ApplyFaqDto> result = new ArrayList<>();
 
@@ -160,18 +185,22 @@ public class ApplyFaqServiceImpl implements ApplyFaqService {
                     .build());
         }
 
-        var sc = siteContentRepository.findBySectionKey("SCOUTING_FAQ")
-                .orElseGet(() -> com.wbscouting.api.entity.SiteContent.builder().sectionKey("SCOUTING_FAQ").build());
+        try {
+            var sc = siteContentRepository.findBySectionKey("SCOUTING_FAQ")
+                    .orElseGet(() -> com.wbscouting.api.entity.SiteContent.builder().sectionKey("SCOUTING_FAQ").build());
 
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("items", mapList);
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("items", mapList);
 
-        sc.setPayloadPt(payload);
-        sc.setPayloadEn(payload);
-        sc.setUpdatedAt(OffsetDateTime.now());
-        siteContentRepository.save(sc);
+            sc.setPayloadPt(payload);
+            sc.setPayloadEn(payload);
+            sc.setUpdatedAt(OffsetDateTime.now());
+            siteContentRepository.save(sc);
+        } catch (Exception ex) {
+            log.warn("Erro ao atualizar SCOUTING_FAQ em siteContentRepository: {}", ex.getMessage());
+        }
 
-        log.info("Lista de {} perguntas e respostas de candidatura salva com sucesso em site_contents", items.size());
+        log.info("Lista de {} perguntas e respostas salva em apply_faqs e site_contents", items.size());
         return result;
     }
 
@@ -212,6 +241,8 @@ public class ApplyFaqServiceImpl implements ApplyFaqService {
         ApplyFaq faq = ApplyFaq.builder()
                 .question(dto.getQuestion().trim())
                 .answer(dto.getAnswer().trim())
+                .questionEn(dto.getQuestionEn() != null ? dto.getQuestionEn().trim() : null)
+                .answerEn(dto.getAnswerEn() != null ? dto.getAnswerEn().trim() : null)
                 .displayOrder(nextOrder)
                 .isActive(dto.getIsActive() != null ? dto.getIsActive() : true)
                 .build();
@@ -229,6 +260,12 @@ public class ApplyFaqServiceImpl implements ApplyFaqService {
 
         faq.setQuestion(dto.getQuestion().trim());
         faq.setAnswer(dto.getAnswer().trim());
+        if (dto.getQuestionEn() != null) {
+            faq.setQuestionEn(dto.getQuestionEn().trim());
+        }
+        if (dto.getAnswerEn() != null) {
+            faq.setAnswerEn(dto.getAnswerEn().trim());
+        }
         if (dto.getDisplayOrder() != null) {
             faq.setDisplayOrder(dto.getDisplayOrder());
         }
@@ -392,8 +429,8 @@ public class ApplyFaqServiceImpl implements ApplyFaqService {
                 .id(faq.getId())
                 .question(faq.getQuestion())
                 .answer(faq.getAnswer())
-                .questionEn(faq.getQuestion())
-                .answerEn(faq.getAnswer())
+                .questionEn(faq.getQuestionEn() != null && !faq.getQuestionEn().isBlank() ? faq.getQuestionEn() : faq.getQuestion())
+                .answerEn(faq.getAnswerEn() != null && !faq.getAnswerEn().isBlank() ? faq.getAnswerEn() : faq.getAnswer())
                 .order(faq.getDisplayOrder() != null ? faq.getDisplayOrder() + 1 : 1)
                 .displayOrder(faq.getDisplayOrder())
                 .isActive(faq.getIsActive())

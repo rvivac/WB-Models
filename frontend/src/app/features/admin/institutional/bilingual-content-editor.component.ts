@@ -426,7 +426,7 @@ export class BilingualContentEditorComponent implements OnInit {
       case 'SCOUTING':
       case 'SCOUTING_GUIDELINES':
       case 'APPLY_FORM':
-        return 'Configurações do Form. de Quero de Modelo';
+        return 'Configurações do Form. de Quero ser Modelo';
       case 'APPLY':
       case 'APPLY_HOW_IT_WORKS':
         return 'Próximos Passos Apply (Como Funciona)';

@@ -32,10 +32,10 @@
     <section *ngIf="faqItems && faqItems.length > 0 && !submissionSuccess()" class="max-w-4xl mx-auto mb-12">
       <div class="border-b border-[#E8EBE8] pb-4 mb-6 text-center">
         <h2 class="text-lg sm:text-xl font-serif uppercase tracking-wider text-[#222624]">
-          Orientações & Dúvidas Frequentes
+          {{ translate.currentLang().startsWith('en') ? 'Guidelines & FAQ' : 'Orientações & Dúvidas Frequentes' }}
         </h2>
         <p class="text-xs text-[#5F6661] tracking-wide mt-1">
-          Tudo o que você precisa saber antes de enviar seu material.
+          {{ translate.currentLang().startsWith('en') ? 'Everything you need to know before submitting your application.' : 'Tudo o que você precisa saber antes de enviar seu material.' }}
         </p>
       </div>
 

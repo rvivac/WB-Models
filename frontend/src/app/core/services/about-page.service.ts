@@ -49,6 +49,12 @@ export class AboutPageService {
     return this.api.get<AboutPage>('/public/institutional/about');
   }
 
+  getAboutContent(lang?: string): Observable<any> {
+    const isEn = lang?.toLowerCase().startsWith('en');
+    const path = isEn ? '/public/institutional/about?lang=en' : '/public/institutional/about';
+    return this.api.get<any>(path);
+  }
+
   getAdminAboutPage(): Observable<AboutPage> {
     return this.api.get<AboutPage>('/admin/institutional/about');
   }

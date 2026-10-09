@@ -16,37 +16,37 @@
       <!-- COLUNA 2: NAVEGAÇÃO REESTRUTURADA (4 Colunas) -->
       <div class="md:col-span-4 space-y-4">
         <h4 class="text-xs font-sans uppercase tracking-[0.25em] text-[#222624] font-semibold border-b border-[#E8EBE8] pb-2">
-          Navegação
+          {{ 'footer.navigation_title' | translate }}
         </h4>
         <ul class="space-y-2.5 text-xs tracking-wide text-[#5F6661]">
           <li>
             <a routerLink="/models/female" class="hover:text-[#4B584E] transition-colors block py-0.5">
-              Modelos Femininos
+              {{ 'footer.nav_female' | translate }}
             </a>
           </li>
           <li>
             <a routerLink="/models/male" class="hover:text-[#4B584E] transition-colors block py-0.5">
-              Modelos Masculinos
+              {{ 'footer.nav_male' | translate }}
             </a>
           </li>
           <li>
             <a routerLink="/models/stars" class="hover:text-[#4B584E] transition-colors block py-0.5">
-              Stars
+              {{ 'footer.nav_stars' | translate }}
             </a>
           </li>
           <li>
             <a routerLink="/sobre" class="hover:text-[#4B584E] transition-colors block py-0.5">
-              Sobre Nós
+              {{ 'footer.nav_about' | translate }}
             </a>
           </li>
           <li>
             <a routerLink="/contact" class="hover:text-[#4B584E] transition-colors block py-0.5">
-              Contato
+              {{ 'footer.nav_contact' | translate }}
             </a>
           </li>
           <li>
             <a routerLink="/apply" class="hover:text-[#4B584E] transition-colors block py-0.5 font-medium text-[#222624]">
-              Quero ser Modelo
+              {{ 'footer.nav_apply' | translate }}
             </a>
           </li>
         </ul>
@@ -55,7 +55,7 @@
       <!-- COLUNA 3: CONTATO DIRETO E REDES SOCIAIS DINÂMICAS DO BANCO (3 Colunas) -->
       <div class="md:col-span-3 space-y-4">
         <h4 class="text-xs font-sans uppercase tracking-[0.25em] text-[#222624] font-semibold border-b border-[#E8EBE8] pb-2">
-          Contato
+          {{ 'footer.contact_title' | translate }}
         </h4>
         <ul class="space-y-3 text-xs tracking-wide text-[#5F6661]">
           <!-- E-mail Principal Dinâmico -->
@@ -83,7 +83,7 @@
           <!-- Redes Sociais Dinâmicas do Banco -->
           <li *ngIf="(contactData.socialMediaList?.length || 0) > 0" class="pt-2">
             <span class="block text-[10px] uppercase tracking-[0.2em] text-[#222624] font-medium mb-2">
-              Redes Sociais
+              {{ 'footer.social_title' | translate }}
             </span>
             <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
               <a 
@@ -106,7 +106,7 @@
     <div class="border-t border-[#E8EBE8] mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-[#5F6661] tracking-wide">
       <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
         <p>
-          &copy; {{ currentYear }} WB Agency. Todos os direitos reservados.
+          &copy; {{ currentYear }} WB Agency. {{ 'footer.rights_reserved' | translate }}
         </p>
         <span class="hidden sm:inline text-[#D0D4D0]">&bull;</span>
         <p class="credits">
@@ -121,10 +121,68 @@
         </p>
       </div>
       <div class="flex items-center gap-6 text-[10px] uppercase tracking-[0.15em]">
-        <a routerLink="/termos" class="hover:text-[#4B584E] transition-colors">Termos de Uso</a>
+        <button 
+          type="button" 
+          (click)="openInstitutionalModal('TERMS')" 
+          class="hover:text-[#4B584E] transition-colors cursor-pointer bg-transparent border-0 p-0 text-[10px] uppercase tracking-[0.15em]"
+        >
+          {{ 'footer.terms_of_use' | translate }}
+        </button>
         <span>&bull;</span>
-        <a routerLink="/privacidade" class="hover:text-[#4B584E] transition-colors">Privacidade &amp; LGPD</a>
+        <button 
+          type="button" 
+          (click)="openInstitutionalModal('PRIVACY')" 
+          class="hover:text-[#4B584E] transition-colors cursor-pointer bg-transparent border-0 p-0 text-[10px] uppercase tracking-[0.15em]"
+        >
+          {{ 'footer.privacy_policy' | translate }}
+        </button>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL HARMÔNICO EDITORIAL (LIGHT MINIMALIST / DEEP SAGE) -->
+  <div 
+    *ngIf="isModalOpen()" 
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/50 backdrop-blur-xs select-none"
+  >
+    <div class="w-full max-w-3xl max-h-[85vh] bg-[#FFFFFF] border border-[#E8EBE8] shadow-2xl flex flex-col rounded-none animate-fade-in">
+      
+      <!-- Cabeçalho do Modal -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-[#E8EBE8]">
+        <h3 class="text-xs font-serif uppercase tracking-[0.25em] text-[#222624] font-semibold">
+          {{ modalTitle() }}
+        </h3>
+        <button 
+          type="button" 
+          (click)="closeModal()" 
+          class="text-xs uppercase tracking-wider text-[#5F6661] hover:text-[#222624] px-2 py-1 transition-colors cursor-pointer"
+          aria-label="Fechar"
+        >
+          ✕ Fechar
+        </button>
+      </div>
+
+      <!-- Conteúdo Textual com Rolagem Delicada -->
+      <div class="p-6 sm:p-8 overflow-y-auto text-xs leading-relaxed text-[#222624] font-sans whitespace-pre-line space-y-4">
+        <div *ngIf="isLoadingContent()" class="py-12 text-center text-[#5F6661] uppercase tracking-widest font-mono text-[11px]">
+          Carregando informações institucionais...
+        </div>
+        <div *ngIf="!isLoadingContent()">
+          {{ modalContent() }}
+        </div>
+      </div>
+
+      <!-- Rodapé do Modal -->
+      <div class="px-6 py-3 border-t border-[#E8EBE8] bg-[#FBFBF9] flex justify-end">
+        <button 
+          type="button" 
+          (click)="closeModal()" 
+          class="px-5 py-2 bg-[#4B584E] hover:bg-[#38433B] text-white text-[10px] uppercase tracking-[0.2em] font-sans rounded-none transition-colors cursor-pointer"
+        >
+          Entendido
+        </button>
+      </div>
+
     </div>
   </div>
 </footer>

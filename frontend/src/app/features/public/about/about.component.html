@@ -1,93 +1,44 @@
 <!-- Página Sobre Nós (Editorial, Dinâmica e Conectada ao Backend) -->
 <article class="about-page bg-[#FFFFFF] min-h-screen text-[#222624]">
-  <!-- Container Principal Harmonizado com o restante do site -->
-  <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 pt-28 pb-20">
-    
-    <!-- Topo Editorial e Breadcrumbs -->
-    <header class="page-header max-w-4xl mb-12 sm:mb-16">
-      <nav class="header-breadcrumbs flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-[#5F6661] mb-6">
-        <a routerLink="/" class="breadcrumb-link text-[#5F6661] hover:text-[#4B584E] transition-colors">
-          {{ 'nav.home' | translate }}
-        </a>
-        <span class="breadcrumb-separator text-[#D0D4D0]">/</span>
-        <span class="breadcrumb-current text-[#4B584E]">
-          {{ 'nav.about' | translate }}
-        </span>
-      </nav>
+  <!-- Topo Editorial e Breadcrumbs -->
+  <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 pt-28 pb-4">
+    <nav class="header-breadcrumbs flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-[#5F6661]">
+      <a routerLink="/" class="breadcrumb-link text-[#5F6661] hover:text-[#4B584E] transition-colors">
+        {{ 'nav.home' | translate }}
+      </a>
+      <span class="breadcrumb-separator text-[#D0D4D0]">/</span>
+      <span class="breadcrumb-current text-[#4B584E]">
+        {{ 'nav.about' | translate }}
+      </span>
+    </nav>
+  </div>
 
-      <!-- Subtítulo / Tag Institucional -->
-      @if (subtitle()) {
-        <p class="about-tag text-xs font-semibold uppercase tracking-[0.25em] text-[#4B584E] mb-3">
-          {{ subtitle() }}
-        </p>
-      }
-
-      <!-- Título Principal Editorial (Cormorant Garamond) -->
-      <h1 class="page-title font-serif text-3xl sm:text-5xl lg:text-6xl font-light text-[#222624] tracking-tight leading-[1.1] mb-6">
-        {{ title() }}
+  <section class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12 space-y-10">
+    <!-- TÍTULO PRINCIPAL (HEADLINE) -->
+    <div class="border-b border-[#E8EBE8] pb-6">
+      <h1 class="page-title text-3xl md:text-5xl font-light tracking-tight text-[#222624]">
+        {{ content?.headline || 'A Nova Estética do Scouting Global' }}
       </h1>
 
-      <!-- Citação Hero de Destaque -->
-      @if (heroQuote()) {
-        <div class="hero-quote-box border-l-2 border-[#4B584E] pl-6 py-2 my-8">
-          <blockquote class="font-serif italic text-xl sm:text-2xl text-[#222624] leading-relaxed">
-            &ldquo;{{ heroQuote() }}&rdquo;
-          </blockquote>
-        </div>
-      }
-    </header>
-
-    <!-- Seção do Manifesto e Filosofia -->
-    <section class="manifesto-section border-t border-[#E8EBE8] pt-12 sm:pt-16 mb-16 sm:mb-20">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
-        <div class="lg:col-span-4">
-          <h2 class="font-serif text-2xl sm:text-3xl font-light text-[#222624] tracking-tight uppercase">
-            {{ manifestoTitle() }}
-          </h2>
-        </div>
-        <div class="lg:col-span-8 space-y-6">
-          @if (manifestoText()) {
-            <p class="text-base sm:text-lg text-[#444B46] leading-relaxed font-sans font-light">
-              {{ manifestoText() }}
-            </p>
-          }
-          @if (description() && description() !== manifestoText()) {
-            <p class="text-base sm:text-lg text-[#5F6661] leading-relaxed font-sans font-light">
-              {{ description() }}
-            </p>
-          }
-        </div>
+      <!-- CITAÇÃO / FRASE DE DESTAQUE (QUOTE) -->
+      <div class="hero-quote-box">
+        <p class="mt-4 text-base md:text-lg text-[#5F6661] font-serif italic max-w-4xl leading-relaxed">
+          “{{ content?.quote || 'Acreditamos na autenticidade, na força da personalidade e na beleza singular de cada indivíduo.' }}”
+        </p>
       </div>
-    </section>
+    </div>
 
-    <!-- Seção de Pilares e Valores -->
-    @if (pillars().length > 0) {
-      <section class="pillars-section border-t border-[#E8EBE8] pt-12 sm:pt-16">
-        <div class="mb-10 sm:mb-12">
-          <h2 class="font-serif text-2xl sm:text-3xl font-light text-[#222624] tracking-tight uppercase">
-            {{ pillarsTitle() || 'Nossos Pilares & Valores' }}
-          </h2>
-        </div>
+    <!-- BLOCO EDITORIAL -->
+    <div class="manifesto-section space-y-4 max-w-4xl">
+      <!-- TÍTULO DA SEÇÃO (SECTION TITLE) -->
+      <h2 class="text-xs font-serif uppercase tracking-[0.25em] text-[#4B584E] font-semibold">
+        {{ content?.sectionTitle || 'Nossa Filosofia' }}
+      </h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-          @for (pillar of pillars(); track pillar.order || $index) {
-            <div class="pillar-card border-t border-[#E8EBE8] pt-6 flex flex-col justify-between">
-              <div>
-                <span class="text-xs font-mono text-[#4B584E] font-medium tracking-widest block mb-4">
-                  {{ (pillar.order < 10 ? '0' : '') + pillar.order }}
-                </span>
-                <h3 class="font-serif text-lg sm:text-xl font-normal text-[#222624] mb-3">
-                  {{ pillar.titulo }}
-                </h3>
-                <p class="text-sm text-[#5F6661] leading-relaxed font-sans">
-                  {{ pillar.descricao }}
-                </p>
-              </div>
-            </div>
-          }
-        </div>
-      </section>
-    }
-
-  </div>
+      <!-- CORPO EDITORIAL (BODY) -->
+      <div class="text-sm md:text-base text-[#222624] leading-relaxed whitespace-pre-line font-sans">
+        {{ content?.body }}
+      </div>
+    </div>
+  </section>
 </article>

@@ -38,25 +38,23 @@ export class AdminLoginComponent implements OnInit {
 
   ngOnInit(): void {
     // Se o usuário já estiver com sessão válida ativa, redireciona diretamente ao dashboard
-    if (this.authService.isAuthenticated()) {
+    if (typeof this.authService.isAuthenticated === 'function' && this.authService.isAuthenticated()) {
       this.router.navigate(['/admin/dashboard'], { replaceUrl: true });
       return;
     }
 
-    // 🆕 NUNCA MAIS preencher email/senha automaticamente!
-    // Limpa qualquer lembrete de email antigo do localStorage.
+    // Recupera e-mail salvo previamente caso o usuário tenha marcado 'Lembrar senha'
     if (typeof localStorage !== 'undefined') {
-      try { localStorage.removeItem('wb_remember_email'); } catch {}
-      try { localStorage.removeItem('wb_remember_me'); } catch {}
+      try {
+        const savedEmail = localStorage.getItem('wb_remember_email');
+        if (savedEmail) {
+          this.loginForm.patchValue({
+            email: savedEmail,
+            rememberMe: true
+          });
+        }
+      } catch {}
     }
-    // Garante que o form inicie 100% limpo (valor vazio em todos os campos).
-    this.loginForm.reset();
-    this.loginForm.patchValue({
-      email: '',
-      password: '',
-      rememberMe: false
-    }, { emitEvent: false, onlySelf: true });
-    this.challengeForm.reset();
   }
 
   togglePasswordVisibility(): void {
@@ -86,10 +84,17 @@ export class AdminLoginComponent implements OnInit {
 
     const { email, password, rememberMe } = this.loginForm.value;
 
-    // 🆕 Removido salvamento de email no localStorage: nunca lembra email.
-    // Campos de login devem sempre comecar vazios.
+    // Gerencia a preferência do usuário de salvar ou esquecer o e-mail
     if (typeof localStorage !== 'undefined') {
-      try { localStorage.removeItem('wb_remember_email'); } catch {}
+      try {
+        if (rememberMe) {
+          localStorage.setItem('wb_remember_email', email);
+          localStorage.setItem('wb_remember_me', 'true');
+        } else {
+          localStorage.removeItem('wb_remember_email');
+          localStorage.removeItem('wb_remember_me');
+        }
+      } catch {}
     }
 
     const credentials = { email, password };

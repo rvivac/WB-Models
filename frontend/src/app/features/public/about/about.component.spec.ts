@@ -89,7 +89,7 @@ describe('AboutComponent', () => {
     expect(compiled.textContent).not.toContain('Seu talento merece a visibilidade certa');
   });
 
-  it('should render dynamic title, quote, manifesto and pillars from backend', () => {
+  it('should render dynamic title, quote, and manifesto from backend and exclude static badges/paragraphs', () => {
     fixture.detectChanges();
     const req = httpMock.expectOne(`${environment.apiUrl}/public/institutional/about`);
     req.flush(mockAboutPage);
@@ -98,8 +98,13 @@ describe('AboutComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.page-title')?.textContent).toContain('A Nova Estética do Scouting Test');
     expect(compiled.querySelector('.hero-quote-box')?.textContent).toContain('Citação editorial exclusiva para teste.');
+    expect(compiled.querySelector('.manifesto-section h2')?.textContent).toContain('Nossa Filosofia Test');
     expect(compiled.querySelector('.manifesto-section')?.textContent).toContain('Texto longo do manifesto sobre a WB Agency.');
-    expect(compiled.querySelectorAll('.pillar-card').length).toBe(2);
+    expect(compiled.querySelector('.pillars-section')).toBeNull();
+
+    // Critérios de Aceite: Não deve conter chapéu "MANIFESTO INSTITUCIONAL" nem parágrafo longo estático
+    expect(compiled.textContent).not.toContain('MANIFESTO INSTITUCIONAL');
+    expect(compiled.textContent).not.toContain('Conectamos talentos às principais marcas com curadoria');
   });
 
   it('should render standardized breadcrumbs with Home link and Sobre Nós current item', () => {
@@ -119,5 +124,23 @@ describe('AboutComponent', () => {
     const currentItem = compiled.querySelector('.breadcrumb-current');
     expect(currentItem).toBeTruthy();
     expect(currentItem?.textContent).toContain('Sobre Nós');
+  });
+
+  it('should render dynamic content when backend returns headline, quote, sectionTitle, and body', () => {
+    fixture.detectChanges();
+    const req = httpMock.expectOne(`${environment.apiUrl}/public/institutional/about`);
+    req.flush({
+      headline: 'A Nova Estética do Scouting Global Custom',
+      quote: 'Acreditamos na autenticidade, na força da personalidade e na beleza singular de cada indivíduo.',
+      sectionTitle: 'Nossa Filosofia Editorial',
+      body: 'Texto completo e autêntico do corpo editorial.'
+    });
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.page-title')?.textContent).toContain('A Nova Estética do Scouting Global Custom');
+    expect(compiled.querySelector('.hero-quote-box')?.textContent).toContain('Acreditamos na autenticidade, na força da personalidade e na beleza singular de cada indivíduo.');
+    expect(compiled.querySelector('.manifesto-section h2')?.textContent).toContain('Nossa Filosofia Editorial');
+    expect(compiled.querySelector('.manifesto-section')?.textContent).toContain('Texto completo e autêntico do corpo editorial.');
   });
 });

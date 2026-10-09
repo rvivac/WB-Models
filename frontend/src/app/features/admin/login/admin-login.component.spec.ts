@@ -14,6 +14,7 @@ describe('AdminLoginComponent', () => {
     localStorage.clear();
     sessionStorage.clear();
     authServiceSpy = jasmine.createSpyObj('AuthService', ['login', 'loginMock']);
+    (authServiceSpy as any).isAuthenticated = jasmine.createSpy('isAuthenticated').and.returnValue(false);
 
     await TestBed.configureTestingModule({
       imports: [AdminLoginComponent],

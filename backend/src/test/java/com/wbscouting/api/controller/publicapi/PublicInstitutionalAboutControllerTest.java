@@ -44,18 +44,30 @@ class PublicInstitutionalAboutControllerTest {
     @Test
     @DisplayName("GET /api/v1/public/institutional/about - Deve retornar 200 OK com dados públicos da página Sobre")
     void getPublicAboutPage_ReturnsOk() throws Exception {
-        AboutPageDto dto = AboutPageDto.builder()
-                .title("A Nova Estética")
-                .heroQuote("Frase de impacto")
-                .build();
+        com.wbscouting.api.dto.AboutPageResponseDto dto = new com.wbscouting.api.dto.AboutPageResponseDto(
+                "A Nova Estética",
+                "A Nova Estética",
+                "Frase de impacto",
+                "Frase de impacto",
+                "Nossa Filosofia",
+                "Nossa Filosofia",
+                "Corpo do manifesto",
+                "Corpo do manifesto"
+        );
 
-        when(aboutPageService.getPublicAboutPage()).thenReturn(dto);
+        when(aboutPageService.getPublicAboutPageResponse(null)).thenReturn(dto);
 
         mockMvc.perform(get("/api/v1/public/institutional/about"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("A Nova Estética"))
-                .andExpect(jsonPath("$.heroQuote").value("Frase de impacto"));
+                .andExpect(jsonPath("$.headline").value("A Nova Estética"))
+                .andExpect(jsonPath("$.heroQuote").value("Frase de impacto"))
+                .andExpect(jsonPath("$.quote").value("Frase de impacto"))
+                .andExpect(jsonPath("$.sectionTitle").value("Nossa Filosofia"))
+                .andExpect(jsonPath("$.manifestoTitle").value("Nossa Filosofia"))
+                .andExpect(jsonPath("$.body").value("Corpo do manifesto"))
+                .andExpect(jsonPath("$.manifestoText").value("Corpo do manifesto"));
 
-        verify(aboutPageService).getPublicAboutPage();
+        verify(aboutPageService).getPublicAboutPageResponse(null);
     }
 }

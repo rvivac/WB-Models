@@ -87,7 +87,11 @@ app:
       role: ADMIN
       must-change-password: "${APP_SECURITY_ADMIN_INFO_MUST_CHANGE_PASSWORD:true}"
   cors:
-    allowed-origins: "${APP_CORS_ALLOWED_ORIGINS:https://wbagency.com.br,https://www.wbagency.com.br}"
+    allowed-origins: "${CORS_ALLOWED_ORIGINS:${APP_CORS_ALLOWED_ORIGINS:https://wbagency.com.br,https://www.wbagency.com.br}}"
+    allowed-methods: "${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,PATCH,OPTIONS}"
+    allowed-headers: "${CORS_ALLOWED_HEADERS:*}"
+    allow-credentials: true
+    max-age: 3600
   mail:
     from-address: "${APP_MAIL_FROM_ADDRESS:no-reply@wbagency.com.br}"
     from-name: "${APP_MAIL_FROM_NAME:WB Agency}"

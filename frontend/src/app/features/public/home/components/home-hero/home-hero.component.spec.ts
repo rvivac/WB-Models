@@ -31,7 +31,7 @@ describe('HomeHeroComponent', () => {
     expect(splashImg.classList.contains('bg-transparent')).toBeTrue();
     expect(splashImg.classList.contains('object-contain')).toBeTrue();
 
-    // Garante que NÃO existam botões na primeira dobra
+    // Garante que NÃO existam botões CTA centrais na primeira dobra
     expect(compiled.querySelector('.hero-buttons')).toBeNull();
     expect(compiled.querySelector('button.btn-primary')).toBeNull();
     expect(compiled.textContent).not.toContain('Ver Elenco');
@@ -54,5 +54,40 @@ describe('HomeHeroComponent', () => {
     expect(video).toBeTruthy();
     expect(video.hasAttribute('loop') || video.loop).toBeTrue();
     expect(video.hasAttribute('muted') || video.muted).toBeTrue();
+  });
+
+  it('should render audio toggle button and toggle mute state on click', () => {
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const audioBtn = compiled.querySelector('.audio-toggle-btn') as HTMLButtonElement;
+    expect(audioBtn).toBeTruthy();
+    expect(audioBtn.textContent).toContain('SOUND OFF');
+    expect(component.isMuted()).toBeTrue();
+
+    // Clica para ativar o som
+    audioBtn.click();
+    fixture.detectChanges();
+
+    expect(component.isMuted()).toBeFalse();
+    expect(audioBtn.textContent).toContain('SOUND ON');
+
+    // Clica para silenciar novamente
+    audioBtn.click();
+    fixture.detectChanges();
+
+    expect(component.isMuted()).toBeTrue();
+    expect(audioBtn.textContent).toContain('SOUND OFF');
+  });
+
+  it('should render scroll down button and trigger scrollToContent', () => {
+    spyOn(window, 'scrollTo');
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const scrollBtn = compiled.querySelector('.scroll-down-btn') as HTMLButtonElement;
+    expect(scrollBtn).toBeTruthy();
+    expect(scrollBtn.textContent).toContain('SCROLL');
+
+    scrollBtn.click();
+    expect(window.scrollTo).toHaveBeenCalled();
   });
 });

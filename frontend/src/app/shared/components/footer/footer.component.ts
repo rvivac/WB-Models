@@ -1,7 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { TranslationService } from '../../../core/services/translation.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 import { environment } from '../../../../environments/environment';
 
 export interface SocialMediaItem {
@@ -20,16 +22,22 @@ export interface ContactData {
 @Component({
   selector: 'app-footer',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, TranslatePipe],
   templateUrl: './footer.component.html',
   styleUrls: ['./footer.component.scss']
 })
 export class FooterComponent implements OnInit {
   private http = inject(HttpClient);
+  public translate = inject(TranslationService);
 
   currentYear: number = new Date().getFullYear();
 
-  // Valores padrão/fallback caso a API esteja carregando
+  // Controle de exibição do Modal Harmônico
+  isModalOpen = signal<boolean>(false);
+  modalTitle = signal<string>('');
+  modalContent = signal<string>('');
+  isLoadingContent = signal<boolean>(false);
+
   contactData: ContactData = {
     primaryEmail: 'contato@wbscouting.com',
     whatsapp: '+55 11 99999-9999',
@@ -39,29 +47,32 @@ export class FooterComponent implements OnInit {
     ]
   };
 
-  ngOnInit(): void {
-    this.loadContactInfo();
+  constructor() {
+    // Recarrega os canais institucionais se houver troca de idioma em tempo de execução
+    effect(() => {
+      const lang = this.translate.currentLang();
+      this.loadContactInfo(lang);
+    });
   }
 
-  loadContactInfo(): void {
-    // Tenta carregar as configurações institucionais salvas no banco
-    this.http.get<any>(`${environment.apiUrl}/public/institutional/contact`).subscribe({
+  ngOnInit(): void {
+    // Inicialização orquestrada reativamente pelo constructor effect()
+  }
+
+  loadContactInfo(lang: string = 'pt'): void {
+    const langParam = lang === 'en' ? 'en' : 'pt';
+    this.http.get<any>(`${environment.apiUrl}/public/institutional/contact?lang=${langParam}`).subscribe({
       next: (res) => {
-        if (res) {
-          this.applyContactSettings(res);
-        }
+        if (res) this.applyContactSettings(res);
       },
       error: () => {
-        // Fallback: tenta a rota alternativa de canais de contato
-        this.http.get<any>(`${environment.apiUrl}/public/contact-channels`).subscribe({
+        this.http.get<any[]>(`${environment.apiUrl}/public/contact-channels?lang=${langParam}`).subscribe({
           next: (channels) => {
             if (Array.isArray(channels) && channels.length > 0) {
               this.mapFromContactChannels(channels);
-            } else if (channels && typeof channels === 'object') {
-              this.applyContactSettings(channels);
             }
           },
-          error: (err) => console.warn('[FOOTER] Utilizando contatos padrão:', err)
+          error: (err) => console.warn('[FOOTER] Usando contatos padrão:', err)
         });
       }
     });
@@ -103,5 +114,35 @@ export class FooterComponent implements OnInit {
 
   cleanWhatsAppNumber(num?: string): string {
     return num ? num.replace(/\D/g, '') : '5511999999999';
+  }
+
+  openInstitutionalModal(sectionKey: 'TERMS' | 'PRIVACY'): void {
+    const currentLang = typeof this.translate.currentLang === 'function' ? this.translate.currentLang() : 'pt';
+    const isEn = (currentLang || 'pt').startsWith('en');
+    this.modalTitle.set(
+      sectionKey === 'TERMS' 
+        ? (isEn ? 'Terms of Use' : 'Termos de Uso')
+        : (isEn ? 'Privacy & LGPD' : 'Privacidade & LGPD')
+    );
+    this.modalContent.set('');
+    this.isLoadingContent.set(true);
+    this.isModalOpen.set(true);
+
+    const lang = isEn ? 'en' : 'pt';
+    this.http.get<any>(`${environment.apiUrl}/public/content/${sectionKey}?lang=${lang}`).subscribe({
+      next: (res) => {
+        this.isLoadingContent.set(false);
+        const text = res?.content || res?.payload?.content || (typeof res === 'string' ? res : '');
+        this.modalContent.set(text || (isEn ? 'Content temporarily unavailable.' : 'Conteúdo temporariamente indisponível.'));
+      },
+      error: () => {
+        this.isLoadingContent.set(false);
+        this.modalContent.set(isEn ? 'Unable to load content at this time.' : 'Não foi possível carregar os dados no momento.');
+      }
+    });
+  }
+
+  closeModal(): void {
+    this.isModalOpen.set(false);
   }
 }

@@ -167,4 +167,27 @@ class AdminApplyFaqControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("QUERO SER MODELO ATUALIZADO"));
     }
+
+    @Test
+    @DisplayName("PUT /api/v1/admin/apply-faq - Deve atualizar lote completo de perguntas e respostas")
+    void updateAllFaqs_ReturnsOk() throws Exception {
+        ApplyFaqDto item = ApplyFaqDto.builder()
+                .question("Pergunta Lote")
+                .answer("Resposta Lote")
+                .questionEn("Question Batch")
+                .answerEn("Answer Batch")
+                .order(1)
+                .build();
+
+        when(applyFaqService.updateAllFaqs(any())).thenReturn(List.of(item));
+
+        java.util.Map<String, Object> payload = java.util.Map.of("items", List.of(item));
+
+        mockMvc.perform(put("/api/v1/admin/apply-faq")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(payload)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].question").value("Pergunta Lote"))
+                .andExpect(jsonPath("$[0].questionEn").value("Question Batch"));
+    }
 }

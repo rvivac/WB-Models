@@ -13,10 +13,14 @@ public interface ApplyFaqService {
     // Public
     List<ApplyFaqDto> getPublicActiveFaqs();
 
+    List<ApplyFaqDto> getPublicActiveFaqs(String lang);
+
     ApplyHeaderDto getPublicApplyHeader();
 
     // Admin
     List<ApplyFaqDto> getAllFaqs();
+
+    List<ApplyFaqDto> updateAllFaqs(List<ApplyFaqDto> items);
 
     ApplyFaqDto createFaq(ApplyFaqCreateUpdateDto dto);
 

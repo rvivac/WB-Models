@@ -63,12 +63,14 @@ class AdminInstitutionalTranslationControllerTest {
     void setUp() {
         Map<String, Object> pt = new HashMap<>();
         pt.put("headline", "A Nova Estética do Scouting Global");
-        pt.put("quote", "A beleza contemporânea nasce da singularidade e precisão.");
+        pt.put("quote", "Acreditamos na autenticidade, na força da personalidade e na beleza singular de cada indivíduo.");
+        pt.put("sectionTitle", "Nossa Filosofia");
         pt.put("body", "Fundada com a premissa de unir rigor editorial...");
 
         Map<String, Object> en = new HashMap<>();
         en.put("headline", "The New Aesthetic of Global Scouting");
-        en.put("quote", "Contemporary beauty stems from uniqueness and precision.");
+        en.put("quote", "We believe in authenticity, personal strength, and the unique beauty of every individual.");
+        en.put("sectionTitle", "Our Philosophy");
         en.put("body", "Founded with the premise of uniting editorial rigor...");
 
         manifestoContent = SiteContent.builder()
@@ -85,7 +87,7 @@ class AdminInstitutionalTranslationControllerTest {
     void shouldListTranslatableSections() throws Exception {
         mockMvc.perform(get("/api/v1/admin/institutional/translations"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(4))
+                .andExpect(jsonPath("$.length()").value(5))
                 .andExpect(jsonPath("$[0].sectionKey").value("ABOUT_MANIFESTO"))
                 .andExpect(jsonPath("$[1].sectionKey").value("SCOUTING_GUIDELINES"));
     }
@@ -100,7 +102,9 @@ class AdminInstitutionalTranslationControllerTest {
                 .andExpect(jsonPath("$.sectionKey").value("ABOUT_MANIFESTO"))
                 .andExpect(jsonPath("$.title").value("Manifesto da Agência (Sobre Nós)"))
                 .andExpect(jsonPath("$.translations.pt.headline").value("A Nova Estética do Scouting Global"))
-                .andExpect(jsonPath("$.translations.en.headline").value("The New Aesthetic of Global Scouting"));
+                .andExpect(jsonPath("$.translations.pt.sectionTitle").value("Nossa Filosofia"))
+                .andExpect(jsonPath("$.translations.en.headline").value("The New Aesthetic of Global Scouting"))
+                .andExpect(jsonPath("$.translations.en.sectionTitle").value("Our Philosophy"));
     }
 
     @Test
@@ -113,11 +117,13 @@ class AdminInstitutionalTranslationControllerTest {
                 .pt(TranslationContentDto.builder()
                         .headline("Novo Título PT")
                         .quote("Nova Citação PT")
+                        .sectionTitle("Nossa Filosofia PT")
                         .body("Novo Corpo PT")
                         .build())
                 .en(TranslationContentDto.builder()
                         .headline("New Title EN")
                         .quote("New Quote EN")
+                        .sectionTitle("Our Philosophy EN")
                         .body("New Body EN")
                         .build())
                 .build();
@@ -128,6 +134,8 @@ class AdminInstitutionalTranslationControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sectionKey").value("ABOUT_MANIFESTO"))
                 .andExpect(jsonPath("$.translations.pt.headline").value("Novo Título PT"))
-                .andExpect(jsonPath("$.translations.en.headline").value("New Title EN"));
+                .andExpect(jsonPath("$.translations.pt.sectionTitle").value("Nossa Filosofia PT"))
+                .andExpect(jsonPath("$.translations.en.headline").value("New Title EN"))
+                .andExpect(jsonPath("$.translations.en.sectionTitle").value("Our Philosophy EN"));
     }
 }

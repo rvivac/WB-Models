@@ -8,6 +8,9 @@ export interface ApplyFaq {
   id: string;
   question: string;
   answer: string;
+  questionEn?: string;
+  answerEn?: string;
+  order?: number;
   displayOrder: number;
   isActive: boolean;
   createdAt?: string;

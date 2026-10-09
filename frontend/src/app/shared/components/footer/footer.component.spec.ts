@@ -1,12 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { FooterComponent } from './footer.component';
+import { TranslationService } from '../../../core/services/translation.service';
+import { environment } from '../../../../environments/environment';
 
 describe('FooterComponent', () => {
   let component: FooterComponent;
   let fixture: ComponentFixture<FooterComponent>;
+  let translationService: TranslationService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -17,6 +20,9 @@ describe('FooterComponent', () => {
         provideHttpClientTesting()
       ]
     }).compileComponents();
+
+    translationService = TestBed.inject(TranslationService);
+    translationService.setLanguage('pt');
 
     fixture = TestBed.createComponent(FooterComponent);
     component = fixture.componentInstance;
@@ -46,7 +52,7 @@ describe('FooterComponent', () => {
     // Email padrão de fallback
     expect(compiled.textContent).toContain('contato@wbscouting.com');
 
-    // Verificação de ausência de textos antigos e links restritos
+    // Verificação de ausência de textos antigos e link de acesso restrito (regra: jamais recolocar)
     expect(compiled.textContent).not.toContain('PARIS • MILAN • NEW YORK • SÃO PAULO');
     expect(compiled.textContent).not.toContain('Agência de modelos e gestão internacional');
     expect(compiled.textContent).not.toContain('Plataforma');
@@ -101,5 +107,64 @@ describe('FooterComponent', () => {
     expect(creditsLink.getAttribute('rel')).toContain('noopener');
     expect(creditsLink.getAttribute('rel')).toContain('noreferrer');
     expect(compiled.textContent).toContain('Rvivac Guild');
+  });
+
+  it('should dynamically update all footer texts when language is changed to ENG', () => {
+    translationService.setLanguage('en');
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Navigation');
+    expect(compiled.textContent).toContain('Female Models');
+    expect(compiled.textContent).toContain('Male Models');
+    expect(compiled.textContent).toContain('Stars');
+    expect(compiled.textContent).toContain('About Us');
+    expect(compiled.textContent).toContain('Contact');
+    expect(compiled.textContent).toContain('Become a Model');
+    expect(compiled.textContent).toContain('Social Media');
+    expect(compiled.textContent).toContain('All rights reserved.');
+    expect(compiled.textContent).toContain('Terms of Use');
+    expect(compiled.textContent).toContain('Privacy & GDPR');
+    expect(compiled.textContent).not.toContain('Restricted Access');
+  });
+
+  it('should open institutional modal for TERMS and load content', () => {
+    const httpTesting = TestBed.inject(HttpTestingController);
+    component.openInstitutionalModal('TERMS');
+    expect(component.isModalOpen()).toBeTrue();
+    expect(component.modalTitle()).toBe('Termos de Uso');
+    expect(component.isLoadingContent()).toBeTrue();
+
+    const req = httpTesting.expectOne(`${environment.apiUrl}/public/content/TERMS?lang=pt`);
+    expect(req.request.method).toBe('GET');
+    req.flush({ content: 'Termos e Condições WB Agency' });
+
+    expect(component.isLoadingContent()).toBeFalse();
+    expect(component.modalContent()).toBe('Termos e Condições WB Agency');
+
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Termos e Condições WB Agency');
+
+    component.closeModal();
+    expect(component.isModalOpen()).toBeFalse();
+  });
+
+  it('should open institutional modal for PRIVACY in EN and load content', () => {
+    const httpTesting = TestBed.inject(HttpTestingController);
+    translationService.setLanguage('en');
+    component.openInstitutionalModal('PRIVACY');
+    expect(component.isModalOpen()).toBeTrue();
+    expect(component.modalTitle()).toBe('Privacy & LGPD');
+
+    const req = httpTesting.expectOne(`${environment.apiUrl}/public/content/PRIVACY?lang=en`);
+    expect(req.request.method).toBe('GET');
+    req.flush({ content: 'Privacy Policy WB Agency' });
+
+    expect(component.modalContent()).toBe('Privacy Policy WB Agency');
+
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Privacy Policy WB Agency');
   });
 });

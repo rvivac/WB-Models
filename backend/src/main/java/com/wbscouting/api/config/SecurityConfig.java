@@ -41,13 +41,13 @@ public class SecurityConfig {
      * os padroes wildcard abaixo em setAllowedOriginPatterns() para evitar 403
      * em preflights com barra final, porta implicita ou subdominio dinamico.
      */
-    @Value("${app.cors.allowed-origins:http://localhost:4200,http://localhost:8080,https://wbagency.com.br,https://www.wbagency.com.br,http://wbagency.com.br,http://www.wbagency.com.br}")
+    @Value("${app.cors.allowed-origins:http://localhost:4200,http://127.0.0.1:4200,https://wbagency.com.br,https://www.wbagency.com.br}")
     private List<String> allowedOrigins;
 
-    @Value("${app.cors.allowed-methods:GET,POST,PUT,PATCH,DELETE,OPTIONS}")
+    @Value("${app.cors.allowed-methods:GET,POST,PUT,DELETE,PATCH,OPTIONS}")
     private List<String> allowedMethods;
 
-    @Value("${app.cors.allowed-headers:Authorization,Content-Type,X-Requested-With,Accept,Origin}")
+    @Value("${app.cors.allowed-headers:*}")
     private List<String> allowedHeaders;
 
     @Value("${app.cors.allow-credentials:true}")
@@ -135,6 +135,8 @@ public class SecurityConfig {
                 // Ambiente local (portas padrão Angular e Spring)
                 "http://localhost:4200",
                 "http://localhost:4200/",
+                "http://127.0.0.1:4200",
+                "http://127.0.0.1:4200/",
                 "http://localhost:8080",
                 "http://localhost:8080/",
                 "http://localhost:[*]",

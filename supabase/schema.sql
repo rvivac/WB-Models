@@ -483,3 +483,118 @@ CREATE POLICY "Inserção de logs por serviço de backend autenticado"
 -- Roles anon/authenticated NÃO recebem GRANT de INSERT/UPDATE/DELETE nas
 -- tabelas transacionais sensíveis. Políticas acima existem para cenários de
 -- PostgREST, e a conexão JDBC principal usa privilégio de owner/service_role.
+
+-- ==============================================================================
+-- 7. SEED INSTITUCIONAL: TERMS & PRIVACY (site_contents)
+-- ==============================================================================
+-- 1. Seção TERMS (Termos de Uso)
+INSERT INTO public.site_contents (section_key, payload_pt, payload_en, updated_at)
+VALUES (
+    'TERMS',
+    '{"content": "Termos e Condições de Uso da WB Agency.\n\nAo acessar e utilizar este website, você concorda expressamente com os termos e condições aqui estabelecidos. O conteúdo, fotografias, marcas e composites são de titularidade da WB Agency ou de seus parceiros credenciados."}'::jsonb,
+    '{"content": "WB Agency Terms of Use.\n\nBy accessing and using this website, you agree to comply with the terms and conditions set forth herein. All imagery, trademarks, composites, and texts are property of WB Agency or accredited partners."}'::jsonb,
+    now()
+)
+ON CONFLICT (section_key) DO UPDATE
+SET payload_pt = EXCLUDED.payload_pt,
+    payload_en = EXCLUDED.payload_en,
+    updated_at = now();
+
+-- 2. Seção PRIVACY (Privacidade & LGPD)
+INSERT INTO public.site_contents (section_key, payload_pt, payload_en, updated_at)
+VALUES (
+    'PRIVACY',
+    '{"content": "Política de Privacidade & Diretrizes LGPD (Lei nº 13.709/2018).\n\nA WB Agency trata dados pessoais exclusivamente para finalidades de triagem, comunicação profissional e representação artística. Garantimos o sigilo de fotografias de candidaturas e o direito de exclusão conforme a legislação vigente."}'::jsonb,
+    '{"content": "Privacy Policy & GDPR/LGPD Compliance.\n\nWB Agency handles personal data strictly for casting screening, professional communication, and representation. Candidate photos and personal data are kept confidential under strict legal guidelines."}'::jsonb,
+    now()
+)
+ON CONFLICT (section_key) DO UPDATE
+SET payload_pt = EXCLUDED.payload_pt,
+    payload_en = EXCLUDED.payload_en,
+    updated_at = now();
+
+-- 3. Seção SCOUTING_FAQ (Orientações & Dúvidas Frequentes)
+INSERT INTO public.site_contents (section_key, payload_pt, payload_en, updated_at)
+VALUES (
+    'SCOUTING_FAQ',
+    '{"items": [
+      {
+        "order": 1,
+        "question": "Quais são as medidas ideais para o mercado da moda e publicidade?",
+        "answer": "Não existem medidas certas ou específicas. O importante é ter personalidade marcante, atitude e querer muito ser modelo.",
+        "questionEn": "What are the ideal measurements for fashion and advertising?",
+        "answerEn": "There are no strict specific measurements. What matters most is strong personality, attitude, and dedication."
+      },
+      {
+        "order": 2,
+        "question": "Existe algum custo para inscrição ou avaliação?",
+        "answer": "Não. A WB Agency nunca cobra nenhuma taxa para inscrição, avaliação de perfil, teste de vídeo ou agenciamento inicial. O processo de scouting é 100% gratuito e desconfie de qualquer abordagem cobrando taxas em nosso nome.",
+        "questionEn": "Is there any cost for application or evaluation?",
+        "answerEn": "No. WB Agency never charges any fees for registration, profile evaluation, video tests, or initial signing. The scouting process is 100% free; beware of anyone charging fees in our name."
+      },
+      {
+        "order": 3,
+        "question": "Como devem ser as polaroids e fotos enviadas?",
+        "answer": "As fotos devem ser o mais naturais possível: com boa luz natural (dia), fundo neutro (parede lisa), sem maquiagem pesada, sem filtros de redes sociais, sem óculos escuros e sem bonés ou acessórios cobrindo o rosto. Recomenda-se roupas básicas de tons neutros.",
+        "questionEn": "How should the polaroids and submitted photos look?",
+        "answerEn": "Photos must be as natural as possible: shot in daylight, neutral plain background, no heavy makeup, no social media filters, no sunglasses, and no hats or accessories covering your face. Basic neutral clothing is recommended."
+      },
+      {
+        "order": 4,
+        "question": "Menores de 18 anos podem se cadastrar?",
+        "answer": "Sim, a WB Agency trabalha com formação e desenvolvimento de novos talentos a partir dos 13 anos. Para candidatos menores de 18 anos, é estritamente obrigatório o consentimento e preenchimento dos dados do responsável legal (nome completo, CPF, telefone e e-mail).",
+        "questionEn": "Can applicants under 18 apply?",
+        "answerEn": "Yes, WB Agency develops new talents starting from age 13. For applicants under 18, parental or legal guardian consent and contact information are strictly mandatory."
+      },
+      {
+        "order": 5,
+        "question": "Como e quando saberei o resultado da avaliação?",
+        "answer": "Nossa banca de diretores de casting analisa todos os dossiês enviados. Devido ao alto volume de inscrições nacionais, entramos em contato em até 5 dias úteis caso o seu perfil atenda às demandas atuais de campanhas e clientes da agência.",
+        "questionEn": "How and when will I know the evaluation results?",
+        "answerEn": "Our casting directors review all submitted portfolios. Due to the high volume of applications, we will contact you within 5 business days if your profile matches our current agency demands."
+      }
+    ]}'::jsonb,
+    '{"items": [
+      {
+        "order": 1,
+        "question": "Quais são as medidas ideais para o mercado da moda e publicidade?",
+        "answer": "Não existem medidas certas ou específicas. O importante é ter personalidade marcante, atitude e querer muito ser modelo.",
+        "questionEn": "What are the ideal measurements for fashion and advertising?",
+        "answerEn": "There are no strict specific measurements. What matters most is strong personality, attitude, and dedication."
+      },
+      {
+        "order": 2,
+        "question": "Existe algum custo para inscrição ou avaliação?",
+        "answer": "Não. A WB Agency nunca cobra nenhuma taxa para inscrição, avaliação de perfil, teste de vídeo ou agenciamento inicial. O processo de scouting é 100% gratuito e desconfie de qualquer abordagem cobrando taxas em nosso nome.",
+        "questionEn": "Is there any cost for application or evaluation?",
+        "answerEn": "No. WB Agency never charges any fees for registration, profile evaluation, video tests, or initial signing. The scouting process is 100% free; beware of anyone charging fees in our name."
+      },
+      {
+        "order": 3,
+        "question": "Como devem ser as polaroids e fotos enviadas?",
+        "answer": "As fotos devem ser o mais naturais possível: com boa luz natural (dia), fundo neutro (parede lisa), sem maquiagem pesada, sem filtros de redes sociais, sem óculos escuros e sem bonés ou acessórios cobrindo o rosto. Recomenda-se roupas básicas de tons neutros.",
+        "questionEn": "How should the polaroids and submitted photos look?",
+        "answerEn": "Photos must be as natural as possible: shot in daylight, neutral plain background, no heavy makeup, no social media filters, no sunglasses, and no hats or accessories covering your face. Basic neutral clothing is recommended."
+      },
+      {
+        "order": 4,
+        "question": "Menores de 18 anos podem se cadastrar?",
+        "answer": "Sim, a WB Agency trabalha com formação e desenvolvimento de novos talentos a partir dos 13 anos. Para candidatos menores de 18 anos, é estritamente obrigatório o consentimento e preenchimento dos dados do responsável legal (nome completo, CPF, telefone e e-mail).",
+        "questionEn": "Can applicants under 18 apply?",
+        "answerEn": "Yes, WB Agency develops new talents starting from age 13. For applicants under 18, parental or legal guardian consent and contact information are strictly mandatory."
+      },
+      {
+        "order": 5,
+        "question": "Como e quando saberei o resultado da avaliação?",
+        "answer": "Nossa banca de diretores de casting analisa todos os dossiês enviados. Devido ao alto volume de inscrições nacionais, entramos em contato em até 5 dias úteis caso o seu perfil atenda às demandas atuais de campanhas e clientes da agência.",
+        "questionEn": "How and when will I know the evaluation results?",
+        "answerEn": "Our casting directors review all submitted portfolios. Due to the high volume of applications, we will contact you within 5 business days if your profile matches our current agency demands."
+      }
+    ]}'::jsonb,
+    now()
+)
+ON CONFLICT (section_key) DO UPDATE
+SET payload_pt = EXCLUDED.payload_pt,
+    payload_en = EXCLUDED.payload_en,
+    updated_at = now();
+

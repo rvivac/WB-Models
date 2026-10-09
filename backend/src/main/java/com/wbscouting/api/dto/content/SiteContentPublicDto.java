@@ -19,4 +19,14 @@ public class SiteContentPublicDto {
     private Map<String, Object> payload;
     private Map<String, Object> mediaUrls;
     private String lang;
+
+    public String getContent() {
+        if (payload != null && payload.containsKey("content") && payload.get("content") != null) {
+            return payload.get("content").toString();
+        }
+        if (payload != null && payload.containsKey("body") && payload.get("body") != null) {
+            return payload.get("body").toString();
+        }
+        return null;
+    }
 }

@@ -28,11 +28,14 @@ export class LoginComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    // Garante que login sempre carrega com campos VAZIOS.
     if (typeof localStorage !== 'undefined') {
-      try { localStorage.removeItem('wb_remember_email'); } catch {}
+      try {
+        const savedEmail = localStorage.getItem('wb_remember_email');
+        if (savedEmail) {
+          this.loginForm.patchValue({ email: savedEmail });
+        }
+      } catch {}
     }
-    this.loginForm.reset({ email: '', password: '' }, { emitEvent: false });
   }
 
   togglePasswordVisibility(): void {

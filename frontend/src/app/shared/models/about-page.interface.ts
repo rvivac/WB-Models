@@ -11,11 +11,17 @@ export interface AboutSeo {
 
 export interface AboutPage {
   title: string;
+  pageTitle?: string;
+  headline?: string;
   subtitle: string;
   description: string;
   heroQuote: string;
+  quote?: string;
+  sectionTitle?: string;
   manifestoTitle: string;
   manifestoText: string;
+  bodyText?: string;
+  body?: string;
   pillarsTitle: string;
   pillars: AboutPillar[];
   seo: AboutSeo;

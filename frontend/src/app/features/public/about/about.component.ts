@@ -1,11 +1,18 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
 import { Title, Meta } from '@angular/platform-browser';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
-import { environment } from '../../../../environments/environment';
-import { AboutPage, AboutPillar } from '../../../shared/models/about-page.interface';
+import { TranslationService } from '../../../core/services/translation.service';
+import { AboutPageService } from '../../../core/services/about-page.service';
+import { AboutPillar } from '../../../shared/models/about-page.interface';
+
+export interface AboutContent {
+  headline: string;
+  quote: string;
+  sectionTitle: string;
+  body: string;
+}
 
 @Component({
   selector: 'app-about',
@@ -15,56 +22,81 @@ import { AboutPage, AboutPillar } from '../../../shared/models/about-page.interf
   styleUrls: ['./about.component.scss']
 })
 export class AboutComponent implements OnInit {
-  private readonly http = inject(HttpClient);
+  private readonly aboutService = inject(AboutPageService);
   private readonly titleService = inject(Title);
   private readonly metaService = inject(Meta);
+  private readonly translationService = inject(TranslationService);
 
-  // Estados reativos (Signals) populados exclusivamente via backend
-  readonly title = signal<string>('');
+  // Variável vinculada diretamente aos 4 campos da Seção Editorial
+  content: AboutContent | null = null;
+
+  // Alias retrocompatível com aboutData
+  get aboutData(): any {
+    return this.content;
+  }
+
+  // Sinais preservados para reatividade complementar e testes existentes
+  readonly title = signal<string>('A Nova Estética do Scouting Global');
   readonly subtitle = signal<string>('');
   readonly description = signal<string>('');
-  readonly heroQuote = signal<string>('');
-  readonly manifestoTitle = signal<string>('');
-  readonly manifestoText = signal<string>('');
+  readonly heroQuote = signal<string>('Acreditamos na autenticidade, na força da personalidade e na beleza singular de cada indivíduo.');
+  readonly sectionTitle = signal<string>('Nossa Filosofia');
+  readonly manifestoTitle = signal<string>('Nossa Filosofia');
+  readonly manifestoText = signal<string>('Conectamos talentos às principais marcas com curadoria estratégica, visão de vanguarda e compromisso com o desenvolvimento humano e profissional em escala global.');
   readonly pillarsTitle = signal<string>('');
   readonly pillars = signal<AboutPillar[]>([]);
 
   readonly isLoading = signal<boolean>(true);
   readonly hasError = signal<boolean>(false);
 
-  ngOnInit(): void {
-    this.loadAboutData();
+  constructor() {
+    effect(() => {
+      const currentLang = this.translationService.currentLang();
+      this.loadAboutData(currentLang);
+    }, { allowSignalWrites: true });
   }
 
-  loadAboutData(): void {
+  ngOnInit(): void {
+    // Carregamento reativo orquestrado pelo effect()
+  }
+
+  loadAboutData(lang: string = 'pt'): void {
     this.isLoading.set(true);
     this.hasError.set(false);
 
-    const endpoint = `${environment.apiUrl}/public/institutional/about`;
+    const isEn = lang?.toLowerCase().startsWith('en');
 
-    this.http.get<AboutPage>(endpoint).subscribe({
-      next: (page) => {
-        if (page) {
-          this.title.set(page.title || '');
-          this.subtitle.set(page.subtitle || '');
-          this.description.set(page.description || '');
-          this.heroQuote.set(page.heroQuote || '');
-          this.manifestoTitle.set(page.manifestoTitle || '');
-          this.manifestoText.set(page.manifestoText || '');
-          this.pillarsTitle.set(page.pillarsTitle || '');
-          this.pillars.set(page.pillars || []);
+    this.aboutService.getAboutContent(lang).subscribe({
+      next: (data: any) => {
+        if (data) {
+          this.content = {
+            headline: data.headline ?? data.pageTitle ?? data.title ?? '',
+            quote: data.quote ?? data.heroQuote ?? '',
+            sectionTitle: data.sectionTitle ?? data.manifestoTitle ?? '',
+            body: data.body ?? data.manifestoText ?? data.bodyText ?? data.description ?? ''
+          };
 
-          if (page.seo?.metaTitle) {
-            this.titleService.setTitle(page.seo.metaTitle);
+          this.title.set(this.content.headline);
+          this.subtitle.set('');
+          this.description.set(this.content.body);
+          this.heroQuote.set(this.content.quote);
+          this.sectionTitle.set(this.content.sectionTitle);
+          this.manifestoTitle.set(this.content.sectionTitle);
+          this.manifestoText.set(this.content.body);
+          this.pillarsTitle.set(data.pillarsTitle || '');
+          this.pillars.set(data.pillars || []);
+
+          if (data.seo?.metaTitle) {
+            this.titleService.setTitle(data.seo.metaTitle);
           }
-          if (page.seo?.metaDescription) {
-            this.metaService.updateTag({ name: 'description', content: page.seo.metaDescription });
+          if (data.seo?.metaDescription) {
+            this.metaService.updateTag({ name: 'description', content: data.seo.metaDescription });
           }
         }
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error(`Erro detalhado ao carregar dados da página Sobre Nós do backend (${endpoint}):`, err);
+        console.error('[ABOUT] Erro ao carregar dados:', err);
         this.isLoading.set(false);
         this.hasError.set(true);
       }

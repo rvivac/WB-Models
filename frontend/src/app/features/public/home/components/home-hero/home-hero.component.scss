@@ -34,3 +34,126 @@
   animation: splashFade 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   will-change: opacity, transform;
 }
+
+/* Controlo de Áudio Editorial (Mute/Unmute) */
+.audio-toggle-btn {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.875rem;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(75, 88, 78, 0.25);
+  border-radius: 0;
+  color: #222624;
+  cursor: pointer;
+  transition: all var(--transition-fast, 0.2s ease);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+  @media (min-width: 768px) {
+    bottom: 6.5rem;
+  }
+
+  &:hover {
+    background: #ffffff;
+    border-color: #4b584e;
+    color: #4b584e;
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 4px 12px rgba(75, 88, 78, 0.15);
+  }
+
+  &:active {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #4b584e;
+    outline-offset: 2px;
+  }
+
+  .audio-icon-wrapper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .audio-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .audio-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    user-select: none;
+  }
+}
+
+/* Indicador de Rolagem */
+.scroll-down-btn {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  background: transparent;
+  border: none;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: #222624;
+  transition: color var(--transition-fast, 0.2s ease), transform var(--transition-fast, 0.2s ease);
+
+  @media (min-width: 768px) {
+    display: flex;
+  }
+
+  &:hover {
+    color: #4b584e;
+    transform: translate(-50%, -2px);
+  }
+
+  .mouse-icon {
+    width: 22px;
+    height: 34px;
+    border: 1.5px solid rgba(34, 38, 36, 0.4);
+    border-radius: 0;
+    display: flex;
+    justify-content: center;
+    padding-top: 5px;
+  }
+
+  .mouse-wheel {
+    width: 3px;
+    height: 6px;
+    background-color: #4b584e;
+    border-radius: 0;
+    animation: scrollWheel 2s infinite ease-in-out;
+  }
+
+  .scroll-text {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+  }
+}
+
+@keyframes scrollWheel {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}

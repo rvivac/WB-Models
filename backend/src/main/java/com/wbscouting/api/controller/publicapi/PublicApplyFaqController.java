@@ -19,8 +19,10 @@ public class PublicApplyFaqController {
     private final ApplyFaqService applyFaqService;
 
     @GetMapping({"/api/v1/public/apply-faq", "/public/apply-faq"})
-    public ResponseEntity<List<ApplyFaqDto>> getPublicFaqs() {
-        List<ApplyFaqDto> faqs = applyFaqService.getPublicActiveFaqs();
+    public ResponseEntity<List<ApplyFaqDto>> getPublicFaqs(@org.springframework.web.bind.annotation.RequestParam(value = "lang", required = false) String lang) {
+        List<ApplyFaqDto> faqs = (lang != null && !lang.isBlank())
+                ? applyFaqService.getPublicActiveFaqs(lang)
+                : applyFaqService.getPublicActiveFaqs();
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.maxAge(300, TimeUnit.SECONDS).cachePublic())
                 .body(faqs);

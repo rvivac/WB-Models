@@ -39,6 +39,35 @@ public class AdminApplyFaqController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
+    @PutMapping({"/api/v1/admin/apply-faq", "/admin/apply-faq"})
+    @com.wbscouting.api.security.audit.AuditAction(action = "UPDATE_ALL", resource = "APPLY_FAQ", description = "Atualização de lista completa de FAQs")
+    public ResponseEntity<List<ApplyFaqDto>> updateAllFaqs(@RequestBody java.util.Map<String, Object> payload) {
+        log.info("Admin atualizando lista completa de perguntas e respostas de FAQ");
+        List<ApplyFaqDto> items = new java.util.ArrayList<>();
+        Object rawItems = payload.containsKey("items") ? payload.get("items") : payload;
+        if (rawItems instanceof List<?> list) {
+            for (int i = 0; i < list.size(); i++) {
+                Object obj = list.get(i);
+                if (obj instanceof java.util.Map<?, ?> map) {
+                    String q = map.get("question") != null ? map.get("question").toString() : "";
+                    String a = map.get("answer") != null ? map.get("answer").toString() : "";
+                    String qEn = map.get("questionEn") != null ? map.get("questionEn").toString() : "";
+                    String aEn = map.get("answerEn") != null ? map.get("answerEn").toString() : "";
+                    items.add(ApplyFaqDto.builder()
+                            .question(q)
+                            .answer(a)
+                            .questionEn(qEn)
+                            .answerEn(aEn)
+                            .order(i + 1)
+                            .displayOrder(i)
+                            .isActive(true)
+                            .build());
+                }
+            }
+        }
+        return ResponseEntity.ok(applyFaqService.updateAllFaqs(items));
+    }
+
     @PutMapping({"/api/v1/admin/apply-faq/{id}", "/admin/apply-faq/{id}"})
     @com.wbscouting.api.security.audit.AuditAction(action = "UPDATE", resource = "APPLY_FAQ", description = "Atualização de pergunta de FAQ")
     public ResponseEntity<ApplyFaqDto> updateFaq(

@@ -14,11 +14,3 @@
     font-family: var(--font-serif, 'Cormorant Garamond', Georgia, serif) !important;
   }
 }
-
-.pillar-card {
-  transition: transform 0.2s ease, border-color 0.2s ease;
-
-  &:hover {
-    border-color: #4B584E;
-  }
-}

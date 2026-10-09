@@ -22,8 +22,8 @@ public class AboutPageServiceImpl implements AboutPageService {
     public static final String ABOUT_PAGE_KEY = "ABOUT_PAGE";
 
     public static final String DEFAULT_TITLE = "A Nova Estética do Scouting Global";
-    public static final String DEFAULT_SUBTITLE = "MANIFESTO INSTITUCIONAL";
-    public static final String DEFAULT_DESCRIPTION = "A WB Agency consolidou-se como um núcleo editorial focado no desenvolvimento integral de modelos para os principais mercados da moda internacional. Nossa metodologia rejeita a padronização e prioriza a identidade visual autêntica, conectando talentos a marcas com relevância estética global.";
+    public static final String DEFAULT_SUBTITLE = "";
+    public static final String DEFAULT_DESCRIPTION = "Conectamos talentos às principais marcas com curadoria estratégica, visão de vanguarda e compromisso com o desenvolvimento humano e profissional em escala global.";
     public static final String DEFAULT_HERO_QUOTE = "Acreditamos na autenticidade, na força da personalidade e na beleza singular de cada indivíduo.";
     public static final String DEFAULT_MANIFESTO_TITLE = "Nossa Filosofia";
     public static final String DEFAULT_MANIFESTO_TEXT = "Conectamos talentos às principais marcas com curadoria estratégica, visão de vanguarda e compromisso com o desenvolvimento humano e profissional em escala global.";
@@ -32,22 +32,169 @@ public class AboutPageServiceImpl implements AboutPageService {
     private final InstitutionalSettingRepository institutionalSettingRepository;
     private final ObjectMapper objectMapper;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.wbscouting.api.repository.SiteContentRepository siteContentRepository;
+
     @Override
     @Transactional(readOnly = true)
     public AboutPageDto getPublicAboutPage() {
-        return getAdminAboutPage();
+        return getPublicAboutPage("pt");
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AboutPageDto getPublicAboutPage(String lang) {
+        AboutPageDto dto = getAdminAboutPage();
+        applyAboutManifestoTranslations(dto, lang);
+        return dto;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public com.wbscouting.api.dto.AboutPageResponseDto getPublicAboutPageResponse() {
+        return getPublicAboutPageResponse("pt");
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public com.wbscouting.api.dto.AboutPageResponseDto getPublicAboutPageResponse(String lang) {
+        String resolvedLang = (lang != null && !lang.isBlank()) ? lang : "pt";
+        boolean isEn = resolvedLang.trim().toLowerCase().startsWith("en");
+
+        String headline = null;
+        String quote = null;
+        String sectionTitle = null;
+        String body = null;
+
+        // 1. Busca prioritária direta em site_contents onde section_key = 'ABOUT_MANIFESTO'
+        if (siteContentRepository != null) {
+            try {
+                var contentOpt = siteContentRepository.findBySectionKey("ABOUT_MANIFESTO");
+                if (contentOpt.isPresent()) {
+                    var content = contentOpt.get();
+                    Map<String, Object> payload = isEn ? content.getPayloadEn() : content.getPayloadPt();
+                    if (payload == null || payload.isEmpty()) {
+                        payload = content.getPayloadPt();
+                    }
+                    if (payload != null && !payload.isEmpty()) {
+                        headline = (String) payload.get("headline");
+                        quote = (String) payload.get("quote");
+                        sectionTitle = (String) payload.get("sectionTitle");
+                        body = (String) payload.get("body");
+                    }
+                }
+            } catch (Exception ex) {
+                log.warn("Erro ao buscar ABOUT_MANIFESTO diretamente de site_contents: {}", ex.getMessage());
+            }
+        }
+
+        // 2. Se algum campo estiver ausente, complementa com institutional_settings (ABOUT_PAGE) ou defaults
+        if (headline == null || headline.isBlank() || body == null || body.isBlank() || quote == null || quote.isBlank() || sectionTitle == null || sectionTitle.isBlank()) {
+            AboutPageDto adminDto = getAdminAboutPage();
+            if (headline == null || headline.isBlank()) headline = adminDto.getHeadline();
+            if (quote == null || quote.isBlank()) quote = adminDto.getQuote();
+            if (sectionTitle == null || sectionTitle.isBlank()) sectionTitle = adminDto.getSectionTitle();
+            if (body == null || body.isBlank()) body = adminDto.getBody();
+        }
+
+        // Defaults garantidos
+        if (headline == null || headline.isBlank()) {
+            headline = isEn ? "The New Aesthetic of Global Scouting" : DEFAULT_TITLE;
+        }
+        if (quote == null || quote.isBlank()) {
+            quote = isEn ? "We believe in authenticity, personal strength, and the unique beauty of every individual." : DEFAULT_HERO_QUOTE;
+        }
+        if (sectionTitle == null || sectionTitle.isBlank()) {
+            sectionTitle = isEn ? "Our Philosophy" : DEFAULT_MANIFESTO_TITLE;
+        }
+        if (body == null || body.isBlank()) {
+            body = isEn ? "We connect talent to leading global brands with strategic curation, avant-garde vision, and a commitment to human and professional growth on a global scale." : DEFAULT_MANIFESTO_TEXT;
+        }
+
+        return new com.wbscouting.api.dto.AboutPageResponseDto(
+                headline.trim(),
+                headline.trim(),
+                quote.trim(),
+                quote.trim(),
+                sectionTitle.trim(),
+                sectionTitle.trim(),
+                body.trim(),
+                body.trim()
+        );
     }
 
     @Override
     @Transactional(readOnly = true)
     public AboutPageDto getAdminAboutPage() {
         try {
-            return institutionalSettingRepository.findBySettingKey(ABOUT_PAGE_KEY)
+            AboutPageDto dto = institutionalSettingRepository.findBySettingKey(ABOUT_PAGE_KEY)
                     .map(this::mapEntityToDto)
                     .orElseGet(this::getDefaultAboutPage);
+            applyAboutManifestoTranslations(dto, "pt");
+            return dto;
         } catch (Exception e) {
             log.warn("Erro ao buscar configurações da página Sobre Nós, ativando fallback padrão: {}", e.getMessage());
-            return getDefaultAboutPage();
+            AboutPageDto fallback = getDefaultAboutPage();
+            applyAboutManifestoTranslations(fallback, "pt");
+            return fallback;
+        }
+    }
+
+    private void applyAboutManifestoTranslations(AboutPageDto dto, String lang) {
+        if (dto == null) return;
+        boolean isEn = lang != null && lang.trim().toLowerCase().startsWith("en");
+        if (siteContentRepository != null) {
+            try {
+                siteContentRepository.findBySectionKey("ABOUT_MANIFESTO").ifPresent(content -> {
+                    Map<String, Object> payload = isEn ? content.getPayloadEn() : content.getPayloadPt();
+                    if (payload == null || payload.isEmpty()) {
+                        payload = content.getPayloadPt();
+                    }
+                    if (payload != null && !payload.isEmpty()) {
+                        String headline = (String) payload.get("headline");
+                        String quote = (String) payload.get("quote");
+                        String sectionTitle = (String) payload.get("sectionTitle");
+                        String body = (String) payload.get("body");
+
+                        if (headline != null && !headline.isBlank()) {
+                            dto.setTitle(headline.trim());
+                            dto.setPageTitle(headline.trim());
+                            dto.setHeadline(headline.trim());
+                        }
+                        if (quote != null && !quote.isBlank()) {
+                            dto.setHeroQuote(quote.trim());
+                            dto.setQuote(quote.trim());
+                        }
+                        if (sectionTitle != null && !sectionTitle.isBlank()) {
+                            dto.setSectionTitle(sectionTitle.trim());
+                            dto.setManifestoTitle(sectionTitle.trim());
+                        }
+                        if (body != null && !body.isBlank()) {
+                            dto.setManifestoText(body.trim());
+                            dto.setBodyText(body.trim());
+                            dto.setBody(body.trim());
+                            dto.setDescription(body.trim());
+                        }
+                    }
+                });
+            } catch (Exception ex) {
+                log.warn("Erro ao aplicar traduções de ABOUT_MANIFESTO: {}", ex.getMessage());
+            }
+        }
+        // Paridade dos campos do DTO
+        if (dto.getPageTitle() == null) dto.setPageTitle(dto.getTitle());
+        if (dto.getHeadline() == null) dto.setHeadline(dto.getTitle());
+        if (dto.getQuote() == null) dto.setQuote(dto.getHeroQuote());
+        if (dto.getSectionTitle() == null || dto.getSectionTitle().isBlank()) {
+            dto.setSectionTitle(dto.getManifestoTitle() != null && !dto.getManifestoTitle().isBlank() ? dto.getManifestoTitle() : (isEn ? "Our Philosophy" : "Nossa Filosofia"));
+        }
+        if (dto.getManifestoTitle() == null || dto.getManifestoTitle().isBlank()) {
+            dto.setManifestoTitle(dto.getSectionTitle());
+        }
+        if (dto.getBodyText() == null) dto.setBodyText(dto.getManifestoText() != null ? dto.getManifestoText() : dto.getDescription());
+        if (dto.getBody() == null) dto.setBody(dto.getBodyText());
+        if ("MANIFESTO INSTITUCIONAL".equalsIgnoreCase(dto.getSubtitle())) {
+            dto.setSubtitle("");
         }
     }
 
@@ -65,9 +212,14 @@ public class AboutPageServiceImpl implements AboutPageService {
         setting.setSubtitle(dto.getSubtitle() != null && !dto.getSubtitle().isBlank() ? dto.getSubtitle().trim() : DEFAULT_SUBTITLE);
         setting.setDescription(dto.getDescription() != null && !dto.getDescription().isBlank() ? dto.getDescription().trim() : DEFAULT_DESCRIPTION);
 
+        String resolvedSectionTitle = dto.getSectionTitle() != null && !dto.getSectionTitle().isBlank()
+                ? dto.getSectionTitle().trim()
+                : (dto.getManifestoTitle() != null && !dto.getManifestoTitle().isBlank() ? dto.getManifestoTitle().trim() : DEFAULT_MANIFESTO_TITLE);
+
         Map<String, Object> contentMap = new LinkedHashMap<>();
         contentMap.put("heroQuote", dto.getHeroQuote() != null && !dto.getHeroQuote().isBlank() ? dto.getHeroQuote().trim() : DEFAULT_HERO_QUOTE);
-        contentMap.put("manifestoTitle", dto.getManifestoTitle() != null && !dto.getManifestoTitle().isBlank() ? dto.getManifestoTitle().trim() : DEFAULT_MANIFESTO_TITLE);
+        contentMap.put("sectionTitle", resolvedSectionTitle);
+        contentMap.put("manifestoTitle", resolvedSectionTitle);
         contentMap.put("manifestoText", dto.getManifestoText() != null && !dto.getManifestoText().isBlank() ? dto.getManifestoText().trim() : DEFAULT_MANIFESTO_TEXT);
         contentMap.put("pillarsTitle", dto.getPillarsTitle() != null && !dto.getPillarsTitle().isBlank() ? dto.getPillarsTitle().trim() : DEFAULT_PILLARS_TITLE);
 
@@ -85,21 +237,50 @@ public class AboutPageServiceImpl implements AboutPageService {
         InstitutionalSetting saved = institutionalSettingRepository.save(setting);
         log.info("Página Sobre Nós atualizada com sucesso");
 
+        if (siteContentRepository != null) {
+            try {
+                com.wbscouting.api.entity.SiteContent content = siteContentRepository.findBySectionKey("ABOUT_MANIFESTO")
+                        .orElseGet(() -> com.wbscouting.api.entity.SiteContent.builder()
+                                .sectionKey("ABOUT_MANIFESTO")
+                                .build());
+                Map<String, Object> pt = content.getPayloadPt() != null ? new HashMap<>(content.getPayloadPt()) : new HashMap<>();
+                pt.put("headline", setting.getTitle());
+                pt.put("quote", dto.getHeroQuote() != null ? dto.getHeroQuote() : DEFAULT_HERO_QUOTE);
+                pt.put("sectionTitle", resolvedSectionTitle);
+                pt.put("body", dto.getManifestoText() != null ? dto.getManifestoText() : DEFAULT_MANIFESTO_TEXT);
+                content.setPayloadPt(pt);
+                siteContentRepository.save(content);
+                log.info("Sincronização com siteContentRepository (ABOUT_MANIFESTO) concluída");
+            } catch (Exception ex) {
+                log.warn("Erro ao sincronizar siteContentRepository na atualização da página Sobre: {}", ex.getMessage());
+            }
+        }
+
         return mapEntityToDto(saved);
     }
 
     private AboutPageDto mapEntityToDto(InstitutionalSetting setting) {
+        String titleVal = setting.getTitle() != null && !setting.getTitle().isBlank() ? setting.getTitle() : DEFAULT_TITLE;
         AboutPageDto.AboutPageDtoBuilder builder = AboutPageDto.builder()
-                .title(setting.getTitle() != null && !setting.getTitle().isBlank() ? setting.getTitle() : DEFAULT_TITLE)
+                .title(titleVal)
+                .pageTitle(titleVal)
+                .headline(titleVal)
                 .subtitle(setting.getSubtitle() != null && !setting.getSubtitle().isBlank() ? setting.getSubtitle() : DEFAULT_SUBTITLE)
                 .description(setting.getDescription() != null && !setting.getDescription().isBlank() ? setting.getDescription() : DEFAULT_DESCRIPTION)
                 .updatedAt(setting.getUpdatedAt());
 
         Map<String, Object> data = setting.getContentDataWithFallback();
         if (data != null && !data.isEmpty()) {
-            builder.heroQuote(extractString(data, "heroQuote", "hero_quote", DEFAULT_HERO_QUOTE));
-            builder.manifestoTitle(extractString(data, "manifestoTitle", "manifesto_title", DEFAULT_MANIFESTO_TITLE));
-            builder.manifestoText(extractString(data, "manifestoText", "manifesto_text", DEFAULT_MANIFESTO_TEXT));
+            String quoteVal = extractString(data, "heroQuote", "hero_quote", DEFAULT_HERO_QUOTE);
+            String bodyVal = extractString(data, "manifestoText", "manifesto_text", DEFAULT_MANIFESTO_TEXT);
+            String sectionTitleVal = extractString(data, "sectionTitle", "manifestoTitle", DEFAULT_MANIFESTO_TITLE);
+            builder.heroQuote(quoteVal);
+            builder.quote(quoteVal);
+            builder.sectionTitle(sectionTitleVal);
+            builder.manifestoTitle(sectionTitleVal);
+            builder.manifestoText(bodyVal);
+            builder.bodyText(bodyVal);
+            builder.body(bodyVal);
             builder.pillarsTitle(extractString(data, "pillarsTitle", "pillars_title", DEFAULT_PILLARS_TITLE));
             
             Object rawPillars = data.containsKey("pillars") ? data.get("pillars") : data.get("pilares");
@@ -107,8 +288,12 @@ public class AboutPageServiceImpl implements AboutPageService {
             builder.seo(extractSeo(data.get("seo")));
         } else {
             builder.heroQuote(DEFAULT_HERO_QUOTE)
+                    .quote(DEFAULT_HERO_QUOTE)
+                    .sectionTitle(DEFAULT_MANIFESTO_TITLE)
                     .manifestoTitle(DEFAULT_MANIFESTO_TITLE)
                     .manifestoText(DEFAULT_MANIFESTO_TEXT)
+                    .bodyText(DEFAULT_MANIFESTO_TEXT)
+                    .body(DEFAULT_MANIFESTO_TEXT)
                     .pillarsTitle(DEFAULT_PILLARS_TITLE)
                     .pillars(getDefaultPillars())
                     .seo(getDefaultSeo());
@@ -155,11 +340,17 @@ public class AboutPageServiceImpl implements AboutPageService {
     public AboutPageDto getDefaultAboutPage() {
         return AboutPageDto.builder()
                 .title(DEFAULT_TITLE)
+                .pageTitle(DEFAULT_TITLE)
+                .headline(DEFAULT_TITLE)
                 .subtitle(DEFAULT_SUBTITLE)
                 .description(DEFAULT_DESCRIPTION)
                 .heroQuote(DEFAULT_HERO_QUOTE)
+                .quote(DEFAULT_HERO_QUOTE)
+                .sectionTitle(DEFAULT_MANIFESTO_TITLE)
                 .manifestoTitle(DEFAULT_MANIFESTO_TITLE)
                 .manifestoText(DEFAULT_MANIFESTO_TEXT)
+                .bodyText(DEFAULT_MANIFESTO_TEXT)
+                .body(DEFAULT_MANIFESTO_TEXT)
                 .pillarsTitle(DEFAULT_PILLARS_TITLE)
                 .pillars(getDefaultPillars())
                 .seo(getDefaultSeo())

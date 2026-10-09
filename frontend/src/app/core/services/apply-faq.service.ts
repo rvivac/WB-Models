@@ -74,8 +74,9 @@ export class ApplyFaqService {
     }
   ];
 
-  getPublicFaqs(): Observable<ApplyFaq[]> {
-    return this.api.get<ApplyFaq[]>('/public/apply-faq').pipe(
+  getPublicFaqs(lang?: string): Observable<ApplyFaq[]> {
+    const endpoint = lang ? `/public/apply-faq?lang=${encodeURIComponent(lang)}` : '/public/apply-faq';
+    return this.api.get<ApplyFaq[]>(endpoint).pipe(
       catchError(err => {
         console.warn('Backend FAQ inacessível, utilizando fallback editorial:', err);
         return of(this.defaultFaqs);

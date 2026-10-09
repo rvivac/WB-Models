@@ -32,6 +32,9 @@ public class AdminInstitutionalTranslationController {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.wbscouting.api.repository.TranslationRepository translationRepository;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.wbscouting.api.repository.InstitutionalSettingRepository institutionalSettingRepository;
+
     @GetMapping
     public ResponseEntity<List<SectionSummaryDto>> listTranslatableSections() {
         log.info("Listando seções institucionais traduzíveis");
@@ -70,7 +73,7 @@ public class AdminInstitutionalTranslationController {
         log.info("Consultando traduções para a seção: {}", sectionKey);
         String normalizedKey = sectionKey.trim().toUpperCase(Locale.ROOT);
 
-        SiteContent content = siteContentRepository.findBySectionKey(normalizedKey)
+        SiteContent content = findSectionWithAlias(normalizedKey)
                 .orElseGet(() -> createDefaultContent(normalizedKey));
 
         return ResponseEntity.ok(toResponseDto(content, normalizedKey));
@@ -104,8 +107,9 @@ public class AdminInstitutionalTranslationController {
         log.info("Atualizando traduções paralelas da seção: {}", sectionKey);
         String normalizedKey = sectionKey.trim().toUpperCase(Locale.ROOT);
 
-        SiteContent content = siteContentRepository.findBySectionKey(normalizedKey)
+        SiteContent content = findSectionWithAlias(normalizedKey)
                 .orElseGet(() -> createDefaultContent(normalizedKey));
+        content.setSectionKey(normalizedKey);
 
         UUID adminId = extractAdminId(authentication);
         if (adminId != null) {
@@ -116,29 +120,87 @@ public class AdminInstitutionalTranslationController {
         TranslationContentDto enDto = request.getResolvedEn();
 
         Map<String, Object> ptMap = content.getPayloadPt() != null ? new HashMap<>(content.getPayloadPt()) : new HashMap<>();
+        String ptText = ptDto.getContent() != null && !ptDto.getContent().isBlank() ? ptDto.getContent() : (ptDto.getBody() != null ? ptDto.getBody() : "");
         ptMap.put("headline", ptDto.getHeadline() != null ? ptDto.getHeadline() : "");
         ptMap.put("quote", ptDto.getQuote() != null ? ptDto.getQuote() : "");
-        ptMap.put("body", ptDto.getBody() != null ? ptDto.getBody() : "");
+        ptMap.put("sectionTitle", ptDto.getSectionTitle() != null ? ptDto.getSectionTitle() : "");
+        ptMap.put("body", ptText);
+        ptMap.put("content", ptText);
         content.setPayloadPt(ptMap);
 
         Map<String, Object> enMap = content.getPayloadEn() != null ? new HashMap<>(content.getPayloadEn()) : new HashMap<>();
+        String enText = enDto.getContent() != null && !enDto.getContent().isBlank() ? enDto.getContent() : (enDto.getBody() != null ? enDto.getBody() : "");
         enMap.put("headline", enDto.getHeadline() != null ? enDto.getHeadline() : "");
         enMap.put("quote", enDto.getQuote() != null ? enDto.getQuote() : "");
-        enMap.put("body", enDto.getBody() != null ? enDto.getBody() : "");
+        enMap.put("sectionTitle", enDto.getSectionTitle() != null ? enDto.getSectionTitle() : "");
+        enMap.put("body", enText);
+        enMap.put("content", enText);
         content.setPayloadEn(enMap);
 
         SiteContent saved = siteContentRepository.save(content);
+
+        // Sincroniza aliases para TERMS e PRIVACY se existirem
+        if ("TERMS".equals(normalizedKey) || SECTION_TERMS_OF_USE.equals(normalizedKey)) {
+            siteContentRepository.findBySectionKey(SECTION_TERMS_OF_USE).ifPresent(legacy -> {
+                if (!legacy.getId().equals(saved.getId())) {
+                    legacy.setPayloadPt(saved.getPayloadPt());
+                    legacy.setPayloadEn(saved.getPayloadEn());
+                    siteContentRepository.save(legacy);
+                }
+            });
+        }
+        if ("PRIVACY".equals(normalizedKey) || SECTION_PRIVACY_POLICY.equals(normalizedKey)) {
+            siteContentRepository.findBySectionKey(SECTION_PRIVACY_POLICY).ifPresent(legacy -> {
+                if (!legacy.getId().equals(saved.getId())) {
+                    legacy.setPayloadPt(saved.getPayloadPt());
+                    legacy.setPayloadEn(saved.getPayloadEn());
+                    siteContentRepository.save(legacy);
+                }
+            });
+        }
 
         if (translationRepository != null) {
             try {
                 upsertTranslation("pt", normalizedKey + ".headline", ptDto.getHeadline());
                 upsertTranslation("pt", normalizedKey + ".quote", ptDto.getQuote());
+                upsertTranslation("pt", normalizedKey + ".sectionTitle", ptDto.getSectionTitle());
                 upsertTranslation("pt", normalizedKey + ".body", ptDto.getBody());
                 upsertTranslation("en", normalizedKey + ".headline", enDto.getHeadline());
                 upsertTranslation("en", normalizedKey + ".quote", enDto.getQuote());
+                upsertTranslation("en", normalizedKey + ".sectionTitle", enDto.getSectionTitle());
                 upsertTranslation("en", normalizedKey + ".body", enDto.getBody());
             } catch (Exception ex) {
                 log.warn("Erro ao sincronizar tabela translations: {}", ex.getMessage());
+            }
+        }
+
+        if (SECTION_ABOUT_MANIFESTO.equalsIgnoreCase(normalizedKey) && institutionalSettingRepository != null) {
+            try {
+                com.wbscouting.api.entity.InstitutionalSetting setting = institutionalSettingRepository.findBySettingKey("ABOUT_PAGE")
+                        .orElseGet(() -> com.wbscouting.api.entity.InstitutionalSetting.builder()
+                                .settingKey("ABOUT_PAGE")
+                                .build());
+
+                if (ptDto.getHeadline() != null && !ptDto.getHeadline().isBlank()) {
+                    setting.setTitle(ptDto.getHeadline().trim());
+                }
+                if (ptDto.getBody() != null && !ptDto.getBody().isBlank()) {
+                    setting.setDescription(ptDto.getBody().trim());
+                }
+                Map<String, Object> data = setting.getContentDataWithFallback();
+                if (data == null) data = new LinkedHashMap<>();
+                if (ptDto.getQuote() != null) data.put("heroQuote", ptDto.getQuote().trim());
+                if (ptDto.getSectionTitle() != null && !ptDto.getSectionTitle().isBlank()) {
+                    data.put("sectionTitle", ptDto.getSectionTitle().trim());
+                    data.put("manifestoTitle", ptDto.getSectionTitle().trim());
+                }
+                if (ptDto.getBody() != null) data.put("manifestoText", ptDto.getBody().trim());
+                setting.setContentData(data);
+                setting.setContentJson(data);
+                institutionalSettingRepository.save(setting);
+                log.info("Sincronização de ABOUT_MANIFESTO com institutional_settings (ABOUT_PAGE) realizada com sucesso");
+            } catch (Exception ex) {
+                log.warn("Erro ao sincronizar institutionalSettingRepository: {}", ex.getMessage());
             }
         }
 
@@ -162,16 +224,43 @@ public class AdminInstitutionalTranslationController {
         Map<String, Object> pt = content.getPayloadPt() != null ? content.getPayloadPt() : Collections.emptyMap();
         Map<String, Object> en = content.getPayloadEn() != null ? content.getPayloadEn() : Collections.emptyMap();
 
+        String ptQuote = (String) pt.getOrDefault("quote", "");
+        if ((ptQuote == null || ptQuote.isBlank()) && SECTION_ABOUT_MANIFESTO.equals(sectionKey)) {
+            ptQuote = "Acreditamos na autenticidade, na força da personalidade e na beleza singular de cada indivíduo.";
+        }
+
+        String ptSectionTitle = (String) pt.getOrDefault("sectionTitle", "");
+        if ((ptSectionTitle == null || ptSectionTitle.isBlank()) && SECTION_ABOUT_MANIFESTO.equals(sectionKey)) {
+            ptSectionTitle = "Nossa Filosofia";
+        }
+
+        String enQuote = (String) en.getOrDefault("quote", "");
+        if ((enQuote == null || enQuote.isBlank()) && SECTION_ABOUT_MANIFESTO.equals(sectionKey)) {
+            enQuote = "We believe in authenticity, personal strength, and the unique beauty of every individual.";
+        }
+
+        String enSectionTitle = (String) en.getOrDefault("sectionTitle", "");
+        if ((enSectionTitle == null || enSectionTitle.isBlank()) && SECTION_ABOUT_MANIFESTO.equals(sectionKey)) {
+            enSectionTitle = "Our Philosophy";
+        }
+
+        String ptContent = (String) pt.getOrDefault("content", pt.getOrDefault("body", ""));
+        String enContent = (String) en.getOrDefault("content", en.getOrDefault("body", ""));
+
         TranslationContentDto ptDto = TranslationContentDto.builder()
                 .headline((String) pt.getOrDefault("headline", ""))
-                .quote((String) pt.getOrDefault("quote", ""))
-                .body((String) pt.getOrDefault("body", ""))
+                .quote(ptQuote)
+                .sectionTitle(ptSectionTitle)
+                .body(ptContent)
+                .content(ptContent)
                 .build();
 
         TranslationContentDto enDto = TranslationContentDto.builder()
                 .headline((String) en.getOrDefault("headline", ""))
-                .quote((String) en.getOrDefault("quote", ""))
-                .body((String) en.getOrDefault("body", ""))
+                .quote(enQuote)
+                .sectionTitle(enSectionTitle)
+                .body(enContent)
+                .content(enContent)
                 .build();
 
         return SectionTranslationResponseDto.builder()
@@ -190,8 +279,8 @@ public class AdminInstitutionalTranslationController {
             case SECTION_ABOUT_MANIFESTO -> "Manifesto da Agência (Sobre Nós)";
             case SECTION_SCOUTING_GUIDELINES -> "Diretrizes de Scouting (Seja Modelo)";
             case SECTION_APPLY_HOW_IT_WORKS -> "Próximos Passos Apply (Como Funciona o Scouting)";
-            case SECTION_TERMS_OF_USE -> "Termos de Uso & Direitos de Imagem";
-            case SECTION_PRIVACY_POLICY -> "Política de Privacidade (LGPD / GDPR)";
+            case "TERMS", SECTION_TERMS_OF_USE -> "Termos de Uso";
+            case "PRIVACY", SECTION_PRIVACY_POLICY -> "Privacidade & LGPD";
             default -> sectionKey;
         };
     }
@@ -203,12 +292,14 @@ public class AdminInstitutionalTranslationController {
         switch (sectionKey) {
             case SECTION_ABOUT_MANIFESTO -> {
                 pt.put("headline", "A Nova Estética do Scouting Global");
-                pt.put("quote", "A beleza contemporânea nasce da singularidade e precisão.");
-                pt.put("body", "A WB Agency consolidou-se como um núcleo editorial focado no desenvolvimento integral de modelos para os principais mercados da moda internacional. Nossa metodologia rejeita a padronização e prioriza a identidade visual autêntica, conectando talentos a marcas com relevância estética global.");
+                pt.put("quote", "Acreditamos na autenticidade, na força da personalidade e na beleza singular de cada indivíduo.");
+                pt.put("sectionTitle", "Nossa Filosofia");
+                pt.put("body", "Conectamos talentos às principais marcas com curadoria estratégica, visão de vanguarda e compromisso com o desenvolvimento humano e profissional em escala global.");
 
                 en.put("headline", "The New Aesthetic of Global Scouting");
-                en.put("quote", "Contemporary beauty stems from uniqueness and precision.");
-                en.put("body", "WB Agency has established itself as an editorial powerhouse dedicated to the comprehensive development of models for premier global fashion markets. Our scouting methodology moves beyond mass standards to foster authentic personal identity, positioning talents at the intersection of high fashion and international relevance.");
+                en.put("quote", "We believe in authenticity, personal strength, and the unique beauty of every individual.");
+                en.put("sectionTitle", "Our Philosophy");
+                en.put("body", "We connect talent to leading global brands with strategic curation, avant-garde vision, and a commitment to human and professional growth on a global scale.");
             }
             case SECTION_SCOUTING_GUIDELINES -> {
                 pt.put("headline", "Critérios e Recomendações de Envio");
@@ -219,28 +310,34 @@ public class AdminInstitutionalTranslationController {
                 en.put("quote", "Transparency, natural posture, and legal compliance.");
                 en.put("body", "For international casting evaluation, we require clean digital polaroids without styling or makeup, captured in natural daylight. Submissions from under-age talents strictly require prior verified parental consent.");
             }
-            case SECTION_TERMS_OF_USE -> {
-                pt.put("headline", "Termos e Condições de Uso da Plataforma");
+            case "TERMS", SECTION_TERMS_OF_USE -> {
+                String ptText = "Termos e Condições de Uso da WB Agency.\n\nAo acessar e utilizar este website, você concorda expressamente com os termos e condições aqui estabelecidos. O conteúdo, fotografias, marcas e composites são de titularidade da WB Agency ou de seus parceiros credenciados.";
+                pt.put("headline", "Termos e Condições de Uso da WB Agency");
                 pt.put("quote", "Proteção patrimonial, segurança jurídica e transparência no agenciamento.");
-                pt.put("body", "O acesso e a utilização dos serviços da WB Agency regem-se pelas normas de propriedade intelectual e direitos autorais internacionais. O uso não autorizado de books e composites é estritamente proibido.");
+                pt.put("body", ptText);
+                pt.put("content", ptText);
 
-                en.put("headline", "Terms and Conditions of Platform Use");
+                String enText = "WB Agency Terms of Use.\n\nBy accessing and using this website, you agree to comply with the terms and conditions set forth herein. All imagery, trademarks, composites, and texts are property of WB Agency or accredited partners.";
+                en.put("headline", "WB Agency Terms of Use");
                 en.put("quote", "Asset protection, legal compliance, and agency transparency.");
-                en.put("body", "Access to and use of WB Agency services are governed by international intellectual property laws. Unauthorized reproduction of model books and digital composites is strictly prohibited.");
+                en.put("body", enText);
+                en.put("content", enText);
             }
-            case SECTION_PRIVACY_POLICY -> {
-                pt.put("headline", "Privacidade e Proteção de Dados Pessoais");
+            case "PRIVACY", SECTION_PRIVACY_POLICY -> {
+                String ptText = "Política de Privacidade & Diretrizes LGPD (Lei nº 13.709/2018).\n\nA WB Agency trata dados pessoais exclusivamente para finalidades de triagem, comunicação profissional e representação artística. Garantimos o sigilo de fotografias de candidaturas e o direito de exclusão conforme a legislação vigente.";
+                pt.put("headline", "Política de Privacidade & Diretrizes LGPD");
                 pt.put("quote", "Conformidade rigorosa com a LGPD e o Regulamento Geral de Proteção de Dados (GDPR).");
-                pt.put("body", "Coletamos e processamos dados biométricos e fotográficos exclusivamente para avaliação técnica de agenciamento e submissão a castings internacionais, com opção permanente de exclusão segura a pedido do titular.");
+                pt.put("body", ptText);
+                pt.put("content", ptText);
 
-                en.put("headline", "Privacy Policy & Personal Data Protection");
+                String enText = "Privacy Policy & GDPR/LGPD Compliance.\n\nWB Agency handles personal data strictly for casting screening, professional communication, and representation. Candidate photos and personal data are kept confidential under strict legal guidelines.";
+                en.put("headline", "Privacy Policy & GDPR/LGPD Compliance");
                 en.put("quote", "Strict compliance with LGPD and General Data Protection Regulation (GDPR).");
-                en.put("body", "We collect and process biometric and photographic data exclusively for casting assessment and international booking submissions, with full rights of safe data erasure upon user request.");
+                en.put("body", enText);
+                en.put("content", enText);
             }
             case SECTION_APPLY_HOW_IT_WORKS -> {
                 // 🆕 Conteúdo padrão do texto "Próximos Passos • Como Funciona" exibido no /apply apos envio com sucesso.
-                // Headline = título da caixinha (ex: Próximos Passos). Quote ignorado nessa página, mas salvo no payload para futuro.
-                // Body = LISTA com 3 passos separados por ||| (parse no frontend como <ul><li>)
                 pt.put("headline", "Próximos Passos • Como Funciona");
                 pt.put("quote", "Transparência total no processo de avaliação de novos talentos.");
                 pt.put("body", "Nossa diretoria de casting analisa todas as candidaturas em até 5 dias úteis.|||Em caso de compatibilidade de perfil com nosso casting comercial ou fashion, nossa equipe entrará em contato via telefone ou e-mail cadastrado.|||A WB Agency nunca cobra taxas para avaliação de perfil ou agenciamento inicial.");
@@ -268,6 +365,25 @@ public class AdminInstitutionalTranslationController {
                 .build();
 
         return siteContentRepository.save(content);
+    }
+
+    private Optional<SiteContent> findSectionWithAlias(String sectionKey) {
+        if (sectionKey == null) return Optional.empty();
+        Optional<SiteContent> opt = siteContentRepository.findBySectionKey(sectionKey);
+        if (opt.isPresent()) return opt;
+        if ("TERMS".equalsIgnoreCase(sectionKey)) {
+            return siteContentRepository.findBySectionKey(SECTION_TERMS_OF_USE);
+        }
+        if ("TERMS_OF_USE".equalsIgnoreCase(sectionKey)) {
+            return siteContentRepository.findBySectionKey("TERMS");
+        }
+        if ("PRIVACY".equalsIgnoreCase(sectionKey)) {
+            return siteContentRepository.findBySectionKey(SECTION_PRIVACY_POLICY);
+        }
+        if ("PRIVACY_POLICY".equalsIgnoreCase(sectionKey)) {
+            return siteContentRepository.findBySectionKey("PRIVACY");
+        }
+        return Optional.empty();
     }
 
     private UUID extractAdminId(Authentication authentication) {

@@ -5,6 +5,7 @@ import com.wbscouting.api.dto.content.AssetUploadResponseDto;
 import com.wbscouting.api.dto.content.SiteContentAdminDto;
 import com.wbscouting.api.dto.content.SiteContentPublicDto;
 import com.wbscouting.api.dto.content.SiteContentUpdateRequestDto;
+import com.wbscouting.api.entity.InstitutionalSetting;
 import com.wbscouting.api.entity.SiteContent;
 import com.wbscouting.api.exception.FileSizeExceededException;
 import com.wbscouting.api.exception.InvalidFileException;
@@ -31,12 +32,15 @@ public class SiteContentServiceImpl implements SiteContentService {
     private final StorageService storageService;
     private final SupabaseProperties supabaseProperties;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.wbscouting.api.repository.InstitutionalSettingRepository institutionalSettingRepository;
+
     @Override
     @Transactional(readOnly = true)
     public SiteContentPublicDto getPublicContent(String sectionKey, String lang) {
         log.info("Consultando conteúdo público para sectionKey='{}', lang='{}'", sectionKey, lang);
 
-        SiteContent content = siteContentRepository.findBySectionKey(sectionKey)
+        SiteContent content = findSectionWithAlias(sectionKey)
                 .orElseGet(() -> {
                     if ("ABOUT_MANIFESTO".equalsIgnoreCase(sectionKey)) {
                         return createDefaultAboutManifesto();
@@ -44,6 +48,12 @@ public class SiteContentServiceImpl implements SiteContentService {
                     // 🆕 Fallback para APPLY_HOW_IT_WORKS: nunca da 404 no /apply
                     if ("APPLY_HOW_IT_WORKS".equalsIgnoreCase(sectionKey)) {
                         return createDefaultApplyHowItWorks();
+                    }
+                    if ("TERMS".equalsIgnoreCase(sectionKey) || "TERMS_OF_USE".equalsIgnoreCase(sectionKey)) {
+                        return createDefaultTerms();
+                    }
+                    if ("PRIVACY".equalsIgnoreCase(sectionKey) || "PRIVACY_POLICY".equalsIgnoreCase(sectionKey)) {
+                        return createDefaultPrivacy();
                     }
                     throw new ResourceNotFoundException("Conteúdo da seção não encontrado: " + sectionKey);
                 });
@@ -105,6 +115,41 @@ public class SiteContentServiceImpl implements SiteContentService {
 
         SiteContent saved = siteContentRepository.save(content);
         log.info("Conteúdo institucional da seção '{}' atualizado com sucesso.", sectionKey);
+
+        if ("ABOUT_MANIFESTO".equalsIgnoreCase(sectionKey) && institutionalSettingRepository != null && dto.getPayloadPt() != null) {
+            try {
+                Map<String, Object> pt = dto.getResolvedPayloadPt();
+                String headline = (String) pt.get("headline");
+                String quote = (String) pt.get("quote");
+                String sectionTitle = (String) pt.get("sectionTitle");
+                String body = (String) pt.get("body");
+                InstitutionalSetting setting = institutionalSettingRepository.findBySettingKey("ABOUT_PAGE")
+                        .orElseGet(() -> InstitutionalSetting.builder()
+                                .settingKey("ABOUT_PAGE")
+                                .build());
+
+                if (headline != null && !headline.isBlank()) {
+                    setting.setTitle(headline.trim());
+                }
+                if (body != null && !body.isBlank()) {
+                    setting.setDescription(body.trim());
+                }
+                Map<String, Object> data = setting.getContentDataWithFallback();
+                if (data == null) data = new LinkedHashMap<>();
+                if (quote != null) data.put("heroQuote", quote.trim());
+                if (sectionTitle != null && !sectionTitle.isBlank()) {
+                    data.put("sectionTitle", sectionTitle.trim());
+                    data.put("manifestoTitle", sectionTitle.trim());
+                }
+                if (body != null) data.put("manifestoText", body.trim());
+                setting.setContentData(data);
+                setting.setContentJson(data);
+                institutionalSettingRepository.save(setting);
+                log.info("Sincronização de ABOUT_MANIFESTO com institutional_settings (ABOUT_PAGE) via SiteContentService concluída com sucesso");
+            } catch (Exception ex) {
+                log.warn("Erro ao sincronizar institutionalSettingRepository no SiteContentServiceImpl: {}", ex.getMessage());
+            }
+        }
 
         return toAdminDto(saved);
     }
@@ -207,13 +252,15 @@ public class SiteContentServiceImpl implements SiteContentService {
     private SiteContent createDefaultAboutManifesto() {
         Map<String, Object> pt = new HashMap<>();
         pt.put("headline", "A Nova Estética do Scouting Global");
-        pt.put("quote", "A beleza contemporânea nasce da singularidade e precisão.");
-        pt.put("body", "A WB Agency consolidou-se como um núcleo editorial focado no desenvolvimento integral de modelos para os principais mercados da moda internacional. Nossa metodologia rejeita a padronização e prioriza a identidade visual autêntica, conectando talentos a marcas com relevância estética global.");
+        pt.put("quote", "Acreditamos na autenticidade, na força da personalidade e na beleza singular de cada indivíduo.");
+        pt.put("sectionTitle", "Nossa Filosofia");
+        pt.put("body", "Conectamos talentos às principais marcas com curadoria estratégica, visão de vanguarda e compromisso com o desenvolvimento humano e profissional em escala global.");
 
         Map<String, Object> en = new HashMap<>();
         en.put("headline", "The New Aesthetic of Global Scouting");
-        en.put("quote", "Contemporary beauty stems from uniqueness and precision.");
-        en.put("body", "WB Agency has established itself as an editorial powerhouse dedicated to the comprehensive development of models for premier global fashion markets. Our scouting methodology moves beyond mass standards to foster authentic personal identity, positioning talents at the intersection of high fashion and international relevance.");
+        en.put("quote", "We believe in authenticity, personal strength, and the unique beauty of every individual.");
+        en.put("sectionTitle", "Our Philosophy");
+        en.put("body", "We connect talent to leading global brands with strategic curation, avant-garde vision, and a commitment to human and professional growth on a global scale.");
 
         return SiteContent.builder()
                 .sectionKey("ABOUT_MANIFESTO")
@@ -238,6 +285,66 @@ public class SiteContentServiceImpl implements SiteContentService {
 
         return SiteContent.builder()
                 .sectionKey("APPLY_HOW_IT_WORKS")
+                .payloadPt(pt)
+                .payloadEn(en)
+                .build();
+    }
+
+    private Optional<SiteContent> findSectionWithAlias(String sectionKey) {
+        if (sectionKey == null) return Optional.empty();
+        String upper = sectionKey.trim().toUpperCase(Locale.ROOT);
+        String normalized = switch (upper) {
+            case "TERMS_OF_USE" -> "TERMS";
+            case "PRIVACY_POLICY" -> "PRIVACY";
+            default -> upper;
+        };
+
+        Optional<SiteContent> opt = siteContentRepository.findBySectionKey(normalized);
+        if (opt.isPresent()) return opt;
+
+        opt = siteContentRepository.findBySectionKey(sectionKey.trim());
+        if (opt.isPresent()) return opt;
+
+        if ("TERMS".equals(normalized)) {
+            return siteContentRepository.findBySectionKey("TERMS_OF_USE");
+        }
+        if ("PRIVACY".equals(normalized)) {
+            return siteContentRepository.findBySectionKey("PRIVACY_POLICY");
+        }
+        return Optional.empty();
+    }
+
+    private SiteContent createDefaultTerms() {
+        Map<String, Object> pt = new HashMap<>();
+        String ptText = "Termos e Condições de Uso da WB Agency.\n\nAo acessar e utilizar este website, você concorda expressamente com os termos e condições aqui estabelecidos. O conteúdo, fotografias, marcas e composites são de titularidade da WB Agency ou de seus parceiros credenciados.";
+        pt.put("content", ptText);
+        pt.put("body", ptText);
+
+        Map<String, Object> en = new HashMap<>();
+        String enText = "WB Agency Terms of Use.\n\nBy accessing and using this website, you agree to comply with the terms and conditions set forth herein. All imagery, trademarks, composites, and texts are property of WB Agency or accredited partners.";
+        en.put("content", enText);
+        en.put("body", enText);
+
+        return SiteContent.builder()
+                .sectionKey("TERMS")
+                .payloadPt(pt)
+                .payloadEn(en)
+                .build();
+    }
+
+    private SiteContent createDefaultPrivacy() {
+        Map<String, Object> pt = new HashMap<>();
+        String ptText = "Política de Privacidade & Diretrizes LGPD (Lei nº 13.709/2018).\n\nA WB Agency trata dados pessoais exclusivamente para finalidades de triagem, comunicação profissional e representação artística. Garantimos o sigilo de fotografias de candidaturas e o direito de exclusão conforme a legislação vigente.";
+        pt.put("content", ptText);
+        pt.put("body", ptText);
+
+        Map<String, Object> en = new HashMap<>();
+        String enText = "Privacy Policy & GDPR/LGPD Compliance.\n\nWB Agency handles personal data strictly for casting screening, professional communication, and representation. Candidate photos and personal data are kept confidential under strict legal guidelines.";
+        en.put("content", enText);
+        en.put("body", enText);
+
+        return SiteContent.builder()
+                .sectionKey("PRIVACY")
                 .payloadPt(pt)
                 .payloadEn(en)
                 .build();

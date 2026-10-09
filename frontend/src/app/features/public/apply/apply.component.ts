@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
@@ -12,14 +12,32 @@ import { CandidateApplicationRequest, CandidatePhotoUpload } from '../../../shar
   templateUrl: './apply.component.html',
   styleUrls: ['./apply.component.scss']
 })
-export class ApplyComponent {
+export class ApplyComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(ApiService);
+
+  faqItems: Array<{ question: string; answer: string }> = [];
+  expandedFaqIndex: number | null = null;
 
   readonly currentStep = signal<number>(1);
   readonly isSubmitting = signal<boolean>(false);
   readonly submissionSuccess = signal<boolean>(false);
   readonly submissionError = signal<string | null>(null);
+
+  ngOnInit(): void {
+    this.api.get<any[]>('/public/apply-faq').subscribe({
+      next: (faqs) => {
+        if (faqs && Array.isArray(faqs)) {
+          this.faqItems = faqs;
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  toggleFaq(index: number): void {
+    this.expandedFaqIndex = this.expandedFaqIndex === index ? null : index;
+  }
 
   readonly uploadedPhotos = signal<CandidatePhotoUpload[]>([]);
 

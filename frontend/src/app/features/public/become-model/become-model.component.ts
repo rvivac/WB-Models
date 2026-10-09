@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -76,11 +76,21 @@ export class BecomeModelComponent implements OnInit {
   }
 
   // FAQs e Orientações
+  faqItems: Array<{ question: string; answer: string; questionEn?: string; answerEn?: string }> = [];
+  expandedFaqIndex: number | null = null;
   faqs: ApplyFaq[] = [];
   openFaqId: string | null = null;
 
-  toggleFaq(id: string): void {
-    this.openFaqId = this.openFaqId === id ? null : id;
+  toggleFaq(indexOrId: number | string): void {
+    if (typeof indexOrId === 'number') {
+      this.expandedFaqIndex = this.expandedFaqIndex === indexOrId ? null : indexOrId;
+    } else {
+      this.openFaqId = this.openFaqId === indexOrId ? null : indexOrId;
+      const idx = this.faqItems.findIndex((_, i) => i.toString() === indexOrId);
+      if (idx !== -1) {
+        this.expandedFaqIndex = this.expandedFaqIndex === idx ? null : idx;
+      }
+    }
   }
 
   isFaqOpen(id: string): boolean {
@@ -89,6 +99,9 @@ export class BecomeModelComponent implements OnInit {
 
   getFaqQuestion(item: ApplyFaq, index: number): string {
     if (this.translationService.currentLang() === 'en') {
+      if (item.questionEn && item.questionEn.trim().length > 0) {
+        return item.questionEn;
+      }
       // 1. Semantic 1-to-1 question match (ensures identical questions in PT and EN)
       const matched = this.matchFaqTranslation(item.question, item.answer);
       if (matched?.question) {
@@ -107,6 +120,9 @@ export class BecomeModelComponent implements OnInit {
 
   getFaqAnswer(item: ApplyFaq, index: number): string {
     if (this.translationService.currentLang() === 'en') {
+      if (item.answerEn && item.answerEn.trim().length > 0) {
+        return item.answerEn;
+      }
       // 1. Semantic 1-to-1 answer match
       const matched = this.matchFaqTranslation(item.question, item.answer);
       if (matched?.answer) {
@@ -321,11 +337,75 @@ export class BecomeModelComponent implements OnInit {
       }
     });
 
-    this.faqService.getPublicFaqs().subscribe(faqs => {
+    const langRaw = this.translationService.currentLang?.();
+    const lang = typeof langRaw === 'string' ? (langRaw || 'pt') : 'pt';
+    this.loadFaqItems(lang);
+  }
+
+  loadFaqItems(lang: string = 'pt'): void {
+    this.faqService.getPublicFaqs(lang).subscribe(faqs => {
       if (faqs && faqs.length > 0) {
         this.faqs = faqs;
+        this.faqItems = faqs.map((f, i) => ({
+          question: this.getFaqQuestion(f, i),
+          answer: this.getFaqAnswer(f, i),
+          questionEn: f.questionEn,
+          answerEn: f.answerEn
+        }));
+      } else {
+        this.loadDefaultFaqItems(lang);
       }
     });
+  }
+
+  private loadDefaultFaqItems(lang: string = 'pt'): void {
+    if (lang === 'en') {
+      this.faqItems = [
+        {
+          question: 'What are the ideal measurements for fashion and advertising?',
+          answer: 'There are no strict specific measurements. What matters most is strong personality, attitude, and dedication.'
+        },
+        {
+          question: 'Do I need previous experience or a modeling course?',
+          answer: 'No. WB Agency develops talent from the ground up, providing professional guidance and preparation.'
+        },
+        {
+          question: 'Is there any fee to submit my portfolio for evaluation?',
+          answer: 'We do not charge any fee for submitting or evaluating materials from new talent.'
+        },
+        {
+          question: 'How should the polaroid photos be taken?',
+          answer: 'Natural light, no makeup or filters, neutral background, and simple wardrobe (black/white tee and jeans).'
+        },
+        {
+          question: 'What is the response timeframe after submitting the form?',
+          answer: 'Our scouting department reviews all submissions and contacts selected candidates within 15 days.'
+        }
+      ];
+    } else {
+      this.faqItems = [
+        {
+          question: 'Quais são as medidas ideais para o mercado da moda e publicidade?',
+          answer: 'Não existem medidas certas ou específicas. O importante é ter personalidade marcante, atitude e querer muito ser modelo.'
+        },
+        {
+          question: 'Preciso ter experiência prévia ou curso de modelo?',
+          answer: 'Não. A WB Agency desenvolve talentos desde o início, oferecendo direcionamento e preparação profissional.'
+        },
+        {
+          question: 'Existe custo para enviar meu material de avaliação?',
+          answer: 'Não cobramos nenhuma taxa para envio ou avaliação de material de novos talentos.'
+        },
+        {
+          question: 'Como devem ser as fotos polaroids enviadas?',
+          answer: 'Luz natural, sem maquiagem ou filtros, fundo neutro e roupas básicas (camiseta preta/branca e jeans).'
+        },
+        {
+          question: 'Qual é o prazo de retorno após o envio do formulário?',
+          answer: 'Nosso departamento de scouting avalia todos os materiais e entra em contato em até 15 dias caso haja interesse.'
+        }
+      ];
+    }
   }
 
   // 🆕 Carrega o texto "Proximos Passos / Como Funciona" do Admin Bilingual Editor.

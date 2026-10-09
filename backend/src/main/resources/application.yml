@@ -88,7 +88,11 @@ app:
       password: "${APP_SECURITY_INITIAL_ADMIN_PASSWORD:K+nZVbCpl@3}"
       name: ${APP_SECURITY_INITIAL_ADMIN_NAME:Webmaster WB Agency}
   cors:
-    allowed-origins: "http://localhost:4200,http://localhost:8080"
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://127.0.0.1:4200,https://wbagency.com.br,https://www.wbagency.com.br}
+    allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,PATCH,OPTIONS}
+    allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+    allow-credentials: true
+    max-age: 3600
   mail:
     from-address: ${APP_MAIL_FROM_ADDRESS:no-reply@wbscouting.com}
     from-name: ${APP_MAIL_FROM_NAME:WB Scouting}

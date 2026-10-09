@@ -135,39 +135,11 @@ describe('ContactComponent (SITE-004 Anti-Scraping & CyberSecurity)', () => {
       igBtn.click();
       expect(spy).toHaveBeenCalled();
     });
-  });
 
-  describe('Booking Quotation Form', () => {
-    it('should validate required fields before submission', () => {
-      expect(component.contactForm.valid).toBeFalse();
-      component.onSubmit();
-      expect(component.contactForm.touched).toBeTrue();
-      expect(component.isSubmitted()).toBeFalse();
-    });
-
-    it('should submit successfully with valid data', fakeAsync(() => {
-      component.contactForm.setValue({
-        name: 'Carlos Produtor',
-        company: 'Agência Criativa',
-        email: 'carlos@produtora.com',
-        phone: '11988887777',
-        interestType: 'CAMPAIGN',
-        message: 'Gostaria de solicitar casting para campanha de verão de moda praia.'
-      });
-
-      expect(component.contactForm.valid).toBeTrue();
-
-      component.onSubmit();
-      expect(component.isSending()).toBeTrue();
-
-      tick(900);
-      fixture.detectChanges();
-
-      expect(component.isSending()).toBeFalse();
-      expect(component.isSubmitted()).toBeTrue();
-
+    it('should not render booking quotation card', () => {
       const compiled = fixture.nativeElement as HTMLElement;
-      expect(compiled.querySelector('.form-success')).toBeTruthy();
-    }));
+      expect(compiled.querySelector('.booking-form-section')).toBeFalsy();
+      expect(compiled.querySelector('.booking-form-card')).toBeFalsy();
+    });
   });
 });

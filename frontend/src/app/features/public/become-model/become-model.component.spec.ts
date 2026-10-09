@@ -10,11 +10,20 @@ import { ApplyFaqService } from '../../../core/services/apply-faq.service';
 
 import { provideRouter } from '@angular/router';
 import { TranslationService } from '../../../core/services/translation.service';
+import { PublicContentService } from '../../../core/services/public-content.service';
 
 describe('BecomeModelComponent', () => {
   let component: BecomeModelComponent;
   let fixture: ComponentFixture<BecomeModelComponent>;
   let httpTesting: HttpTestingController;
+
+  const mockContentService = {
+    getApplyHowItWorksContent: () => of({
+      headline: 'Próximos Passos • Como Funciona',
+      quote: '',
+      steps: ['Passo 1', 'Passo 2', 'Passo 3']
+    })
+  };
 
   const mockFaqService = {
     getPublicApplyHeader: () => of({
@@ -22,7 +31,7 @@ describe('BecomeModelComponent', () => {
       subtitle: 'WB SCOUTING DESK',
       description: 'Preencha o formulário e envie suas fotos.'
     }),
-    getPublicFaqs: () => of([
+    getPublicFaqs: (lang?: string) => of([
       {
         id: '00000000-0000-0000-0000-000000000001',
         question: 'Existe algum custo para inscrição?',
@@ -45,6 +54,7 @@ describe('BecomeModelComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: ApplyFaqService, useValue: mockFaqService },
+        { provide: PublicContentService, useValue: mockContentService },
         {
           provide: TranslationService,
           useValue: {
@@ -227,5 +237,16 @@ describe('BecomeModelComponent', () => {
     const options = Array.from(selectEl.options);
     const notInBrazilOption = options.find(opt => opt.value === 'EX');
     expect(notInBrazilOption).toBeTruthy();
+  });
+
+  it('deve expandir e colapsar item do FAQ no acordeão', () => {
+    component.faqItems = [
+      { question: 'Q1', answer: 'A1' },
+      { question: 'Q2', answer: 'A2' }
+    ];
+    component.toggleFaq(0);
+    expect(component.expandedFaqIndex).toBe(0);
+    component.toggleFaq(0);
+    expect(component.expandedFaqIndex).toBeNull();
   });
 });

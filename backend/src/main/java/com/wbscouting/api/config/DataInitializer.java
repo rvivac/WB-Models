@@ -32,6 +32,9 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private Environment env;
 
+    @Autowired(required = false)
+    private com.wbscouting.api.repository.SiteContentRepository siteContentRepository;
+
     @Value("${app.security.admin-webmaster.name:Webmaster WB Agency}")
     private String webmasterName;
 
@@ -157,6 +160,126 @@ public class DataInitializer implements CommandLineRunner {
             log.info("[MODEL INIT][PROD] Catálogo vazio detectado em ambiente PRODUCAO. Seed de exemplos BLOQUEADO (seguranca). Admin deve cadastrar via painel.");
         } else {
             log.info("[MODEL INIT] Catalogo com {} registros. Pulando carga de exemplos.", modelCount);
+        }
+
+        // -------------- PASSO 4: Garantir seções TERMS, PRIVACY e SCOUTING_FAQ em site_contents --------------
+        initTermsAndPrivacyContents();
+        initScoutingFaqContent();
+    }
+
+    private void initScoutingFaqContent() {
+        if (siteContentRepository == null) return;
+        try {
+            if (siteContentRepository.findBySectionKey("SCOUTING_FAQ").isEmpty()) {
+                java.util.List<java.util.Map<String, Object>> items = new java.util.ArrayList<>();
+
+                java.util.Map<String, Object> i1 = new java.util.LinkedHashMap<>();
+                i1.put("order", 1);
+                i1.put("displayOrder", 0);
+                i1.put("question", "Quais são as medidas ideais para o mercado da moda e publicidade?");
+                i1.put("answer", "Não existem medidas certas ou específicas. O importante é ter personalidade marcante, atitude e querer muito ser modelo.");
+                i1.put("questionEn", "What are the ideal measurements for fashion and advertising?");
+                i1.put("answerEn", "There are no strict specific measurements. What matters most is strong personality, attitude, and dedication.");
+                i1.put("isActive", true);
+                items.add(i1);
+
+                java.util.Map<String, Object> i2 = new java.util.LinkedHashMap<>();
+                i2.put("order", 2);
+                i2.put("displayOrder", 1);
+                i2.put("question", "Existe algum custo para inscrição ou avaliação?");
+                i2.put("answer", "Não. A WB Agency nunca cobra nenhuma taxa para inscrição, avaliação de perfil, teste de vídeo ou agenciamento inicial. O processo de scouting é 100% gratuito e desconfie de qualquer abordagem cobrando taxas em nosso nome.");
+                i2.put("questionEn", "Is there any cost for application or evaluation?");
+                i2.put("answerEn", "No. WB Agency never charges any fees for registration, profile evaluation, video tests, or initial signing. The scouting process is 100% free; beware of anyone charging fees in our name.");
+                i2.put("isActive", true);
+                items.add(i2);
+
+                java.util.Map<String, Object> i3 = new java.util.LinkedHashMap<>();
+                i3.put("order", 3);
+                i3.put("displayOrder", 2);
+                i3.put("question", "Como devem ser as polaroids e fotos enviadas?");
+                i3.put("answer", "As fotos devem ser o mais naturais possível: com boa luz natural (dia), fundo neutro (parede lisa), sem maquiagem pesada, sem filtros de redes sociais, sem óculos escuros e sem bonés ou acessórios cobrindo o rosto. Recomenda-se roupas básicas de tons neutros.");
+                i3.put("questionEn", "How should the polaroids and submitted photos look?");
+                i3.put("answerEn", "Photos must be as natural as possible: shot in daylight, neutral plain background, no heavy makeup, no social media filters, no sunglasses, and no hats or accessories covering your face. Basic neutral clothing is recommended.");
+                i3.put("isActive", true);
+                items.add(i3);
+
+                java.util.Map<String, Object> i4 = new java.util.LinkedHashMap<>();
+                i4.put("order", 4);
+                i4.put("displayOrder", 3);
+                i4.put("question", "Menores de 18 anos podem se cadastrar?");
+                i4.put("answer", "Sim, a WB Agency trabalha com formação e desenvolvimento de novos talentos a partir dos 13 anos. Para candidatos menores de 18 anos, é estritamente obrigatório o consentimento e preenchimento dos dados do responsável legal (nome completo, CPF, telefone e e-mail).");
+                i4.put("questionEn", "Can applicants under 18 apply?");
+                i4.put("answerEn", "Yes, WB Agency develops new talents starting from age 13. For applicants under 18, parental or legal guardian consent and contact information are strictly mandatory.");
+                i4.put("isActive", true);
+                items.add(i4);
+
+                java.util.Map<String, Object> i5 = new java.util.LinkedHashMap<>();
+                i5.put("order", 5);
+                i5.put("displayOrder", 4);
+                i5.put("question", "Como e quando saberei o resultado da avaliação?");
+                i5.put("answer", "Nossa banca de diretores de casting analisa todos os dossiês enviados. Devido ao alto volume de inscrições nacionais, entramos em contato em até 5 dias úteis caso o seu perfil atenda às demandas atuais de campanhas e clientes da agência.");
+                i5.put("questionEn", "How and when will I know the evaluation results?");
+                i5.put("answerEn", "Our casting directors review all submitted portfolios. Due to the high volume of applications, we will contact you within 5 business days if your profile matches our current agency demands.");
+                i5.put("isActive", true);
+                items.add(i5);
+
+                java.util.Map<String, Object> payload = new java.util.LinkedHashMap<>();
+                payload.put("items", items);
+
+                siteContentRepository.save(com.wbscouting.api.entity.SiteContent.builder()
+                        .sectionKey("SCOUTING_FAQ")
+                        .payloadPt(payload)
+                        .payloadEn(payload)
+                        .build());
+                log.info("[DATA INIT] Seção SCOUTING_FAQ inserida com sucesso em site_contents.");
+            }
+        } catch (Exception ex) {
+            log.warn("[DATA INIT] Não foi possível verificar/inserir seção SCOUTING_FAQ no seed: {}", ex.getMessage());
+        }
+    }
+
+    private void initTermsAndPrivacyContents() {
+        if (siteContentRepository == null) return;
+        try {
+            if (siteContentRepository.findBySectionKey("TERMS").isEmpty()) {
+                java.util.Map<String, Object> pt = new java.util.HashMap<>();
+                String ptText = "Termos e Condições de Uso da WB Agency.\n\nAo acessar e utilizar este website, você concorda expressamente com os termos e condições aqui estabelecidos. O conteúdo, fotografias, marcas e composites são de titularidade da WB Agency ou de seus parceiros credenciados.";
+                pt.put("content", ptText);
+                pt.put("body", ptText);
+
+                java.util.Map<String, Object> en = new java.util.HashMap<>();
+                String enText = "WB Agency Terms of Use.\n\nBy accessing and using this website, you agree to comply with the terms and conditions set forth herein. All imagery, trademarks, composites, and texts are property of WB Agency or accredited partners.";
+                en.put("content", enText);
+                en.put("body", enText);
+
+                siteContentRepository.save(com.wbscouting.api.entity.SiteContent.builder()
+                        .sectionKey("TERMS")
+                        .payloadPt(pt)
+                        .payloadEn(en)
+                        .build());
+                log.info("[DATA INIT] Seção TERMS inserida com sucesso em site_contents.");
+            }
+
+            if (siteContentRepository.findBySectionKey("PRIVACY").isEmpty()) {
+                java.util.Map<String, Object> pt = new java.util.HashMap<>();
+                String ptText = "Política de Privacidade & Diretrizes LGPD (Lei nº 13.709/2018).\n\nA WB Agency trata dados pessoais exclusivamente para finalidades de triagem, comunicação profissional e representação artística. Garantimos o sigilo de fotografias de candidaturas e o direito de exclusão conforme a legislação vigente.";
+                pt.put("content", ptText);
+                pt.put("body", ptText);
+
+                java.util.Map<String, Object> en = new java.util.HashMap<>();
+                String enText = "Privacy Policy & GDPR/LGPD Compliance.\n\nWB Agency handles personal data strictly for casting screening, professional communication, and representation. Candidate photos and personal data are kept confidential under strict legal guidelines.";
+                en.put("content", enText);
+                en.put("body", enText);
+
+                siteContentRepository.save(com.wbscouting.api.entity.SiteContent.builder()
+                        .sectionKey("PRIVACY")
+                        .payloadPt(pt)
+                        .payloadEn(en)
+                        .build());
+                log.info("[DATA INIT] Seção PRIVACY inserida com sucesso em site_contents.");
+            }
+        } catch (Exception ex) {
+            log.warn("[DATA INIT] Não foi possível verificar/inserir seções TERMS/PRIVACY no seed: {}", ex.getMessage());
         }
     }
 

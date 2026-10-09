@@ -20,37 +20,41 @@
 
 
       <!-- 2. Seção Editorial de Orientações & Dúvidas Frequentes (FAQ Acordeão) -->
-      @if (faqs && faqs.length > 0 && !submitSuccess) {
-        <section class="form-card faq-section" [attr.aria-label]="'apply_page.faq_title' | translate">
-          <div class="section-header">
-            <span class="badge-editorial">{{ 'apply_page.faq_badge' | translate }}</span>
-            <h2 class="section-title font-serif">{{ 'apply_page.faq_title' | translate }}</h2>
-            <p class="section-subtitle">{{ 'apply_page.faq_subtitle' | translate }}</p>
-          </div>
+      <section *ngIf="faqItems && faqItems.length > 0 && !submitSuccess" class="max-w-4xl mx-auto mb-12">
+        <div class="border-b border-[#E8EBE8] pb-4 mb-6 text-center">
+          <h2 class="text-lg sm:text-xl font-serif uppercase tracking-wider text-[#222624]">
+            {{ translationService.currentLang() === 'en' ? 'Guidelines & Frequently Asked Questions' : 'Orientações & Dúvidas Frequentes' }}
+          </h2>
+          <p class="text-xs text-[#5F6661] tracking-wide mt-1">
+            {{ translationService.currentLang() === 'en' ? 'Everything you need to know before submitting your material.' : 'Tudo o que você precisa saber antes de enviar seu material.' }}
+          </p>
+        </div>
 
-          <div class="faq-list">
-            @for (item of faqs; track item.id; let i = $index) {
-              <div class="faq-item">
-                <button
-                  type="button"
-                  (click)="toggleFaq(item.id)"
-                  class="faq-trigger"
-                  [attr.aria-expanded]="isFaqOpen(item.id)"
-                >
-                  <span class="faq-question">{{ getFaqQuestion(item, i) }}</span>
-                  <span class="faq-icon">{{ isFaqOpen(item.id) ? '−' : '+' }}</span>
-                </button>
+        <!-- Acordeão Expansível -->
+        <div class="border border-[#E8EBE8] bg-white divide-y divide-[#E8EBE8]">
+          <div *ngFor="let item of faqItems; let i = index" class="p-4 sm:p-5">
+            <button 
+              type="button" 
+              (click)="toggleFaq(i)"
+              class="w-full flex items-center justify-between text-left cursor-pointer group"
+            >
+              <span class="text-xs sm:text-sm font-sans uppercase tracking-wider text-[#222624] group-hover:text-[#4B584E] transition-colors font-medium">
+                {{ item.question }}
+              </span>
+              <span class="text-base text-[#4B584E] ml-4 font-mono font-light">
+                {{ expandedFaqIndex === i ? '−' : '+' }}
+              </span>
+            </button>
 
-                @if (isFaqOpen(item.id)) {
-                  <div class="faq-body">
-                    {{ getFaqAnswer(item, i) }}
-                  </div>
-                }
-              </div>
-            }
+            <div 
+              *ngIf="expandedFaqIndex === i" 
+              class="mt-3 pt-3 border-t border-[#E8EBE8] text-xs sm:text-sm leading-relaxed text-[#5F6661] font-sans whitespace-pre-line animate-fade-in"
+            >
+              {{ item.answer }}
+            </div>
           </div>
-        </section>
-      }
+        </div>
+      </section>
 
       <!-- 3. Alerta de Erro Editorial -->
       @if (submitError) {

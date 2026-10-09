@@ -18,10 +18,22 @@
           (change)="loadSection(activeSection)"
           class="px-3 py-2 bg-white border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none cursor-pointer"
         >
-          <option value="MANIFESTO">Manifesto Institucional (Sobre Nós)</option>
-          <option value="SCOUTING">Diretrizes de Scouting (Seja Modelo)</option>
-          <option value="TERMS">Termos & Privacidade (Jurídico)</option>
+          <option value="ABOUT_MANIFESTO">Sobre Nós</option>
+          <option value="TERMS">Termos de Uso</option>
+          <option value="PRIVACY">Privacidade & LGPD</option>
+          <option value="SCOUTING">Configurações do Form. de Quero de Modelo</option>
         </select>
+
+        <button 
+          type="button" 
+          (click)="saveContent()" 
+          [disabled]="isSaving" 
+          class="px-4 py-2 bg-[#4B584E] text-white text-xs font-semibold uppercase tracking-wider hover:bg-[#3D473F] transition-colors flex items-center gap-1.5 shadow-sm"
+          title="Salvar todas as alterações da seção atual"
+        >
+          <span>✓</span>
+          <span>{{ isSaving ? 'Salvando...' : 'Salvar Conteúdo' }}</span>
+        </button>
 
         <a routerLink="/admin" class="btn-outline-admin">
           <span>← Painel Geral</span>
@@ -39,7 +51,56 @@
       {{ errorMessage }}
     </div>
 
-    <div class="bg-white border border-[#E8EBE8] p-6 md:p-8 shadow-sm space-y-6">
+    <!-- BLOCO SIMPLIFICADO: TERMOS DE USO OU PRIVACIDADE & LGPD -->
+    <div *ngIf="activeSection === 'TERMS' || activeSection === 'PRIVACY'" class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white border border-[#E8EBE8] p-6 shadow-sm">
+      
+      <!-- Coluna PT-BR -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between border-b border-[#E8EBE8] pb-2">
+          <span class="text-[10px] font-mono uppercase tracking-widest text-[#4B584E] font-bold">PT-BR</span>
+          <span class="text-xs font-serif uppercase tracking-wider text-[#222624]">
+            {{ activeSection === 'TERMS' ? 'Texto de Uso' : 'Texto de Privacidade & LGPD' }}
+          </span>
+        </div>
+        <textarea 
+          rows="16" 
+          [(ngModel)]="tempPt.content" 
+          placeholder="Digite o texto completo em Português..."
+          class="w-full p-3.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs leading-relaxed text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none font-sans whitespace-pre-line"
+        ></textarea>
+      </div>
+
+      <!-- Coluna EN-US -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between border-b border-[#E8EBE8] pb-2">
+          <span class="text-[10px] font-mono uppercase tracking-widest text-[#C2A87E] font-bold">EN-US</span>
+          <span class="text-xs font-serif uppercase tracking-wider text-[#222624]">
+            {{ activeSection === 'TERMS' ? 'Terms of Use Copy' : 'Privacy & LGPD Copy' }}
+          </span>
+        </div>
+        <textarea 
+          rows="16" 
+          [(ngModel)]="tempEn.content" 
+          placeholder="Enter the complete text in English..."
+          class="w-full p-3.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs leading-relaxed text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none font-sans whitespace-pre-line"
+        ></textarea>
+      </div>
+
+      <!-- Barra de Ação Individual -->
+      <div class="md:col-span-2 flex justify-end gap-3 pt-3 border-t border-[#E8EBE8]">
+        <button 
+          type="button" 
+          (click)="saveCurrentSimpleSection()" 
+          class="px-6 py-2.5 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-[0.2em] transition-all rounded-none cursor-pointer"
+        >
+          Salvar {{ activeSection === 'TERMS' ? 'Termos de Uso' : 'Privacidade & LGPD' }}
+        </button>
+      </div>
+
+    </div>
+
+    <!-- BLOCOS MODULARES: HEADLINE, QUOTE, SECTION TITLE, BODY -->
+    <div *ngIf="activeSection !== 'TERMS' && activeSection !== 'PRIVACY' && activeSection !== 'SCOUTING'" class="bg-white border border-[#E8EBE8] p-6 md:p-8 shadow-sm space-y-6">
       <div class="card-editorial-header flex items-center justify-between">
         <div>
           <h2 class="card-editorial-title">{{ currentSectionTitle }}</h2>
@@ -222,7 +283,93 @@
         </div>
       </div>
 
-      <!-- Bloco 3: Corpo Principal / Manifesto -->
+      <!-- Bloco 3: Título da Seção (Section Title) -->
+      <div class="editorial-field-box" [ngClass]="getBlockStatusClass('sectionTitle')">
+        <div class="field-header">
+          <div class="flex items-center gap-2.5">
+            <span class="field-label">Título da Seção Editorial (Section Title)</span>
+            <span class="field-badge">{{ getBlockStatusLabel('sectionTitle') }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button 
+              type="button" 
+              (click)="startEditBlock('sectionTitle')"
+              [class.btn-active]="editingBlock === 'sectionTitle'"
+              class="btn-field-edit"
+              title="Habilitar edição deste bloco"
+            >
+              ✎ Editar Par
+            </button>
+            <button 
+              type="button" 
+              (click)="saveBlock('sectionTitle')" 
+              [disabled]="isSaving" 
+              class="btn-field-save"
+              title="Salvar alterações deste bloco"
+            >
+              ✓ {{ isSaving && editingBlock === 'sectionTitle' ? 'Salvando...' : 'Salvar Título Seção' }}
+            </button>
+            <button 
+              *ngIf="editingBlock === 'sectionTitle'" 
+              type="button" 
+              (click)="cancelEditBlock()" 
+              class="btn-field-cancel"
+              title="Cancelar e reverter"
+            >
+              ✕ Cancelar
+            </button>
+          </div>
+        </div>
+
+        <!-- Caixas de Texto Coloridas Delimitadas PT/EN -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+          <!-- Português -->
+          <div class="space-y-1.5">
+            <label class="block text-[10px] uppercase font-mono font-semibold text-[#4B584E]">Português (PT-BR)</label>
+            <input 
+              *ngIf="editingBlock !== 'sectionTitle'"
+              type="text" 
+              [value]="currentContent.pt.sectionTitle || ''"
+              readonly
+              (click)="startEditBlock('sectionTitle')"
+              placeholder="Ex.: Nossa Filosofia"
+              class="colored-text-input font-serif text-sm md:text-base font-medium"
+            />
+            <input 
+              *ngIf="editingBlock === 'sectionTitle'"
+              id="field-pt-sectionTitle"
+              type="text" 
+              [(ngModel)]="tempPt.sectionTitle" 
+              placeholder="Ex.: Nossa Filosofia"
+              class="colored-text-input font-serif text-sm md:text-base font-medium"
+            />
+          </div>
+
+          <!-- Inglês -->
+          <div class="space-y-1.5">
+            <label class="block text-[10px] uppercase font-mono font-semibold text-[#C2A87E]">Inglês (EN-US)</label>
+            <input 
+              *ngIf="editingBlock !== 'sectionTitle'"
+              type="text" 
+              [value]="currentContent.en.sectionTitle || ''"
+              readonly
+              (click)="startEditBlock('sectionTitle')"
+              placeholder="Ex.: Our Philosophy"
+              class="colored-text-input font-serif text-sm md:text-base font-medium"
+            />
+            <input 
+              *ngIf="editingBlock === 'sectionTitle'"
+              id="field-en-sectionTitle"
+              type="text" 
+              [(ngModel)]="tempEn.sectionTitle" 
+              placeholder="Ex.: Our Philosophy"
+              class="colored-text-input font-serif text-sm md:text-base font-medium"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Bloco 4: Corpo Principal / Manifesto -->
       <div class="editorial-field-box" [ngClass]="getBlockStatusClass('body')">
         <div class="field-header">
           <div class="flex items-center gap-2.5">
@@ -306,6 +453,137 @@
             ></textarea>
           </div>
         </div>
+      </div>
+
+    </div>
+
+    <!-- PAINEL: CONFIGURAÇÕES DO FORM. DE QUERO DE MODELO (FAQ BILÍNGUE) -->
+    <div *ngIf="activeSection === 'SCOUTING'" class="space-y-6">
+
+      <!-- Barra de Ações Superior da Lista -->
+      <div class="flex items-center justify-between border-b border-[#E8EBE8] pb-4">
+        <div>
+          <h3 class="text-xs font-serif uppercase tracking-wider text-[#222624]">Orientações & Dúvidas Frequentes</h3>
+          <p class="text-[11px] text-[#5F6661] mt-0.5">Gerencie os conjuntos de perguntas e respostas exibidos no topo do formulário /apply.</p>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <span class="text-xs font-mono text-[#5F6661]">
+            {{ faqList.length }}/10 Itens
+          </span>
+          <button 
+            type="button" 
+            (click)="addFaqItem()" 
+            [disabled]="faqList.length >= 10"
+            class="px-3.5 py-1.5 border border-[#4B584E] text-[#4B584E] hover:bg-[#4B584E] hover:text-white text-[10px] uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          >
+            + Adicionar Pergunta
+          </button>
+        </div>
+      </div>
+
+      <!-- Lista de Conjuntos Editáveis -->
+      <div class="space-y-4">
+        <div 
+          *ngFor="let item of faqList; let i = index" 
+          class="bg-white border border-[#E8EBE8] p-5 shadow-xs space-y-4 relative"
+        >
+          <!-- Cabeçalho do Card com Ordenação e Exclusão -->
+          <div class="flex items-center justify-between border-b border-[#E8EBE8] pb-2.5">
+            <span class="text-xs font-mono font-medium text-[#222624]">#0{{ i + 1 }}</span>
+            
+            <div class="flex items-center gap-2">
+              <!-- Subir -->
+              <button 
+                type="button" 
+                (click)="moveFaqUp(i)" 
+                [disabled]="i === 0" 
+                class="px-2 py-1 bg-[#FBFBF9] border border-[#E8EBE8] text-[#222624] text-[10px] disabled:opacity-30 cursor-pointer"
+                title="Subir Ordem"
+              >
+                ↑
+              </button>
+              <!-- Descer -->
+              <button 
+                type="button" 
+                (click)="moveFaqDown(i)" 
+                [disabled]="i === faqList.length - 1" 
+                class="px-2 py-1 bg-[#FBFBF9] border border-[#E8EBE8] text-[#222624] text-[10px] disabled:opacity-30 cursor-pointer"
+                title="Descer Ordem"
+              >
+                ↓
+              </button>
+              <!-- Remover -->
+              <button 
+                type="button" 
+                (click)="removeFaqItem(i)" 
+                class="ml-2 text-xs uppercase tracking-wider text-red-600 hover:text-red-800 transition-colors cursor-pointer"
+              >
+                Remover
+              </button>
+            </div>
+          </div>
+
+          <!-- Campos Bilíngues Lado a Lado -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-1">
+            <!-- Coluna PT-BR -->
+            <div class="space-y-3">
+              <span class="text-[9px] uppercase font-mono tracking-widest text-[#4B584E] font-bold block">PT-BR</span>
+              <div>
+                <label class="block text-[10px] uppercase font-sans tracking-wider text-[#5F6661] mb-1">Pergunta</label>
+                <input 
+                  type="text" 
+                  [(ngModel)]="item.question" 
+                  placeholder="Digite a pergunta em Português..."
+                  class="w-full px-3 py-2 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none"
+                />
+              </div>
+              <div>
+                <label class="block text-[10px] uppercase font-sans tracking-wider text-[#5F6661] mb-1">Resposta</label>
+                <textarea 
+                  rows="4" 
+                  [(ngModel)]="item.answer" 
+                  placeholder="Digite a resposta em Português..."
+                  class="w-full p-2.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs leading-relaxed text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none font-sans whitespace-pre-line"
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- Coluna EN-US -->
+            <div class="space-y-3">
+              <span class="text-[9px] uppercase font-mono tracking-widest text-[#C2A87E] font-bold block">EN-US</span>
+              <div>
+                <label class="block text-[10px] uppercase font-sans tracking-wider text-[#5F6661] mb-1">Question (EN)</label>
+                <input 
+                  type="text" 
+                  [(ngModel)]="item.questionEn" 
+                  placeholder="Enter the question in English..."
+                  class="w-full px-3 py-2 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none"
+                />
+              </div>
+              <div>
+                <label class="block text-[10px] uppercase font-sans tracking-wider text-[#5F6661] mb-1">Answer (EN)</label>
+                <textarea 
+                  rows="4" 
+                  [(ngModel)]="item.answerEn" 
+                  placeholder="Enter the answer in English..."
+                  class="w-full p-2.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs leading-relaxed text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none font-sans whitespace-pre-line"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botão de Salvar Alterações -->
+      <div class="flex justify-end pt-4 border-t border-[#E8EBE8]">
+        <button 
+          type="button" 
+          (click)="saveFaqList()" 
+          class="px-6 py-2.5 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-[0.2em] font-sans transition-all rounded-none cursor-pointer"
+        >
+          Salvar Perguntas & Respostas
+        </button>
       </div>
 
     </div>

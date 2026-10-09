@@ -28,6 +28,43 @@
       }
     </div>
 
+    <!-- Nova Seção de FAQ no Topo -->
+    <section *ngIf="faqItems && faqItems.length > 0 && !submissionSuccess()" class="max-w-4xl mx-auto mb-12">
+      <div class="border-b border-[#E8EBE8] pb-4 mb-6 text-center">
+        <h2 class="text-lg sm:text-xl font-serif uppercase tracking-wider text-[#222624]">
+          Orientações & Dúvidas Frequentes
+        </h2>
+        <p class="text-xs text-[#5F6661] tracking-wide mt-1">
+          Tudo o que você precisa saber antes de enviar seu material.
+        </p>
+      </div>
+
+      <!-- Acordeão Expansível -->
+      <div class="border border-[#E8EBE8] bg-white divide-y divide-[#E8EBE8]">
+        <div *ngFor="let item of faqItems; let i = index" class="p-4 sm:p-5">
+          <button 
+            type="button" 
+            (click)="toggleFaq(i)"
+            class="w-full flex items-center justify-between text-left cursor-pointer group"
+          >
+            <span class="text-xs sm:text-sm font-sans uppercase tracking-wider text-[#222624] group-hover:text-[#4B584E] transition-colors font-medium">
+              {{ item.question }}
+            </span>
+            <span class="text-base text-[#4B584E] ml-4 font-mono font-light">
+              {{ expandedFaqIndex === i ? '−' : '+' }}
+            </span>
+          </button>
+
+          <div 
+            *ngIf="expandedFaqIndex === i" 
+            class="mt-3 pt-3 border-t border-[#E8EBE8] text-xs sm:text-sm leading-relaxed text-[#5F6661] font-sans whitespace-pre-line animate-fade-in"
+          >
+            {{ item.answer }}
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Tela de Sucesso -->
     @if (submissionSuccess()) {
       <div class="success-card card-editorial text-center">

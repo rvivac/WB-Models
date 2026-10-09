@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { HomeSettingsService } from '../../../core/services/home-settings.service';
+import { PublicContentService, SocialMediaPublicItem } from '../../../core/services/public-content.service';
 
 @Component({
   selector: 'app-footer',
@@ -12,6 +13,7 @@ import { HomeSettingsService } from '../../../core/services/home-settings.servic
 })
 export class FooterComponent implements OnInit {
   private readonly homeSettingsService = inject(HomeSettingsService);
+  private readonly publicContentService = inject(PublicContentService);
 
   readonly currentYear: number = new Date().getFullYear();
 
@@ -21,6 +23,7 @@ export class FooterComponent implements OnInit {
   readonly footerHubs = signal<string>('PARIS • MILAN • NEW YORK • SÃO PAULO');
   readonly footerPressBookingUrl = signal<string>('/contato');
   readonly footerApplyUrl = signal<string>('/apply');
+  readonly socialMediaList = signal<SocialMediaPublicItem[]>([]);
 
   ngOnInit(): void {
     this.homeSettingsService.getPublicSettings().subscribe({
@@ -42,6 +45,17 @@ export class FooterComponent implements OnInit {
       },
       error: () => {
         // Fallback estático já inicializado nos signals
+      }
+    });
+
+    this.publicContentService.getContactChannels().subscribe({
+      next: (channels) => {
+        if (channels?.socialMediaList && channels.socialMediaList.length > 0) {
+          this.socialMediaList.set(channels.socialMediaList);
+        }
+      },
+      error: () => {
+        // Fallback estático padrão
       }
     });
   }

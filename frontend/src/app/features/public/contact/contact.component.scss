@@ -56,7 +56,7 @@
     letter-spacing: -0.01em;
     color: var(--text-primary);
     text-transform: none; // Title Case estrito (Canais de Contato)
-    margin-bottom: 0.75rem;
+    margin-bottom: 0;
 
     @include md {
       font-size: 3.5rem;

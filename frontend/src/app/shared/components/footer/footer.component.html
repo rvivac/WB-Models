@@ -73,13 +73,21 @@
           </li>
           <li class="pt-2">
             <span class="block text-[10px] uppercase tracking-[0.2em] text-[#222624] font-medium mb-2">Redes Sociais</span>
-            <div class="flex items-center gap-4 text-xs">
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="text-[#5F6661] hover:text-[#4B584E] transition-colors uppercase tracking-widest text-[11px]">
-                Instagram
-              </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="text-[#5F6661] hover:text-[#4B584E] transition-colors uppercase tracking-widest text-[11px]">
-                LinkedIn
-              </a>
+            <div class="flex items-center gap-4 text-xs flex-wrap">
+              @if (socialMediaList().length > 0) {
+                @for (item of socialMediaList(); track item.name) {
+                  <a [href]="item.url" target="_blank" rel="noopener noreferrer" class="text-[#5F6661] hover:text-[#4B584E] transition-colors uppercase tracking-widest text-[11px]">
+                    {{ item.name }}
+                  </a>
+                }
+              } @else {
+                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="text-[#5F6661] hover:text-[#4B584E] transition-colors uppercase tracking-widest text-[11px]">
+                  Instagram
+                </a>
+                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="text-[#5F6661] hover:text-[#4B584E] transition-colors uppercase tracking-widest text-[11px]">
+                  LinkedIn
+                </a>
+              }
             </div>
           </li>
         </ul>

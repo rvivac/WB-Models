@@ -1,21 +1,8 @@
 <section class="spotlight-section" aria-label="Vitrine de Talentos em Destaque">
   <div class="container">
-    <!-- Cabeçalho da Vitrine -->
-    <header class="spotlight-header">
-      <div class="header-text">
-        <span class="editorial-tag tracking-editorial">
-          {{ 'spotlight.editorial_tag' | translate }}
-        </span>
-        <h2 class="spotlight-title font-serif">
-          {{ title() | translate }}
-        </h2>
-        <p class="spotlight-subtitle">
-          {{ subtitle() | translate }}
-        </p>
-      </div>
-
-      <!-- Controles de Navegação Superior -->
-      @if (models().length > 1) {
+    <!-- Controles de Navegação Superior -->
+    @if (models().length > 1) {
+      <header class="spotlight-header">
         <div class="header-nav-buttons">
           <button 
             type="button" 
@@ -32,8 +19,8 @@
             &rarr;
           </button>
         </div>
-      }
-    </header>
+      </header>
+    }
 
     <!-- 1. Estado: Carregamento (Skeleton Monocromático - Zero CLS) -->
     @if (isLoading()) {

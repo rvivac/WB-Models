@@ -228,6 +228,20 @@ public class AdminInstitutionalContactController {
             map.put("socialMedia", sm);
         }
 
+        if (dto.getSocialMediaList() != null) {
+            List<Map<String, String>> smList = new ArrayList<>();
+            for (ContactSettingsDto.SocialMediaItemDto item : dto.getSocialMediaList()) {
+                if (item != null && ((item.getName() != null && !item.getName().isBlank()) || (item.getUrl() != null && !item.getUrl().isBlank()))) {
+                    Map<String, String> itemMap = new LinkedHashMap<>();
+                    itemMap.put("id", item.getId() != null ? item.getId() : UUID.randomUUID().toString());
+                    itemMap.put("name", item.getName() != null ? item.getName() : "");
+                    itemMap.put("url", item.getUrl() != null ? item.getUrl() : "");
+                    smList.add(itemMap);
+                }
+            }
+            map.put("socialMediaList", smList);
+        }
+
         return map;
     }
 
@@ -267,6 +281,26 @@ public class AdminInstitutionalContactController {
                 .tiktok(getString(smMap, "tiktok", "https://tiktok.com/@wbagency"))
                 .build();
 
+        List<ContactSettingsDto.SocialMediaItemDto> socialMediaList = new ArrayList<>();
+        Object smListObj = pt.get("socialMediaList");
+        if (smListObj instanceof List<?> rawList) {
+            for (Object itemObj : rawList) {
+                if (itemObj instanceof Map<?, ?> itemMap) {
+                    Map<String, Object> safeMap = castToMap(itemMap);
+                    String id = getString(safeMap, "id", UUID.randomUUID().toString());
+                    String name = getString(safeMap, "name", "");
+                    String url = getString(safeMap, "url", "");
+                    if (!name.isBlank() || !url.isBlank()) {
+                        socialMediaList.add(ContactSettingsDto.SocialMediaItemDto.builder()
+                                .id(id)
+                                .name(name)
+                                .url(url)
+                                .build());
+                    }
+                }
+            }
+        }
+
         return ContactSettingsDto.builder()
                 .primaryEmail(getString(pt, "primaryEmail", "info@wbagency.com.br"))
                 .scoutingEmail(getString(pt, "scoutingEmail", "scouting@wbagency.com.br"))
@@ -277,6 +311,7 @@ public class AdminInstitutionalContactController {
                 .businessHours(getString(pt, "businessHours", "Segunda a Sexta: 09h às 18h (GMT-3)"))
                 .address(address)
                 .socialMedia(socialMedia)
+                .socialMediaList(socialMediaList)
                 .build();
     }
 
@@ -304,6 +339,13 @@ public class AdminInstitutionalContactController {
                         .facebook("")
                         .tiktok("https://tiktok.com/@wbagency")
                         .build())
+                .socialMediaList(List.of(
+                        ContactSettingsDto.SocialMediaItemDto.builder()
+                                .id(UUID.randomUUID().toString())
+                                .name("Instagram")
+                                .url("https://instagram.com/wbagency")
+                                .build()
+                ))
                 .build();
 
         Map<String, Object> payload = toMap(defaultDto);

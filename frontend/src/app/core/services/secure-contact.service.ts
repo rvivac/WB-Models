@@ -50,6 +50,7 @@ export class SecureContactService {
   private readonly _whatsappUrl = signal<string>('https://wa.me/5511970656003');
   private readonly _instagramHandle = signal<string>('@wbagency');
   private readonly _instagramUrl = signal<string>('https://www.instagram.com/wbagency/');
+  private readonly _socialMediaList = signal<Array<{ id?: string; name: string; url: string }>>([]);
 
   constructor() {
     this.loadContactChannels();
@@ -75,12 +76,19 @@ export class SecureContactService {
             this._instagramHandle.set(formatInstagramHandle(channels.instagramHandle));
             this._instagramUrl.set(formatInstagramUrl(channels.instagramHandle));
           }
+          if (channels.socialMediaList && channels.socialMediaList.length > 0) {
+            this._socialMediaList.set(channels.socialMediaList);
+          }
         }
       },
       error: (err) => {
         console.warn('Erro ao carregar canais institucionais no SecureContactService:', err);
       }
     });
+  }
+
+  get socialMediaList(): Array<{ id?: string; name: string; url: string }> {
+    return this._socialMediaList();
   }
 
   get emailDisplay(): string {

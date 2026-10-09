@@ -21,23 +21,9 @@ export class HomeContentManagerComponent implements OnInit {
   readonly form: FormGroup = this.fb.group({
     heroTitle: ['', [Validators.maxLength(50)]],
     heroSubtitle: ['', [Validators.maxLength(80)]],
-    heroDescription: ['', [Validators.maxLength(250)]],
-    footerDescription: [
-      'Agência de modelos e gestão internacional de talentos. Representação exclusiva, editorial e comercial com inteligência e inovação.',
-      [Validators.required]
-    ],
-    footerHubs: [
-      'PARIS • MILAN • NEW YORK • SÃO PAULO',
-      [Validators.required]
-    ],
-    footerPressBookingUrl: [
-      '/contato',
-      [Validators.required]
-    ],
-    footerApplyUrl: [
-      '/apply',
-      [Validators.required]
-    ]
+    scrollLabel: ['SCROLL'],
+    metaTitle: [''],
+    metaDescription: ['']
   });
 
   currentVideoUrl = '';
@@ -59,11 +45,9 @@ export class HomeContentManagerComponent implements OnInit {
           this.form.patchValue({
             heroTitle: data.heroTitle || '',
             heroSubtitle: data.heroSubtitle || '',
-            heroDescription: data.heroDescription || '',
-            footerDescription: data.footerDescription || 'Agência de modelos e gestão internacional de talentos. Representação exclusiva, editorial e comercial com inteligência e inovação.',
-            footerHubs: data.footerHubs || 'PARIS • MILAN • NEW YORK • SÃO PAULO',
-            footerPressBookingUrl: data.footerPressBookingUrl || '/contato',
-            footerApplyUrl: data.footerApplyUrl || '/apply'
+            scrollLabel: data.scrollLabel || 'SCROLL',
+            metaTitle: data.metaTitle || '',
+            metaDescription: data.metaDescription || ''
           });
           this.currentVideoUrl = data.videoUrl || '';
           this.currentPosterUrl = data.bannerImageUrl || '';

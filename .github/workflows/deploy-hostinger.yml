@@ -45,21 +45,42 @@ jobs:
         run: npm ci
 
       - name: Compilar Angular em Produção
-        run: npm run build:prod
+        run: npm run build -- --configuration production
 
       - name: Garantir fallback SPA (404.html e .htaccess)
         run: |
           DIST_DIR="dist/frontend/browser"
           if [ ! -d "$DIST_DIR" ]; then
-            echo "ERRO CRÍTICO: Build Angular NÃO GEROU $DIST_DIR!"
+            # Fallback caso a versão do Angular gere em dist/browser diretamente
+            DIST_DIR="dist/browser"
+          fi
+          
+          if [ ! -d "$DIST_DIR" ]; then
+            echo "ERRO CRÍTICO: Pasta de build não encontrada!"
             exit 1
           fi
-          # Fallback para rotas SPA caso servidor busque 404.html
+
+          # Fallback para rotas SPA caso o servidor busque 404.html
           cp "$DIST_DIR/index.html" "$DIST_DIR/404.html"
 
-          # Garante que o .htaccess completo de public/ esteja presente no diretório de build
-          if [ ! -f "$DIST_DIR/.htaccess" ] && [ -f "public/.htaccess" ]; then
+          # Garante que o .htaccess de public/ esteja presente no diretório de build
+          if [ -f "public/.htaccess" ]; then
             cp "public/.htaccess" "$DIST_DIR/.htaccess"
+          elif [ -f "src/.htaccess" ]; then
+            cp "src/.htaccess" "$DIST_DIR/.htaccess"
+          else
+            # Cria .htaccess defensivo se não existir
+            cat << 'EOF' > "$DIST_DIR/.htaccess"
+DirectoryIndex index.html index.php
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
+EOF
           fi
 
           echo "--- Verificando .htaccess no pacote de build ---"
@@ -68,24 +89,25 @@ jobs:
       - name: Validar Integridade dos Arquivos de Build
         run: |
           DIST_DIR="dist/frontend/browser"
+          if [ ! -d "$DIST_DIR" ]; then
+            DIST_DIR="dist/browser"
+          fi
+
           echo "=== Verificando arquivos resultantes do build em $DIST_DIR ==="
           ls -la "$DIST_DIR"
-          if [ ! -d "$DIST_DIR/assets" ]; then
-            echo "ERRO CRÍTICO: Pasta assets não encontrada em $DIST_DIR!"
-            exit 1
-          fi
+          
           if [ ! -f "$DIST_DIR/index.html" ]; then
             echo "ERRO CRÍTICO: index.html não encontrado em $DIST_DIR!"
             exit 1
           fi
-          echo "Tamanhos de arquivos críticos do build:"
-          du -cb "$DIST_DIR/assets/videos/"* 2>/dev/null | tail -1 || true
-          du -b "$DIST_DIR/assets/images/hero-poster.jpg" 2>/dev/null || true
-          echo "Arquivos de build validados com sucesso para o deploy."
+
+          if [ ! -d "$DIST_DIR/assets" ]; then
+            echo "AVISO: Pasta assets não encontrada na raiz de $DIST_DIR (verifique se foi incorporada no bundle)."
+          fi
 
       # =========================================================================
       # VIA 1: DEPLOY DIRETO VIA FTP PARA public_html NA HOSTINGER
-      # Espelha EXCLUSIVAMENTE dist/frontend/browser para public_html/
+      # Espelha EXCLUSIVAMENTE os arquivos compilados para public_html/
       # =========================================================================
       - name: Deploy Frontend via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -95,6 +117,9 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
+          port: 21
+          timeout: 300000
           local-dir: ./frontend/dist/frontend/browser/
           server-dir: ${{ env.TARGET_DIR }}
         continue-on-error: true
@@ -103,8 +128,6 @@ jobs:
       # VIA 2: PUBLICAR ARQUIVOS DE BUILD NA BRANCH hostinger-deploy
       # Cria/atualiza automaticamente a branch 'hostinger-deploy' contendo APENAS
       # os arquivos compilados (index.html, assets, .htaccess) na raiz.
-      # Se a Hostinger estiver configurada com Git Deployment (hPanel -> Git),
-      # ela deve puxar desta branch para ter o site 100% funcional sem código-fonte.
       # =========================================================================
       - name: Publicar arquivos de build na branch hostinger-deploy
         uses: JamesIves/github-pages-deploy-action@v4

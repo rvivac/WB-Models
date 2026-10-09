@@ -17,9 +17,14 @@ export interface AddressData {
 
 export interface SocialMediaData {
   instagram?: string;
-  linkedin?: string;
-  tiktok?: string;
   facebook?: string;
+}
+
+export interface SocialMediaItem {
+  id?: string;
+  name: string;
+  url: string;
+  isEditing?: boolean;
 }
 
 export interface ContactSettingsData {
@@ -32,6 +37,7 @@ export interface ContactSettingsData {
   businessHours?: string;
   address?: AddressData;
   socialMedia?: SocialMediaData;
+  socialMediaList?: SocialMediaItem[];
   [key: string]: any;
 }
 
@@ -64,11 +70,11 @@ export class ContactSettingsComponent implements OnInit {
     },
     socialMedia: {
       instagram: 'https://instagram.com/wbagency',
-      linkedin: 'https://linkedin.com/company/wbagency',
-      tiktok: 'https://tiktok.com/@wbagency',
       facebook: ''
     }
   };
+
+  socialMediaList: SocialMediaItem[] = [];
 
   editingField: string | null = null;
   tempValue: any = '';
@@ -91,6 +97,12 @@ export class ContactSettingsComponent implements OnInit {
             address: { ...this.contactData.address, ...data.address },
             socialMedia: { ...this.contactData.socialMedia, ...data.socialMedia }
           };
+          if (data.socialMediaList && Array.isArray(data.socialMediaList)) {
+            this.socialMediaList = data.socialMediaList.map(item => ({
+              ...item,
+              isEditing: false
+            }));
+          }
         }
       },
       error: (err) => {
@@ -235,5 +247,59 @@ export class ContactSettingsComponent implements OnInit {
         this.successField = null;
       }
     }, 2500);
+  }
+
+  addSocialMedia(): void {
+    this.socialMediaList.push({
+      name: '',
+      url: '',
+      isEditing: true
+    });
+  }
+
+  removeSocialMedia(index: number): void {
+    this.socialMediaList.splice(index, 1);
+    this.saveSocialMediaList();
+  }
+
+  saveSocialMediaItem(item: SocialMediaItem): void {
+    if (!item.name.trim() || !item.url.trim()) return;
+    item.isEditing = false;
+    this.saveSocialMediaList();
+  }
+
+  cancelSocialMediaEdit(item: SocialMediaItem, index: number): void {
+    if (!item.name && !item.url) {
+      this.socialMediaList.splice(index, 1);
+    } else {
+      item.isEditing = false;
+    }
+  }
+
+  saveSocialMediaList(): void {
+    const payload = {
+      socialMediaList: this.socialMediaList.map(item => ({
+        id: item.id || undefined,
+        name: item.name.trim(),
+        url: item.url.trim()
+      }))
+    };
+
+    this.http.patch<ContactSettingsData>(`${environment.apiUrl}/admin/institutional/contact`, payload).subscribe({
+      next: (res) => {
+        if (res && res.socialMediaList) {
+          this.socialMediaList = res.socialMediaList.map(item => ({
+            ...item,
+            isEditing: false
+          }));
+        }
+        this.showSuccessFeedback('socialMediaList');
+      },
+      error: (err) => {
+        const msg = err?.error?.message || err?.message || 'Falha ao salvar redes sociais.';
+        this.errorMessage = `Erro ao salvar redes sociais: ${msg}`;
+        console.error('Erro ao salvar redes sociais:', err);
+      }
+    });
   }
 }

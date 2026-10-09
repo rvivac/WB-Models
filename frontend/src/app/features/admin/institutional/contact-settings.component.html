@@ -561,192 +561,107 @@
             </div>
           </div>
 
-          <!-- Redes Sociais Oficiais -->
-          <div class="border-t border-[#E8EBE8] pt-5 space-y-4">
-            <h3 class="text-xs font-serif uppercase tracking-wider text-[#222624]">Redes Sociais Oficiais</h3>
+        </div>
 
-            <!-- Instagram -->
-            <div class="editorial-field-box" [ngClass]="getFieldStatusClass('socialMedia.instagram')">
-              <div class="field-header">
-                <div class="flex items-center gap-2.5">
-                  <span class="field-label">Instagram (&#64;wbagency)</span>
-                  <span class="field-badge">{{ getFieldStatusLabel('socialMedia.instagram') }}</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <button 
-                    type="button" 
-                    (click)="startEdit('socialMedia.instagram', contactData.socialMedia?.instagram)" 
-                    [class.btn-active]="editingField === 'socialMedia.instagram'"
-                    class="btn-field-edit"
-                    title="Habilitar edição deste campo"
-                  >
-                    ✎ Editar
-                  </button>
-                  <button 
-                    type="button" 
-                    (click)="saveField('socialMedia.instagram')" 
-                    [disabled]="isSaving" 
-                    class="btn-field-save"
-                    title="Salvar alterações deste campo"
-                  >
-                    ✓ {{ isSaving && editingField === 'socialMedia.instagram' ? 'Salvando...' : 'Salvar' }}
-                  </button>
-                  <button 
-                    *ngIf="editingField === 'socialMedia.instagram'" 
-                    type="button" 
-                    (click)="cancelEdit()" 
-                    class="btn-field-cancel"
-                    title="Cancelar e reverter"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-
-              <!-- Caixa de Texto Colorida Delimitada -->
-              <div class="w-full">
-                <input 
-                  *ngIf="editingField !== 'socialMedia.instagram'"
-                  type="url" 
-                  [value]="contactData.socialMedia?.instagram || ''" 
-                  readonly 
-                  (click)="startEdit('socialMedia.instagram', contactData.socialMedia?.instagram)" 
-                  placeholder="https://instagram.com/..."
-                  class="colored-text-input font-mono text-xs"
-                />
-                <input 
-                  *ngIf="editingField === 'socialMedia.instagram'"
-                  id="field-socialMedia.instagram"
-                  type="url" 
-                  [(ngModel)]="tempValue" 
-                  placeholder="https://instagram.com/wbagency"
-                  class="colored-text-input font-mono text-xs"
-                />
-              </div>
+        <!-- Seção: Redes Sociais Oficiais (Dinâmica) -->
+        <div class="bg-white border border-[#E8EBE8] p-6 md:p-8 shadow-sm space-y-6 rounded-none">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E8EBE8] pb-3 gap-2">
+            <div>
+              <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">Redes Sociais Oficiais</h2>
+              <p class="text-[11px] text-[#5F6661] mt-0.5">Cadastre, edite ou remova links das redes oficiais da agência.</p>
             </div>
 
-            <!-- LinkedIn -->
-            <div class="editorial-field-box" [ngClass]="getFieldStatusClass('socialMedia.linkedin')">
-              <div class="field-header">
-                <div class="flex items-center gap-2.5">
-                  <span class="field-label">LinkedIn Corporate</span>
-                  <span class="field-badge">{{ getFieldStatusLabel('socialMedia.linkedin') }}</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <button 
-                    type="button" 
-                    (click)="startEdit('socialMedia.linkedin', contactData.socialMedia?.linkedin)" 
-                    [class.btn-active]="editingField === 'socialMedia.linkedin'"
-                    class="btn-field-edit"
-                    title="Habilitar edição deste campo"
-                  >
-                    ✎ Editar
-                  </button>
-                  <button 
-                    type="button" 
-                    (click)="saveField('socialMedia.linkedin')" 
-                    [disabled]="isSaving" 
-                    class="btn-field-save"
-                    title="Salvar alterações deste campo"
-                  >
-                    ✓ {{ isSaving && editingField === 'socialMedia.linkedin' ? 'Salvando...' : 'Salvar' }}
-                  </button>
-                  <button 
-                    *ngIf="editingField === 'socialMedia.linkedin'" 
-                    type="button" 
-                    (click)="cancelEdit()" 
-                    class="btn-field-cancel"
-                    title="Cancelar e reverter"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-
-              <!-- Caixa de Texto Colorida Delimitada -->
-              <div class="w-full">
-                <input 
-                  *ngIf="editingField !== 'socialMedia.linkedin'"
-                  type="url" 
-                  [value]="contactData.socialMedia?.linkedin || ''" 
-                  readonly 
-                  (click)="startEdit('socialMedia.linkedin', contactData.socialMedia?.linkedin)" 
-                  placeholder="https://linkedin.com/company/..."
-                  class="colored-text-input font-mono text-xs"
-                />
-                <input 
-                  *ngIf="editingField === 'socialMedia.linkedin'"
-                  id="field-socialMedia.linkedin"
-                  type="url" 
-                  [(ngModel)]="tempValue" 
-                  placeholder="https://linkedin.com/company/wbagency"
-                  class="colored-text-input font-mono text-xs"
-                />
-              </div>
-            </div>
-
-            <!-- TikTok -->
-            <div class="editorial-field-box" [ngClass]="getFieldStatusClass('socialMedia.tiktok')">
-              <div class="field-header">
-                <div class="flex items-center gap-2.5">
-                  <span class="field-label">TikTok Scouting</span>
-                  <span class="field-badge">{{ getFieldStatusLabel('socialMedia.tiktok') }}</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <button 
-                    type="button" 
-                    (click)="startEdit('socialMedia.tiktok', contactData.socialMedia?.tiktok)" 
-                    [class.btn-active]="editingField === 'socialMedia.tiktok'"
-                    class="btn-field-edit"
-                    title="Habilitar edição deste campo"
-                  >
-                    ✎ Editar
-                  </button>
-                  <button 
-                    type="button" 
-                    (click)="saveField('socialMedia.tiktok')" 
-                    [disabled]="isSaving" 
-                    class="btn-field-save"
-                    title="Salvar alterações deste campo"
-                  >
-                    ✓ {{ isSaving && editingField === 'socialMedia.tiktok' ? 'Salvando...' : 'Salvar' }}
-                  </button>
-                  <button 
-                    *ngIf="editingField === 'socialMedia.tiktok'" 
-                    type="button" 
-                    (click)="cancelEdit()" 
-                    class="btn-field-cancel"
-                    title="Cancelar e reverter"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-
-              <!-- Caixa de Texto Colorida Delimitada -->
-              <div class="w-full">
-                <input 
-                  *ngIf="editingField !== 'socialMedia.tiktok'"
-                  type="url" 
-                  [value]="contactData.socialMedia?.tiktok || ''" 
-                  readonly 
-                  (click)="startEdit('socialMedia.tiktok', contactData.socialMedia?.tiktok)" 
-                  placeholder="https://tiktok.com/@..."
-                  class="colored-text-input font-mono text-xs"
-                />
-                <input 
-                  *ngIf="editingField === 'socialMedia.tiktok'"
-                  id="field-socialMedia.tiktok"
-                  type="url" 
-                  [(ngModel)]="tempValue" 
-                  placeholder="https://tiktok.com/@wbagency"
-                  class="colored-text-input font-mono text-xs"
-                />
-              </div>
-            </div>
-
+            <button 
+              type="button" 
+              (click)="addSocialMedia()"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-[#4B584E] text-[#4B584E] hover:bg-[#4B584E] hover:text-white text-[10px] uppercase tracking-[0.15em] transition-all cursor-pointer rounded-none"
+            >
+              <span>+ Adicionar Rede Social</span>
+            </button>
           </div>
 
+          <!-- Lista de Redes Sociais Dinâmicas -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div 
+              *ngFor="let item of socialMediaList; let i = index" 
+              class="border border-[#E8EBE8] bg-[#FBFBF9] p-4 transition-all space-y-3 rounded-none hover:border-[#4B584E]"
+            >
+              <!-- Modo de Leitura -->
+              <div *ngIf="!item.isEditing" class="flex items-start justify-between">
+                <div class="space-y-1">
+                  <span class="text-[10px] font-sans uppercase tracking-[0.18em] text-[#4B584E] font-medium block">
+                    {{ item.name }}
+                  </span>
+                  <a [href]="item.url" target="_blank" rel="noopener noreferrer" class="text-xs font-mono text-[#222624] hover:underline block break-all">
+                    {{ item.url }}
+                  </a>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <button 
+                    type="button" 
+                    (click)="item.isEditing = true"
+                    class="text-[10px] uppercase tracking-wider text-[#4B584E] hover:underline cursor-pointer"
+                  >
+                    Editar
+                  </button>
+                  <span class="text-[#E8EBE8]">&bull;</span>
+                  <button 
+                    type="button" 
+                    (click)="removeSocialMedia(i)"
+                    class="text-[10px] uppercase tracking-wider text-red-600 hover:underline cursor-pointer"
+                  >
+                    Excluir
+                  </button>
+                </div>
+              </div>
+
+              <!-- Modo de Edição Inline -->
+              <div *ngIf="item.isEditing" class="space-y-3">
+                <div>
+                  <label class="block text-[9px] uppercase tracking-[0.15em] text-[#5F6661] mb-1">Nome da Rede</label>
+                  <input 
+                    type="text" 
+                    [(ngModel)]="item.name" 
+                    placeholder="Ex: LinkedIn, TikTok, YouTube..." 
+                    class="w-full px-3 py-2 bg-white border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-[9px] uppercase tracking-[0.15em] text-[#5F6661] mb-1">URL Completa</label>
+                  <input 
+                    type="url" 
+                    [(ngModel)]="item.url" 
+                    placeholder="https://..." 
+                    class="w-full px-3 py-2 bg-white border border-[#E8EBE8] text-xs font-mono text-[#222624] focus:outline-none focus:border-[#4B584E] rounded-none"
+                  />
+                </div>
+
+                <div class="flex items-center gap-2 pt-1">
+                  <button 
+                    type="button" 
+                    (click)="saveSocialMediaItem(item)"
+                    [disabled]="!item.name || !item.url"
+                    class="px-3 py-1.5 bg-[#4B584E] text-white text-[10px] uppercase tracking-wider disabled:opacity-40 cursor-pointer rounded-none"
+                  >
+                    Salvar
+                  </button>
+                  <button 
+                    type="button" 
+                    (click)="cancelSocialMediaEdit(item, i)"
+                    class="px-3 py-1.5 border border-[#E8EBE8] text-[10px] uppercase tracking-wider text-[#5F6661] hover:bg-white cursor-pointer rounded-none"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="socialMediaList.length === 0" class="p-8 text-center border border-dashed border-[#E8EBE8] text-xs text-[#5F6661] uppercase tracking-wider">
+            Nenhuma rede social configurada. Clique em "+ Adicionar Rede Social" para cadastrar.
+          </div>
         </div>
 
       </div>

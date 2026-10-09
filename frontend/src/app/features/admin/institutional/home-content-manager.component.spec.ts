@@ -14,11 +14,9 @@ describe('HomeContentManagerComponent', () => {
   const mockHomeData = {
     heroTitle: 'WB AGENCY',
     heroSubtitle: 'EDITORIAL & HIGH FASHION SCOUTING',
-    heroDescription: 'Representação exclusiva e curadoria estética conectada ao mercado global.',
-    footerDescription: 'Agência de modelos e gestão internacional de talentos. Representação exclusiva, editorial e comercial com inteligência e inovação.',
-    footerHubs: 'PARIS • MILAN • NEW YORK • SÃO PAULO',
-    footerPressBookingUrl: '/contato',
-    footerApplyUrl: '/apply',
+    scrollLabel: 'SCROLL',
+    metaTitle: 'WB Agency | Scouting Internacional e Alta Moda',
+    metaDescription: 'Agência de scouting e modelos com foco editorial.',
     videoUrl: 'https://storage.wb.agency/hero.mp4',
     bannerImageUrl: 'https://storage.wb.agency/poster.webp'
   };
@@ -47,18 +45,18 @@ describe('HomeContentManagerComponent', () => {
 
     expect(component.form.get('heroTitle')?.value).toBe('WB AGENCY');
     expect(component.form.get('heroSubtitle')?.value).toBe('EDITORIAL & HIGH FASHION SCOUTING');
-    expect(component.form.get('footerDescription')?.value).toBe('Agência de modelos e gestão internacional de talentos. Representação exclusiva, editorial e comercial com inteligência e inovação.');
+    expect(component.form.get('scrollLabel')?.value).toBe('SCROLL');
     expect(component.currentVideoUrl).toBe('https://storage.wb.agency/hero.mp4');
     expect(component.currentPosterUrl).toBe('https://storage.wb.agency/poster.webp');
   });
 
-  it('deve atualizar textos institucionais e novo rodapé via PUT', () => {
+  it('deve atualizar textos institucionais essenciais do Hero via PUT', () => {
     fixture.detectChanges();
     httpTesting.expectOne(`${environment.apiUrl}/admin/home-settings`).flush(mockHomeData);
 
     component.form.patchValue({
       heroTitle: 'NOVO TITULO',
-      footerHubs: 'PARIS • MILAN'
+      scrollLabel: 'EXPLORAR'
     });
 
     component.saveTextContent();
@@ -67,9 +65,9 @@ describe('HomeContentManagerComponent', () => {
     const putReq = httpTesting.expectOne(`${environment.apiUrl}/admin/home-settings`);
     expect(putReq.request.method).toBe('PUT');
     expect(putReq.request.body.heroTitle).toBe('NOVO TITULO');
-    expect(putReq.request.body.footerHubs).toBe('PARIS • MILAN');
+    expect(putReq.request.body.scrollLabel).toBe('EXPLORAR');
 
-    putReq.flush({ ...mockHomeData, heroTitle: 'NOVO TITULO', footerHubs: 'PARIS • MILAN' });
+    putReq.flush({ ...mockHomeData, heroTitle: 'NOVO TITULO', scrollLabel: 'EXPLORAR' });
 
     expect(component.isSaving).toBeFalse();
     expect(component.feedbackMessage).toContain('salvas com sucesso');

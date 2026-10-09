@@ -29,10 +29,12 @@ describe('ContactSettingsComponent', () => {
     },
     socialMedia: {
       instagram: 'https://instagram.com/wbagency',
-      linkedin: 'https://linkedin.com/company/wbagency',
-      tiktok: 'https://tiktok.com/@wbagency',
       facebook: ''
-    }
+    },
+    socialMediaList: [
+      { id: 'soc-1', name: 'LinkedIn', url: 'https://linkedin.com/company/wbagency' },
+      { id: 'soc-2', name: 'TikTok', url: 'https://tiktok.com/@wbagency' }
+    ]
   };
 
   beforeEach(async () => {
@@ -123,5 +125,91 @@ describe('ContactSettingsComponent', () => {
   it('deve sanitizar números e codificar texto para preview do WhatsApp', () => {
     expect(component.cleanNumber('+55 (11) 99999-8888')).toBe('5511999998888');
     expect(component.encodeText('Olá mundo!')).toBe('Ol%C3%A1%20mundo!');
+  });
+
+  it('deve adicionar um novo item de rede social no modo de edição', () => {
+    fixture.detectChanges();
+    httpMock.expectOne(`${environment.apiUrl}/admin/institutional/contact`).flush(mockContactData);
+
+    const initialCount = component.socialMediaList.length;
+    component.addSocialMedia();
+
+    expect(component.socialMediaList.length).toBe(initialCount + 1);
+    const added = component.socialMediaList[component.socialMediaList.length - 1];
+    expect(added.name).toBe('');
+    expect(added.url).toBe('');
+    expect(added.isEditing).toBeTrue();
+  });
+
+  it('deve salvar item de rede social e disparar persistência via PATCH', () => {
+    fixture.detectChanges();
+    httpMock.expectOne(`${environment.apiUrl}/admin/institutional/contact`).flush({
+      ...mockContactData,
+      socialMediaList: []
+    });
+
+    component.addSocialMedia();
+    const item = component.socialMediaList[0];
+    item.name = 'YouTube';
+    item.url = 'https://youtube.com/@wbagency';
+
+    component.saveSocialMediaItem(item);
+    expect(item.isEditing).toBeFalse();
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/admin/institutional/contact`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body.socialMediaList).toEqual([
+      { id: undefined, name: 'YouTube', url: 'https://youtube.com/@wbagency' }
+    ]);
+    req.flush({
+      ...mockContactData,
+      socialMediaList: [{ id: 'soc-1', name: 'YouTube', url: 'https://youtube.com/@wbagency' }]
+    });
+
+    expect(component.socialMediaList.length).toBe(1);
+    expect(component.socialMediaList[0].id).toBe('soc-1');
+  });
+
+  it('deve remover item de rede social e atualizar via PATCH', () => {
+    fixture.detectChanges();
+    httpMock.expectOne(`${environment.apiUrl}/admin/institutional/contact`).flush({
+      ...mockContactData,
+      socialMediaList: [
+        { id: '1', name: 'Twitter', url: 'https://x.com/wb' },
+        { id: '2', name: 'TikTok', url: 'https://tiktok.com/@wb' }
+      ]
+    });
+
+    expect(component.socialMediaList.length).toBe(2);
+
+    component.removeSocialMedia(0);
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/admin/institutional/contact`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body.socialMediaList).toEqual([
+      { id: '2', name: 'TikTok', url: 'https://tiktok.com/@wb' }
+    ]);
+    req.flush({
+      ...mockContactData,
+      socialMediaList: [{ id: '2', name: 'TikTok', url: 'https://tiktok.com/@wb' }]
+    });
+
+    expect(component.socialMediaList.length).toBe(1);
+    expect(component.socialMediaList[0].name).toBe('TikTok');
+  });
+
+  it('deve cancelar edição de rede social e descartar item se estiver vazio', () => {
+    fixture.detectChanges();
+    httpMock.expectOne(`${environment.apiUrl}/admin/institutional/contact`).flush({
+      ...mockContactData,
+      socialMediaList: []
+    });
+
+    component.addSocialMedia();
+    const item = component.socialMediaList[0];
+    expect(component.socialMediaList.length).toBe(1);
+
+    component.cancelSocialMediaEdit(item, 0);
+    expect(component.socialMediaList.length).toBe(0);
   });
 });

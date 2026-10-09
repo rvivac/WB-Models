@@ -1,14 +1,14 @@
 <div class="space-y-8 bg-[#FBFBF9] min-h-[calc(100vh-4rem)] p-6 md:p-10 selection:bg-[#4B584E] selection:text-white">
 
-  <!-- Header Superior de Navegação e Ação -->
+  <!-- BARRA DE NAVEGAÇÃO SUPERIOR (PRESERVADA) -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E8EBE8] pb-6 gap-4">
     <div class="flex items-center gap-4">
       <a routerLink="/admin" class="flex items-center gap-2 px-3 py-1.5 border border-[#E8EBE8] bg-white text-xs uppercase tracking-[0.15em] text-[#5F6661] hover:text-[#4B584E] hover:border-[#4B584E] transition-all rounded-none">
         &larr; Painel Geral
       </a>
       <div>
-        <h1 class="text-xl font-serif uppercase tracking-wider text-[#222624]">Gestão da Home &amp; Rodapé</h1>
-        <p class="text-xs text-[#5F6661] tracking-wide mt-1">Configure o vídeo hero, capa de contingência e textos do rodapé institucional.</p>
+        <h1 class="text-xl font-serif uppercase tracking-wider text-[#222624]">Gestão da Home (Hero)</h1>
+        <p class="text-xs text-[#5F6661] tracking-wide mt-1">Configure o vídeo principal, poster de contingência e títulos da primeira dobra.</p>
       </div>
     </div>
 
@@ -19,7 +19,7 @@
       <button 
         type="button" 
         (click)="saveTextContent()" 
-        [disabled]="form.invalid || isSaving"
+        [disabled]="isSaving"
         class="px-6 py-2.5 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-[0.2em] font-sans disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-sm rounded-none"
       >
         <span *ngIf="!isSaving">Salvar Alterações</span>
@@ -102,16 +102,14 @@
 
     </div>
 
-    <!-- COLUNA DIREITA: TEXTOS DO HERO & NOVO FOOTER INSTITUCIONAL (6 Colunas) -->
+    <!-- COLUNA DIREITA: TEXTOS ESSENCIAIS DO HERO & METADADOS (6 Colunas) -->
     <div class="lg:col-span-6 space-y-6">
-      
       <form [formGroup]="form" class="space-y-6">
 
-        <!-- Bloco 1: Textos do Hero -->
         <div class="bg-white border border-[#E8EBE8] p-6 shadow-sm space-y-5 rounded-none">
           <div class="border-b border-[#E8EBE8] pb-3">
-            <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">Abertura &amp; Hero da Home</h2>
-            <p class="text-[11px] text-[#5F6661] mt-0.5">Frases principais sobrepostas ao vídeo.</p>
+            <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">Textos de Abertura (Hero)</h2>
+            <p class="text-[11px] text-[#5F6661] mt-0.5">Tipografia sobreposta ao vídeo da dobra de abertura.</p>
           </div>
 
           <div>
@@ -135,68 +133,17 @@
           </div>
 
           <div>
-            <label for="heroDescription" class="block text-[11px] font-sans tracking-[0.18em] uppercase text-[#222624] mb-1.5">Manifesto / Descrição</label>
-            <textarea 
-              id="heroDescription"
-              rows="2" 
-              formControlName="heroDescription" 
-              class="w-full p-3 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] focus:bg-white rounded-none leading-relaxed"
-            ></textarea>
-          </div>
-        </div>
-
-        <!-- Bloco 2: Gestão do Novo Rodapé (Footer) -->
-        <div class="bg-white border border-[#E8EBE8] p-6 shadow-sm space-y-5 rounded-none">
-          <div class="border-b border-[#E8EBE8] pb-3">
-            <h2 class="text-xs font-serif uppercase tracking-wider text-[#222624]">Manifesto &amp; Links do Rodapé (Footer)</h2>
-            <p class="text-[11px] text-[#5F6661] mt-0.5">Textos posicionados abaixo do logo ampliado no rodapé do site.</p>
-          </div>
-
-          <div>
-            <label for="footerDescription" class="block text-[11px] font-sans tracking-[0.18em] uppercase text-[#222624] mb-1.5">Descrição Institucional</label>
-            <textarea 
-              id="footerDescription"
-              rows="3" 
-              formControlName="footerDescription" 
-              class="w-full p-3 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] focus:bg-white rounded-none leading-relaxed"
-            ></textarea>
-          </div>
-
-          <div>
-            <label for="footerHubs" class="block text-[11px] font-sans tracking-[0.18em] uppercase text-[#222624] mb-1.5">Polos Internacionais (Cidades)</label>
+            <label for="scrollLabel" class="block text-[11px] font-sans tracking-[0.18em] uppercase text-[#222624] mb-1.5">Rótulo de Rolagem</label>
             <input 
-              id="footerHubs"
+              id="scrollLabel"
               type="text" 
-              formControlName="footerHubs" 
-              class="w-full px-3 py-2.5 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] focus:bg-white rounded-none font-mono tracking-wider"
+              formControlName="scrollLabel" 
+              class="w-32 px-3 py-2 bg-[#FBFBF9] border border-[#E8EBE8] text-xs text-[#222624] focus:outline-none focus:border-[#4B584E] focus:bg-white rounded-none font-mono uppercase"
             />
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-            <div>
-              <label for="footerPressBookingUrl" class="block text-[10px] font-sans tracking-[0.15em] uppercase text-[#5F6661] mb-1">Rota: Imprensa &amp; Booking</label>
-              <input 
-                id="footerPressBookingUrl"
-                type="text" 
-                formControlName="footerPressBookingUrl" 
-                class="w-full px-3 py-2 bg-[#FBFBF9] border border-[#E8EBE8] text-xs focus:outline-none focus:border-[#4B584E] rounded-none font-mono"
-              />
-            </div>
-
-            <div>
-              <label for="footerApplyUrl" class="block text-[10px] font-sans tracking-[0.15em] uppercase text-[#5F6661] mb-1">Rota: Inscrição de Novos Talentos</label>
-              <input 
-                id="footerApplyUrl"
-                type="text" 
-                formControlName="footerApplyUrl" 
-                class="w-full px-3 py-2 bg-[#FBFBF9] border border-[#E8EBE8] text-xs focus:outline-none focus:border-[#4B584E] rounded-none font-mono"
-              />
-            </div>
           </div>
         </div>
 
       </form>
-
     </div>
 
   </div>

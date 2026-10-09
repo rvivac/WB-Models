@@ -79,6 +79,14 @@ class AdminInstitutionalContactControllerTest {
         sm.put("linkedin", "https://linkedin.com/company/wbagency");
         payload.put("socialMedia", sm);
 
+        java.util.List<Map<String, String>> smList = new java.util.ArrayList<>();
+        Map<String, String> item1 = new LinkedHashMap<>();
+        item1.put("id", "sm-1");
+        item1.put("name", "TikTok");
+        item1.put("url", "https://tiktok.com/@wbagency");
+        smList.add(item1);
+        payload.put("socialMediaList", smList);
+
         siteContent = SiteContent.builder()
                 .id(UUID.randomUUID())
                 .sectionKey("contact")
@@ -97,7 +105,8 @@ class AdminInstitutionalContactControllerTest {
                 .andExpect(jsonPath("$.primaryEmail").value("contato@wbscouting.com"))
                 .andExpect(jsonPath("$.whatsapp").value("+55 11 99999-9999"))
                 .andExpect(jsonPath("$.address.city").value("São Paulo"))
-                .andExpect(jsonPath("$.socialMedia.instagram").value("https://instagram.com/wbagency"));
+                .andExpect(jsonPath("$.socialMedia.instagram").value("https://instagram.com/wbagency"))
+                .andExpect(jsonPath("$.socialMediaList[0].name").value("TikTok"));
     }
 
     @Test
@@ -122,6 +131,13 @@ class AdminInstitutionalContactControllerTest {
                 .socialMedia(ContactSettingsDto.SocialMediaDto.builder()
                         .instagram("https://instagram.com/novowb")
                         .build())
+                .socialMediaList(java.util.List.of(
+                        ContactSettingsDto.SocialMediaItemDto.builder()
+                                .id("sm-custom")
+                                .name("Pinterest")
+                                .url("https://pinterest.com/wbagency")
+                                .build()
+                ))
                 .build();
 
         mockMvc.perform(put("/api/v1/admin/institutional/contact")
@@ -130,7 +146,8 @@ class AdminInstitutionalContactControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.primaryEmail").value("novo@wbscouting.com"))
                 .andExpect(jsonPath("$.whatsapp").value("+55 11 98888-7777"))
-                .andExpect(jsonPath("$.address.street").value("Rua Oscar Freire, 500"));
+                .andExpect(jsonPath("$.address.street").value("Rua Oscar Freire, 500"))
+                .andExpect(jsonPath("$.socialMediaList[0].name").value("Pinterest"));
     }
 
     @Test

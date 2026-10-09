@@ -48,6 +48,36 @@ public class ContactSettingsDto {
     @Valid
     private SocialMediaDto socialMedia;
 
+    // Lista dinâmica de redes sociais adicionadas pelo administrador
+    private java.util.List<SocialMediaItemDto> socialMediaList;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class SocialMediaItemDto {
+        private String id;
+        private String name; // Ex: "LinkedIn", "TikTok", "YouTube", "Threads", etc.
+        private String url;  // Ex: "https://linkedin.com/company/wbagency"
+
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        public String getUrl() { return url; }
+        public void setUrl(String url) { this.url = url; }
+
+        public static SocialMediaItemDtoBuilder manualBuilder() { return new SocialMediaItemDtoBuilder(); }
+        public static class SocialMediaItemDtoBuilder {
+            private final SocialMediaItemDto s = new SocialMediaItemDto();
+            public SocialMediaItemDtoBuilder id(String v) { s.setId(v); return this; }
+            public SocialMediaItemDtoBuilder name(String v) { s.setName(v); return this; }
+            public SocialMediaItemDtoBuilder url(String v) { s.setUrl(v); return this; }
+            public SocialMediaItemDto build() { return s; }
+        }
+    }
+
     // TASK: Anotacoes Lombok completas + campo "number" + JsonInclude
     @Data
     @Builder
@@ -175,6 +205,9 @@ public class ContactSettingsDto {
     public SocialMediaDto getSocialMedia() { return socialMedia; }
     public void setSocialMedia(SocialMediaDto socialMedia) { this.socialMedia = socialMedia; }
 
+    public java.util.List<SocialMediaItemDto> getSocialMediaList() { return socialMediaList; }
+    public void setSocialMediaList(java.util.List<SocialMediaItemDto> socialMediaList) { this.socialMediaList = socialMediaList; }
+
     // ===== BUILDER MANUAL FALLBACK (evita Lombok @Builder falhar) =====
     public static ContactSettingsDtoBuilder manualBuilder() { return new ContactSettingsDtoBuilder(); }
     public static class ContactSettingsDtoBuilder {
@@ -189,6 +222,7 @@ public class ContactSettingsDto {
         public ContactSettingsDtoBuilder address(AddressDto v) { c.setAddress(v); return this; }
         public ContactSettingsDtoBuilder businessHours(String v) { c.setBusinessHours(v); return this; }
         public ContactSettingsDtoBuilder socialMedia(SocialMediaDto v) { c.setSocialMedia(v); return this; }
+        public ContactSettingsDtoBuilder socialMediaList(java.util.List<SocialMediaItemDto> v) { c.setSocialMediaList(v); return this; }
         public ContactSettingsDto build() { return c; }
     }
 }

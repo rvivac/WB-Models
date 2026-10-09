@@ -112,14 +112,9 @@ class AdminInstitutionalHomeControllerTest {
         HomeContentDto updateDto = HomeContentDto.builder()
                 .heroTitle("NOVA TEMPORADA")
                 .heroSubtitle("FALL WINTER 2026")
-                .heroDescription("Nova curadoria editorial internacional.")
                 .scrollLabel("EXPLORAR")
                 .metaTitle("WB Agency | Fall Winter 2026")
                 .metaDescription("Lançamento oficial da nova temporada.")
-                .footerDescription("Agência internacional de modelos.")
-                .footerHubs("PARIS • MILAN")
-                .footerPressBookingUrl("/contato")
-                .footerApplyUrl("/apply")
                 .build();
 
         mockMvc.perform(put("/api/v1/admin/institutional/home")
@@ -127,9 +122,7 @@ class AdminInstitutionalHomeControllerTest {
                         .content(objectMapper.writeValueAsString(updateDto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.heroTitle").value("NOVA TEMPORADA"))
-                .andExpect(jsonPath("$.scrollLabel").value("EXPLORAR"))
-                .andExpect(jsonPath("$.footerDescription").value("Agência internacional de modelos."))
-                .andExpect(jsonPath("$.footerHubs").value("PARIS • MILAN"));
+                .andExpect(jsonPath("$.scrollLabel").value("EXPLORAR"));
     }
 
     @Test

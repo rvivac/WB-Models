@@ -14,6 +14,7 @@ import org.springframework.util.StringUtils;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,10 +81,30 @@ public class ContactChannelsServiceImpl implements ContactChannelsService {
             }
         }
 
+        List<ContactChannelsPublicDto.SocialMediaItemDto> socialMediaList = new ArrayList<>();
         if (contentOpt.isPresent()) {
             SiteContent content = contentOpt.get();
             Map<String, Object> pt = content.getPayloadPt() != null ? content.getPayloadPt() : Map.of();
             Map<String, Object> en = content.getPayloadEn() != null ? content.getPayloadEn() : Map.of();
+            Map<String, Object> targetMap = isEn ? en : pt;
+
+            Object smListObj = targetMap.get("socialMediaList");
+            if (smListObj instanceof List<?> rawList) {
+                for (Object itemObj : rawList) {
+                    if (itemObj instanceof Map<?, ?> itemMap) {
+                        String id = itemMap.get("id") != null ? itemMap.get("id").toString() : null;
+                        String name = itemMap.get("name") != null ? itemMap.get("name").toString() : "";
+                        String url = itemMap.get("url") != null ? itemMap.get("url").toString() : "";
+                        if (!name.isBlank() || !url.isBlank()) {
+                            socialMediaList.add(ContactChannelsPublicDto.SocialMediaItemDto.builder()
+                                    .id(id)
+                                    .name(name)
+                                    .url(url)
+                                    .build());
+                        }
+                    }
+                }
+            }
 
             if (isEn) {
                 email = sanitizeVal(getString(en, "email", getString(pt, "email", DEFAULT_EMAIL)), DEFAULT_EMAIL);
@@ -112,6 +133,7 @@ public class ContactChannelsServiceImpl implements ContactChannelsService {
                 .instagramHandle(instagramHandle)
                 .address(address)
                 .officeHours(officeHours)
+                .socialMediaList(socialMediaList)
                 .build();
     }
 

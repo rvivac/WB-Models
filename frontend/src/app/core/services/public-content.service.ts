@@ -32,6 +32,12 @@ export interface ApplyHowItWorksPayload {
   steps: string[];
 }
 
+export interface SocialMediaPublicItem {
+  id?: string;
+  name: string;
+  url: string;
+}
+
 export interface ContactChannelsPublicDto {
   email: string;
   whatsappNumber: string;
@@ -39,6 +45,7 @@ export interface ContactChannelsPublicDto {
   instagramHandle: string;
   address: string;
   officeHours: string;
+  socialMediaList?: SocialMediaPublicItem[];
 }
 
 @Injectable({
@@ -97,6 +104,7 @@ export class PublicContentService {
           let instagramHandle = this.defaultContactChannels.instagramHandle;
           let address = this.defaultContactChannels.address;
           let officeHours = this.defaultContactChannels.officeHours;
+          const socialMediaList: SocialMediaPublicItem[] = [];
 
           for (const ch of res) {
             const type = (ch.type || '').toUpperCase();
@@ -109,8 +117,11 @@ export class PublicContentService {
             if (type === 'INSTAGRAM' && val) instagramHandle = val;
             if (type === 'ADDRESS' && val) address = val;
             if (type === 'OFFICE_HOURS' && val) officeHours = val;
+            if (type === 'SOCIAL' && val) {
+              socialMediaList.push({ name: ch.label || 'Rede Social', url: val });
+            }
           }
-          return { email, whatsappNumber, whatsappUrl, instagramHandle, address, officeHours };
+          return { email, whatsappNumber, whatsappUrl, instagramHandle, address, officeHours, socialMediaList };
         }
         if (res && res.email) {
           return res as ContactChannelsPublicDto;

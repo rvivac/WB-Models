@@ -62,9 +62,10 @@ describe('AboutPageService', () => {
     req.flush(mockAboutPage);
   });
 
-  it('deve retornar fallback em caso de erro na rota pública', () => {
-    service.getPublicAboutPage().subscribe(res => {
-      expect(res.title).toBe(service.defaultAboutPage.title);
+  it('deve propagar erro em caso de erro na rota pública', () => {
+    service.getPublicAboutPage().subscribe({
+      next: () => fail('Deveria ter falhado'),
+      error: (err) => expect(err).toBeTruthy()
     });
 
     const req = httpMock.expectOne(request => request.url.includes('/public/institutional/about'));

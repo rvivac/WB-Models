@@ -1,200 +1,27 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, inject, signal, effect, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { PublicContentService, HomeHeroPayload } from '../../../../../core/services/public-content.service';
-import { HomeSettingsService } from '../../../../../core/services/home-settings.service';
-import { TranslationService } from '../../../../../core/services/translation.service';
-import { TranslatePipe } from '../../../../../shared/pipes/translate.pipe';
 
 @Component({
   selector: 'app-home-hero',
   standalone: true,
-  imports: [CommonModule, RouterModule, TranslatePipe],
+  imports: [CommonModule],
   templateUrl: './home-hero.component.html',
   styleUrls: ['./home-hero.component.scss']
 })
-export class HomeHeroComponent implements OnInit, AfterViewInit, OnDestroy {
-  private readonly publicContentService = inject(PublicContentService);
-  private readonly homeSettingsService = inject(HomeSettingsService);
-  private readonly translationService = inject(TranslationService);
-
-  @ViewChild('heroVideo') heroVideo!: ElementRef<HTMLVideoElement>;
-
-  get videoRef(): ElementRef<HTMLVideoElement> | undefined {
-    return this.heroVideo;
-  }
-
-  // Controla se a animação do logo inicial de 1s ainda está em exibição
-  readonly showSplashLogo = signal<boolean>(true);
-  private splashTimerId?: any;
-
-  isMuted: boolean = true;
-  // Limite máximo interno do player (5% do ganho do arquivo)
-  readonly TARGET_VOLUME: number = 0.05;
-  get targetVolume(): number {
-    return this.TARGET_VOLUME;
-  }
-  private fadeInterval: ReturnType<typeof setInterval> | null = null;
-
-  readonly heroData = signal<HomeHeroPayload>({
-    videoUrl: 'assets/videos/wb-presentation.mp4',
-    posterImageUrl: 'assets/images/hero-poster.jpg',
-    title: '',
-    subtitle: '',
-    ctaText: 'Ver Elenco',
-    ctaLink: '/models/female'
-  });
-
-  readonly isVideoError = signal<boolean>(false);
-  readonly isVideoLoaded = signal<boolean>(false);
-
-  constructor() {
-    // Reage dinamicamente a mudanças de idioma
-    effect(() => {
-      const currentLang = this.translationService.currentLang();
-      this.loadHero(currentLang);
-    });
-  }
+export class HomeHeroComponent implements OnInit, OnDestroy {
+  showSplashLogo = signal<boolean>(true);
+  private timerId?: any;
 
   ngOnInit(): void {
-    // Carregamento inicial garantido
-    this.loadHero(this.translationService.currentLang());
-
-    // Exibe o logo por exatamente 1000ms (1 segundo) e transiciona suavemente
-    this.splashTimerId = setTimeout(() => {
+    // Exibe o splash por exatamente 1 segundo e encerra
+    this.timerId = setTimeout(() => {
       this.showSplashLogo.set(false);
     }, 1000);
   }
 
-  ngAfterViewInit(): void {
-    if (this.heroVideo?.nativeElement) {
-      const video = this.heroVideo.nativeElement;
-      // O vídeo inicia mudo por exigência de autoplay dos navegadores
-      video.muted = true;
-      video.volume = 0;
-
-      video.play()?.catch(() => {
-        // Trata exceção de autoplay em navegadores com economia de energia
-      });
-    }
-  }
-
   ngOnDestroy(): void {
-    if (this.splashTimerId) {
-      clearTimeout(this.splashTimerId);
-    }
-    if (this.fadeInterval) {
-      clearInterval(this.fadeInterval);
-      this.fadeInterval = null;
-    }
-  }
-
-  toggleAudio(): void {
-    if (this.heroVideo?.nativeElement) {
-      const video = this.heroVideo.nativeElement;
-      if (this.fadeInterval) {
-        clearInterval(this.fadeInterval);
-        this.fadeInterval = null;
-      }
-
-      if (this.isMuted) {
-        // Desmuta e faz fade-in progressivo até 0.05 no próprio vídeo
-        video.muted = false;
-        this.isMuted = false;
-        let current = 0;
-        video.volume = current;
-
-        this.fadeInterval = setInterval(() => {
-          if (current < this.TARGET_VOLUME) {
-            current = Math.min(this.TARGET_VOLUME, current + 0.02);
-            video.volume = Number(current.toFixed(2));
-          } else {
-            if (this.fadeInterval) {
-              clearInterval(this.fadeInterval);
-              this.fadeInterval = null;
-            }
-          }
-        }, 50); // Transição suave
-      } else {
-        // Muta imediatamente e zera o ganho do player
-        video.muted = true;
-        video.volume = 0;
-        this.isMuted = true;
-      }
-    }
-  }
-
-  loadHero(lang: string): void {
-    this.homeSettingsService.getPublicSettings().subscribe({
-      next: (settings) => {
-        if (settings) {
-          const videoUrl = settings.videoUrl ? settings.videoUrl.replace(/^\/assets\//, 'assets/') : 'assets/videos/wb-presentation.mp4';
-          const posterImageUrl = settings.bannerImageUrl ? settings.bannerImageUrl.replace(/^\/assets\//, 'assets/') : 'assets/images/hero-poster.jpg';
-          this.heroData.set({
-            title: settings.heroTitle ?? '',
-            subtitle: settings.heroSubtitle ?? '',
-            description: settings.heroDescription ?? '',
-            videoUrl,
-            posterImageUrl,
-            ctaText: 'Ver Elenco',
-            ctaLink: '/models/female'
-          });
-          setTimeout(() => this.attemptAutoplay(), 100);
-        }
-      },
-      error: () => {
-        this.publicContentService.getHeroContent(lang).subscribe({
-          next: (data) => {
-            if (data) {
-              const videoUrl = data.videoUrl ? data.videoUrl.replace(/^\/assets\//, 'assets/') : 'assets/videos/wb-presentation.mp4';
-              const posterImageUrl = data.posterImageUrl ? data.posterImageUrl.replace(/^\/assets\//, 'assets/') : 'assets/images/hero-poster.jpg';
-              this.heroData.set({
-                ...data,
-                videoUrl,
-                posterImageUrl
-              });
-              setTimeout(() => this.attemptAutoplay(), 100);
-            }
-          },
-          error: () => {
-            this.isVideoError.set(true);
-          }
-        });
-      }
-    });
-  }
-
-  onVideoLoaded(): void {
-    this.isVideoLoaded.set(true);
-  }
-
-  onVideoError(): void {
-    console.warn('Erro ao carregar vídeo hero institucional, ativando fallback de poster.');
-    this.isVideoError.set(true);
-  }
-
-  attemptAutoplay(): void {
-    if (this.heroVideo?.nativeElement) {
-      const video = this.heroVideo.nativeElement;
-      video.muted = true;
-      video.volume = 0;
-      video.playsInline = true;
-      const playPromise = video.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          // Autoplay prevenido pelo navegador, poster permanece visível
-          console.info('Autoplay do vídeo prevenido pelo navegador.');
-        });
-      }
-    }
-  }
-
-  scrollToContent(): void {
-    if (typeof window !== 'undefined') {
-      window.scrollTo({
-        top: window.innerHeight - 80,
-        behavior: 'smooth'
-      });
+    if (this.timerId) {
+      clearTimeout(this.timerId);
     }
   }
 }

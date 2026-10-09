@@ -46,21 +46,11 @@ export class AboutPageService {
   };
 
   getPublicAboutPage(): Observable<AboutPage> {
-    return this.api.get<AboutPage>('/public/institutional/about').pipe(
-      catchError(err => {
-        console.warn('Backend página Sobre Nós público inacessível, fallback editorial ativo:', err);
-        return of(this.defaultAboutPage);
-      })
-    );
+    return this.api.get<AboutPage>('/public/institutional/about');
   }
 
   getAdminAboutPage(): Observable<AboutPage> {
-    return this.api.get<AboutPage>('/admin/institutional/about').pipe(
-      catchError(err => {
-        console.warn('Backend admin página Sobre Nós inacessível, fallback ativo:', err);
-        return of(this.defaultAboutPage);
-      })
-    );
+    return this.api.get<AboutPage>('/admin/institutional/about');
   }
 
   updateAboutPage(dto: AboutPage): Observable<AboutPage> {

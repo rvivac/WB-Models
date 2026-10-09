@@ -1,10 +1,11 @@
-import { Component, OnInit, inject, signal, effect } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { Title, Meta } from '@angular/platform-browser';
 import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
-import { PublicContentService, AboutManifestoPayload } from '../../../core/services/public-content.service';
-import { TranslationService } from '../../../core/services/translation.service';
-import { AboutPageService } from '../../../core/services/about-page.service';
+import { environment } from '../../../../environments/environment';
+import { AboutPage, AboutPillar } from '../../../shared/models/about-page.interface';
 
 @Component({
   selector: 'app-about',
@@ -14,50 +15,59 @@ import { AboutPageService } from '../../../core/services/about-page.service';
   styleUrls: ['./about.component.scss']
 })
 export class AboutComponent implements OnInit {
-  private readonly publicContentService = inject(PublicContentService);
-  private readonly translationService = inject(TranslationService);
-  private readonly aboutPageService = inject(AboutPageService, { optional: true });
+  private readonly http = inject(HttpClient);
+  private readonly titleService = inject(Title);
+  private readonly metaService = inject(Meta);
 
-  readonly aboutContent = signal<AboutManifestoPayload>({
-    headline: 'A Nova Estética do Scouting Global',
-    quote: 'A beleza contemporânea nasce da singularidade e precisão.',
-    body: 'A WB Agency consolidou-se como um núcleo editorial focado no desenvolvimento integral de modelos para os principais mercados da moda internacional. Nossa metodologia rejeita a padronização e prioriza a identidade visual autêntica, conectando talentos a marcas com relevância estética global.'
-  });
+  // Estados reativos (Signals) populados exclusivamente via backend
+  readonly title = signal<string>('');
+  readonly subtitle = signal<string>('');
+  readonly description = signal<string>('');
+  readonly heroQuote = signal<string>('');
+  readonly manifestoTitle = signal<string>('');
+  readonly manifestoText = signal<string>('');
+  readonly pillarsTitle = signal<string>('');
+  readonly pillars = signal<AboutPillar[]>([]);
 
-  constructor() {
-    effect(() => {
-      const lang = this.translationService.currentLang();
-      this.loadAboutContent(lang);
-    });
-  }
+  readonly isLoading = signal<boolean>(true);
+  readonly hasError = signal<boolean>(false);
 
   ngOnInit(): void {
-    this.loadAboutContent(this.translationService.currentLang());
+    this.loadAboutData();
   }
 
-  loadAboutContent(lang: string): void {
-    if (this.aboutPageService) {
-      this.aboutPageService.getPublicAboutPage().subscribe({
-        next: (page) => {
-          if (page) {
-            this.aboutContent.set({
-              headline: page.title || this.aboutContent().headline,
-              quote: page.heroQuote || this.aboutContent().quote,
-              body: page.manifestoText || this.aboutContent().body
-            });
-          }
-        },
-        error: (err) => console.warn('Falha ao carregar Sobre Nós institucional:', err)
-      });
-    }
+  loadAboutData(): void {
+    this.isLoading.set(true);
+    this.hasError.set(false);
 
-    this.publicContentService.getAboutManifestoContent(lang).subscribe({
-      next: (content) => {
-        if (content) {
-          this.aboutContent.set(content);
+    const endpoint = `${environment.apiUrl}/public/institutional/about`;
+
+    this.http.get<AboutPage>(endpoint).subscribe({
+      next: (page) => {
+        if (page) {
+          this.title.set(page.title || '');
+          this.subtitle.set(page.subtitle || '');
+          this.description.set(page.description || '');
+          this.heroQuote.set(page.heroQuote || '');
+          this.manifestoTitle.set(page.manifestoTitle || '');
+          this.manifestoText.set(page.manifestoText || '');
+          this.pillarsTitle.set(page.pillarsTitle || '');
+          this.pillars.set(page.pillars || []);
+
+          if (page.seo?.metaTitle) {
+            this.titleService.setTitle(page.seo.metaTitle);
+          }
+          if (page.seo?.metaDescription) {
+            this.metaService.updateTag({ name: 'description', content: page.seo.metaDescription });
+          }
         }
+        this.isLoading.set(false);
       },
-      error: (err) => console.warn('Falha ao carregar manifesto CMS:', err)
+      error: (err) => {
+        console.error(`Erro detalhado ao carregar dados da página Sobre Nós do backend (${endpoint}):`, err);
+        this.isLoading.set(false);
+        this.hasError.set(true);
+      }
     });
   }
 }

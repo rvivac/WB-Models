@@ -46,18 +46,20 @@ describe('FooterComponent', () => {
     // Email padrão de fallback
     expect(compiled.textContent).toContain('contato@wbscouting.com');
 
-    // Verificação de ausência de textos antigos
+    // Verificação de ausência de textos antigos e links restritos
     expect(compiled.textContent).not.toContain('PARIS • MILAN • NEW YORK • SÃO PAULO');
     expect(compiled.textContent).not.toContain('Agência de modelos e gestão internacional');
     expect(compiled.textContent).not.toContain('Plataforma');
+    expect(compiled.textContent).not.toContain('Acesso Restrito');
+    expect(compiled.querySelector('a[routerLink="/admin/login"]')).toBeNull();
   });
 
   it('should have logo with proper classes and alt attribute', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const logoImg = compiled.querySelector('img');
     expect(logoImg).toBeTruthy();
-    expect(logoImg?.className).toContain('h-20');
-    expect(logoImg?.className).toContain('md:h-24');
+    expect(logoImg?.className).toContain('h-28');
+    expect(logoImg?.className).toContain('md:h-36');
     expect(logoImg?.className).toContain('object-contain');
   });
 
@@ -88,5 +90,16 @@ describe('FooterComponent', () => {
 
     const waLink = compiled.querySelector('a[href*="wa.me"]') as HTMLAnchorElement;
     expect(waLink?.getAttribute('href')).toBe('https://wa.me/5511988887777');
+  });
+
+  it('should render credits link to rvivac guild with target _blank', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    const creditsLink = compiled.querySelector('.credits-link') as HTMLAnchorElement;
+    expect(creditsLink).toBeTruthy();
+    expect(creditsLink.getAttribute('href')).toBe('https://www.rvivacguild.com.br');
+    expect(creditsLink.getAttribute('target')).toBe('_blank');
+    expect(creditsLink.getAttribute('rel')).toContain('noopener');
+    expect(creditsLink.getAttribute('rel')).toContain('noreferrer');
+    expect(compiled.textContent).toContain('Rvivac Guild');
   });
 });

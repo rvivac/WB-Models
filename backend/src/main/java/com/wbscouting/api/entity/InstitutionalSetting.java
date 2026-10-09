@@ -33,6 +33,10 @@ public class InstitutionalSetting {
     @Column(name = "content_data", columnDefinition = "jsonb")
     private java.util.Map<String, Object> contentData;
 
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "content_json", columnDefinition = "jsonb")
+    private java.util.Map<String, Object> contentJson;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;
@@ -40,4 +44,17 @@ public class InstitutionalSetting {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
+
+    /**
+     * Getter tolerante com fallback seguro unificando a leitura entre content_data e content_json.
+     */
+    public java.util.Map<String, Object> getContentDataWithFallback() {
+        if (contentData != null && !contentData.isEmpty()) {
+            return contentData;
+        }
+        if (contentJson != null && !contentJson.isEmpty()) {
+            return contentJson;
+        }
+        return contentData != null ? contentData : contentJson;
+    }
 }

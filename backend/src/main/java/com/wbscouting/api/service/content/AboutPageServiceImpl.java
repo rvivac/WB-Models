@@ -80,6 +80,7 @@ public class AboutPageServiceImpl implements AboutPageService {
         contentMap.put("seo", seo);
 
         setting.setContentData(contentMap);
+        setting.setContentJson(contentMap);
 
         InstitutionalSetting saved = institutionalSettingRepository.save(setting);
         log.info("Página Sobre Nós atualizada com sucesso");
@@ -94,13 +95,15 @@ public class AboutPageServiceImpl implements AboutPageService {
                 .description(setting.getDescription() != null && !setting.getDescription().isBlank() ? setting.getDescription() : DEFAULT_DESCRIPTION)
                 .updatedAt(setting.getUpdatedAt());
 
-        Map<String, Object> data = setting.getContentData();
+        Map<String, Object> data = setting.getContentDataWithFallback();
         if (data != null && !data.isEmpty()) {
-            builder.heroQuote(extractString(data, "heroQuote", DEFAULT_HERO_QUOTE));
-            builder.manifestoTitle(extractString(data, "manifestoTitle", DEFAULT_MANIFESTO_TITLE));
-            builder.manifestoText(extractString(data, "manifestoText", DEFAULT_MANIFESTO_TEXT));
-            builder.pillarsTitle(extractString(data, "pillarsTitle", DEFAULT_PILLARS_TITLE));
-            builder.pillars(extractPillars(data.get("pillars")));
+            builder.heroQuote(extractString(data, "heroQuote", "hero_quote", DEFAULT_HERO_QUOTE));
+            builder.manifestoTitle(extractString(data, "manifestoTitle", "manifesto_title", DEFAULT_MANIFESTO_TITLE));
+            builder.manifestoText(extractString(data, "manifestoText", "manifesto_text", DEFAULT_MANIFESTO_TEXT));
+            builder.pillarsTitle(extractString(data, "pillarsTitle", "pillars_title", DEFAULT_PILLARS_TITLE));
+            
+            Object rawPillars = data.containsKey("pillars") ? data.get("pillars") : data.get("pilares");
+            builder.pillars(extractPillars(rawPillars));
             builder.seo(extractSeo(data.get("seo")));
         } else {
             builder.heroQuote(DEFAULT_HERO_QUOTE)
@@ -114,10 +117,13 @@ public class AboutPageServiceImpl implements AboutPageService {
         return builder.build();
     }
 
-    private String extractString(Map<String, Object> map, String key, String defaultValue) {
+    private String extractString(Map<String, Object> map, String key, String fallbackKey, String defaultValue) {
         Object val = map.get(key);
+        if (val == null && fallbackKey != null) {
+            val = map.get(fallbackKey);
+        }
         if (val instanceof String s && !s.isBlank()) {
-            return s;
+            return s.trim();
         }
         return defaultValue;
     }

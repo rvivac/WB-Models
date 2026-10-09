@@ -1,113 +1,33 @@
-<div class="hero-container relative h-screen w-full overflow-hidden flex items-center justify-center">
-  <!-- Vídeo Background em Loop com Fallback Gracioso -->
-  @if (!isVideoError()) {
-    <video
-      #heroVideo
-      autoplay
-      loop
-      muted
-      playsinline
-      x5-playsinline="true"
-      x-webkit-airplay="allow"
-      webkit-playsinline="yes"
-      disablepictureinpicture
-      disableremoteplayback
-      preload="metadata"
-      class="hero-video absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
-      [poster]="heroData().posterImageUrl || 'assets/images/hero-poster.jpg'"
-      (loadeddata)="onVideoLoaded()"
-      (error)="onVideoError()"
-    >
-      <source [src]="heroData().videoUrl || 'assets/videos/wb-presentation.mp4'" type="video/mp4">
-      Seu navegador não suporta reprodução de vídeos em HTML5.
-    </video>
-  }
+<div class="hero-container relative h-screen w-full overflow-hidden flex items-center justify-center select-none">
+  <!-- Vídeo Background em Loop -->
+  <video
+    autoplay
+    loop
+    muted
+    [muted]="true"
+    playsinline
+    preload="metadata"
+    class="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+    poster="assets/images/hero-poster.jpg"
+  >
+    <source src="assets/videos/wb-presentation.mp4" type="video/mp4">
+  </video>
 
-  <!-- Fallback com Poster Editorial caso o vídeo falhe -->
-  @if (isVideoError()) {
-    <div 
-      class="hero-poster-fallback ken-burns absolute inset-0 w-full h-full bg-cover bg-center z-0"
-      [style.background-image]="'url(' + (heroData().posterImageUrl || 'assets/images/hero-poster.jpg') + ')'">
-    </div>
-  }
+  <!-- Overlay Leve Editorial -->
+  <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#FBFBF9]/80 z-10 pointer-events-none"></div>
 
-  <!-- Overlay Editorial com transição para base clara (#FBFBF9) -->
-  <div class="hero-overlay absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#FBFBF9] z-10"></div>
-
-  <!-- CONTEÚDO CENTRALIZADO -->
-  <div class="relative z-20 text-center px-4 max-w-4xl mx-auto flex flex-col items-center justify-center min-h-[220px]">
-
-    <!-- 1. LOGO TEMPORIZADO (EXIBIDO POR 1 SEGUNDO) -->
+  <!-- CONTAINER CENTRAL: APENAS O SPLASH TEMPORIZADO (SEM BOTÕES) -->
+  <div class="relative z-20 flex items-center justify-center w-full h-full pointer-events-none px-6">
     <div 
       *ngIf="showSplashLogo()"
-      class="transition-all duration-500 ease-out flex flex-col items-center animate-fade-in"
+      class="animate-fade-splash flex items-center justify-center"
     >
+      <!-- Logo com fundo transparente, proporcional à tela (sem esticar ou cortar) -->
       <img 
-        src="assets/images/logo-wb-agency.jpeg" 
+        src="assets/images/logo-wb-agency-light.png" 
         alt="WB Agency" 
-        class="hero-splash-logo h-20 sm:h-24 md:h-28 w-auto object-contain drop-shadow-md select-none rounded-none"
+        class="w-auto h-auto max-h-[22vh] max-w-[70vw] sm:max-h-[26vh] sm:max-w-[60vw] md:max-h-[32vh] md:max-w-[50vw] object-contain drop-shadow-md bg-transparent"
       />
     </div>
-
-    <!-- 2. BOTÕES DE AÇÃO (SURGEM APÓS O LOGO) -->
-    <div 
-      *ngIf="!showSplashLogo()"
-      class="hero-buttons flex flex-col sm:flex-row items-center gap-4 transition-all duration-700 ease-in animate-fade-in pt-4"
-    >
-      <a 
-        routerLink="/modelos" 
-        class="px-8 py-3.5 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-[0.2em] font-sans transition-all duration-200 rounded-none shadow-sm cursor-pointer select-none"
-      >
-        Ver Elenco
-      </a>
-
-      <a 
-        routerLink="/apply" 
-        class="px-8 py-3.5 bg-white/90 hover:bg-white text-[#222624] hover:text-[#4B584E] border border-white text-xs uppercase tracking-[0.2em] font-sans transition-all duration-200 rounded-none backdrop-blur-xs shadow-sm cursor-pointer select-none"
-      >
-        Seja Modelo
-      </a>
-    </div>
-
   </div>
-
-  <!-- Controlo de Áudio Editorial (Mute/Unmute) imediatamente acima do scroll -->
-  @if (!isVideoError()) {
-    <button
-      type="button"
-      class="audio-toggle-btn"
-      (click)="toggleAudio()"
-      [attr.aria-label]="isMuted ? 'Ativar som' : 'Desativar som'"
-      [attr.aria-pressed]="!isMuted"
-    >
-      <span class="audio-icon-wrapper" aria-hidden="true">
-        @if (isMuted) {
-          <svg class="audio-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-            <line x1="23" y1="9" x2="17" y2="15"></line>
-            <line x1="17" y1="9" x2="23" y2="15"></line>
-          </svg>
-        } @else {
-          <svg class="audio-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
-          </svg>
-        }
-      </span>
-      <span class="audio-label tracking-editorial">{{ isMuted ? 'SOUND OFF' : 'SOUND ON' }}</span>
-    </button>
-  }
-
-  <!-- Indicador de Rolagem Elegante -->
-  <button 
-    type="button" 
-    class="scroll-down-btn" 
-    (click)="scrollToContent()" 
-    aria-label="Rolar para os destaques">
-    <span class="mouse-icon">
-      <span class="mouse-wheel"></span>
-    </span>
-    <span class="scroll-text tracking-editorial">SCROLL</span>
-  </button>
 </div>

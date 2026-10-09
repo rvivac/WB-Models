@@ -322,6 +322,24 @@ public class DataInitializer implements CommandLineRunner {
             // Garante coluna updated_by em site_contents
             jdbcTemplate.execute("ALTER TABLE public.site_contents ADD COLUMN IF NOT EXISTS updated_by UUID NULL;");
 
+            // Garante tabela institutional_settings e consistência de content_data / content_json
+            jdbcTemplate.execute("""
+                CREATE TABLE IF NOT EXISTS public.institutional_settings (
+                    setting_key VARCHAR(100) PRIMARY KEY,
+                    title TEXT,
+                    subtitle TEXT,
+                    description TEXT,
+                    content_data jsonb,
+                    content_json jsonb,
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+                );
+                ALTER TABLE public.institutional_settings ADD COLUMN IF NOT EXISTS content_data jsonb;
+                ALTER TABLE public.institutional_settings ADD COLUMN IF NOT EXISTS content_json jsonb;
+                UPDATE public.institutional_settings SET content_data = content_json WHERE content_data IS NULL AND content_json IS NOT NULL;
+                UPDATE public.institutional_settings SET content_json = content_data WHERE content_json IS NULL AND content_data IS NOT NULL;
+            """);
+
             // Garante que candidate_photos referencie 'candidates' (e não a tabela legada 'candidate_submissions')
             jdbcTemplate.execute("""
                 DO $$

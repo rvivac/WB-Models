@@ -1,88 +1,24 @@
 @import '../../../../styles/variables';
 
 .about-page {
-  background-color: var(--bg-primary, #FFFFFF);
-  min-height: calc(100vh - var(--header-height, 80px));
-  padding-top: calc(var(--header-height, 80px) + 2.5rem);
-  padding-bottom: 6rem;
-  color: var(--text-primary, #222624);
+  background-color: #FFFFFF;
+  color: #222624;
 }
 
-.page-header {
-  margin-bottom: 3.5rem;
-  max-width: 800px;
-  text-align: left;
+.page-title {
+  font-family: var(--font-serif, 'Cormorant Garamond', Georgia, serif) !important;
+}
 
-  .header-breadcrumbs {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 1rem;
-    font-family: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
-
-    .breadcrumb-link {
-      color: var(--text-secondary);
-      text-decoration: none;
-      transition: color var(--transition-fast);
-
-      &:hover {
-        color: var(--gold-light);
-      }
-    }
-
-    .breadcrumb-separator {
-      color: var(--border-medium);
-    }
-
-    .breadcrumb-current {
-      color: var(--gold-primary);
-    }
-  }
-
-  .page-title,
-  .about-headline {
+.hero-quote-box {
+  blockquote {
     font-family: var(--font-serif, 'Cormorant Garamond', Georgia, serif) !important;
-    font-size: 2.5rem;
-    font-weight: 300;
-    line-height: 1.15;
-    letter-spacing: -0.01em;
-    color: var(--text-primary);
-    margin-bottom: 0.75rem;
-
-    @include md {
-      font-size: 3.5rem;
-    }
-  }
-
-  .page-subtitle,
-  .about-quote {
-    font-family: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
-    font-size: 1.05rem;
-    line-height: 1.6;
-    color: var(--text-secondary, #5F6661);
-    max-width: 600px;
-    margin: 0;
   }
 }
 
-.about-content-section {
-  padding: 0;
+.pillar-card {
+  transition: transform 0.2s ease, border-color 0.2s ease;
 
-  .text-column {
-    max-width: 800px;
-
-    .about-body-text {
-      font-family: var(--font-sans, "Plus Jakarta Sans", system-ui, sans-serif);
-      font-size: 1.125rem;
-      line-height: 1.9;
-      color: var(--text-secondary, #444B46);
-      white-space: pre-line;
-      margin: 0;
-    }
+  &:hover {
+    border-color: #4B584E;
   }
 }

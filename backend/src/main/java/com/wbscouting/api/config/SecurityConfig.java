@@ -84,11 +84,18 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/submissions/**", "/api/v1/submissions/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/candidates/**", "/api/v1/candidates/**", "/public/candidates/**", "/api/v1/public/candidates/**", "/public/candidates/apply", "/api/v1/public/candidates/apply").permitAll()
 
+                        // Endpoints públicos da página Sobre Nós e leitura institucional (/sobre)
+                        .requestMatchers(
+                                "/api/v1/public/institutional/about",
+                                "/public/institutional/about",
+                                "/api/v1/public/**",
+                                "/public/**"
+                        ).permitAll()
+
                         // Endpoints públicos de leitura (Catálogo, Home, Destaques, Conteúdos, Contato, I18n, Storage Local)
                         .requestMatchers(HttpMethod.GET, "/models/**", "/api/v1/models/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/featured-models/**", "/api/v1/featured-models/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/home-settings/**", "/api/v1/home-settings/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/public/**", "/api/v1/public/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/site-contents/**", "/api/v1/site-contents/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/contact-channels/**", "/api/v1/contact-channels/**", "/api/v1/public/contact-channels/**", "/public/contact-channels/**", "/public/institutional/contact/**", "/api/v1/public/institutional/contact/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/i18n/**", "/api/v1/public/i18n/**", "/public/i18n/**").permitAll()

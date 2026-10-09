@@ -82,8 +82,8 @@ public class SupabaseStorageService implements StorageService {
                 throw new StorageException(
                         "Chave do Supabase não configurada para upload no bucket '" + bucket + "'. Configure 'supabase.service-role-key' ou 'supabase.key'.",
                         HttpStatus.UNAUTHORIZED,
-                        "STORAGE_AUTH_FAILED",
-                        "Falha de Autenticação com Armazenamento"
+                        "Falha de Autenticação com Armazenamento",
+                        "STORAGE_AUTH_FAILED"
                 );
             }
         }
@@ -141,7 +141,7 @@ public class SupabaseStorageService implements StorageService {
             HttpStatus status = isTimeoutOrNetwork ? HttpStatus.GATEWAY_TIMEOUT : HttpStatus.BAD_GATEWAY;
             String code = isTimeoutOrNetwork ? "STORAGE_TIMEOUT" : "STORAGE_COMMUNICATION_ERROR";
             String title = isTimeoutOrNetwork ? "Timeout na Comunicação com Armazenamento" : "Falha na Comunicação com Armazenamento";
-            throw new StorageException("Falha na comunicação com o serviço de armazenamento: " + e.getMessage(), e, status, code, title);
+            throw new StorageException("Falha na comunicação com o serviço de armazenamento: " + e.getMessage(), e, status, title, code);
         }
     }
 
@@ -303,10 +303,10 @@ public class SupabaseStorageService implements StorageService {
                                 status, errorBody);
                         if (status.value() == 401 || status.value() == 403) {
                             throw new StorageException("Erro de autenticação ao gerar Signed URL: " + errorBody,
-                                    HttpStatus.UNAUTHORIZED, "STORAGE_AUTH_FAILED", "Falha de Autenticação com Armazenamento");
+                                    HttpStatus.UNAUTHORIZED, "Falha de Autenticação com Armazenamento", "STORAGE_AUTH_FAILED");
                         } else if (status.value() == 404) {
                             throw new StorageException("Objeto ou bucket não encontrado ao gerar Signed URL: " + errorBody,
-                                    HttpStatus.NOT_FOUND, "STORAGE_NOT_FOUND", "Recurso Não Encontrado");
+                                    HttpStatus.NOT_FOUND, "Recurso Não Encontrado", "STORAGE_NOT_FOUND");
                         }
                         throw new StorageException("Erro ao gerar Signed URL no Supabase Storage: " + errorBody);
                     })
@@ -355,8 +355,8 @@ public class SupabaseStorageService implements StorageService {
             throw new StorageException(
                     "Erro de autenticação no Supabase Storage durante o upload: " + errorBody,
                     HttpStatus.UNAUTHORIZED,
-                    "STORAGE_AUTH_FAILED",
-                    "Falha de Autenticação com Armazenamento"
+                    "Falha de Autenticação com Armazenamento",
+                    "STORAGE_AUTH_FAILED"
             );
         } else if (status.value() == 404 || (errorBody != null && errorBody.toLowerCase().contains("bucket not found"))) {
             log.error("[SUPABASE STORAGE BUCKET NOT FOUND] Bucket '{}' não foi encontrado no Supabase Storage. Status: 404, Body: {}. Certifique-se de que o bucket foi criado no painel do Supabase.",
@@ -364,8 +364,8 @@ public class SupabaseStorageService implements StorageService {
             throw new StorageException(
                     "Bucket '" + bucket + "' não foi encontrado no Supabase Storage: " + errorBody,
                     HttpStatus.NOT_FOUND,
-                    "STORAGE_BUCKET_NOT_FOUND",
-                    "Bucket de Armazenamento Não Encontrado"
+                    "Bucket de Armazenamento Não Encontrado",
+                    "STORAGE_BUCKET_NOT_FOUND"
             );
         } else {
             log.error("Erro retornado pelo Supabase Storage no upload. Status: {}, Body: {}", status, errorBody);
@@ -389,7 +389,7 @@ public class SupabaseStorageService implements StorageService {
         } catch (IOException e) {
             log.error("Falha ao salvar arquivo no armazenamento local de fallback: {}", e.getMessage(), e);
             throw new StorageException("Falha ao salvar arquivo no fallback local: " + e.getMessage(), e,
-                    HttpStatus.INTERNAL_SERVER_ERROR, "STORAGE_LOCAL_FALLBACK_FAILED", "Falha no Armazenamento Local");
+                    HttpStatus.INTERNAL_SERVER_ERROR, "Falha no Armazenamento Local", "STORAGE_LOCAL_FALLBACK_FAILED");
         }
     }
 

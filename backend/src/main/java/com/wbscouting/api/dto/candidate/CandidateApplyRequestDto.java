@@ -70,4 +70,8 @@ public class CandidateApplyRequestDto {
     // Redes sociais e portfólio opcionais
     private String instagramHandle;
     private String portfolioUrl;
+
+    public String getFullName() {
+        return fullName;
+    }
 }

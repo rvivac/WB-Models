@@ -5,36 +5,48 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 public class StorageException extends RuntimeException {
-
     private final HttpStatus status;
-    private final String errorCode;
     private final String title;
+    private final String errorCode;
 
-    // 🔥 GETTERS EXPLICITOS (Lombok @Getter nao gera no MavenWrapper 3.6.3 Render)
-    // GlobalExceptionHandler linhas 115-122 chama ex.getStatus/ex.getTitle/ex.getErrorCode - obrigatorio existencia explicita.
-    public HttpStatus getStatus() { return this.status; }
-    public String getErrorCode() { return this.errorCode; }
-    public String getTitle() { return this.title; }
+    // Métodos getters explícitos para blindagem completa do ambiente
+    public HttpStatus getStatus() {
+        return this.status;
+    }
+
+    public String getTitle() {
+        return this.title;
+    }
+
+    public String getErrorCode() {
+        return this.errorCode;
+    }
 
     public StorageException(String message) {
-        this(message, HttpStatus.BAD_GATEWAY, "STORAGE_ERROR", "Erro de Armazenamento");
+        super(message);
+        this.status = HttpStatus.INTERNAL_SERVER_ERROR;
+        this.title = "Storage Error";
+        this.errorCode = "STORAGE_ERROR";
+    }
+
+    public StorageException(String message, HttpStatus status, String title, String errorCode) {
+        super(message);
+        this.status = status;
+        this.title = title;
+        this.errorCode = errorCode;
     }
 
     public StorageException(String message, Throwable cause) {
-        this(message, cause, HttpStatus.BAD_GATEWAY, "STORAGE_ERROR", "Erro de Armazenamento");
-    }
-
-    public StorageException(String message, HttpStatus status, String errorCode, String title) {
-        super(message);
-        this.status = status != null ? status : HttpStatus.BAD_GATEWAY;
-        this.errorCode = errorCode != null ? errorCode : "STORAGE_ERROR";
-        this.title = title != null ? title : "Erro de Armazenamento";
-    }
-
-    public StorageException(String message, Throwable cause, HttpStatus status, String errorCode, String title) {
         super(message, cause);
-        this.status = status != null ? status : HttpStatus.BAD_GATEWAY;
-        this.errorCode = errorCode != null ? errorCode : "STORAGE_ERROR";
-        this.title = title != null ? title : "Erro de Armazenamento";
+        this.status = HttpStatus.INTERNAL_SERVER_ERROR;
+        this.title = "Storage Error";
+        this.errorCode = "STORAGE_ERROR";
+    }
+
+    public StorageException(String message, Throwable cause, HttpStatus status, String title, String errorCode) {
+        super(message, cause);
+        this.status = status;
+        this.title = title;
+        this.errorCode = errorCode;
     }
 }

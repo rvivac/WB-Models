@@ -34,7 +34,10 @@ export class HomeContentManagerComponent implements OnInit {
     disclaimerTitle: [''],
     disclaimerText: [''],
     disclaimerLinkUrl: [''],
-    disclaimerLinkLabel: ['']
+    disclaimerLinkLabel: [''],
+
+    // Duração do splash em milissegundos
+    splashDurationMs: [1000, [Validators.min(300), Validators.max(10000)]]
   });
 
   // Controle de origem das mídias
@@ -74,7 +77,8 @@ export class HomeContentManagerComponent implements OnInit {
             disclaimerTitle: data.disclaimerTitle || '',
             disclaimerText: data.disclaimerText || '',
             disclaimerLinkUrl: data.disclaimerLinkUrl || '',
-            disclaimerLinkLabel: data.disclaimerLinkLabel || ''
+            disclaimerLinkLabel: data.disclaimerLinkLabel || '',
+            splashDurationMs: data.splashDurationMs || 1000
           });
 
           // Define vídeo vigente
@@ -166,6 +170,10 @@ export class HomeContentManagerComponent implements OnInit {
     console.warn('[HOME-HERO] Falha ao carregar poster configurado. Aplicando fallback local.');
   }
 
+  setSplashDuration(ms: number): void {
+    this.form.patchValue({ splashDurationMs: ms });
+  }
+
   saveTextContent(): void {
     if (this.form.invalid) return;
 
@@ -175,6 +183,7 @@ export class HomeContentManagerComponent implements OnInit {
 
     const payload: Partial<HomeSettings> = {
       ...this.form.value,
+      splashDurationMs: Number(this.form.value.splashDurationMs) || 1000,
       videoUrl: finalVideoUrl,
       posterUrl: finalPosterUrl,
       bannerImageUrl: finalPosterUrl

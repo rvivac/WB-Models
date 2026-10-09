@@ -31,6 +31,9 @@ public class HomeContentDto {
     private String metaTitle;
     private String metaDescription;
 
+    // Tempo de exibição do splash em ms (padrão: 1000ms)
+    private Integer splashDurationMs;
+
     // ============================================================
     // 🔥 GETTERS EXPLICITOS (Lombok fallback para Maven)
     // ============================================================
@@ -49,6 +52,7 @@ public class HomeContentDto {
 
     public String getMetaTitle() { return metaTitle; }
     public String getMetaDescription() { return metaDescription; }
+    public Integer getSplashDurationMs() { return splashDurationMs; }
 
     // ============================================================
     // 🔥 SETTERS EXPLICITOS
@@ -68,6 +72,7 @@ public class HomeContentDto {
 
     public void setMetaTitle(String metaTitle) { this.metaTitle = metaTitle; }
     public void setMetaDescription(String metaDescription) { this.metaDescription = metaDescription; }
+    public void setSplashDurationMs(Integer splashDurationMs) { this.splashDurationMs = splashDurationMs; }
 
     // ============================================================
     // 🔥 BUILDER MANUAL FALLBACK (evita erro cannot find symbol builder())
@@ -92,6 +97,7 @@ public class HomeContentDto {
 
         public HomeContentDtoBuilder metaTitle(String v) { h.setMetaTitle(v); return this; }
         public HomeContentDtoBuilder metaDescription(String v) { h.setMetaDescription(v); return this; }
+        public HomeContentDtoBuilder splashDurationMs(Integer v) { h.setSplashDurationMs(v); return this; }
 
         public HomeContentDto build() { return h; }
     }

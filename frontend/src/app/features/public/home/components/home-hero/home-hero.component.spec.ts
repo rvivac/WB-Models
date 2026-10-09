@@ -62,6 +62,23 @@ describe('HomeHeroComponent', () => {
     expect(compiled.querySelector('img[alt="WB Agency"]')).toBeNull();
   }));
 
+  it('should customize splash logo duration according to server settings', fakeAsync(() => {
+    fixture.detectChanges();
+    flushPublicSettings({ splashDurationMs: 2500 });
+
+    expect(component.showSplashLogo()).toBeTrue();
+
+    tick(1500);
+    fixture.detectChanges();
+    // Aos 1500ms ainda deve estar ativo (pois configurado para 2500ms)
+    expect(component.showSplashLogo()).toBeTrue();
+
+    tick(1000);
+    fixture.detectChanges();
+    // Aos 2500ms deve encerrar
+    expect(component.showSplashLogo()).toBeFalse();
+  }));
+
   it('should contain looping background video element and bind dynamic poster and video', () => {
     fixture.detectChanges();
     flushPublicSettings({

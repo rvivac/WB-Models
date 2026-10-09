@@ -26,6 +26,9 @@ export interface HomeSettings {
   disclaimerText?: string;
   disclaimerLinkUrl?: string;
   disclaimerLinkLabel?: string;
+
+  // Personalização da duração do splash em ms (padrão 1000ms)
+  splashDurationMs?: number;
 }
 
 @Injectable({

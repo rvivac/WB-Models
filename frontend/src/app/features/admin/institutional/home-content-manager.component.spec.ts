@@ -23,7 +23,8 @@ describe('HomeContentManagerComponent', () => {
     disclaimerTitle: 'AVISO IMPORTANTE',
     disclaimerText: 'Casting internacional aberto.',
     disclaimerLinkUrl: 'https://wb.agency/casting',
-    disclaimerLinkLabel: 'PARTICIPAR'
+    disclaimerLinkLabel: 'PARTICIPAR',
+    splashDurationMs: 1500
   };
 
   beforeEach(async () => {
@@ -57,11 +58,12 @@ describe('HomeContentManagerComponent', () => {
     expect(component.form.get('disclaimerActive')?.value).toBeTrue();
     expect(component.form.get('disclaimerTitle')?.value).toBe('AVISO IMPORTANTE');
     expect(component.form.get('disclaimerText')?.value).toBe('Casting internacional aberto.');
+    expect(component.form.get('splashDurationMs')?.value).toBe(1500);
     expect(component.currentVideoUrl).toBe('https://storage.wb.agency/hero.mp4');
     expect(component.currentPosterUrl).toBe('https://storage.wb.agency/poster.webp');
   });
 
-  it('deve atualizar textos institucionais e Disclaimer da Home via PUT', () => {
+  it('deve atualizar textos institucionais, Disclaimer e tempo do Splash da Home via PUT', () => {
     fixture.detectChanges();
     flushAdminSettings();
 
@@ -72,6 +74,9 @@ describe('HomeContentManagerComponent', () => {
       disclaimerTitle: 'ALERTA ATUALIZADO',
       disclaimerText: 'Novas inscrições abertas.'
     });
+    component.setSplashDuration(2000);
+
+    expect(component.form.get('splashDurationMs')?.value).toBe(2000);
 
     component.saveTextContent();
     expect(component.isSaving).toBeTrue();
@@ -82,8 +87,9 @@ describe('HomeContentManagerComponent', () => {
     expect(putReq.request.body.scrollLabel).toBe('EXPLORAR');
     expect(putReq.request.body.disclaimerActive).toBeTrue();
     expect(putReq.request.body.disclaimerTitle).toBe('ALERTA ATUALIZADO');
+    expect(putReq.request.body.splashDurationMs).toBe(2000);
 
-    putReq.flush({ ...mockHomeData, heroTitle: 'NOVO TITULO', scrollLabel: 'EXPLORAR' });
+    putReq.flush({ ...mockHomeData, heroTitle: 'NOVO TITULO', scrollLabel: 'EXPLORAR', splashDurationMs: 2000 });
 
     expect(component.isSaving).toBeFalse();
     expect(component.feedbackMessage).toContain('salvas com sucesso');

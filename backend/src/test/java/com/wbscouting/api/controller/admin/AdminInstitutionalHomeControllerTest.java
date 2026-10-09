@@ -120,6 +120,7 @@ class AdminInstitutionalHomeControllerTest {
                 .disclaimerText("Temporada aberta")
                 .disclaimerLinkUrl("/apply")
                 .disclaimerLinkLabel("Saiba Mais")
+                .splashDurationMs(1500)
                 .build();
 
         mockMvc.perform(put("/api/v1/admin/institutional/home")
@@ -129,7 +130,8 @@ class AdminInstitutionalHomeControllerTest {
                 .andExpect(jsonPath("$.heroTitle").value("NOVA TEMPORADA"))
                 .andExpect(jsonPath("$.scrollLabel").value("EXPLORAR"))
                 .andExpect(jsonPath("$.disclaimerActive").value(true))
-                .andExpect(jsonPath("$.disclaimerTitle").value("Aviso Importante"));
+                .andExpect(jsonPath("$.disclaimerTitle").value("Aviso Importante"))
+                .andExpect(jsonPath("$.splashDurationMs").value(1500));
     }
 
     @Test

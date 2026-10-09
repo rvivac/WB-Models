@@ -103,6 +103,7 @@ describe('ModelFormComponent', () => {
 
   it('deve chamar createModel quando for um novo cadastro e emitir saved', () => {
     spyOn(adminModelService, 'createModel').and.returnValue(of(mockModel));
+    spyOn(adminModelService, 'getModelMedia').and.returnValue(of([]));
     spyOn(component.saved, 'emit');
 
     component.modelForm.patchValue({
@@ -120,6 +121,7 @@ describe('ModelFormComponent', () => {
 
   it('deve chamar updateModel quando estiver em modo de edição com modelId', () => {
     spyOn(adminModelService, 'updateModel').and.returnValue(of(mockModel));
+    spyOn(adminModelService, 'getModelMedia').and.returnValue(of([]));
     spyOn(component.saved, 'emit');
 
     component.modelId.set('uuid-123');

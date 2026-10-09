@@ -88,7 +88,6 @@ public class PublicModelCatalogServiceImpl implements PublicModelCatalogService 
                     .gender(model.getGender())
                     .coverImageUrl(coverImageUrl)
                     .heightCm(model.getHeightCm())
-                    .city(model.getCity())
                     .isStar(model.getIsStar())
                     .build();
         });
@@ -99,6 +98,9 @@ public class PublicModelCatalogServiceImpl implements PublicModelCatalogService 
     // Helpers de storage para resolver URL inconsistente (bug JPA storagePath antigo)
     private String resolveMediaUrlPublic(ModelMedia media) {
         if (media == null) return null;
+        if (storageService == null || storageService.getProperties() == null) {
+            return media.getFileUrl();
+        }
         return storageService.resolvePublicUrlFromFields(
                 storageService.getProperties().resolveBucketModelsMedia(),
                 media.getFilePath(),
@@ -131,6 +133,9 @@ public class PublicModelCatalogServiceImpl implements PublicModelCatalogService 
         // 4. Fallback para foto primária do cadastro (validando URL completa!)
         String primary = model.getPrimaryPhotoUrl();
         if (StringUtils.hasText(primary)) {
+            if (storageService == null || storageService.getProperties() == null) {
+                return primary;
+            }
             String modelsMediaBucket = storageService.getProperties().resolveBucketModelsMedia();
             boolean pareceValida = primary.contains(modelsMediaBucket + "/")
                     && primary.lastIndexOf(modelsMediaBucket + "/") + modelsMediaBucket.length() + 1 < primary.length();

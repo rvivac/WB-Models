@@ -435,11 +435,27 @@ $success: #4ec985;
     width: 100%;
     max-width: 1100px;
     height: 100vh;
-    background: $bg-dark;
-    border-left: 1px solid $border-gold;
+    background: #FFFFFF;
+    border-left: 1px solid #E8EBE8;
     overflow-y: auto;
-    box-shadow: -15px 0 45px rgba(0, 0, 0, 0.8);
+    scrollbar-width: thin;
+    scrollbar-color: #D1D5D1 #FBFBF9;
+    box-shadow: -15px 0 45px rgba(0, 0, 0, 0.2);
     animation: slideInDrawer 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    &::-webkit-scrollbar-track {
+      background: #FBFBF9;
+    }
+    &::-webkit-scrollbar-thumb {
+      background-color: #D1D5D1;
+      border-radius: 0px;
+      &:hover {
+        background-color: #4B584E;
+      }
+    }
 
     .drawer-close-btn {
       position: absolute;

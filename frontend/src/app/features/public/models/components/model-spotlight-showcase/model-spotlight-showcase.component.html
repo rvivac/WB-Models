@@ -83,12 +83,8 @@
                 <div class="model-metrics">
                   @if (model.heightCm) {
                     <span class="metric-item">{{ model.heightCm }} cm</span>
-                  }
-                  @if (model.city) {
                     <span class="metric-dot" aria-hidden="true">&bull;</span>
-                    <span class="metric-item">{{ model.city }}</span>
                   }
-                  <span class="metric-dot" aria-hidden="true">&bull;</span>
                   <span class="metric-item gender">
                     {{ model.gender === 'FEMALE' ? ('nav.female' | translate) : ('nav.male' | translate) }}
                   </span>

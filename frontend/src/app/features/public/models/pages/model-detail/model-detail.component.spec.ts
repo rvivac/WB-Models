@@ -89,6 +89,11 @@ describe('ModelDetailComponent', () => {
     expect(compiled.querySelector('.star-badge')).toBeTruthy();
     expect(compiled.querySelector('.btn-composite')).toBeTruthy();
     expect(compiled.querySelectorAll('.photo-card').length).toBe(2); // 2 fotos no book
+
+    // Blindagem de privacidade: não expor cidade, nacionalidade ou idade
+    expect(compiled.querySelector('.demographics-wrap')).toBeNull();
+    expect(compiled.textContent).not.toContain('Curitiba');
+    expect(compiled.textContent).not.toContain('Brasileira');
   });
 
   it('should sanitize instagram URL, add security attributes and render vector icon', () => {

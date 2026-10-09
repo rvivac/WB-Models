@@ -1,8 +1,21 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { HomeSettingsService } from '../../../core/services/home-settings.service';
-import { PublicContentService, SocialMediaPublicItem } from '../../../core/services/public-content.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
+
+export interface SocialMediaItem {
+  id?: string;
+  name: string;
+  url: string;
+}
+
+export interface ContactData {
+  primaryEmail: string;
+  phone?: string;
+  whatsapp?: string;
+  socialMediaList?: SocialMediaItem[];
+}
 
 @Component({
   selector: 'app-footer',
@@ -12,51 +25,83 @@ import { PublicContentService, SocialMediaPublicItem } from '../../../core/servi
   styleUrls: ['./footer.component.scss']
 })
 export class FooterComponent implements OnInit {
-  private readonly homeSettingsService = inject(HomeSettingsService);
-  private readonly publicContentService = inject(PublicContentService);
+  private http = inject(HttpClient);
 
-  readonly currentYear: number = new Date().getFullYear();
+  currentYear: number = new Date().getFullYear();
 
-  readonly footerDescription = signal<string>(
-    'Agência de modelos e gestão internacional de talentos. Representação exclusiva, editorial e comercial com inteligência e inovação.'
-  );
-  readonly footerHubs = signal<string>('PARIS • MILAN • NEW YORK • SÃO PAULO');
-  readonly footerPressBookingUrl = signal<string>('/contato');
-  readonly footerApplyUrl = signal<string>('/apply');
-  readonly socialMediaList = signal<SocialMediaPublicItem[]>([]);
+  // Valores padrão/fallback caso a API esteja carregando
+  contactData: ContactData = {
+    primaryEmail: 'contato@wbscouting.com',
+    whatsapp: '+55 11 99999-9999',
+    socialMediaList: [
+      { name: 'Instagram', url: 'https://instagram.com/wbagency' },
+      { name: 'LinkedIn', url: 'https://linkedin.com/company/wbagency' }
+    ]
+  };
 
   ngOnInit(): void {
-    this.homeSettingsService.getPublicSettings().subscribe({
-      next: (settings) => {
-        if (settings) {
-          if (settings.footerDescription) {
-            this.footerDescription.set(settings.footerDescription);
-          }
-          if (settings.footerHubs) {
-            this.footerHubs.set(settings.footerHubs);
-          }
-          if (settings.footerPressBookingUrl) {
-            this.footerPressBookingUrl.set(settings.footerPressBookingUrl);
-          }
-          if (settings.footerApplyUrl) {
-            this.footerApplyUrl.set(settings.footerApplyUrl);
-          }
-        }
-      },
-      error: () => {
-        // Fallback estático já inicializado nos signals
-      }
-    });
+    this.loadContactInfo();
+  }
 
-    this.publicContentService.getContactChannels().subscribe({
-      next: (channels) => {
-        if (channels?.socialMediaList && channels.socialMediaList.length > 0) {
-          this.socialMediaList.set(channels.socialMediaList);
+  loadContactInfo(): void {
+    // Tenta carregar as configurações institucionais salvas no banco
+    this.http.get<any>(`${environment.apiUrl}/public/institutional/contact`).subscribe({
+      next: (res) => {
+        if (res) {
+          this.applyContactSettings(res);
         }
       },
       error: () => {
-        // Fallback estático padrão
+        // Fallback: tenta a rota alternativa de canais de contato
+        this.http.get<any>(`${environment.apiUrl}/public/contact-channels`).subscribe({
+          next: (channels) => {
+            if (Array.isArray(channels) && channels.length > 0) {
+              this.mapFromContactChannels(channels);
+            } else if (channels && typeof channels === 'object') {
+              this.applyContactSettings(channels);
+            }
+          },
+          error: (err) => console.warn('[FOOTER] Utilizando contatos padrão:', err)
+        });
       }
     });
+  }
+
+  applyContactSettings(res: any): void {
+    this.contactData.primaryEmail = res.primaryEmail || res.email || this.contactData.primaryEmail;
+    this.contactData.whatsapp = res.whatsapp || res.whatsappNumber || this.contactData.whatsapp;
+    this.contactData.phone = res.phone || this.contactData.phone;
+
+    if (Array.isArray(res.socialMediaList) && res.socialMediaList.length > 0) {
+      this.contactData.socialMediaList = res.socialMediaList;
+    } else if (res.socialMedia && typeof res.socialMedia === 'object') {
+      const list: SocialMediaItem[] = [];
+      Object.entries(res.socialMedia).forEach(([key, val]) => {
+        if (val && typeof val === 'string') {
+          list.push({ name: key.toUpperCase(), url: val });
+        }
+      });
+      if (list.length > 0) this.contactData.socialMediaList = list;
+    }
+  }
+
+  mapFromContactChannels(channels: any[]): void {
+    const emailChannel = channels.find(c => c.type === 'EMAIL' || c.channelName?.toLowerCase().includes('email'));
+    if (emailChannel?.value) this.contactData.primaryEmail = emailChannel.value;
+
+    const waChannel = channels.find(c => c.type === 'WHATSAPP' || c.channelName?.toLowerCase().includes('whatsapp'));
+    if (waChannel?.value) this.contactData.whatsapp = waChannel.value;
+
+    const socials = channels.filter(c => c.type === 'SOCIAL');
+    if (socials.length > 0) {
+      this.contactData.socialMediaList = socials.map(s => ({
+        name: s.label || s.channelName || 'Link',
+        url: s.value || s.url
+      }));
+    }
+  }
+
+  cleanWhatsAppNumber(num?: string): string {
+    return num ? num.replace(/\D/g, '') : '5511999999999';
   }
 }

@@ -180,9 +180,18 @@ export const routes: Routes = [
         title: 'Novo Modelo | WB Agency'
       },
       {
+        path: 'modelos/novo',
+        redirectTo: 'models/new',
+        pathMatch: 'full'
+      },
+      {
         path: 'models/:id/edit',
         loadComponent: () => import('./features/admin/models-mgmt/model-form/model-form.component').then(m => m.ModelFormComponent),
         title: 'Editar Modelo | WB Agency'
+      },
+      {
+        path: 'modelos/:id/editar',
+        redirectTo: 'models/:id/edit',
       },
       {
         path: 'content',

@@ -1,5 +1,6 @@
 package com.wbscouting.api.dto.publicapi;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.wbscouting.api.enums.GenderType;
 import lombok.AllArgsConstructor;
@@ -20,6 +21,9 @@ public class ModelCardPublicDto {
     private GenderType gender;
     private String coverImageUrl;
     private Integer heightCm;
+
+    @JsonIgnore
     private String city;
+
     private Boolean isStar;
 }

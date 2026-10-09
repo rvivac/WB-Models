@@ -116,10 +116,10 @@ class PublicModelDetailServiceImplTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(modelId);
         assertThat(result.getStageName()).isEqualTo("Lais Ribeiro");
-        assertThat(result.getAge()).isEqualTo(33);
+        assertThat(result.getAge()).isNull();
         assertThat(result.getIsStar()).isTrue();
-        assertThat(result.getCity()).isEqualTo("Miguel Alves");
-        assertThat(result.getNationality()).isEqualTo("Brasileira");
+        assertThat(result.getCity()).isNull();
+        assertThat(result.getNationality()).isNull();
         assertThat(result.getHeightCm()).isEqualTo(180);
         assertThat(result.getEyeColor()).isEqualTo("Castanhos");
         assertThat(result.getHairColor()).isEqualTo("Castanho Escuro");

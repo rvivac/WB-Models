@@ -37,6 +37,9 @@ public class PublicModelServiceImpl implements PublicModelService {
     // Helper: resolve URL PUBLICA de uma ModelMedia usando file_path se file_url incompleto
     private String resolveMediaUrlPublic(ModelMedia media) {
         if (media == null) return null;
+        if (storageService == null || storageService.getProperties() == null) {
+            return media.getFileUrl();
+        }
         return storageService.resolvePublicUrlFromFields(
                 storageService.getProperties().resolveBucketModelsMedia(),
                 media.getFilePath(),
@@ -84,7 +87,6 @@ public class PublicModelServiceImpl implements PublicModelService {
                 .gender(model.getGender())
                 .coverImageUrl(resolveCoverImageUrl(model))
                 .heightCm(model.getHeightCm())
-                .city(model.getCity())
                 .isStar(model.getIsStar())
                 .build();
     }
@@ -93,6 +95,9 @@ public class PublicModelServiceImpl implements PublicModelService {
         // 1. Foto primaria do cadastro (validando URL completa + FALLBACK se incompleta!)
         String primary = model.getPrimaryPhotoUrl();
         if (StringUtils.hasText(primary)) {
+            if (storageService == null || storageService.getProperties() == null) {
+                return primary;
+            }
             String modelsMediaBucket = storageService.getProperties().resolveBucketModelsMedia();
             // a) URL parece OK (possui caminho do arquivo apos o bucket) -> retorna direto
             boolean pareceCompleta = primary.contains(modelsMediaBucket + "/")

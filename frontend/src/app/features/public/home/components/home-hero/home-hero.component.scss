@@ -1,3 +1,20 @@
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Container Principal do Hero */
+.hero-container,
 .hero-section {
   position: relative;
   width: 100%;
@@ -7,7 +24,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--wb-background); // #FBFBF9
+  background-color: var(--wb-background, #FBFBF9);
 }
 
 .hero-video {
@@ -77,31 +94,57 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  min-height: 120px;
 }
 
-.hero-headline {
-  font-family: var(--font-serif);
-  font-size: clamp(2.2rem, 5.5vw, 4.5rem);
-  font-weight: 400;
-  line-height: 1.1;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #ffffff;
-  margin-bottom: 1rem;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+/* Animação do Logo de Entrada (1s de exibição) */
+.hero-splash-logo-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: splashFadeInZoom 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  .hero-splash-logo {
+    max-height: 7rem;
+    width: auto;
+    filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.45));
+    transition: transform 0.3s ease;
+  }
 }
 
-.hero-manifesto {
-  font-family: var(--font-sans);
-  font-size: clamp(0.75rem, 1.4vw, 0.9rem);
-  font-weight: 500;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.92);
-  margin-bottom: 2.25rem;
-  max-width: 620px;
-  line-height: 1.7;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+/* Transição Suave dos Botões de Ação */
+.hero-actions-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: actionsFadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes splashFadeInZoom {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes actionsFadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .hero-buttons {

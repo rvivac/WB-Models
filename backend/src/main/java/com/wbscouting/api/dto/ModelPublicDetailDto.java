@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,7 +18,6 @@ public class ModelPublicDetailDto {
     private String fullName;
     private String slug;
     private String gender;
-    private LocalDate birthDate;
     private Integer height;
     private Integer bust;
     private Integer waist;

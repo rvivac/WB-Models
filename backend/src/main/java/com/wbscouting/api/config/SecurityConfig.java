@@ -90,7 +90,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/home-settings/**", "/api/v1/home-settings/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/public/**", "/api/v1/public/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/site-contents/**", "/api/v1/site-contents/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/contact-channels/**", "/api/v1/public/contact-channels/**", "/public/contact-channels/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/contact-channels/**", "/api/v1/contact-channels/**", "/api/v1/public/contact-channels/**", "/public/contact-channels/**", "/public/institutional/contact/**", "/api/v1/public/institutional/contact/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/i18n/**", "/api/v1/public/i18n/**", "/public/i18n/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/storage/local/**", "/api/v1/storage/local/**").permitAll()
 

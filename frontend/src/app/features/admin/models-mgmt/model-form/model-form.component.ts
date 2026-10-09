@@ -592,6 +592,14 @@ export class ModelFormComponent implements OnInit {
     this.isSaving.set(true);
     const formVal = this.modelForm.value;
 
+    const parseDecimal = (val: any): number | null => {
+      if (val === null || val === undefined || val === '') return null;
+      if (typeof val === 'number') return isNaN(val) ? null : val;
+      const strVal = String(val).trim().replace(',', '.');
+      const num = parseFloat(strVal);
+      return isNaN(num) ? null : num;
+    };
+
     const payload: ModelFormData = {
       stageName: formVal.stageName.trim(),
       gender: formVal.gender,
@@ -602,14 +610,14 @@ export class ModelFormComponent implements OnInit {
       primaryPhotoUrl: formVal.primaryPhotoUrl ? formVal.primaryPhotoUrl.trim() : null,
       instagramUrl: formVal.instagramUrl ? formVal.instagramUrl.trim() : null,
       birthDate: formVal.birthDate || null,
-      heightCm: formVal.heightCm ? Number(formVal.heightCm) : null,
+      heightCm: parseDecimal(formVal.heightCm),
       city: formVal.city ? formVal.city.trim() : null,
       nationality: formVal.nationality ? formVal.nationality.trim() : null,
       dressSize: formVal.dressSize ? formVal.dressSize.trim() : null,
       shoeSize: formVal.shoeSize ? formVal.shoeSize.trim() : null,
-      bustChestCm: formVal.bustChestCm ? Number(formVal.bustChestCm) : null,
-      waistCm: formVal.waistCm ? Number(formVal.waistCm) : null,
-      hipsCm: formVal.hipsCm ? Number(formVal.hipsCm) : null,
+      bustChestCm: parseDecimal(formVal.bustChestCm),
+      waistCm: parseDecimal(formVal.waistCm),
+      hipsCm: parseDecimal(formVal.hipsCm),
       hairColor: formVal.hairColor ? formVal.hairColor.trim() : null,
       eyesColor: formVal.eyesColor ? formVal.eyesColor.trim() : null
     };
@@ -661,35 +669,25 @@ export class ModelFormComponent implements OnInit {
       runChunk();
     });
 
-    excluirEmLotes.then((resultDelete) => {
-      const { success, failed } = resultDelete;
-      this.pendingDeleteIds.set(new Set()); // zera tudo
-
-      // Toast info de exclusao (se teve pelo menos 1)
-      if (success + failed > 0) {
-        if (failed === 0) {
-          this.showToast(`🗑️ ${success} foto(s) apagada(s) DEFINITIVAMENTE do banco e storage Supabase.`, 'success');
-        } else {
-          this.showToast(`Exclusao: ${success} OK. ${failed} falha(s). Verifique se as fotos de falha ainda existem.`, 'error');
-        }
-      }
-
-      // ============================================================
-      // 2) Gravar o modelo (create ou update)
-      // ============================================================
+    const saveModelOperation = () => {
       if (currentId) {
         return firstValueFrom(
           this.adminModelService.updateModel(currentId, payload).pipe(
             tap((saved) => {
               // Após salvar DADOS: recarrega galeria REAL (confirmacao final sincronia 1:1)
-              this._refreshGalleryFromDatabase(currentId).subscribe(() => {
-                this.showToast('✅ Modelo atualizado com sucesso! Exclusoes, se houver, aplicadas.', 'success');
-                this.saved.emit(saved);
-                setTimeout(() => {
-                  if (this.route.snapshot.paramMap.get('id')) {
-                    this.router.navigate(['/admin/models']);
-                  }
-                }, 1500);
+              this._refreshGalleryFromDatabase(currentId).subscribe({
+                next: () => {
+                  this.showToast('✅ Modelo atualizado com sucesso! Exclusoes, se houver, aplicadas.', 'success');
+                  this.saved.emit(saved);
+                  setTimeout(() => {
+                    if (this.route.snapshot.paramMap.get('id')) {
+                      this.router.navigate(['/admin/models']);
+                    }
+                  }, 1500);
+                },
+                error: () => {
+                  this.saved.emit(saved);
+                }
               });
             })
           )
@@ -709,14 +707,40 @@ export class ModelFormComponent implements OnInit {
           )
         );
       }
+    };
+
+    if (todosIdsParaApagar.length === 0) {
+      saveModelOperation().catch((err) => {
+        this.isSaving.set(false);
+        const msg = err?.error?.detail || err?.error?.message || err?.message || 'Falha geral ao salvar modelo.';
+        this.showToast(msg, 'error');
+        console.error('[onSubmit] Erro geral:', err);
+      }).finally(() => {
+        setTimeout(() => { this.isSaving.set(false); }, 500);
+      });
+      return;
+    }
+
+    excluirEmLotes.then((resultDelete) => {
+      const { success, failed } = resultDelete;
+      this.pendingDeleteIds.set(new Set()); // zera tudo
+
+      // Toast info de exclusao (se teve pelo menos 1)
+      if (success + failed > 0) {
+        if (failed === 0) {
+          this.showToast(`🗑️ ${success} foto(s) apagada(s) DEFINITIVAMENTE do banco e storage Supabase.`, 'success');
+        } else {
+          this.showToast(`Exclusao: ${success} OK. ${failed} falha(s). Verifique se as fotos de falha ainda existem.`, 'error');
+        }
+      }
+
+      return saveModelOperation();
     }).catch((err) => {
       this.isSaving.set(false);
       const msg = err?.error?.detail || err?.error?.message || err?.message || 'Falha geral ao salvar modelo.';
       this.showToast(msg, 'error');
       console.error('[onSubmit] Erro geral:', err);
     }).finally(() => {
-      // Nao executa no final, os subscribe de cima setam ja.
-      // this.isSaving.set(false); -> evitar conflito, ja setado.
       setTimeout(() => { this.isSaving.set(false); }, 500);
     });
   }

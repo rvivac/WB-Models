@@ -32,10 +32,61 @@ describe('FooterComponent', () => {
     expect(logoImg?.getAttribute('src')).toBe('assets/images/logo-wb-agency.jpeg');
   });
 
-  it('should render navigation links and contact info', () => {
+  it('should render navigation links and contact info without obsolete texts', () => {
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('Casting & Modelos');
+    // Coluna Navegação e seus 6 links
+    expect(compiled.textContent).toContain('Navegação');
+    expect(compiled.textContent).toContain('Modelos Femininos');
+    expect(compiled.textContent).toContain('Modelos Masculinos');
+    expect(compiled.textContent).toContain('Stars');
+    expect(compiled.textContent).toContain('Sobre Nós');
+    expect(compiled.textContent).toContain('Contato');
+    expect(compiled.textContent).toContain('Quero ser Modelo');
+
+    // Email padrão de fallback
     expect(compiled.textContent).toContain('contato@wbscouting.com');
-    expect(compiled.textContent).toContain('PARIS • MILAN • NEW YORK • SÃO PAULO');
+
+    // Verificação de ausência de textos antigos
+    expect(compiled.textContent).not.toContain('PARIS • MILAN • NEW YORK • SÃO PAULO');
+    expect(compiled.textContent).not.toContain('Agência de modelos e gestão internacional');
+    expect(compiled.textContent).not.toContain('Plataforma');
+  });
+
+  it('should have logo with proper classes and alt attribute', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    const logoImg = compiled.querySelector('img');
+    expect(logoImg).toBeTruthy();
+    expect(logoImg?.className).toContain('h-20');
+    expect(logoImg?.className).toContain('md:h-24');
+    expect(logoImg?.className).toContain('object-contain');
+  });
+
+  it('should clean whatsapp number correctly', () => {
+    expect(component.cleanWhatsAppNumber('+55 (11) 97065-6003')).toBe('5511970656003');
+    expect(component.cleanWhatsAppNumber(undefined)).toBe('5511999999999');
+  });
+
+  it('should update contactData and render dynamic social networks from API', () => {
+    (component as any).applyContactSettings({
+      primaryEmail: 'booking@wbagency.com.br',
+      whatsapp: '+55 11 98888-7777',
+      socialMediaList: [
+        { name: 'YouTube', url: 'https://youtube.com/@wbagency' },
+        { name: 'TikTok', url: 'https://tiktok.com/@wbagency' }
+      ]
+    });
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('booking@wbagency.com.br');
+    expect(compiled.textContent).toContain('+55 11 98888-7777');
+    expect(compiled.textContent).toContain('YouTube');
+    expect(compiled.textContent).toContain('TikTok');
+
+    const emailLink = compiled.querySelector('a[href^="mailto:"]') as HTMLAnchorElement;
+    expect(emailLink?.getAttribute('href')).toBe('mailto:booking@wbagency.com.br');
+
+    const waLink = compiled.querySelector('a[href*="wa.me"]') as HTMLAnchorElement;
+    expect(waLink?.getAttribute('href')).toBe('https://wa.me/5511988887777');
   });
 });

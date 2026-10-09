@@ -1,4 +1,4 @@
-<section class="hero-section relative h-screen w-full overflow-hidden flex items-center justify-center">
+<div class="hero-container relative h-screen w-full overflow-hidden flex items-center justify-center">
   <!-- Vídeo Background em Loop com Fallback Gracioso -->
   @if (!isVideoError()) {
     <video
@@ -12,7 +12,7 @@
       webkit-playsinline="yes"
       disablepictureinpicture
       disableremoteplayback
-      preload="none"
+      preload="metadata"
       class="hero-video absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
       [poster]="heroData().posterImageUrl || 'assets/images/hero-poster.jpg'"
       (loadeddata)="onVideoLoaded()"
@@ -31,23 +31,45 @@
     </div>
   }
 
-  <!-- Overlay Editorial com transição suave para o fundo claro (#FBFBF9) -->
-  <div class="hero-overlay absolute inset-0 z-10"></div>
+  <!-- Overlay Editorial com transição para base clara (#FBFBF9) -->
+  <div class="hero-overlay absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#FBFBF9] z-10"></div>
 
-  <!-- Conteúdo Editorial: Título, Subtítulo & Descrição da Home com Renderização Segura -->
-  @if (heroData().title || heroData().subtitle || heroData().description) {
-    <div class="hero-content">
-      @if (heroData().title) {
-        <h1 class="hero-headline">{{ heroData().title }}</h1>
-      }
-      @if (heroData().subtitle) {
-        <p class="hero-manifesto">{{ heroData().subtitle }}</p>
-      }
-      @if (heroData().description) {
-        <p class="hero-manifesto text-xs max-w-xl opacity-80 mt-1">{{ heroData().description }}</p>
-      }
+  <!-- CONTEÚDO CENTRALIZADO -->
+  <div class="relative z-20 text-center px-4 max-w-4xl mx-auto flex flex-col items-center justify-center min-h-[220px]">
+
+    <!-- 1. LOGO TEMPORIZADO (EXIBIDO POR 1 SEGUNDO) -->
+    <div 
+      *ngIf="showSplashLogo()"
+      class="transition-all duration-500 ease-out flex flex-col items-center animate-fade-in"
+    >
+      <img 
+        src="assets/images/logo-wb-agency.jpeg" 
+        alt="WB Agency" 
+        class="hero-splash-logo h-20 sm:h-24 md:h-28 w-auto object-contain drop-shadow-md select-none rounded-none"
+      />
     </div>
-  }
+
+    <!-- 2. BOTÕES DE AÇÃO (SURGEM APÓS O LOGO) -->
+    <div 
+      *ngIf="!showSplashLogo()"
+      class="hero-buttons flex flex-col sm:flex-row items-center gap-4 transition-all duration-700 ease-in animate-fade-in pt-4"
+    >
+      <a 
+        routerLink="/modelos" 
+        class="px-8 py-3.5 bg-[#4B584E] hover:bg-[#38433B] text-white text-xs uppercase tracking-[0.2em] font-sans transition-all duration-200 rounded-none shadow-sm cursor-pointer select-none"
+      >
+        Ver Elenco
+      </a>
+
+      <a 
+        routerLink="/apply" 
+        class="px-8 py-3.5 bg-white/90 hover:bg-white text-[#222624] hover:text-[#4B584E] border border-white text-xs uppercase tracking-[0.2em] font-sans transition-all duration-200 rounded-none backdrop-blur-xs shadow-sm cursor-pointer select-none"
+      >
+        Seja Modelo
+      </a>
+    </div>
+
+  </div>
 
   <!-- Controlo de Áudio Editorial (Mute/Unmute) imediatamente acima do scroll -->
   @if (!isVideoError()) {
@@ -88,4 +110,4 @@
     </span>
     <span class="scroll-text tracking-editorial">SCROLL</span>
   </button>
-</section>
+</div>

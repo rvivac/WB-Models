@@ -37,12 +37,12 @@ describe('ModelCardComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create and render model stageName, height and city', () => {
+  it('should create and render model stageName and height while keeping city private', () => {
     expect(component).toBeTruthy();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.model-name')?.textContent).toContain('VALENTINA R');
     expect(compiled.querySelector('.metric-item')?.textContent).toContain('180 cm');
-    expect(compiled.textContent).toContain('Curitiba');
+    expect(compiled.textContent).not.toContain('Curitiba');
   });
 
   it('should render star badge when isStar is true', () => {

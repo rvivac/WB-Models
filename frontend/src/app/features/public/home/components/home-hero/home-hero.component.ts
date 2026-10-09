@@ -24,6 +24,10 @@ export class HomeHeroComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.heroVideo;
   }
 
+  // Controla se a animação do logo inicial de 1s ainda está em exibição
+  readonly showSplashLogo = signal<boolean>(true);
+  private splashTimerId?: any;
+
   isMuted: boolean = true;
   // Limite máximo interno do player (5% do ganho do arquivo)
   readonly TARGET_VOLUME: number = 0.05;
@@ -35,8 +39,8 @@ export class HomeHeroComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly heroData = signal<HomeHeroPayload>({
     videoUrl: 'assets/videos/wb-presentation.mp4',
     posterImageUrl: 'assets/images/hero-poster.jpg',
-    title: 'High Fashion & Scouting',
-    subtitle: 'Gestão de Carreiras • Scouting Internacional',
+    title: '',
+    subtitle: '',
     ctaText: 'Ver Elenco',
     ctaLink: '/models/female'
   });
@@ -55,6 +59,11 @@ export class HomeHeroComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     // Carregamento inicial garantido
     this.loadHero(this.translationService.currentLang());
+
+    // Exibe o logo por exatamente 1000ms (1 segundo) e transiciona suavemente
+    this.splashTimerId = setTimeout(() => {
+      this.showSplashLogo.set(false);
+    }, 1000);
   }
 
   ngAfterViewInit(): void {
@@ -71,6 +80,9 @@ export class HomeHeroComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.splashTimerId) {
+      clearTimeout(this.splashTimerId);
+    }
     if (this.fadeInterval) {
       clearInterval(this.fadeInterval);
       this.fadeInterval = null;

@@ -2,7 +2,7 @@
   class="model-card card-editorial" 
   [routerLink]="['/models', model().id]"
   tabindex="0"
-  [attr.aria-label]="model().stageName + ' - ' + (model().city || 'Modelo WB')">
+  [attr.aria-label]="model().stageName + ' - Modelo WB'">
   
   <figure class="model-image-wrap">
     <img 
@@ -25,10 +25,6 @@
       <div class="model-metrics">
         @if (model().heightCm) {
           <span class="metric-item">{{ model().heightCm }} cm</span>
-        }
-        @if (model().city) {
-          <span class="metric-dot" aria-hidden="true">&bull;</span>
-          <span class="metric-item">{{ model().city }}</span>
         }
       </div>
     </div>

@@ -394,72 +394,102 @@
     }
   }
 
+  // ==============================================================================
+  // GALERIA EDITORIAL AUTO-AJUSTÁVEL — WB AGENCY
+  // ==============================================================================
+  .editorial-gallery-grid,
   .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    gap: 1.5rem;
+    width: 100%;
+    
+    // Mobile / Telas pequenas: 1 a 2 colunas
+    grid-template-columns: repeat(1, minmax(0, 1fr));
 
-    @include md {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.5rem;
-    }
-  }
+    @media (min-width: 640px) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
 
-  .photo-card {
-    position: relative;
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-    cursor: pointer;
-    background: var(--bg-card);
-    border: 1px solid var(--border-subtle);
-    outline: none;
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-                border-color 0.4s ease,
-                box-shadow 0.4s ease;
-
-    .photo-wrap {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 3 / 4;
-      overflow: hidden;
-      margin: 0;
-
-      .photo-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: top center;
-        display: block;
-        transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-
-      .photo-overlay {
-        position: absolute;
-        inset: 0;
-        background: rgba(7, 8, 11, 0.4);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        transition: opacity var(--transition-normal);
-
-        .zoom-indicator {
-          color: var(--text-primary);
-          font-size: 1.5rem;
-          transform: scale(0.8);
-          transition: transform var(--transition-fast);
+      // Se houver número ímpar, o último item expande para fechar a linha
+      .gallery-photo-item:last-child:nth-child(odd),
+      .photo-card:last-child:nth-child(odd) {
+        grid-column: span 2;
+        
+        .photo-frame,
+        .photo-wrap {
+          max-height: 580px;
+          aspect-ratio: 16 / 10;
         }
       }
     }
 
+    // Desktop: 6 colunas balanceadas para suportar divisão perfeita de 1, 2 ou 3 colunas
+    @media (min-width: 1024px) {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+
+      // Padrão: cada foto ocupa 2 colunas (totalizando 3 fotos por linha)
+      .gallery-photo-item,
+      .photo-card {
+        grid-column: span 2;
+
+        .photo-frame,
+        .photo-wrap {
+          max-height: none;
+          aspect-ratio: 3 / 4;
+        }
+      }
+
+      // Caso 1: Sobra 1 foto isolada na última linha (3n + 1, ex: 1, 4, 7, 10, 13 fotos)
+      // O último item expande nas 6 colunas completas (destaque editorial panorâmico)
+      .gallery-photo-item:last-child:nth-child(3n + 1),
+      .photo-card:last-child:nth-child(3n + 1) {
+        grid-column: span 6;
+
+        .photo-frame,
+        .photo-wrap {
+          max-height: 640px;
+          aspect-ratio: 16 / 9;
+        }
+      }
+
+      // Caso 2: Sobram 2 fotos na última linha (3n + 2, ex: 2, 5, 8, 11, 14 fotos)
+      // A penúltima e a última foto expandem ocupando 3 colunas cada (50% cada da linha)
+      .gallery-photo-item:nth-last-child(2):nth-child(3n + 1),
+      .photo-card:nth-last-child(2):nth-child(3n + 1),
+      .gallery-photo-item:last-child:nth-child(3n + 2),
+      .photo-card:last-child:nth-child(3n + 2) {
+        grid-column: span 3;
+
+        .photo-frame,
+        .photo-wrap {
+          max-height: 620px;
+          aspect-ratio: 4 / 3;
+        }
+      }
+    }
+  }
+
+  // ESTRUTURA DO CARD DE FOTO
+  .gallery-photo-item,
+  .photo-card {
+    position: relative;
+    width: 100%;
+    border-radius: 0;
+    overflow: hidden;
+    cursor: pointer;
+    background-color: #FBFBF9;
+    border: 1px solid #E8EBE8;
+    outline: none;
+    transition: transform 0.3s ease, border-color 0.2s ease, box-shadow 0.3s ease;
+
     &:hover,
     &:focus-visible {
-      transform: translateY(-4px);
-      border-color: var(--border-gold);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+      border-color: #4B584E;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 
-      .photo-img {
-        transform: scale(1.05);
+      .photo-frame img,
+      .photo-wrap img {
+        transform: scale(1.03);
       }
 
       .photo-overlay {
@@ -467,6 +497,48 @@
 
         .zoom-indicator {
           transform: scale(1);
+        }
+      }
+    }
+
+    .photo-frame,
+    .photo-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 3 / 4; // Proporção editorial padrão (vertical de moda)
+      overflow: hidden;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #F4F5F4;
+
+      .photo-img,
+      img {
+        width: 100%;
+        height: 100%;
+        // Garante que a foto preencha com proporção preservada (sem esticar nem deformar)
+        object-fit: cover;
+        object-position: center top;
+        display: block;
+        transition: transform 0.4s ease;
+      }
+
+      .photo-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(34, 38, 36, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity var(--transition-normal);
+
+        .zoom-indicator {
+          color: #FFFFFF;
+          font-size: 1.5rem;
+          transform: scale(0.8);
+          transition: transform var(--transition-fast);
         }
       }
     }

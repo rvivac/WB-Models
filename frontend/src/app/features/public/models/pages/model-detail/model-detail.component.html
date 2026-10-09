@@ -79,23 +79,9 @@
               }
             </figure>
 
-            <!-- Identificação e Demografia -->
+            <!-- Identificação do Modelo -->
             <div class="profile-header">
               <h1 class="profile-name font-serif">{{ m.stageName }}</h1>
-              
-              <div class="demographics-wrap">
-                @if (m.age) {
-                  <span class="demo-item">{{ m.age }} {{ 'model_detail.years_old' | translate }}</span>
-                }
-                @if (m.city) {
-                  @if (m.age) { <span class="demo-dot">&bull;</span> }
-                  <span class="demo-item">{{ m.city }}</span>
-                }
-                @if (m.nationality) {
-                  <span class="demo-dot">&bull;</span>
-                  <span class="demo-item">{{ m.nationality }}</span>
-                }
-              </div>
 
               @if (m.instagramHandle || m.instagramUrl) {
                 <a 
@@ -177,7 +163,7 @@
         </aside>
 
         <!-- Área Principal: Galerias de Book e Polaroids -->
-        <main class="gallery-col">
+        <main class="gallery-col space-y-6">
           <!-- Abas de Segmentação Editorial -->
           <div class="gallery-tabs-bar">
             <button 
@@ -199,36 +185,47 @@
             </button>
           </div>
 
-          <!-- Grade de Imagens da Galeria Ativa -->
-          @if (currentGalleryPhotos().length > 0) {
-            <div class="gallery-grid">
-              @for (photo of currentGalleryPhotos(); track photo.id; let idx = $index) {
-                <article 
-                  class="photo-card" 
-                  (click)="openLightbox(idx)"
-                  tabindex="0"
-                  (keydown.enter)="openLightbox(idx)"
-                  [attr.aria-label]="'Abrir fotografia ' + (idx + 1) + ' em tela cheia'">
-                  
-                  <figure class="photo-wrap">
-                    <img 
-                      [src]="photo.fileUrl" 
-                      [alt]="m.stageName + ' - Foto ' + (idx + 1)" 
-                      class="photo-img" 
-                      loading="lazy" 
-                    />
-                    <div class="photo-overlay">
-                      <span class="zoom-indicator">&#x26F6;</span>
+          <!-- SEÇÃO DE PORTFÓLIO / BOOK EDITORIAL OU POLAROIDS -->
+          <section class="space-y-6">
+            <div class="border-b border-[#E8EBE8] pb-3 flex items-center justify-between">
+              <h3 class="text-xs font-serif uppercase tracking-[0.25em] text-[#222624]">
+                {{ activeTab() === 'BOOK' ? 'Book Editorial' : 'Polaroids Técnicas' }}
+              </h3>
+              <span class="text-[11px] font-mono text-[#5F6661]">
+                {{ currentGalleryPhotos().length || 0 }} Imagens
+              </span>
+            </div>
+
+            <!-- GRID AUTO-AJUSTÁVEL -->
+            @if (currentGalleryPhotos().length > 0) {
+              <div class="editorial-gallery-grid">
+                @for (photo of currentGalleryPhotos(); track photo.id; let idx = $index) {
+                  <div 
+                    class="gallery-photo-item photo-card group cursor-pointer"
+                    (click)="openLightbox(idx)"
+                    tabindex="0"
+                    (keydown.enter)="openLightbox(idx)"
+                    [attr.aria-label]="'Abrir fotografia ' + (idx + 1) + ' em tela cheia'"
+                  >
+                    <div class="photo-frame">
+                      <img 
+                        [src]="photo.fileUrl || (photo && $any(photo).url)" 
+                        [alt]="m.stageName + ' - Foto ' + (idx + 1)"
+                        loading="lazy"
+                      />
+                      <div class="photo-overlay">
+                        <span class="zoom-indicator">&#x26F6;</span>
+                      </div>
                     </div>
-                  </figure>
-                </article>
-              }
-            </div>
-          } @else {
-            <div class="empty-gallery">
-              <p class="empty-gallery-text">{{ 'model_detail.no_photos' | translate }}</p>
-            </div>
-          }
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="empty-gallery">
+                <p class="empty-gallery-text">{{ 'model_detail.no_photos' | translate }}</p>
+              </div>
+            }
+          </section>
         </main>
       </div>
 

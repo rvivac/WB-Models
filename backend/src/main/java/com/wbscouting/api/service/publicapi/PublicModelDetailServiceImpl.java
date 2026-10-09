@@ -32,10 +32,16 @@ public class PublicModelDetailServiceImpl implements PublicModelDetailService {
     // Helper: constroi ModelMediaPublicItemDto com URL validada e completa quando
     // fileUrl estiver vazio / incompleto (bug JPA storagePath antigo).
     private ModelMediaPublicItemDto buildMediaItem(ModelMedia m) {
-        String bucket = MediaType.COMPOSITE == m.getMediaType()
-                ? storageService.getProperties().resolveBucketSiteAssets()
-                : storageService.getProperties().resolveBucketModelsMedia();
-        String url = storageService.resolvePublicUrlFromFields(bucket, m.getFilePath(), m.getFileUrl());
+        if (m == null) return null;
+        String url;
+        if (storageService == null || storageService.getProperties() == null) {
+            url = m.getFileUrl();
+        } else {
+            String bucket = MediaType.COMPOSITE == m.getMediaType()
+                    ? storageService.getProperties().resolveBucketSiteAssets()
+                    : storageService.getProperties().resolveBucketModelsMedia();
+            url = storageService.resolvePublicUrlFromFields(bucket, m.getFilePath(), m.getFileUrl());
+        }
         return ModelMediaPublicItemDto.builder()
                 .id(m.getId())
                 .fileUrl(url)
@@ -74,11 +80,6 @@ public class PublicModelDetailServiceImpl implements PublicModelDetailService {
             }
         }
 
-        Integer age = null;
-        if (model.getBirthDate() != null) {
-            age = Period.between(model.getBirthDate(), LocalDate.now()).getYears();
-        }
-
         String compositeUrl = composite != null ? composite.getFileUrl() : null;
         String rawInstagram = model.getInstagramUrl();
         String instagramHandle = null;
@@ -102,9 +103,7 @@ public class PublicModelDetailServiceImpl implements PublicModelDetailService {
                 .stageName(model.getStageName())
                 .gender(model.getGender())
                 .isStar(model.getIsStar())
-                .city(model.getCity())
-                .nationality(model.getNationality())
-                .age(age)
+                // Dados confidenciais (city, nationality, age) omitidos da visualização pública
                 .instagramUrl(model.getInstagramUrl())
                 .instagramHandle(instagramHandle)
                 .heightCm(model.getHeightCm())

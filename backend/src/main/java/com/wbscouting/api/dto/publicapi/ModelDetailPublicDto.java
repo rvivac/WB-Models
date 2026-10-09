@@ -1,5 +1,6 @@
 package com.wbscouting.api.dto.publicapi;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.wbscouting.api.enums.GenderType;
 import lombok.AllArgsConstructor;
@@ -22,9 +23,15 @@ public class ModelDetailPublicDto {
     private String stageName;
     private GenderType gender;
     private Boolean isStar;
+
+    // Dados confidenciais/sensíveis blindados da visualização pública
+    @JsonIgnore
     private String city;
+    @JsonIgnore
     private String nationality;
+    @JsonIgnore
     private Integer age;
+
     private String instagramUrl;
     private String instagramHandle;
     private String compositeUrl;

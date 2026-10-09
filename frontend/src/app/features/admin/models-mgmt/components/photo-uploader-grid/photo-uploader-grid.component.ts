@@ -31,9 +31,39 @@ export class PhotoUploaderGridComponent {
   readonly maxSizeBytes = 10 * 1024 * 1024; // 10MB
   readonly allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
 
+  get bookPhotosCount(): number {
+    return this.photos.filter(p => p.category === 'BOOK').length;
+  }
+
+  get polaroidPhotosCount(): number {
+    return this.photos.filter(p => p.category === 'POLAROID').length;
+  }
+
+  get currentTargetCategory(): PhotoCategory {
+    return this.selectedCategoryFilter === 'POLAROID' ? 'POLAROID' : 'BOOK';
+  }
+
+  get isUploadDisabled(): boolean {
+    const targetCount = this.currentTargetCategory === 'POLAROID' 
+      ? this.polaroidPhotosCount 
+      : this.bookPhotosCount;
+    return targetCount >= this.maxPhotos;
+  }
+
+  get currentCategoryAvailableSlots(): number {
+    const targetCount = this.currentTargetCategory === 'POLAROID' 
+      ? this.polaroidPhotosCount 
+      : this.bookPhotosCount;
+    return Math.max(0, this.maxPhotos - targetCount);
+  }
+
   onDropFiles(event: DragEvent): void {
     event.preventDefault();
     this.isDraggingOverZone = false;
+    if (this.isUploadDisabled) {
+      this.validationError.emit(`Limite máximo de ${this.maxPhotos} fotos atingido para este álbum.`);
+      return;
+    }
     if (event.dataTransfer?.files) {
       this.processSelectedFiles(event.dataTransfer.files);
     }
@@ -41,7 +71,9 @@ export class PhotoUploaderGridComponent {
 
   onDragOver(event: DragEvent): void {
     event.preventDefault();
-    this.isDraggingOverZone = true;
+    if (!this.isUploadDisabled) {
+      this.isDraggingOverZone = true;
+    }
   }
 
   onDragLeave(event: DragEvent): void {
@@ -58,25 +90,41 @@ export class PhotoUploaderGridComponent {
   }
 
   processSelectedFiles(fileList: FileList): void {
+    const targetCat = this.currentTargetCategory;
+    const catLabel = targetCat === 'POLAROID' ? 'Polaroids Técnicas' : 'Book Editorial';
+    const currentCount = targetCat === 'POLAROID' ? this.polaroidPhotosCount : this.bookPhotosCount;
+    const availableSlots = this.maxPhotos - currentCount;
+
+    if (availableSlots <= 0) {
+      this.validationError.emit(`Limite máximo de ${this.maxPhotos} fotos atingido para este álbum (${catLabel}).`);
+      return;
+    }
+
+    const filesArray = Array.from(fileList);
+    if (filesArray.length > availableSlots) {
+      this.validationError.emit(
+        `Limite de ${this.maxPhotos} fotos para ${catLabel}. Apenas as primeiras ${availableSlots} foto(s) foram adicionadas.`
+      );
+    }
+
     const validFiles: File[] = [];
     let hasInvalidType = false;
     let hasOversized = false;
 
-    Array.from(fileList).forEach((file) => {
+    for (const file of filesArray) {
+      if (validFiles.length >= availableSlots) {
+        break;
+      }
       if (!this.allowedTypes.includes(file.type)) {
         hasInvalidType = true;
-        return;
+        continue;
       }
       if (file.size > this.maxSizeBytes) {
         hasOversized = true;
-        return;
-      }
-      if (this.photos.length + validFiles.length >= this.maxPhotos) {
-        this.validationError.emit(`Limite máximo de ${this.maxPhotos} imagens atingido.`);
-        return;
+        continue;
       }
       validFiles.push(file);
-    });
+    }
 
     if (hasInvalidType) {
       this.validationError.emit('Formato de arquivo não suportado. Apenas JPG, PNG ou WebP são permitidos.');
@@ -94,7 +142,7 @@ export class PhotoUploaderGridComponent {
       const novas: GalleryPhoto[] = validFiles.map((file, idx) => ({
         id: 'temp-' + Math.random().toString(36).substring(2, 9),
         url: URL.createObjectURL(file),
-        category: 'BOOK',
+        category: targetCat,
         orderIndex: this.photos.length + idx,
         isCover: this.photos.length === 0 && idx === 0,
         file,
@@ -113,6 +161,7 @@ export class PhotoUploaderGridComponent {
     let lista = [...this.photos];
     moveItemInArray(lista, event.previousIndex, event.currentIndex);
     lista = this._applyOrderAndCover(lista);
+    this.photos = lista;
     this.photosChange.emit(lista);
   }
 
@@ -122,6 +171,7 @@ export class PhotoUploaderGridComponent {
     const [target] = lista.splice(index, 1);
     lista.unshift(target);
     lista = this._applyOrderAndCover(lista);
+    this.photos = lista;
     this.photosChange.emit(lista);
   }
 
@@ -130,6 +180,7 @@ export class PhotoUploaderGridComponent {
     const fotoExcluida = this.photos[index];
     let lista = this.photos.filter((_, i) => i !== index);
     lista = this._applyOrderAndCover(lista);
+    this.photos = lista;
     // Emite primeiro a exclusao (para o pai marcar no banco se for real)
     if (fotoExcluida) {
       try { this.photoRemoved.emit({ ...fotoExcluida }); } catch { /* no-op */ }
@@ -140,8 +191,23 @@ export class PhotoUploaderGridComponent {
   toggleCategory(photo: GalleryPhoto): void {
     const idx = this.photos.findIndex(p => p.id === photo.id);
     if (idx < 0) return;
+
+    const novaCategoria: PhotoCategory = photo.category === 'BOOK' ? 'POLAROID' : 'BOOK';
+    
+    // Validação de limite máximo de 15 fotos na categoria destino
+    if (novaCategoria === 'POLAROID' && this.polaroidPhotosCount >= this.maxPhotos) {
+      this.validationError.emit('Limite máximo de 15 fotos para Polaroids Técnicas já foi atingido. Remova uma foto antes de transferir.');
+      return;
+    }
+    if (novaCategoria === 'BOOK' && this.bookPhotosCount >= this.maxPhotos) {
+      this.validationError.emit('Limite máximo de 15 fotos para Book Editorial já foi atingido. Remova uma foto antes de transferir.');
+      return;
+    }
+
     let lista = [...this.photos];
-    lista[idx] = { ...lista[idx], category: lista[idx].category === 'BOOK' ? 'POLAROID' : 'BOOK' };
+    lista[idx] = { ...lista[idx], category: novaCategoria };
+    photo.category = novaCategoria;
+    this.photos = lista;
     this.photosChange.emit(lista);
   }
 

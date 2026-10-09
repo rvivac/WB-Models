@@ -1,93 +1,100 @@
 <footer class="w-full bg-[#FFFFFF] border-t border-[#E8EBE8] text-[#222624] select-none rounded-none">
   <div class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 pt-16 pb-12">
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-16">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-16 items-start">
       
-      <!-- COLUNA 1: LOGO EM DESTAQUE + MANIFESTO + CIDADES (6 Colunas) -->
-      <div class="md:col-span-6 lg:col-span-6 space-y-6">
-        <!-- Logo aumentado proporcionalmente -->
+      <!-- COLUNA 1: LOGOTIPO AUMENTADO E CENTRALIZADO (5 Colunas) -->
+      <div class="md:col-span-5 flex flex-col items-center md:items-start justify-center space-y-4">
         <a routerLink="/" class="inline-block group">
           <img 
             src="assets/images/logo-wb-agency.jpeg" 
             alt="WB Agency" 
-            class="h-14 md:h-16 w-auto object-contain transition-opacity group-hover:opacity-85"
+            class="h-20 md:h-24 w-auto object-contain transition-opacity group-hover:opacity-85"
           />
         </a>
-
-        <!-- Texto Descritivo Institucional Reativo -->
-        <p class="text-xs sm:text-sm text-[#5F6661] leading-relaxed max-w-md font-sans">
-          {{ footerDescription() }}
-        </p>
-
-        <!-- Hubs Internacionais Reativos -->
-        <div class="pt-2">
-          <p class="text-[11px] font-sans uppercase tracking-[0.25em] text-[#222624] font-medium">
-            {{ footerHubs() }}
-          </p>
-        </div>
       </div>
 
-      <!-- COLUNA 2: PLATAFORMA / NAVEGAÇÃO (3 Colunas) -->
-      <div class="md:col-span-3 lg:col-span-3 space-y-4">
+      <!-- COLUNA 2: NAVEGAÇÃO REESTRUTURADA (4 Colunas) -->
+      <div class="md:col-span-4 space-y-4">
         <h4 class="text-xs font-sans uppercase tracking-[0.25em] text-[#222624] font-semibold border-b border-[#E8EBE8] pb-2">
-          Plataforma
+          Navegação
         </h4>
-        <ul class="space-y-3 text-xs tracking-wide text-[#5F6661]">
+        <ul class="space-y-2.5 text-xs tracking-wide text-[#5F6661]">
           <li>
-            <a routerLink="/modelos" class="hover:text-[#4B584E] transition-colors block py-0.5">
-              Casting &amp; Modelos
+            <a routerLink="/models/female" class="hover:text-[#4B584E] transition-colors block py-0.5">
+              Modelos Femininos
             </a>
           </li>
           <li>
-            <a [routerLink]="footerPressBookingUrl()" class="hover:text-[#4B584E] transition-colors block py-0.5">
-              Imprensa &amp; Booking
+            <a routerLink="/models/male" class="hover:text-[#4B584E] transition-colors block py-0.5">
+              Modelos Masculinos
             </a>
           </li>
           <li>
-            <a [routerLink]="footerApplyUrl()" class="hover:text-[#4B584E] transition-colors block py-0.5">
-              Inscrição de Novos Talentos
+            <a routerLink="/models/stars" class="hover:text-[#4B584E] transition-colors block py-0.5">
+              Stars
             </a>
           </li>
           <li>
             <a routerLink="/sobre" class="hover:text-[#4B584E] transition-colors block py-0.5">
-              Sobre a Agência
+              Sobre Nós
+            </a>
+          </li>
+          <li>
+            <a routerLink="/contact" class="hover:text-[#4B584E] transition-colors block py-0.5">
+              Contato
+            </a>
+          </li>
+          <li>
+            <a routerLink="/apply" class="hover:text-[#4B584E] transition-colors block py-0.5 font-medium text-[#222624]">
+              Quero ser Modelo
             </a>
           </li>
         </ul>
       </div>
 
-      <!-- COLUNA 3: CONTATO DIRETO & SOCIAL (3 Colunas) -->
-      <div class="md:col-span-3 lg:col-span-3 space-y-4">
+      <!-- COLUNA 3: CONTATO DIRETO E REDES SOCIAIS DINÂMICAS DO BANCO (3 Colunas) -->
+      <div class="md:col-span-3 space-y-4">
         <h4 class="text-xs font-sans uppercase tracking-[0.25em] text-[#222624] font-semibold border-b border-[#E8EBE8] pb-2">
           Contato
         </h4>
         <ul class="space-y-3 text-xs tracking-wide text-[#5F6661]">
-          <li>
-            <a href="mailto:contato@wbscouting.com" class="hover:text-[#4B584E] transition-colors block py-0.5">
-              contato&#64;wbscouting.com
+          <!-- E-mail Principal Dinâmico -->
+          <li *ngIf="contactData?.primaryEmail">
+            <a 
+              [href]="'mailto:' + contactData.primaryEmail" 
+              class="hover:text-[#4B584E] transition-colors block py-0.5 break-all"
+            >
+              {{ contactData.primaryEmail }}
             </a>
           </li>
-          <li>
-            <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" class="hover:text-[#4B584E] transition-colors block py-0.5">
-              +55 (11) 99999-9999
+
+          <!-- WhatsApp Oficial Dinâmico -->
+          <li *ngIf="contactData?.whatsapp">
+            <a 
+              [href]="'https://wa.me/' + cleanWhatsAppNumber(contactData.whatsapp)" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              class="hover:text-[#4B584E] transition-colors block py-0.5 font-mono"
+            >
+              {{ contactData.whatsapp }}
             </a>
           </li>
-          <li class="pt-2">
-            <span class="block text-[10px] uppercase tracking-[0.2em] text-[#222624] font-medium mb-2">Redes Sociais</span>
-            <div class="flex items-center gap-4 text-xs flex-wrap">
-              @if (socialMediaList().length > 0) {
-                @for (item of socialMediaList(); track item.name) {
-                  <a [href]="item.url" target="_blank" rel="noopener noreferrer" class="text-[#5F6661] hover:text-[#4B584E] transition-colors uppercase tracking-widest text-[11px]">
-                    {{ item.name }}
-                  </a>
-                }
-              } @else {
-                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="text-[#5F6661] hover:text-[#4B584E] transition-colors uppercase tracking-widest text-[11px]">
-                  Instagram
-                </a>
-                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="text-[#5F6661] hover:text-[#4B584E] transition-colors uppercase tracking-widest text-[11px]">
-                  LinkedIn
-                </a>
-              }
+
+          <!-- Redes Sociais Dinâmicas do Banco -->
+          <li *ngIf="(contactData.socialMediaList?.length || 0) > 0" class="pt-2">
+            <span class="block text-[10px] uppercase tracking-[0.2em] text-[#222624] font-medium mb-2">
+              Redes Sociais
+            </span>
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+              <a 
+                *ngFor="let social of contactData.socialMediaList || []" 
+                [href]="social.url" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                class="text-[#5F6661] hover:text-[#4B584E] transition-colors uppercase tracking-widest text-[11px]"
+              >
+                {{ social.name }}
+              </a>
             </div>
           </li>
         </ul>

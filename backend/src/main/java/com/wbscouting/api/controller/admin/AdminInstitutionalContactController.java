@@ -129,6 +129,20 @@ public class AdminInstitutionalContactController {
             payloadPt.put("address", dto.getAddress() != null ? dto.getAddress().getCity() + " - " + dto.getAddress().getState() : "São Paulo - SP");
             payloadPt.put("officeHours", dto.getBusinessHours());
 
+            if (dto.getSocialMediaList() != null) {
+                List<Map<String, String>> smList = new ArrayList<>();
+                for (ContactSettingsDto.SocialMediaItemDto item : dto.getSocialMediaList()) {
+                    if (item != null && ((item.getName() != null && !item.getName().isBlank()) || (item.getUrl() != null && !item.getUrl().isBlank()))) {
+                        Map<String, String> itemMap = new LinkedHashMap<>();
+                        itemMap.put("id", item.getId() != null ? item.getId() : UUID.randomUUID().toString());
+                        itemMap.put("name", item.getName() != null ? item.getName() : "");
+                        itemMap.put("url", item.getUrl() != null ? item.getUrl() : "");
+                        smList.add(itemMap);
+                    }
+                }
+                payloadPt.put("socialMediaList", smList);
+            }
+
             legacy.setPayloadPt(payloadPt);
             legacy.setPayloadEn(payloadPt);
             if (adminId != null) {
@@ -167,6 +181,14 @@ public class AdminInstitutionalContactController {
             }
             if (dto.getBusinessHours() != null && !dto.getBusinessHours().isBlank()) {
                 upsertDedicatedChannel("OFFICE_HOURS", dto.getBusinessHours(), "Horário de Atendimento", 6);
+            }
+            if (dto.getSocialMediaList() != null) {
+                int smOrder = 10;
+                for (ContactSettingsDto.SocialMediaItemDto item : dto.getSocialMediaList()) {
+                    if (item != null && org.springframework.util.StringUtils.hasText(item.getUrl())) {
+                        upsertDedicatedChannel("SOCIAL", item.getUrl(), item.getName() != null ? item.getName() : "Rede Social", smOrder++);
+                    }
+                }
             }
         } catch (Exception ex) {
             log.warn("Falha ao sincronizar tabela contact_channels dedicada: {}", ex.getMessage());

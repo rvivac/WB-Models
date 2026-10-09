@@ -11,7 +11,7 @@
       </p>
     </div>
     
-    <!-- Filtro Rápido de Visualização -->
+    <!-- Filtro Rápido de Visualização & Contadores -->
     <div class="filter-tabs flex items-center gap-1 border border-[#E8EBE8] p-0.5 bg-[#FBFBF9]">
       <button 
         type="button" 
@@ -19,9 +19,9 @@
         [class.active]="selectedCategoryFilter === 'ALL'"
         [class.bg-white]="selectedCategoryFilter === 'ALL'"
         [class.text-[#4B584E]]="selectedCategoryFilter === 'ALL'"
-        class="filter-tab-btn px-2.5 py-1 text-[10px] uppercase tracking-wider text-[#5F6661] transition-all cursor-pointer"
+        class="filter-tab-btn px-2.5 py-1 text-[10px] uppercase tracking-wider text-[#5F6661] transition-all cursor-pointer font-medium"
       >
-        Todas ({{ photos.length }})
+        Todas ({{ photos.length }}/{{ maxPhotos * 2 }})
       </button>
       <button 
         type="button" 
@@ -29,9 +29,9 @@
         [class.active]="selectedCategoryFilter === 'BOOK'"
         [class.bg-white]="selectedCategoryFilter === 'BOOK'"
         [class.text-[#4B584E]]="selectedCategoryFilter === 'BOOK'"
-        class="filter-tab-btn px-2.5 py-1 text-[10px] uppercase tracking-wider text-[#5F6661] transition-all cursor-pointer"
+        class="filter-tab-btn px-2.5 py-1 text-[10px] uppercase tracking-wider text-[#5F6661] transition-all cursor-pointer font-medium"
       >
-        Book
+        Book ({{ bookPhotosCount }}/{{ maxPhotos }})
       </button>
       <button 
         type="button" 
@@ -39,9 +39,9 @@
         [class.active]="selectedCategoryFilter === 'POLAROID'"
         [class.bg-white]="selectedCategoryFilter === 'POLAROID'"
         [class.text-[#4B584E]]="selectedCategoryFilter === 'POLAROID'"
-        class="filter-tab-btn px-2.5 py-1 text-[10px] uppercase tracking-wider text-[#5F6661] transition-all cursor-pointer"
+        class="filter-tab-btn px-2.5 py-1 text-[10px] uppercase tracking-wider text-[#5F6661] transition-all cursor-pointer font-medium"
       >
-        Polaroids
+        Polaroids ({{ polaroidPhotosCount }}/{{ maxPhotos }})
       </button>
     </div>
   </div>
@@ -51,9 +51,12 @@
     (dragover)="onDragOver($event)"
     (dragleave)="onDragLeave($event)"
     (drop)="onDropFiles($event)"
-    [class.border-[#4B584E]]="isDraggingOverZone"
-    [class.bg-[#F4F5F4]]="isDraggingOverZone"
-    [class.is-dragover]="isDraggingOverZone"
+    [class.border-[#4B584E]]="isDraggingOverZone && !isUploadDisabled"
+    [class.bg-[#F4F5F4]]="isDraggingOverZone && !isUploadDisabled"
+    [class.is-dragover]="isDraggingOverZone && !isUploadDisabled"
+    [class.opacity-60]="isUploadDisabled"
+    [class.cursor-not-allowed]="isUploadDisabled"
+    [class.bg-[#F5F5F3]]="isUploadDisabled"
     class="dropzone-area border-2 border-dashed border-[#E8EBE8] bg-[#FBFBF9] hover:bg-[#F8F9F8] transition-all p-8 text-center cursor-pointer relative"
   >
     <input
@@ -61,18 +64,24 @@
       multiple
       accept="image/jpeg,image/png,image/webp"
       (change)="onFileInputChange($event)"
-      class="file-input-hidden absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+      [disabled]="isUploadDisabled"
+      class="file-input-hidden absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
       title="Selecione arquivos de imagem"
     />
     <div class="dropzone-content flex flex-col items-center pointer-events-none">
       <svg class="dropzone-icon w-8 h-8 text-[#4B584E] mb-3 stroke-[1.2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
       </svg>
-      <p class="dropzone-main-text text-xs uppercase tracking-[0.15em] text-[#222624] font-medium">
+      <p class="dropzone-main-text text-xs uppercase tracking-[0.15em] text-[#222624] font-medium" *ngIf="!isUploadDisabled">
         Arraste fotografias aqui ou clique para selecionar
       </p>
+      <p class="dropzone-main-text text-xs uppercase tracking-[0.15em] text-[#A33B3B] font-medium" *ngIf="isUploadDisabled">
+        Limite máximo de {{ maxPhotos }} fotos atingido para este álbum.
+      </p>
       <p class="dropzone-sub-text text-[10px] text-[#5F6661] tracking-wider mt-1">
-        JPG, PNG ou WebP até 10 MB por foto. Alta definição recomendada (máx. {{ maxPhotos }} imagens).
+        Álbum ativo: <strong class="text-[#222624] font-semibold">{{ currentTargetCategory === 'BOOK' ? 'Book Editorial' : 'Polaroids Técnicas' }}</strong>
+        ({{ currentTargetCategory === 'BOOK' ? bookPhotosCount : polaroidPhotosCount }}/{{ maxPhotos }} fotos).
+        JPG, PNG ou WebP até 10 MB.
       </p>
     </div>
   </div>

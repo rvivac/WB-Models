@@ -39,12 +39,31 @@ describe('HomeHeroComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create and display hero video without central text overlay', () => {
-    expect(component).toBeTruthy();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('video')).toBeTruthy();
+  it('should display splash logo initially and transition to action buttons after 1000ms', fakeAsync(() => {
+    const testFixture = TestBed.createComponent(HomeHeroComponent);
+    const testComponent = testFixture.componentInstance;
+    testFixture.detectChanges();
+
+    expect(testComponent).toBeTruthy();
+    expect(testComponent.showSplashLogo()).toBeTrue();
+
+    let compiled = testFixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.hero-splash-logo')).toBeTruthy();
     expect(compiled.querySelector('.hero-headline')).toBeNull();
-  });
+    expect(compiled.querySelector('.hero-manifesto')).toBeNull();
+    expect(compiled.querySelector('.hero-buttons')).toBeNull();
+
+    // Avança o temporizador em 1000ms
+    tick(1000);
+    testFixture.detectChanges();
+
+    expect(testComponent.showSplashLogo()).toBeFalse();
+    compiled = testFixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.hero-splash-logo')).toBeNull();
+    expect(compiled.querySelector('.hero-buttons')).toBeTruthy();
+    expect(compiled.textContent).toContain('Ver Elenco');
+    expect(compiled.textContent).toContain('Seja Modelo');
+  }));
 
   it('should trigger poster fallback when video encounters error', () => {
     component.onVideoError();

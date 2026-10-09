@@ -119,22 +119,38 @@ public class AdminInstitutionalTranslationController {
         TranslationContentDto ptDto = request.getResolvedPt();
         TranslationContentDto enDto = request.getResolvedEn();
 
-        Map<String, Object> ptMap = content.getPayloadPt() != null ? new HashMap<>(content.getPayloadPt()) : new HashMap<>();
         String ptText = ptDto.getContent() != null && !ptDto.getContent().isBlank() ? ptDto.getContent() : (ptDto.getBody() != null ? ptDto.getBody() : "");
-        ptMap.put("headline", ptDto.getHeadline() != null ? ptDto.getHeadline() : "");
-        ptMap.put("quote", ptDto.getQuote() != null ? ptDto.getQuote() : "");
-        ptMap.put("sectionTitle", ptDto.getSectionTitle() != null ? ptDto.getSectionTitle() : "");
-        ptMap.put("body", ptText);
-        ptMap.put("content", ptText);
-        content.setPayloadPt(ptMap);
-
-        Map<String, Object> enMap = content.getPayloadEn() != null ? new HashMap<>(content.getPayloadEn()) : new HashMap<>();
         String enText = enDto.getContent() != null && !enDto.getContent().isBlank() ? enDto.getContent() : (enDto.getBody() != null ? enDto.getBody() : "");
-        enMap.put("headline", enDto.getHeadline() != null ? enDto.getHeadline() : "");
-        enMap.put("quote", enDto.getQuote() != null ? enDto.getQuote() : "");
-        enMap.put("sectionTitle", enDto.getSectionTitle() != null ? enDto.getSectionTitle() : "");
-        enMap.put("body", enText);
-        enMap.put("content", enText);
+
+        boolean isSimpleContent = "TERMS".equals(normalizedKey) || SECTION_TERMS_OF_USE.equals(normalizedKey)
+                || "PRIVACY".equals(normalizedKey) || SECTION_PRIVACY_POLICY.equals(normalizedKey);
+
+        Map<String, Object> ptMap;
+        Map<String, Object> enMap;
+
+        if (isSimpleContent) {
+            ptMap = new HashMap<>();
+            ptMap.put("content", ptText);
+
+            enMap = new HashMap<>();
+            enMap.put("content", enText);
+        } else {
+            ptMap = content.getPayloadPt() != null ? new HashMap<>(content.getPayloadPt()) : new HashMap<>();
+            ptMap.put("headline", ptDto.getHeadline() != null ? ptDto.getHeadline() : "");
+            ptMap.put("quote", ptDto.getQuote() != null ? ptDto.getQuote() : "");
+            ptMap.put("sectionTitle", ptDto.getSectionTitle() != null ? ptDto.getSectionTitle() : "");
+            ptMap.put("body", ptText);
+            ptMap.put("content", ptText);
+
+            enMap = content.getPayloadEn() != null ? new HashMap<>(content.getPayloadEn()) : new HashMap<>();
+            enMap.put("headline", enDto.getHeadline() != null ? enDto.getHeadline() : "");
+            enMap.put("quote", enDto.getQuote() != null ? enDto.getQuote() : "");
+            enMap.put("sectionTitle", enDto.getSectionTitle() != null ? enDto.getSectionTitle() : "");
+            enMap.put("body", enText);
+            enMap.put("content", enText);
+        }
+
+        content.setPayloadPt(ptMap);
         content.setPayloadEn(enMap);
 
         SiteContent saved = siteContentRepository.save(content);

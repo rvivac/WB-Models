@@ -36,6 +36,8 @@ export class FooterComponent implements OnInit {
   isModalOpen = signal<boolean>(false);
   modalTitle = signal<string>('');
   modalContent = signal<string>('');
+  termsContent = signal<string>('');
+  privacyContent = signal<string>('');
   isLoadingContent = signal<boolean>(false);
 
   contactData: ContactData = {
@@ -133,6 +135,11 @@ export class FooterComponent implements OnInit {
       next: (res) => {
         this.isLoadingContent.set(false);
         const text = res?.content || res?.payload?.content || (typeof res === 'string' ? res : '');
+        if (sectionKey === 'TERMS') {
+          this.termsContent.set(text);
+        } else {
+          this.privacyContent.set(text);
+        }
         this.modalContent.set(text || (isEn ? 'Content temporarily unavailable.' : 'Conteúdo temporariamente indisponível.'));
       },
       error: () => {

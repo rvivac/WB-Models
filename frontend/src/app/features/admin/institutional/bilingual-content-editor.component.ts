@@ -95,6 +95,33 @@ export class BilingualContentEditorComponent implements OnInit {
       return;
     }
 
+    if (sectionKey === 'TERMS' || sectionKey === 'PRIVACY') {
+      this.http.get<any>(`${environment.apiUrl}/public/content/${sectionKey}?lang=pt`).subscribe({
+        next: (res) => {
+          const ptVal = res?.content || res?.body || '';
+          this.tempPt.content = ptVal;
+          this.currentContent.pt.content = ptVal;
+          this.currentContent.pt.body = ptVal;
+        },
+        error: (err) => {
+          console.warn(`[I18N] Erro ao carregar PT para ${sectionKey}:`, err);
+        }
+      });
+
+      this.http.get<any>(`${environment.apiUrl}/public/content/${sectionKey}?lang=en`).subscribe({
+        next: (resEn) => {
+          const enVal = resEn?.content || resEn?.body || '';
+          this.tempEn.content = enVal;
+          this.currentContent.en.content = enVal;
+          this.currentContent.en.body = enVal;
+        },
+        error: (err) => {
+          console.warn(`[I18N] Erro ao carregar EN para ${sectionKey}:`, err);
+        }
+      });
+      return;
+    }
+
     const canonicalKey = this.getCanonicalKey(sectionKey);
 
     this.http.get<SectionTranslationsResponse>(`${environment.apiUrl}/admin/institutional/translations/${canonicalKey}`).subscribe({
@@ -258,17 +285,15 @@ export class BilingualContentEditorComponent implements OnInit {
     this.currentContent.en.body = contentEn;
 
     const payload = {
+      translations: {
+        pt: { content: contentPt },
+        en: { content: contentEn }
+      },
       pt: {
-        content: contentPt,
-        body: contentPt
+        content: contentPt
       },
       en: {
-        content: contentEn,
-        body: contentEn
-      },
-      translations: {
-        pt: { content: contentPt, body: contentPt },
-        en: { content: contentEn, body: contentEn }
+        content: contentEn
       }
     };
 

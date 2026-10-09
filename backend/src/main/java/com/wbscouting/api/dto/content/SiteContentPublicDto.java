@@ -25,13 +25,18 @@ public class SiteContentPublicDto {
         if (content != null && !content.isBlank()) {
             return content;
         }
-        if (payload != null && payload.containsKey("content") && payload.get("content") != null) {
-            return payload.get("content").toString();
+        if (payload != null) {
+            if (payload.containsKey("content") && payload.get("content") != null) {
+                return payload.get("content").toString();
+            }
+            if (payload.containsKey("body") && payload.get("body") != null) {
+                return payload.get("body").toString();
+            }
+            if (payload.containsKey("text") && payload.get("text") != null) {
+                return payload.get("text").toString();
+            }
         }
-        if (payload != null && payload.containsKey("body") && payload.get("body") != null) {
-            return payload.get("body").toString();
-        }
-        return null;
+        return content != null ? content : "";
     }
     public void setContent(String content) {
         this.content = content;

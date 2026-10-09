@@ -40,19 +40,27 @@ public class SiteContentServiceImpl implements SiteContentService {
     public SiteContentPublicDto getPublicContent(String sectionKey, String lang) {
         log.info("Consultando conteúdo público para sectionKey='{}', lang='{}'", sectionKey, lang);
 
-        SiteContent content = findSectionWithAlias(sectionKey)
+        String upper = sectionKey != null ? sectionKey.trim().toUpperCase(Locale.ROOT) : "";
+        String normalizedKey = switch (upper) {
+            case "TERMS", "TERMS_OF_USE" -> "TERMS";
+            case "PRIVACY", "PRIVACY_POLICY" -> "PRIVACY";
+            case "ABOUT", "MANIFESTO" -> "ABOUT_MANIFESTO";
+            default -> upper;
+        };
+
+        SiteContent content = findSectionWithAlias(normalizedKey)
                 .orElseGet(() -> {
-                    if ("ABOUT_MANIFESTO".equalsIgnoreCase(sectionKey)) {
+                    if ("ABOUT_MANIFESTO".equalsIgnoreCase(normalizedKey)) {
                         return createDefaultAboutManifesto();
                     }
                     // 🆕 Fallback para APPLY_HOW_IT_WORKS: nunca da 404 no /apply
-                    if ("APPLY_HOW_IT_WORKS".equalsIgnoreCase(sectionKey)) {
+                    if ("APPLY_HOW_IT_WORKS".equalsIgnoreCase(normalizedKey)) {
                         return createDefaultApplyHowItWorks();
                     }
-                    if ("TERMS".equalsIgnoreCase(sectionKey) || "TERMS_OF_USE".equalsIgnoreCase(sectionKey)) {
+                    if ("TERMS".equalsIgnoreCase(normalizedKey)) {
                         return createDefaultTerms();
                     }
-                    if ("PRIVACY".equalsIgnoreCase(sectionKey) || "PRIVACY_POLICY".equalsIgnoreCase(sectionKey)) {
+                    if ("PRIVACY".equalsIgnoreCase(normalizedKey)) {
                         return createDefaultPrivacy();
                     }
                     throw new ResourceNotFoundException("Conteúdo da seção não encontrado: " + sectionKey);
@@ -61,12 +69,14 @@ public class SiteContentServiceImpl implements SiteContentService {
         String resolvedLang = resolveLanguage(lang);
         Map<String, Object> resolvedPayload = resolvePayloadByLanguage(content, resolvedLang);
 
-        String extractedContent = null;
+        String extractedContent = "";
         if (resolvedPayload != null) {
             if (resolvedPayload.containsKey("content") && resolvedPayload.get("content") != null) {
                 extractedContent = resolvedPayload.get("content").toString();
             } else if (resolvedPayload.containsKey("body") && resolvedPayload.get("body") != null) {
                 extractedContent = resolvedPayload.get("body").toString();
+            } else if (resolvedPayload.containsKey("text") && resolvedPayload.get("text") != null) {
+                extractedContent = resolvedPayload.get("text").toString();
             }
         }
 
@@ -304,8 +314,8 @@ public class SiteContentServiceImpl implements SiteContentService {
         if (sectionKey == null) return Optional.empty();
         String upper = sectionKey.trim().toUpperCase(Locale.ROOT);
         String normalized = switch (upper) {
-            case "TERMS_OF_USE" -> "TERMS";
-            case "PRIVACY_POLICY" -> "PRIVACY";
+            case "TERMS", "TERMS_OF_USE" -> "TERMS";
+            case "PRIVACY", "PRIVACY_POLICY" -> "PRIVACY";
             case "ABOUT", "MANIFESTO" -> "ABOUT_MANIFESTO";
             default -> upper;
         };

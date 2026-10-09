@@ -85,6 +85,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/candidates/**", "/api/v1/candidates/**", "/public/candidates/**", "/api/v1/public/candidates/**", "/public/candidates/apply", "/api/v1/public/candidates/apply").permitAll()
 
                         // Endpoints públicos da página Sobre Nós e leitura institucional (/sobre)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/public/content/**", "/public/content/**").permitAll()
                         .requestMatchers(
                                 "/api/v1/public/institutional/about",
                                 "/public/institutional/about",

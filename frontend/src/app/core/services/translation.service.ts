@@ -132,6 +132,13 @@ export class TranslationService {
   }
 
   /**
+   * Synchronous translation method (alias for instant lookups matching ngx-translate interface).
+   */
+  instant(key: string, params?: Record<string, string | number>): string {
+    return this.translate(key, params);
+  }
+
+  /**
    * Helper to unpack dynamic backend content payloads based on active language signal.
    */
   selectContent<T>(payloadPt: T, payloadEn: T): T {

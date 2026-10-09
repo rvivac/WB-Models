@@ -167,4 +167,19 @@ describe('FooterComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('Privacy Policy WB Agency');
   });
+
+  it('should use i18n fallback when API fails or returns empty', () => {
+    const httpTesting = TestBed.inject(HttpTestingController);
+    component.openInstitutionalModal('TERMS');
+
+    const req = httpTesting.expectOne(`${environment.apiUrl}/public/content/TERMS?lang=pt`);
+    req.error(new ProgressEvent('Network error'));
+
+    expect(component.isLoadingContent()).toBeFalse();
+    expect(component.modalContent()).toContain('TERMOS E CONDIÇÕES DE USO');
+
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('TERMOS E CONDIÇÕES DE USO');
+  });
 });

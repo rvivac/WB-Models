@@ -74,17 +74,11 @@ public class HomeSettings {
     @Column(name = "disclaimer_link_label", length = 100, nullable = true)
     private String disclaimerLinkLabel;
 
-    @Column(name = "splash_duration_ms", nullable = true)
-    private Integer splashDurationMs;
-
     @UpdateTimestamp
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
     // Explicit getters and setters
-    public Integer getSplashDurationMs() { return splashDurationMs; }
-    public void setSplashDurationMs(Integer splashDurationMs) { this.splashDurationMs = splashDurationMs; }
-
     public Boolean getDisclaimerActive() { return disclaimerActive; }
     public void setDisclaimerActive(Boolean disclaimerActive) { this.disclaimerActive = disclaimerActive; }
 

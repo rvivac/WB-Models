@@ -197,16 +197,16 @@ public class AdminInstitutionalTranslationController {
                                 .settingKey("ABOUT_PAGE")
                                 .build());
 
-                if (ptDto.getHeadline() != null && !ptDto.getHeadline().isBlank()) {
+                if (ptDto.getHeadline() != null) {
                     setting.setTitle(ptDto.getHeadline().trim());
                 }
-                if (ptDto.getBody() != null && !ptDto.getBody().isBlank()) {
+                if (ptDto.getBody() != null) {
                     setting.setDescription(ptDto.getBody().trim());
                 }
                 Map<String, Object> data = setting.getContentDataWithFallback();
                 if (data == null) data = new LinkedHashMap<>();
                 if (ptDto.getQuote() != null) data.put("heroQuote", ptDto.getQuote().trim());
-                if (ptDto.getSectionTitle() != null && !ptDto.getSectionTitle().isBlank()) {
+                if (ptDto.getSectionTitle() != null) {
                     data.put("sectionTitle", ptDto.getSectionTitle().trim());
                     data.put("manifestoTitle", ptDto.getSectionTitle().trim());
                 }
@@ -241,24 +241,9 @@ public class AdminInstitutionalTranslationController {
         Map<String, Object> en = content.getPayloadEn() != null ? content.getPayloadEn() : Collections.emptyMap();
 
         String ptQuote = (String) pt.getOrDefault("quote", "");
-        if ((ptQuote == null || ptQuote.isBlank()) && SECTION_ABOUT_MANIFESTO.equals(sectionKey)) {
-            ptQuote = "Acreditamos na autenticidade, na força da personalidade e na beleza singular de cada indivíduo.";
-        }
-
         String ptSectionTitle = (String) pt.getOrDefault("sectionTitle", "");
-        if ((ptSectionTitle == null || ptSectionTitle.isBlank()) && SECTION_ABOUT_MANIFESTO.equals(sectionKey)) {
-            ptSectionTitle = "Nossa Filosofia";
-        }
-
         String enQuote = (String) en.getOrDefault("quote", "");
-        if ((enQuote == null || enQuote.isBlank()) && SECTION_ABOUT_MANIFESTO.equals(sectionKey)) {
-            enQuote = "We believe in authenticity, personal strength, and the unique beauty of every individual.";
-        }
-
         String enSectionTitle = (String) en.getOrDefault("sectionTitle", "");
-        if ((enSectionTitle == null || enSectionTitle.isBlank()) && SECTION_ABOUT_MANIFESTO.equals(sectionKey)) {
-            enSectionTitle = "Our Philosophy";
-        }
 
         String ptContent = (String) pt.getOrDefault("content", pt.getOrDefault("body", ""));
         String enContent = (String) en.getOrDefault("content", en.getOrDefault("body", ""));

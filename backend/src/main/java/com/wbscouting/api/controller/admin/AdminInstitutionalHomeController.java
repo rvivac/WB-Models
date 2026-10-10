@@ -77,7 +77,6 @@ public class AdminInstitutionalHomeController {
         payloadPt.put("disclaimerText", dto.getDisclaimerText() != null ? dto.getDisclaimerText() : "");
         payloadPt.put("disclaimerLinkUrl", dto.getDisclaimerLinkUrl() != null ? dto.getDisclaimerLinkUrl() : "");
         payloadPt.put("disclaimerLinkLabel", dto.getDisclaimerLinkLabel() != null ? dto.getDisclaimerLinkLabel() : "");
-        payloadPt.put("splashDurationMs", dto.getSplashDurationMs() != null ? dto.getSplashDurationMs() : 1000);
         content.setPayloadPt(payloadPt);
 
         Map<String, Object> payloadEn = content.getPayloadEn() != null ? new HashMap<>(content.getPayloadEn()) : new HashMap<>();
@@ -92,7 +91,6 @@ public class AdminInstitutionalHomeController {
         payloadEn.put("disclaimerText", dto.getDisclaimerText() != null ? dto.getDisclaimerText() : "");
         payloadEn.put("disclaimerLinkUrl", dto.getDisclaimerLinkUrl() != null ? dto.getDisclaimerLinkUrl() : "");
         payloadEn.put("disclaimerLinkLabel", dto.getDisclaimerLinkLabel() != null ? dto.getDisclaimerLinkLabel() : "");
-        payloadEn.put("splashDurationMs", dto.getSplashDurationMs() != null ? dto.getSplashDurationMs() : 1000);
         content.setPayloadEn(payloadEn);
 
         // Se videoUrl ou posterUrl forem informados diretamente via JSON
@@ -128,7 +126,6 @@ public class AdminInstitutionalHomeController {
                 hs.setDisclaimerText(dto.getDisclaimerText() != null ? dto.getDisclaimerText() : "");
                 hs.setDisclaimerLinkUrl(dto.getDisclaimerLinkUrl() != null ? dto.getDisclaimerLinkUrl() : "");
                 hs.setDisclaimerLinkLabel(dto.getDisclaimerLinkLabel() != null ? dto.getDisclaimerLinkLabel() : "");
-                hs.setSplashDurationMs(dto.getSplashDurationMs() != null ? dto.getSplashDurationMs() : 1000);
                 hs.setUpdatedAt(java.time.OffsetDateTime.now());
                 homeSettingsRepository.save(hs);
             } catch (Exception ex) {
@@ -218,13 +215,6 @@ public class AdminInstitutionalHomeController {
             disclaimerActive = Boolean.parseBoolean(pt.get("disclaimerActive").toString());
         }
 
-        Integer splashDuration = 1000;
-        if (pt.containsKey("splashDurationMs") && pt.get("splashDurationMs") != null) {
-            try {
-                splashDuration = Integer.parseInt(pt.get("splashDurationMs").toString());
-            } catch (Exception ignored) {}
-        }
-
         return HomeContentDto.builder()
                 .heroTitle(getString(pt, "heroTitle", "WB AGENCY"))
                 .heroSubtitle(getString(pt, "heroSubtitle", "EDITORIAL & HIGH FASHION SCOUTING"))
@@ -239,7 +229,6 @@ public class AdminInstitutionalHomeController {
                 .disclaimerText(getString(pt, "disclaimerText", ""))
                 .disclaimerLinkUrl(getString(pt, "disclaimerLinkUrl", ""))
                 .disclaimerLinkLabel(getString(pt, "disclaimerLinkLabel", ""))
-                .splashDurationMs(splashDuration)
                 .build();
     }
 
@@ -256,7 +245,6 @@ public class AdminInstitutionalHomeController {
         payloadPt.put("disclaimerText", "");
         payloadPt.put("disclaimerLinkUrl", "");
         payloadPt.put("disclaimerLinkLabel", "");
-        payloadPt.put("splashDurationMs", 1000);
 
         Map<String, Object> mediaUrls = new HashMap<>();
         mediaUrls.put("videoUrl", "assets/videos/wb-presentation.mp4");

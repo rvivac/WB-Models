@@ -143,4 +143,23 @@ describe('AboutComponent', () => {
     expect(compiled.querySelector('.manifesto-section h2')?.textContent).toContain('Nossa Filosofia Editorial');
     expect(compiled.querySelector('.manifesto-section')?.textContent).toContain('Texto completo e autêntico do corpo editorial.');
   });
+
+  it('should NOT render elements when fields are empty or whitespace in backend response', () => {
+    fixture.detectChanges();
+    const req = httpMock.expectOne(`${environment.apiUrl}/public/institutional/about`);
+    req.flush({
+      headline: '',
+      quote: '   ',
+      sectionTitle: '',
+      body: ''
+    });
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.page-title')).toBeNull();
+    expect(compiled.querySelector('.hero-quote-box')).toBeNull();
+    expect(compiled.querySelector('.manifesto-section')).toBeNull();
+    expect(compiled.textContent).not.toContain('A Nova Estética');
+    expect(compiled.textContent).not.toContain('Nossa Filosofia');
+  });
 });

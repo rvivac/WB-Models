@@ -68,17 +68,17 @@ export class BilingualContentEditorComponent implements OnInit {
 
   currentContent: BilingualContentState = {
     pt: {
-      headline: 'A Nova Estética do Scouting Global',
-      quote: 'Acreditamos na autenticidade, na força da personalidade e na beleza singular de cada indivíduo.',
-      sectionTitle: 'Nossa Filosofia',
-      body: 'A WB Agency consolidou-se como um núcleo editorial focado no desenvolvimento integral de modelos para os principais mercados da moda internacional. Nossa metodologia rejeita a padronização e prioriza a identidade visual autêntica, conectando talentos a marcas com relevância estética global.',
+      headline: '',
+      quote: '',
+      sectionTitle: '',
+      body: '',
       content: ''
     },
     en: {
-      headline: 'The New Aesthetic of Global Scouting',
-      quote: 'We believe in authenticity, personal strength, and the unique beauty of every individual.',
-      sectionTitle: 'Our Philosophy',
-      body: 'WB Agency has established itself as an editorial powerhouse dedicated to the comprehensive development of models for premier global fashion markets. Our scouting methodology moves beyond mass standards to foster authentic personal identity, positioning talents at the intersection of high fashion and international relevance.',
+      headline: '',
+      quote: '',
+      sectionTitle: '',
+      body: '',
       content: ''
     }
   };
@@ -202,15 +202,15 @@ export class BilingualContentEditorComponent implements OnInit {
           this.currentContent = {
             pt: {
               headline: res.translations.pt?.headline || '',
-              quote: res.translations.pt?.quote || (isAbout ? 'Acreditamos na autenticidade, na força da personalidade e na beleza singular de cada indivíduo.' : ''),
-              sectionTitle: res.translations.pt?.sectionTitle || (isAbout ? 'Nossa Filosofia' : ''),
+              quote: res.translations.pt?.quote || '',
+              sectionTitle: res.translations.pt?.sectionTitle || '',
               body: res.translations.pt?.body || '',
               content: ptContent
             },
             en: {
               headline: res.translations.en?.headline || '',
-              quote: res.translations.en?.quote || (isAbout ? 'We believe in authenticity, personal strength, and the unique beauty of every individual.' : ''),
-              sectionTitle: res.translations.en?.sectionTitle || (isAbout ? 'Our Philosophy' : ''),
+              quote: res.translations.en?.quote || '',
+              sectionTitle: res.translations.en?.sectionTitle || '',
               body: res.translations.en?.body || '',
               content: enContent
             }
@@ -526,16 +526,18 @@ export class BilingualContentEditorComponent implements OnInit {
     } else {
       this.currentContent = {
         pt: {
-          headline: 'A Nova Estética do Scouting Global',
-          quote: 'Acreditamos na autenticidade, na força da personalidade e na beleza singular de cada indivíduo.',
-          sectionTitle: 'Nossa Filosofia',
-          body: 'A WB Agency consolidou-se como um núcleo editorial focado no desenvolvimento integral de modelos para os principais mercados da moda internacional. Nossa metodologia rejeita a padronização e prioriza a identidade visual autêntica, conectando talentos a marcas com relevância estética global.'
+          headline: '',
+          quote: '',
+          sectionTitle: '',
+          body: '',
+          content: ''
         },
         en: {
-          headline: 'The New Aesthetic of Global Scouting',
-          quote: 'We believe in authenticity, personal strength, and the unique beauty of every individual.',
-          sectionTitle: 'Our Philosophy',
-          body: 'WB Agency has established itself as an editorial powerhouse dedicated to the comprehensive development of models for premier global fashion markets. Our scouting methodology moves beyond mass standards to foster authentic personal identity, positioning talents at the intersection of high fashion and international relevance.'
+          headline: '',
+          quote: '',
+          sectionTitle: '',
+          body: '',
+          content: ''
         }
       };
     }

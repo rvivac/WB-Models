@@ -257,15 +257,38 @@ describe('BilingualContentEditorComponent', () => {
     expect(component.successBlock).toBeNull();
   }));
 
-  it('deve utilizar fallback mock se a API retornar erro', () => {
+  it('deve manter campos vazios se a API retornar erro', () => {
     fixture.detectChanges();
 
     const req = httpMock.expectOne(`${environment.apiUrl}/admin/institutional/translations/ABOUT_MANIFESTO`);
     req.flush('Error', { status: 500, statusText: 'Server Error' });
 
     expect(component.currentSectionTitle).toBe('Sobre Nós');
-    expect(component.currentContent.pt.headline).toBe('A Nova Estética do Scouting Global');
+    expect(component.currentContent.pt.headline).toBe('');
   });
+
+  it('deve salvar campos vazios com sucesso via saveContent', fakeAsync(() => {
+    fixture.detectChanges();
+    httpMock.expectOne(`${environment.apiUrl}/admin/institutional/translations/ABOUT_MANIFESTO`).flush(mockResponse);
+
+    component.currentContent.pt.headline = '';
+    component.currentContent.pt.quote = '';
+    component.currentContent.pt.sectionTitle = '';
+    component.currentContent.pt.body = '';
+
+    component.saveContent();
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/admin/institutional/translations/ABOUT_MANIFESTO`);
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body.pt.headline).toBe('');
+    expect(req.request.body.pt.quote).toBe('');
+    req.flush({ success: true });
+
+    expect(component.isSaving).toBeFalse();
+    expect(component.successBlock).toBe('all');
+    tick(3000);
+    expect(component.successBlock).toBeNull();
+  }));
 
   it('deve salvar todo o conteúdo via saveContent e enviar payload completo', fakeAsync(() => {
     fixture.detectChanges();

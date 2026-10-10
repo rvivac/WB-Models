@@ -36,13 +36,13 @@ export class AboutComponent implements OnInit {
   }
 
   // Sinais preservados para reatividade complementar e testes existentes
-  readonly title = signal<string>('A Nova Estética do Scouting Global');
+  readonly title = signal<string>('');
   readonly subtitle = signal<string>('');
   readonly description = signal<string>('');
-  readonly heroQuote = signal<string>('Acreditamos na autenticidade, na força da personalidade e na beleza singular de cada indivíduo.');
-  readonly sectionTitle = signal<string>('Nossa Filosofia');
-  readonly manifestoTitle = signal<string>('Nossa Filosofia');
-  readonly manifestoText = signal<string>('Conectamos talentos às principais marcas com curadoria estratégica, visão de vanguarda e compromisso com o desenvolvimento humano e profissional em escala global.');
+  readonly heroQuote = signal<string>('');
+  readonly sectionTitle = signal<string>('');
+  readonly manifestoTitle = signal<string>('');
+  readonly manifestoText = signal<string>('');
   readonly pillarsTitle = signal<string>('');
   readonly pillars = signal<AboutPillar[]>([]);
 

@@ -16,7 +16,6 @@ import java.util.List;
 @AllArgsConstructor
 public class AboutPageDto {
 
-    @NotBlank(message = "O título principal é obrigatório")
     private String title;
 
     private String pageTitle;
@@ -51,30 +50,30 @@ public class AboutPageDto {
     private OffsetDateTime updatedAt;
 
     public String getPageTitle() {
-        return pageTitle != null && !pageTitle.isBlank() ? pageTitle : (headline != null && !headline.isBlank() ? headline : title);
+        return pageTitle != null ? pageTitle : (headline != null ? headline : title);
     }
 
     public String getHeadline() {
-        return headline != null && !headline.isBlank() ? headline : (title != null && !title.isBlank() ? title : pageTitle);
+        return headline != null ? headline : (title != null ? title : pageTitle);
     }
 
     public String getQuote() {
-        return quote != null && !quote.isBlank() ? quote : heroQuote;
+        return quote != null ? quote : heroQuote;
     }
 
     public String getSectionTitle() {
-        return sectionTitle != null && !sectionTitle.isBlank() ? sectionTitle : (manifestoTitle != null && !manifestoTitle.isBlank() ? manifestoTitle : "Nossa Filosofia");
+        return sectionTitle != null ? sectionTitle : manifestoTitle;
     }
 
     public String getManifestoTitle() {
-        return manifestoTitle != null && !manifestoTitle.isBlank() ? manifestoTitle : getSectionTitle();
+        return manifestoTitle != null ? manifestoTitle : sectionTitle;
     }
 
     public String getBodyText() {
-        return bodyText != null && !bodyText.isBlank() ? bodyText : (body != null && !body.isBlank() ? body : (manifestoText != null && !manifestoText.isBlank() ? manifestoText : description));
+        return bodyText != null ? bodyText : (body != null ? body : (manifestoText != null ? manifestoText : description));
     }
 
     public String getBody() {
-        return body != null && !body.isBlank() ? body : getBodyText();
+        return body != null ? body : getBodyText();
     }
 }

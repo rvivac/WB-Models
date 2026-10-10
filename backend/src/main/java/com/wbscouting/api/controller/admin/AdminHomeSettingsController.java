@@ -78,7 +78,6 @@ public class AdminHomeSettingsController {
         entity.setDisclaimerText(dto.getDisclaimerText() != null ? dto.getDisclaimerText() : "");
         entity.setDisclaimerLinkUrl(dto.getDisclaimerLinkUrl() != null ? dto.getDisclaimerLinkUrl() : "");
         entity.setDisclaimerLinkLabel(dto.getDisclaimerLinkLabel() != null ? dto.getDisclaimerLinkLabel() : "");
-        entity.setSplashDurationMs(dto.getSplashDurationMs() != null ? dto.getSplashDurationMs() : 1000);
         entity.setUpdatedAt(OffsetDateTime.now());
 
         HomeSettings saved = homeSettingsRepository.saveAndFlush(entity);
@@ -103,7 +102,6 @@ public class AdminHomeSettingsController {
             map.put("disclaimerText", dto.getDisclaimerText() != null ? dto.getDisclaimerText() : "");
             map.put("disclaimerLinkUrl", dto.getDisclaimerLinkUrl() != null ? dto.getDisclaimerLinkUrl() : "");
             map.put("disclaimerLinkLabel", dto.getDisclaimerLinkLabel() != null ? dto.getDisclaimerLinkLabel() : "");
-            map.put("splashDurationMs", dto.getSplashDurationMs() != null ? dto.getSplashDurationMs() : 1000);
             sc.setPayloadPt(map);
             sc.setPayloadEn(map);
             sc.setUpdatedAt(OffsetDateTime.now());

@@ -65,6 +65,7 @@ public class AboutPageServiceImpl implements AboutPageService {
         String quote = null;
         String sectionTitle = null;
         String body = null;
+        boolean foundInSiteContent = false;
 
         // 1. Busca prioritária direta em site_contents onde section_key = 'ABOUT_MANIFESTO'
         if (siteContentRepository != null) {
@@ -73,14 +74,15 @@ public class AboutPageServiceImpl implements AboutPageService {
                 if (contentOpt.isPresent()) {
                     var content = contentOpt.get();
                     Map<String, Object> payload = isEn ? content.getPayloadEn() : content.getPayloadPt();
-                    if (payload == null || payload.isEmpty()) {
+                    if (payload == null) {
                         payload = content.getPayloadPt();
                     }
-                    if (payload != null && !payload.isEmpty()) {
-                        headline = (String) payload.get("headline");
-                        quote = (String) payload.get("quote");
-                        sectionTitle = (String) payload.get("sectionTitle");
-                        body = (String) payload.get("body");
+                    if (payload != null) {
+                        foundInSiteContent = true;
+                        headline = (String) payload.getOrDefault("headline", "");
+                        quote = (String) payload.getOrDefault("quote", "");
+                        sectionTitle = (String) payload.getOrDefault("sectionTitle", "");
+                        body = (String) payload.getOrDefault("body", payload.getOrDefault("content", ""));
                     }
                 }
             } catch (Exception ex) {
@@ -88,38 +90,31 @@ public class AboutPageServiceImpl implements AboutPageService {
             }
         }
 
-        // 2. Se algum campo estiver ausente, complementa com institutional_settings (ABOUT_PAGE) ou defaults
-        if (headline == null || headline.isBlank() || body == null || body.isBlank() || quote == null || quote.isBlank() || sectionTitle == null || sectionTitle.isBlank()) {
+        // 2. Se não encontrado em site_contents, busca em institutional_settings (ABOUT_PAGE)
+        if (!foundInSiteContent) {
             AboutPageDto adminDto = getAdminAboutPage();
-            if (headline == null || headline.isBlank()) headline = adminDto.getHeadline();
-            if (quote == null || quote.isBlank()) quote = adminDto.getQuote();
-            if (sectionTitle == null || sectionTitle.isBlank()) sectionTitle = adminDto.getSectionTitle();
-            if (body == null || body.isBlank()) body = adminDto.getBody();
+            if (adminDto != null) {
+                headline = adminDto.getHeadline();
+                quote = adminDto.getQuote();
+                sectionTitle = adminDto.getSectionTitle();
+                body = adminDto.getBody();
+            }
         }
 
-        // Defaults garantidos
-        if (headline == null || headline.isBlank()) {
-            headline = isEn ? "The New Aesthetic of Global Scouting" : DEFAULT_TITLE;
-        }
-        if (quote == null || quote.isBlank()) {
-            quote = isEn ? "We believe in authenticity, personal strength, and the unique beauty of every individual." : DEFAULT_HERO_QUOTE;
-        }
-        if (sectionTitle == null || sectionTitle.isBlank()) {
-            sectionTitle = isEn ? "Our Philosophy" : DEFAULT_MANIFESTO_TITLE;
-        }
-        if (body == null || body.isBlank()) {
-            body = isEn ? "We connect talent to leading global brands with strategic curation, avant-garde vision, and a commitment to human and professional growth on a global scale." : DEFAULT_MANIFESTO_TEXT;
-        }
+        String finalHeadline = headline != null ? headline.trim() : "";
+        String finalQuote = quote != null ? quote.trim() : "";
+        String finalSectionTitle = sectionTitle != null ? sectionTitle.trim() : "";
+        String finalBody = body != null ? body.trim() : "";
 
         return new com.wbscouting.api.dto.AboutPageResponseDto(
-                headline.trim(),
-                headline.trim(),
-                quote.trim(),
-                quote.trim(),
-                sectionTitle.trim(),
-                sectionTitle.trim(),
-                body.trim(),
-                body.trim()
+                finalHeadline,
+                finalHeadline,
+                finalQuote,
+                finalQuote,
+                finalSectionTitle,
+                finalSectionTitle,
+                finalBody,
+                finalBody
         );
     }
 
@@ -156,20 +151,20 @@ public class AboutPageServiceImpl implements AboutPageService {
                         String sectionTitle = (String) payload.get("sectionTitle");
                         String body = (String) payload.get("body");
 
-                        if (headline != null && !headline.isBlank()) {
+                        if (headline != null) {
                             dto.setTitle(headline.trim());
                             dto.setPageTitle(headline.trim());
                             dto.setHeadline(headline.trim());
                         }
-                        if (quote != null && !quote.isBlank()) {
+                        if (quote != null) {
                             dto.setHeroQuote(quote.trim());
                             dto.setQuote(quote.trim());
                         }
-                        if (sectionTitle != null && !sectionTitle.isBlank()) {
+                        if (sectionTitle != null) {
                             dto.setSectionTitle(sectionTitle.trim());
                             dto.setManifestoTitle(sectionTitle.trim());
                         }
-                        if (body != null && !body.isBlank()) {
+                        if (body != null) {
                             dto.setManifestoText(body.trim());
                             dto.setBodyText(body.trim());
                             dto.setBody(body.trim());
@@ -185,10 +180,10 @@ public class AboutPageServiceImpl implements AboutPageService {
         if (dto.getPageTitle() == null) dto.setPageTitle(dto.getTitle());
         if (dto.getHeadline() == null) dto.setHeadline(dto.getTitle());
         if (dto.getQuote() == null) dto.setQuote(dto.getHeroQuote());
-        if (dto.getSectionTitle() == null || dto.getSectionTitle().isBlank()) {
-            dto.setSectionTitle(dto.getManifestoTitle() != null && !dto.getManifestoTitle().isBlank() ? dto.getManifestoTitle() : (isEn ? "Our Philosophy" : "Nossa Filosofia"));
+        if (dto.getSectionTitle() == null) {
+            dto.setSectionTitle(dto.getManifestoTitle() != null ? dto.getManifestoTitle() : "");
         }
-        if (dto.getManifestoTitle() == null || dto.getManifestoTitle().isBlank()) {
+        if (dto.getManifestoTitle() == null) {
             dto.setManifestoTitle(dto.getSectionTitle());
         }
         if (dto.getBodyText() == null) dto.setBodyText(dto.getManifestoText() != null ? dto.getManifestoText() : dto.getDescription());
@@ -208,24 +203,24 @@ public class AboutPageServiceImpl implements AboutPageService {
                         .settingKey(ABOUT_PAGE_KEY)
                         .build());
 
-        setting.setTitle(dto.getTitle() != null && !dto.getTitle().isBlank() ? dto.getTitle().trim() : DEFAULT_TITLE);
-        setting.setSubtitle(dto.getSubtitle() != null && !dto.getSubtitle().isBlank() ? dto.getSubtitle().trim() : DEFAULT_SUBTITLE);
-        setting.setDescription(dto.getDescription() != null && !dto.getDescription().isBlank() ? dto.getDescription().trim() : DEFAULT_DESCRIPTION);
+        setting.setTitle(dto.getTitle() != null ? dto.getTitle().trim() : (dto.getHeadline() != null ? dto.getHeadline().trim() : ""));
+        setting.setSubtitle(dto.getSubtitle() != null ? dto.getSubtitle().trim() : "");
+        setting.setDescription(dto.getDescription() != null ? dto.getDescription().trim() : (dto.getBody() != null ? dto.getBody().trim() : ""));
 
-        String resolvedSectionTitle = dto.getSectionTitle() != null && !dto.getSectionTitle().isBlank()
+        String resolvedSectionTitle = dto.getSectionTitle() != null
                 ? dto.getSectionTitle().trim()
-                : (dto.getManifestoTitle() != null && !dto.getManifestoTitle().isBlank() ? dto.getManifestoTitle().trim() : DEFAULT_MANIFESTO_TITLE);
+                : (dto.getManifestoTitle() != null ? dto.getManifestoTitle().trim() : "");
 
         Map<String, Object> contentMap = new LinkedHashMap<>();
-        contentMap.put("heroQuote", dto.getHeroQuote() != null && !dto.getHeroQuote().isBlank() ? dto.getHeroQuote().trim() : DEFAULT_HERO_QUOTE);
+        contentMap.put("heroQuote", dto.getHeroQuote() != null ? dto.getHeroQuote().trim() : (dto.getQuote() != null ? dto.getQuote().trim() : ""));
         contentMap.put("sectionTitle", resolvedSectionTitle);
         contentMap.put("manifestoTitle", resolvedSectionTitle);
-        contentMap.put("manifestoText", dto.getManifestoText() != null && !dto.getManifestoText().isBlank() ? dto.getManifestoText().trim() : DEFAULT_MANIFESTO_TEXT);
-        contentMap.put("pillarsTitle", dto.getPillarsTitle() != null && !dto.getPillarsTitle().isBlank() ? dto.getPillarsTitle().trim() : DEFAULT_PILLARS_TITLE);
+        contentMap.put("manifestoText", dto.getManifestoText() != null ? dto.getManifestoText().trim() : (dto.getBody() != null ? dto.getBody().trim() : ""));
+        contentMap.put("pillarsTitle", dto.getPillarsTitle() != null ? dto.getPillarsTitle().trim() : "");
 
-        List<AboutPillarDto> pillars = dto.getPillars() != null && !dto.getPillars().isEmpty()
+        List<AboutPillarDto> pillars = dto.getPillars() != null
                 ? dto.getPillars()
-                : getDefaultPillars();
+                : Collections.emptyList();
         contentMap.put("pillars", pillars);
 
         AboutSeoDto seo = dto.getSeo() != null ? dto.getSeo() : getDefaultSeo();
@@ -245,9 +240,9 @@ public class AboutPageServiceImpl implements AboutPageService {
                                 .build());
                 Map<String, Object> pt = content.getPayloadPt() != null ? new HashMap<>(content.getPayloadPt()) : new HashMap<>();
                 pt.put("headline", setting.getTitle());
-                pt.put("quote", dto.getHeroQuote() != null ? dto.getHeroQuote() : DEFAULT_HERO_QUOTE);
+                pt.put("quote", dto.getHeroQuote() != null ? dto.getHeroQuote() : (dto.getQuote() != null ? dto.getQuote() : ""));
                 pt.put("sectionTitle", resolvedSectionTitle);
-                pt.put("body", dto.getManifestoText() != null ? dto.getManifestoText() : DEFAULT_MANIFESTO_TEXT);
+                pt.put("body", dto.getManifestoText() != null ? dto.getManifestoText() : (dto.getBody() != null ? dto.getBody() : ""));
                 content.setPayloadPt(pt);
                 siteContentRepository.save(content);
                 log.info("Sincronização com siteContentRepository (ABOUT_MANIFESTO) concluída");
@@ -260,13 +255,13 @@ public class AboutPageServiceImpl implements AboutPageService {
     }
 
     private AboutPageDto mapEntityToDto(InstitutionalSetting setting) {
-        String titleVal = setting.getTitle() != null && !setting.getTitle().isBlank() ? setting.getTitle() : DEFAULT_TITLE;
+        String titleVal = setting.getTitle() != null ? setting.getTitle() : "";
         AboutPageDto.AboutPageDtoBuilder builder = AboutPageDto.builder()
                 .title(titleVal)
                 .pageTitle(titleVal)
                 .headline(titleVal)
-                .subtitle(setting.getSubtitle() != null && !setting.getSubtitle().isBlank() ? setting.getSubtitle() : DEFAULT_SUBTITLE)
-                .description(setting.getDescription() != null && !setting.getDescription().isBlank() ? setting.getDescription() : DEFAULT_DESCRIPTION)
+                .subtitle(setting.getSubtitle() != null ? setting.getSubtitle() : "")
+                .description(setting.getDescription() != null ? setting.getDescription() : "")
                 .updatedAt(setting.getUpdatedAt());
 
         Map<String, Object> data = setting.getContentDataWithFallback();
@@ -287,15 +282,15 @@ public class AboutPageServiceImpl implements AboutPageService {
             builder.pillars(extractPillars(rawPillars));
             builder.seo(extractSeo(data.get("seo")));
         } else {
-            builder.heroQuote(DEFAULT_HERO_QUOTE)
-                    .quote(DEFAULT_HERO_QUOTE)
-                    .sectionTitle(DEFAULT_MANIFESTO_TITLE)
-                    .manifestoTitle(DEFAULT_MANIFESTO_TITLE)
-                    .manifestoText(DEFAULT_MANIFESTO_TEXT)
-                    .bodyText(DEFAULT_MANIFESTO_TEXT)
-                    .body(DEFAULT_MANIFESTO_TEXT)
-                    .pillarsTitle(DEFAULT_PILLARS_TITLE)
-                    .pillars(getDefaultPillars())
+            builder.heroQuote("")
+                    .quote("")
+                    .sectionTitle("")
+                    .manifestoTitle("")
+                    .manifestoText("")
+                    .bodyText("")
+                    .body("")
+                    .pillarsTitle("")
+                    .pillars(Collections.emptyList())
                     .seo(getDefaultSeo());
         }
 
@@ -303,12 +298,13 @@ public class AboutPageServiceImpl implements AboutPageService {
     }
 
     private String extractString(Map<String, Object> map, String key, String fallbackKey, String defaultValue) {
-        Object val = map.get(key);
-        if (val == null && fallbackKey != null) {
-            val = map.get(fallbackKey);
+        if (map.containsKey(key)) {
+            Object val = map.get(key);
+            return val != null ? val.toString().trim() : "";
         }
-        if (val instanceof String s && !s.isBlank()) {
-            return s.trim();
+        if (fallbackKey != null && map.containsKey(fallbackKey)) {
+            Object val = map.get(fallbackKey);
+            return val != null ? val.toString().trim() : "";
         }
         return defaultValue;
     }

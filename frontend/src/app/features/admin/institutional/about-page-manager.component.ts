@@ -23,13 +23,13 @@ export class AboutPageManagerComponent implements OnInit {
   lastUpdated: string | null = null;
 
   aboutForm: FormGroup = this.fb.group({
-    title: ['', [Validators.required, Validators.maxLength(150)]],
-    subtitle: ['', [Validators.required, Validators.maxLength(100)]],
+    title: ['', [Validators.maxLength(150)]],
+    subtitle: ['', [Validators.maxLength(100)]],
     description: ['', [Validators.maxLength(1500)]],
-    heroQuote: ['', [Validators.required, Validators.maxLength(500)]],
-    manifestoTitle: ['', [Validators.required, Validators.maxLength(120)]],
-    manifestoText: ['', [Validators.required, Validators.maxLength(3000)]],
-    pillarsTitle: ['', [Validators.required, Validators.maxLength(120)]],
+    heroQuote: ['', [Validators.maxLength(500)]],
+    manifestoTitle: ['', [Validators.maxLength(120)]],
+    manifestoText: ['', [Validators.maxLength(3000)]],
+    pillarsTitle: ['', [Validators.maxLength(120)]],
     pillars: this.fb.array([]),
     seo: this.fb.group({
       metaTitle: ['', [Validators.maxLength(150)]],
@@ -54,8 +54,7 @@ export class AboutPageManagerComponent implements OnInit {
       },
       error: (err) => {
         console.error('Erro ao carregar dados da página Sobre Nós:', err);
-        this.populateForm(this.aboutService.defaultAboutPage);
-        this.showFeedback('Aviso: Operando com dados padrão locais.', 'error');
+        this.showFeedback('Aviso: Erro ao carregar dados da página Sobre Nós.', 'error');
         this.isLoading = false;
       }
     });
@@ -65,23 +64,23 @@ export class AboutPageManagerComponent implements OnInit {
     this.lastUpdated = data.updatedAt || null;
 
     this.aboutForm.patchValue({
-      title: data.title || this.aboutService.defaultAboutPage.title,
-      subtitle: data.subtitle || this.aboutService.defaultAboutPage.subtitle,
-      description: data.description || this.aboutService.defaultAboutPage.description,
-      heroQuote: data.heroQuote || this.aboutService.defaultAboutPage.heroQuote,
-      manifestoTitle: data.manifestoTitle || this.aboutService.defaultAboutPage.manifestoTitle,
-      manifestoText: data.manifestoText || this.aboutService.defaultAboutPage.manifestoText,
-      pillarsTitle: data.pillarsTitle || this.aboutService.defaultAboutPage.pillarsTitle,
+      title: data.title ?? '',
+      subtitle: data.subtitle ?? '',
+      description: data.description ?? '',
+      heroQuote: data.heroQuote ?? '',
+      manifestoTitle: data.manifestoTitle ?? '',
+      manifestoText: data.manifestoText ?? '',
+      pillarsTitle: data.pillarsTitle ?? '',
       seo: {
-        metaTitle: data.seo?.metaTitle || this.aboutService.defaultAboutPage.seo.metaTitle,
-        metaDescription: data.seo?.metaDescription || this.aboutService.defaultAboutPage.seo.metaDescription
+        metaTitle: data.seo?.metaTitle ?? '',
+        metaDescription: data.seo?.metaDescription ?? ''
       }
     });
 
     this.pillarsArray.clear();
     const pillars = data.pillars && data.pillars.length > 0
       ? data.pillars
-      : this.aboutService.defaultAboutPage.pillars;
+      : [];
 
     pillars.forEach((p, idx) => {
       this.pillarsArray.push(this.createPillarGroup(p.order || idx + 1, p.titulo, p.descricao));

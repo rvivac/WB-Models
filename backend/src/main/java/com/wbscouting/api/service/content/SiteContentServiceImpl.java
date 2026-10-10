@@ -148,16 +148,16 @@ public class SiteContentServiceImpl implements SiteContentService {
                                 .settingKey("ABOUT_PAGE")
                                 .build());
 
-                if (headline != null && !headline.isBlank()) {
+                if (headline != null) {
                     setting.setTitle(headline.trim());
                 }
-                if (body != null && !body.isBlank()) {
+                if (body != null) {
                     setting.setDescription(body.trim());
                 }
                 Map<String, Object> data = setting.getContentDataWithFallback();
                 if (data == null) data = new LinkedHashMap<>();
                 if (quote != null) data.put("heroQuote", quote.trim());
-                if (sectionTitle != null && !sectionTitle.isBlank()) {
+                if (sectionTitle != null) {
                     data.put("sectionTitle", sectionTitle.trim());
                     data.put("manifestoTitle", sectionTitle.trim());
                 }

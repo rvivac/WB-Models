@@ -14,31 +14,32 @@
   </div>
 
   <section class="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12 space-y-10">
-    <!-- TÍTULO PRINCIPAL (HEADLINE) -->
-    <div class="border-b border-[#E8EBE8] pb-6">
-      <h1 class="page-title text-3xl md:text-5xl font-light tracking-tight text-[#222624]">
-        {{ content?.headline || 'A Nova Estética do Scouting Global' }}
+    <!-- TÍTULO PRINCIPAL (HEADLINE) & CITAÇÃO (QUOTE) -->
+    <div *ngIf="content?.headline?.trim() || content?.quote?.trim()" class="border-b border-[#E8EBE8] pb-6">
+      <!-- Título Principal / Headline -->
+      <h1 *ngIf="content?.headline?.trim()" class="page-title text-3xl md:text-5xl font-light tracking-tight text-[#222624]">
+        {{ content?.headline }}
       </h1>
 
-      <!-- CITAÇÃO / FRASE DE DESTAQUE (QUOTE) -->
-      <div class="hero-quote-box">
+      <!-- Frase de Impacto / Quote -->
+      <blockquote *ngIf="content?.quote?.trim()" class="hero-quote-box">
         <p class="mt-4 text-base md:text-lg text-[#5F6661] font-serif italic max-w-4xl leading-relaxed">
-          “{{ content?.quote || 'Acreditamos na autenticidade, na força da personalidade e na beleza singular de cada indivíduo.' }}”
+          “{{ content?.quote }}”
         </p>
-      </div>
+      </blockquote>
     </div>
 
-    <!-- BLOCO EDITORIAL -->
-    <div class="manifesto-section space-y-4 max-w-4xl">
-      <!-- TÍTULO DA SEÇÃO (SECTION TITLE) -->
-      <h2 class="text-xs font-serif uppercase tracking-[0.25em] text-[#4B584E] font-semibold">
-        {{ content?.sectionTitle || 'Nossa Filosofia' }}
+    <!-- BLOCO EDITORIAL (SEÇÃO DE FILOSOFIA / MANIFESTO) -->
+    <div *ngIf="content?.body?.trim() || content?.sectionTitle?.trim()" class="manifesto-section space-y-4 max-w-4xl">
+      <!-- Título da Seção (Section Title) -->
+      <h2 *ngIf="content?.sectionTitle?.trim()" class="text-xs font-serif uppercase tracking-[0.25em] text-[#4B584E] font-semibold">
+        {{ content?.sectionTitle }}
       </h2>
 
-      <!-- CORPO EDITORIAL (BODY) -->
-      <div class="text-sm md:text-base text-[#222624] leading-relaxed whitespace-pre-line font-sans">
+      <!-- Corpo Editorial (Body) -->
+      <p *ngIf="content?.body?.trim()" class="text-sm md:text-base text-[#222624] leading-relaxed whitespace-pre-line font-sans">
         {{ content?.body }}
-      </div>
+      </p>
     </div>
   </section>
 </article>

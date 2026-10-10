@@ -33,9 +33,6 @@ public class HomeSettingsDto {
     private String disclaimerLinkUrl;
     private String disclaimerLinkLabel;
 
-    // Tempo de splash em milissegundos (padrão: 1000)
-    private Integer splashDurationMs;
-
     // Explicit getters and setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
@@ -77,9 +74,6 @@ public class HomeSettingsDto {
     public String getDisclaimerLinkLabel() { return disclaimerLinkLabel; }
     public void setDisclaimerLinkLabel(String disclaimerLinkLabel) { this.disclaimerLinkLabel = disclaimerLinkLabel; }
 
-    public Integer getSplashDurationMs() { return splashDurationMs; }
-    public void setSplashDurationMs(Integer splashDurationMs) { this.splashDurationMs = splashDurationMs; }
-
     public static HomeSettingsDto fromEntity(HomeSettings entity) {
         if (entity == null) return null;
         return HomeSettingsDto.builder()
@@ -102,7 +96,6 @@ public class HomeSettingsDto {
                 .disclaimerText(entity.getDisclaimerText() != null ? entity.getDisclaimerText() : "")
                 .disclaimerLinkUrl(entity.getDisclaimerLinkUrl() != null ? entity.getDisclaimerLinkUrl() : "")
                 .disclaimerLinkLabel(entity.getDisclaimerLinkLabel() != null ? entity.getDisclaimerLinkLabel() : "")
-                .splashDurationMs(entity.getSplashDurationMs() != null ? entity.getSplashDurationMs() : 1000)
                 .build();
     }
 }

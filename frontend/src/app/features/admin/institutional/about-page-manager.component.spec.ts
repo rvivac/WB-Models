@@ -135,9 +135,31 @@ describe('AboutPageManagerComponent', () => {
     expect(component.feedbackType).toBe('success');
   });
 
-  it('não deve submeter se o formulário for inválido', () => {
+  it('deve submeter com sucesso mesmo com campos de texto em branco', () => {
     component.aboutForm.patchValue({
-      title: ''
+      title: '',
+      subtitle: '',
+      heroQuote: '',
+      manifestoTitle: '',
+      manifestoText: '',
+      pillarsTitle: ''
+    });
+
+    aboutServiceSpy.updateAboutPage.and.returnValue(of({
+      ...mockAboutPage,
+      title: '',
+      updatedAt: '2026-10-01T15:00:00Z'
+    }));
+
+    component.save();
+
+    expect(aboutServiceSpy.updateAboutPage).toHaveBeenCalled();
+    expect(component.feedbackType).toBe('success');
+  });
+
+  it('não deve submeter se o formulário exceder limite de caracteres', () => {
+    component.aboutForm.patchValue({
+      title: 'a'.repeat(200)
     });
 
     component.save();

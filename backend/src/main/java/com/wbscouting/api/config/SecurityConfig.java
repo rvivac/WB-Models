@@ -79,9 +79,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**", "/api/v1/auth/**").permitAll()
 
                         // Endpoints públicos de candidatura ("Quero ser modelo")
-                        // Obs: rotas /apply e /submissions sao ambas LIBERADAS (TASK item 3)
-                        .requestMatchers(HttpMethod.POST, "/apply/**", "/api/v1/apply/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/submissions/**", "/api/v1/submissions/**").permitAll()
+                        .requestMatchers("/apply/**", "/api/v1/apply/**").permitAll()
+                        .requestMatchers("/submissions/**", "/api/v1/submissions/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/candidates/**", "/api/v1/candidates/**", "/public/candidates/**", "/api/v1/public/candidates/**", "/public/candidates/apply", "/api/v1/public/candidates/apply").permitAll()
 
                         // Endpoints públicos da página Sobre Nós e leitura institucional (/sobre)
@@ -92,6 +91,12 @@ public class SecurityConfig {
                                 "/api/v1/public/**",
                                 "/public/**"
                         ).permitAll()
+
+                        // Endpoints públicos de traduções (I18N / Translations)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/translations/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/translations").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/translations/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/translations").permitAll()
 
                         // Endpoints públicos de leitura (Catálogo, Home, Destaques, Conteúdos, Contato, I18n, Storage Local)
                         .requestMatchers(HttpMethod.GET, "/models/**", "/api/v1/models/**").permitAll()
